@@ -1,0 +1,67 @@
+<partial>
+  <!-- Tabmodal to select and create surgery ECDs -->
+  <section type="tabmodal" badge="none" name="mdlSurgeryECDs" title="Documentos de Cirugía">
+    <group>
+      <row>
+          <control type="datagrid" label="Cirugías del Paciente" name="SurgeriesForECDs"
+            span="12" rows="5"
+            datarequest="GetScheduledSurgeries"
+            appendrequest="patientId=[PatientId]"
+            source="Status,DateTimeScheduled,SurgeryType,PrimaryProcedureName,SurgeonName"
+            sourcelabels="Estatus,Programada,Tipo,Procedimiento Primario,Cirujano"
+            sort="DateTimeScheduled=desc"
+            align="|left|left|left|left"
+            key="SurgeryGuid"
+            translate="Status"
+            format="|datetime"
+            onselectset="PatientSurgeryGuid=[[SurgeryGuid]]"
+            onselect="SurgeryEcdForms"/>
+          <control type="hidden" name="PatientSurgeryGuid"/>
+        </row>
+        <row>
+          <control type="datagrid" label="Documentos de Cirugias" name="SurgeryEcdForms"
+            span="12" rows="15"
+            rowcolor="CompletedRowGuid|!green"
+            acctsvcreq="true"
+            datarequest="GetFormTemplatesWithCompletedForms"
+            appendrequest="Type=SurgicalNote,SurgeryGuid=[PatientSurgeryGuid]"
+            source="FormDescription,CompletedByFullName,CompletedDateTime"
+            sourcelabels="Documento,Completado por,Fecha y Hora"
+            align="left|left"
+            format="||datetime"
+            sort="FormDescription=asc"
+            key="FormGuid"
+            onselectset="[[CompletedRowGuid]]=;SelectedSurgeryECD=[[FormGuid]],[[CompletedRowGuid]]!;ECDToView=[[CompletedRowGuid]]"
+            onselect="[[CompletedRowGuid]]=;btnInsertSelectedECD,[[CompletedRowGuid]]!;btnViewSurgeryECD">
+             <!-- Revise a general ECD but not allowed to revise Chemotherapy ECDs in this grid-->
+            <control type="button" name="btnReviseSurgeryECD" label="Revisar" icon="refresh" showif="feature"
+              reveal="(userName)=[[CompletedBy]]"
+              confirm="Por favor confirme que desea revisar este documento"
+              action="redirect|url" 
+              target="ecd/index.html"
+              onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+              usesource="login" mode="ecd"
+              append="patientid=[[PatientId]],patientvisit=[[PatientVisit]],ecdMode=revise,ecdGuid=[[rowGuid]]" />
+          </control>
+        </row>
+        <row showif="never">
+          <control type="hidden" name="ECDToView"/>
+          <control type="button" name="btnViewSurgeryECD"
+            action="redirect|url" 
+            target="ecd/index.html"
+            usesource="login"
+            filter="MostRecent=true"
+            append="ecdGuid=[ECDToView],patientid=[PatientId],patientvisit=[PatientVisit],ecdMode=review,department=[DepartmentGuidLookup]"/>
+          <control type="hidden" name="SelectedSurgeryECD"/>
+          <control type="button"  name="btnInsertSelectedECD"
+            onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+            action="redirect|url" 
+            target="ecd/index.html" 
+            usesource="login"
+            mode="window"
+            append="ecdGuid=[SelectedSurgeryECD],orderGuid=[PatientSurgeryGuid],patientid=[PatientId],patientvisit=[PatientVisit],Department=[DepartmentGuidLookup]"
+            provoke="SurgeryEcdForms"/>
+        </row>
+      </group>
+    </section>
+</partial>

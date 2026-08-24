@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Admisión Vigilancia" type="onload" trigger="grdPatientAppointmentList">
+  <facet name="FileName" value="AdmittingManagement"/>
+  <facet name="PatientSearched" value="false"/>
+  <!-- Display an appointment list for patient reminders -->
+  <partial link="Partials/ColombiaPartialActiveAppointmentList.xml"/>
+  <!-- Display a list of admitted patients to discharge -->
+  <partial link="Partials/ColombiaPartialAllAdmittedPatientsForDischarge.xml"/>
+  <!--Tabmodal for admitting/reviewing hospital patients-->
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="medium" title="Información del Paciente">
+    <group showif="never">
+      <row>
+        <!--Read the patient record and display-->
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo,rowRoomFullName"
+          set="PatientSearched=false,HasOpenVisit=true;PatientVisitGuid=[[PatientVisit]]"
+          provoke="HasOpenVisit=true;PatientVisitGuid,Consult_BirthPlace,Appointments,GetPatientAddress"/>
+        <control type="select" name="GetPatientAddress" default="true"
+          source="rowguid,AddressGuid"
+          datarequest="GetPatientAddresses"
+          appendrequest="patientId=[PatientId]"
+          filter="Selected=true,Active=true"
+          set="Consult_StateCode=[[StateCode]],Consult_MunicipalCode=[[BarrangayCode]]"/>
+        <control type="hidden" name="PatientVisitGuid"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[PatientVisitGuid]"
+          set="Consult_CurrentDepartmentName=[[CurrentDepartmentName]]"/>
+        <control type="select" name="GetAdmittingDepartment"
+          source="DepartmentName,DepartmentGuid"
+          default="true"
+          filter="DepartmentName%COVID"
+          acctsvc="true"
+          datasource="GetDepartmentsActive"/>
+        <!-- Close the patient tabmodal -->
+        <control type="button" name="ClosePatientTabModal" action="close|new"/>
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="PatientInfo">
+      <columns>
+        <column span="9">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="3">
+          <partial link="Partials/ColombiaPartialAdmitManagementButtons.xml"/>
+        </column>
+      </columns>
+      <row name="rowAppointmentList" reveal="[PatientId]!">
+        <!-- Patient appointment list -->
+        <partial link="./Partial/Grids/PartialAppointmentListForPatientWithAdmit.xml"/>
+      </row>
+    </group> 
+  </section>
+    <partial link="Partials/ColombiaPartialCalendarFirstVisitAppointmentModalWithAdmit.xml"/>
+    <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+		<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/> 
+</module>

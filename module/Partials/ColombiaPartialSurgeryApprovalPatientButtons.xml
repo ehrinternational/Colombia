@@ -1,0 +1,83 @@
+<partial>
+  <row name="rowUpdateButton" reveal="[PatientId]!">
+    <control type="button" 
+      name="Consult_PatientUpdate"
+      reveal="[HasOpenVisit]=true" 
+      span="12" 
+      label="Actualizar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[PatientVisitGuid]!;btnUpdatePatientVisit"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnUpdatePatientVisit"
+      action="save|close|new"
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <control type="button" name="btnReports"
+      reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Patient,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+  <row>
+    <control type="button" name="btnTimeline"
+      reveal="[HasOpenVisit]=true"
+      span="12"
+      icon="time" color="lightblue"
+      label="Cronograma"
+      action="redirect|view"
+      target="timeline"
+      append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+  </row>
+  <row>
+    <control type="button" name="btnApproveSurgeryPatient" 
+      reveal="[PatientVisitGuid]!+[SurgeryVisitStatus]=Pending+[ApprovedByOrtho]=True+[ApprovedByAnesthesia]=True+[ApprovedByPediatrics]=True" 
+      span="12" icon="hospital" label="Aprobar Paciente" color="green" action="save"
+      confirm="Por favor confirme que desea aprobar a este paciente para cirugía."
+      acctsvc="true"
+      affector="none"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="PatientVisit=[PatientVisitGuid],SurgeryVisitStatus=Approved"
+      set="SurgeryVisitStatus=Approved"/>
+  </row>
+  <row>
+    <control type="button" name="btnRejectSurgeryPatient" 
+      reveal="[PatientVisitGuid]!+[SurgeryVisitStatus]=Pending|Approved+(user.UserRoles)%Physician" 
+      span="12" icon="remove" label="Rechazar Paciente" color="red" action="redirect"
+      target="mdlReasonToCancelSurgeryApproval"/>
+  </row>
+  <row>
+      <!-- Transfer patient to another department -->
+      <control type="button" name="btnTransferPatient"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      span="12" icon="hospital" label="Transferir"
+      color="orange" action="redirect"
+      preset="Transfer2_DepartmentGuid=[DepartmentGuidLookup]"
+      target="mdlTransferPatient"/>
+    </row>
+    <row>
+      <control type="button" name="btnInitiateSurgeryECDs" 
+        reveal="[PatientId]!"
+        span="12" icon="edit" label="Documentos Cirugía"
+        trigger="SurgeriesForECDs"
+        action="redirect" target="mdlSurgeryECDs"/>
+    </row>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+</partial>

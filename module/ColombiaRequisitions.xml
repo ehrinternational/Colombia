@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Purchase Order Module -->
+<module name="Requisiciones" type="onload" trigger="GetLastDepartment">
+<facet name="PatientOrders" value="true"/>
+<partial link="../../ERPSpanish/module/Partials/PartialESRequisitions.xml"/>
+</module>

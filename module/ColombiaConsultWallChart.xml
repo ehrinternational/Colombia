@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Pantalla de Consulta" type="onload" trigger="DisplayDepartmentQueue">
+  <template name="patientGridTemplate" type="markup" align="center">
+    [div bgcolor=white align=center][h2]${[[PatientFullName]]} ${[[RoomService]]}[/h2][/div]
+  </template>
+  <section type="tab" name="tabConsultWaitingRoomDisplay" title="Pantalle de Consulta">
+    <group>
+      <row showif="never">
+        <control type="button" name="DisplayDepartmentQueue"
+          acctsvcreq="true"
+          datarequest="GetDepartmentByDepartmentGuid"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup]"
+          set="PatientId=[[ServingPatient]],
+            FoundRoom=[[ServingRoom]],
+            patientroom=,
+            patientname="
+          provoke="[PatientId]!;PatientId^ServingList"/>
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          set="FoundName=[[PatientFullName]],
+            PatientVisit=[[PatientVisit]]"
+          provoke="GetPatientVisit"/>
+        <control type="hidden" name="FoundName"/>
+        <control type="hidden" name="FoundRoom"/>
+        <control type="hidden" name="patientname"/>
+        <control type="hidden" name="patientroom"/>
+        <control type="hidden" name="PatientVisit"/>
+        <control type="hidden" name="LastPatientId"/>
+        <control type="hidden" name="GetPatientVisit"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[PatientVisit]"
+          set="[[CurrentDepartment]]![DepartmentGuidLookup];patientname=,
+            [[CurrentDepartment]]![DepartmentGuidLookup];patientroom=,
+            [[CurrentDepartment]]=[DepartmentGuidLookup];patientname=[FoundName],
+            [[CurrentDepartment]]=[DepartmentGuidLookup];patientroom=[FoundRoom],"
+          provoke="[PatientId]!+[PatientId]![LastPatientId];dingdong|sound,
+            [PatientId]!+[PatientId]![LastPatientId];SetLastPatientId,
+            ServingList"/>
+        <control type="hidden" name="SetLastPatientId" set="LastPatientId=[PatientId]"/>
+      </row>
+      <row>
+        <control type="select" name="DepartmentGuidLookup"
+            span="3" acctsvc="true" explicit="true" edit="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"
+            provoke="DisplayDepartmentQueue"/>
+      </row>
+      <row>
+        <control span="2" type="image">../projects/Colombia/module/img/ShrinerBear.png</control>
+        <control type="markup" name="markUpContent" color="black" span="10"
+          reveal="[patientname]!+[patientroom]!">
+              [h1 size=72 align=center][b name="patientname"]name[/b][/h1]
+              [h1 size=72 align=center]Pasar a [span name="patientroom"]name[/span][/h1]
+        </control>
+      </row>
+      <row>
+        <control name="ServingList" type="repeater" label=""
+          refresh="60" items="10" span="12" columns="2"
+          fititems="true"
+          filter="DateTimeCalled!,RecordUniqueId![PatientId]"
+          controlset="none"
+          acctsvcreq="true"
+          idle="[DepartmentGuidLookup]=|reset"
+          datarequest="GetAdmittedPatientsByDepartment"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup],excludePhoto=true"
+          source="patientGridTemplate"
+          sort="DateTimeCalled=desc"
+          key="key"/>
+      </row>
+    </group>
+  </section>
+</module>

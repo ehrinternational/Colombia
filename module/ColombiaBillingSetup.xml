@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Configuración de Facturación" type="onload" trigger="PatientPayers">  
+  <!-- Display a payer pricing list -->
+  <partial link="./Partial/Lists/PartialBillingPayerPricingList.xml"/>
+  <!-- Payer list -->
+  <partial link="./Partial/Modals/PartialBillingPayersAndInsurers.xml"/>
+  <!-- Discount Rules -->
+  <partial link="./Partial/Modals/PartialBillingDiscountRules.xml"/>
+  <!-- Payment Types -->
+  <partial link="./Partial/Modals/PartialBillingPaymentTypes.xml"/>
+  <!-- Tax Authorities -->
+  <partial link="./Partial/Modals/PartialBillingTaxAuthoritiesAndTaxRates.xml"/>
+</module>

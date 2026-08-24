@@ -1,0 +1,120 @@
+<partial>
+  <!-- GoPartialSurgeryInformation -->
+  <row>
+    <control type="label" label="Originado por" span="3"/>
+    <control type="text" name="SurgeryView_EnteredBy" span="5" readonly="true"/>
+    <control type="datetime" name="SurgeryView_DateTimeEntered" span="4" readonly="true"/>
+  </row>
+  <row>
+    <control type="label" label="Diagnóstico/Hipótesis" span="3"/>
+    <control type="typeahead" name="ConfirmedDiagnosis,ConfirmedDiagnosisCode" span="9" readonly="true" 
+      datasource="GetICD10CodesSearchByTerm"
+      term="term"
+      source="ICD10CodeDescription,ICD10Code"/>
+  </row>
+  <row>
+    <control type="label" label="Procedimiento Principal" span="3"/>
+    <control type="typeahead" name="PrimaryProcedureName,PrimaryProcedure" span="9" 
+      readonly="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription" required="true"/>
+  </row>
+  <row>
+    <control type="label" label="Procedimiento Secundario" span="3"/>
+    <control type="typeahead" name="SecondaryProcedureName,SecondaryProcedure" span="9"
+      readonly="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+  </row>
+  <row>
+    <control type="label" label="Notas de Vinculación" span="5"/>
+    <control type="textarea" name="SurgeryView_ScheduleNotes" span="7" rows="1"/>
+  </row>
+  <row>
+    <control type="label" label="Observaciones antes de la cirugía" span="5"/>
+    <control type="textarea" name="SurgeryView_PreOpNotes" span="7" rows="1" readonly="true"/>
+  </row>     
+  <row>
+    <control type="label" label="Prioridad" span="3"/>
+    <control type="select" name="SurgeryView_Priority" span="3" readonly="true" required="true"
+      source="Normal,Urgente,Emergencia" default="Normal"/>
+    <control type="label" label="Estatus" span="3"/>
+    <control type="select" name="SurgeryView_Status" span="3" readonly="true" 
+      required="true" explicit="true" 
+      source="Requested,Scheduled,Confirmed,In Process,Completed,Canceled,Template"
+      sourcelabels="Requerido,Programada,Confirmado,En Proceso,Completado,Cancelado,Plantilla" default="Active"/>
+  </row>
+  <row name="rowSurgeryCalendar" >
+    <control type="label" label="Calendario" span="3"/>
+    <control type="select" 
+      name="SurgeryView_CalendarGuid"
+      span="4"
+      datasource="GetSchedulerAppointmentTypesByFacility" 
+      source="CalendarName,CalendarGuid" 
+      required="true"
+      readonly="true"/>
+    <control type="label" label="Sala" span="2"/>
+    <control type="select" name="SurgeryView_RoomGuid" span="3" 
+      datasource="GetRoomsAndBedsForThisFacility"
+      source="RoomAndBedNumber,RoomGuid"
+      filter="RoomType%Quirófano"
+      explicit="true" readonly="true" required="true"
+      sort="RoomAndBedNumber=asc"/>
+  </row>
+  <row name="rowSurgeryDateTime" >
+    <control type="label" label="Fecha Programada" span="3"/>
+    <control type="datetime" name="SurgeryView_DateTimeScheduled" span="3" readonly="true"  required="true"/>
+    <control type="label" label="Fecha Realizada" span="3"/>
+    <control type="datetime" name="SurgeryView_DateTimePerformed" span="3" readonly="true"/>
+  </row>
+  <row>
+    <control type="label" label="Duración Prevista" badge="min" span="3"/>
+    <control type="integer" name="SurgeryView_EstimatedLength" span="3" readonly="true" required="true" 
+      when="=1440;60"/>
+    <control type="label" label="Duración Actual" badge="min" span="3"/>
+    <control type="integer" name="SurgeryView_ActualLength" span="3" readonly="true"/>
+  </row>
+   <row>
+    <control type="label" label="Tipo de Cirugía" span="3"/>
+    <control type="select" name="SurgeryView_SurgeryType" span="3" required="true"
+      readonly="true"
+      source="Ortopedia,Mano,Columna,Retiro,Plástica,Plástica Reconstructiva,
+      Cirugía con Laser,No ortopédica,Especial"/>
+    <control type="label" label="Tipo de Anestesia" span="3"/>
+    <control type="select" name="SurgeryView_AnesthesiaType" span="3" readonly="true"
+      source="A. Gral. Inha,A. Gral IV,TIVA,T.E,TE + BPC,TE + BPL,TE + BPB,ML,ML + BPC,
+      ML + BPL,ML + BPB,ML + BPOPLITEO,BPC,BPL.BPDL,BTP,BSA,BPB,SED + LOCAL,
+      V. ANESTÉSICA /TRAQUEOSTOMIA,BLOQUEO PENEANO,BLOQUEO PEDIO"/>
+  </row>
+  <row>
+    <control type="label" label="Especialidad" span="3"/>
+    <control type="select" name="SurgeryView_MedicalSpecialty" span="3" 
+      acctsvc="true" 
+      datasource="GetMedicalSpecialties" 
+      filter="ParentSpecialty=null"
+      default="[SearchSurgerySpecialty]"
+      source="Specialty,MedicalSpecialtyGuid"
+      explicit="true" readonly="true"/>
+    <control type="label" label="Cirujano" span="2"/>
+    <control type="select" name="SurgeryView_SurgeonId"
+      searchable="true" required="true"
+      acctsvc="true" datasource="GetUsersByAttributes" 
+      append="LocationId=(facilityData.LocationId),role=Physician"
+      source="UserFirstMiddleLast,UserId"
+      span="4" explicit="true" readonly="true"/>
+  </row>
+  <row name="rowSurgeryIncidents" reveal="[EditMode]=Surgery+[SurgeryGuid]!">
+    <control type="label" label="Incidentes" span="3"/>
+    <control type="select" name="SurgeryView_SurgeryIncidents" span="8"
+      explicit="true" readonly="true" searchable="multiple"
+      source="Ninguno,Intubación Nasal,Colapso Pulmonar,Acceso Venoso Dificil,
+      Punción de dura madre,Intubación Dificil,Espasmo Laringeo,Bloqueo Insuficiente,
+      Desaturación,Bronco Espasmo,No se pudo intubar"/>
+  </row>
+  <row name="rowPostSurgeryNotes" >
+    <control type="label" label="Observaciones posteriores a la cirugía" span="5"/>
+    <control type="textarea" name="SurgeryView_PostOpNotes" span="7" rows="1" readonly="true"/>
+  </row>   
+</partial>

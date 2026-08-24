@@ -1,0 +1,18 @@
+﻿<partial>  
+  <!-- List of patient surgeries -->
+  <control type="datagrid" label="Cirugías" 
+    name="ERSurgeries"
+    option="Surgery"
+    rows="5"
+    action="redirect" target="SurgeryTabModal"
+    datarequest="GetScheduledSurgeries"
+    appendrequest="patientId=[PatientId]"
+    source="Status,DateTimeScheduled,DateTimePerformed,Priority,SurgeryType,PrimaryProcedureName,SurgeonName"
+    sourcelabels="Estatus,Programada,Completado,Prioridad,Tipo,Procedimiento Primario,Cirujano"
+    align="|left|left|left|left|left|left"
+    key="SurgeryGuid"
+    translate="Status,Priority"
+    format="|datetime|datetime"
+    onselectset="SurgeryGuid=[[SurgeryGuid]]"
+    onselect="SurgeryGuid"/>
+</partial>

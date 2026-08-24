@@ -1,0 +1,1022 @@
+<partial>
+<!--Used to edit/add Invoices-->
+  <section type="tabmodal" badge="none" name="mdlSATInvoiceModal" title="Factura" size="medium">
+    <group showif="never">
+      <row>
+        <!-- Get an existing SAT Invoice -->
+        <control type="hidden" name="SATInvoiceGuid"
+          acctsvcreq="true"
+          datarequest="GetSATInvoice"
+          appendrequest="IncludeBalance=true,InvoiceGuid=[SATInvoiceGuid]"
+          inject="SATInvoiceInfo,grpInvoiceData"
+          set="SATInfo_EnteredByFullName=[[EnteredByFullName]],
+            SATInfo_DateTimeEntered=[[DateTimeEntered]],
+            [[SATInvoiceVersion]]=;SATInfo_SatInvoiceVersion=4.0,
+            [[SATInvoiceVersion]]=undefined;SATInfo_SatInvoiceVersion=4.0"
+          provoke="SATInfo_SATDetails,
+            [SATInfo_PatientId]!;GetSATPatientInfo,
+            [SATInfo_PatientVisit]!;GetSATPatientVisitInfo,
+            [SATInfo_ClaimGuid]!;GetSATInvPatientPayer"/>
+        <!-- Get patient information -->
+        <control type="hidden" 
+          name="GetSATPatientInfo"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[SATInfo_PatientId]"
+          set="SATInfo_AttendingPhysician=[[AttendingPhysician]]"
+          inject="rowSATPatientInfo"/>
+        <!-- Get patient visit information -->
+        <control type="hidden" 
+          name="GetSATPatientVisitInfo"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="PatientVisit=[SATInfo_PatientVisit]"
+          inject="rowSATPatientVisitInfo"/>
+        <!-- Get payer claim information -->
+        <control type="hidden" name="GetSATPayerClaimInfo"
+          acctsvcreq="true"
+          datarequest="GetPayerClaimByClaimGuid"
+          appendrequest="ClaimGuid=[SATInfo_ClaimGuid]"
+          set="SATInfo_InvoiceFormat=[[InvoiceFormat]]"/>
+        <!-- Get the related invoice information when an 'otro' invoice is being replaced -->
+        <control type="hidden" 
+          name="GetRelatedInvoiceForReplacement"
+          acctsvcreq="true"
+          datarequest="GetSATInvoice"
+          appendrequest="InvoiceGuid=[SATInfo_RelatedInvoiceGuid]"
+          set="SATInfo_PatientName=[[PatientName]],SATInfo_PatientId=,SATInfo_PatientVisit=,
+          SATInfo_ClaimGuid=,SATInfo_RelatedUUID=[[UUID]],SATInfo_RelatedInvoiceBalance=,
+          SATInfo_PaymentType=[[PaymentType]],SATInfo_FiscalType=[[FiscalType]],
+          SATInfo_CDFICode=[[CDFICode]],SATInfo2_CDFICode=[[CDFICode]],SATInfo_PayerRFC=[[PayerRFC]],
+          SATInfo_PayerName=[[PayerName]],SATInfo_PayerPostalCode=[[PayerPostalCode]],
+          SATInfo_PayerAddress=[[PayerAddress]],SATInfo_PayerCellPhone=[[PayerCellPhone]],
+          SATInfo_PaymentTerms=[[PaymentTerms]],SATInfo_PlaceIssued=[[PlaceIssued]],
+          SATInfo_PaymentMethod=[[PaymentMethod]],SATInfo_RelatedInvoiceFolio=[[Folio]],
+          SATInfo_PayerType=Other,SATInfo_Series=[[Series]]"/>
+        <!-- Get ATC information from Payer by reading the PatientPayer and getting the PayerGuid-->
+        <!-- Read the Claim to get the PayerGuid (This is the PatientPayer, not the insurer.) -->
+        <control type="hidden" name="GetSATInvPatientPayer"
+          acctsvcreq="true"
+          datarequest="GetPayerClaimByClaimGuid"
+          appendrequest="ClaimGuid=[SATInfo_ClaimGuid]"
+          set="GetInvATCPayer=[[PayerGuid]]"
+          provoke="GetInvATCPayer"/>
+        <!-- Read the PayerGuid from the PatientPayer  (this will be blank if there is no insurer)-->
+         <control type="hidden" name="GetInvATCPayer"
+          datarequest="GetPatientPayersByPayerGuid"
+          appendrequest="PatientPayerGuid=[GetInvATCPayer]"
+          set="[[PayerGuid]]!;GetInvFTPPath=[[PayerGuid]]"
+          provoke="[[PayerGuid]]!;GetInvFTPPath"/>
+        <!-- Read the FTPPath from the Payer (The FTPPath indicates where the ATC text file is sent)-->
+        <control type="hidden" name="GetInvFTPPath"
+          acctsvcreq="true"
+          datarequest="GetPayerByPayerGuid"
+          appendrequest="PayerGuid=[GetInvFTPPath]"
+          set="SATInfo_FTPPath=[[FTPPath]]"/>
+        <control type="hidden" name="SATInfo_FTPPath"/>
+        <!-- Close this tabmodal -->
+        <control type="button" name="btnCloseSATInvoice" action="close|new"/>
+      </row>
+    </group>
+    <group name="grpInvoiceData">
+      <row>
+        <control type="hidden" name="SATInfo_InvoiceURL"/>
+        <control type="hidden" name="SATInfo_CancelledXmlURL"/>
+        <control type="hidden" name="SATInfo_HasPayments" default="false"/>
+        <control type="hidden" name="SATInfo_PatientId"/>
+        <control type="hidden" name="SATInfo_PatientVisit"/>
+        <control type="hidden" name="SATInfo_ClaimGuid"/>
+        <control type="hidden" name="SATInfo_EsCancelable"/>
+        <control type="hidden" name="SATInfo_EstatusCancelacion"/>
+      </row>
+    </group>
+    <!--  Invoice Infomation  -->
+    <group name="SATInvoiceInfo">
+      <columns>
+        <column span="10">
+          <row>
+            <control type="hidden" name="SATInfo_RelatedInvoiceGuid"/>
+            <control type="hidden" name="SATInfo_RelatedUUID"/>
+            <control type="hidden" name="SATInfo_InvoiceFormat"/>
+          </row>
+          <row name="rowSATInvoiceNumber" reveal="[SATInvoiceGuid]!">
+            <control type="label" label="Factura" span="2"/>
+            <control type="text" name="SATInfo_SATInvoiceNumber" span="3" readonly="true"/>
+            <control type="label" label="Fecha Timbrada" span="3"/>
+            <control type="datetime" span="3" name="SATInfo_SatDateTimeStamped" readonly="true"/>
+          </row>
+          <!-- Payer type, UUID and GlobalInvoice (4.0) when="[SATInfo_GlobalInvoice]=;False" -->
+          <row>
+            <control type="label" label="Tipo Pagador" span="2"/>
+            <control type="select" name="SATInfo_PayerType" span="2" readonly="true"
+              source="Patient,Insurer,Other" 
+              sourcelabels="Paciente,Seguro,Otro" default="Other"/>
+            <control type="label" label="UUID" span="1"/>
+            <control type="text" name="SATInfo_UUID" span="4" readonly="true"/>
+            <control type="label" label="Global" span="1"/>
+            <control type="buttongroup" name="SATInfo_GlobalInvoice" span="2" 
+              edit="(userName)%@medwave.mx"
+              source="True,False" sourcelabels="Sí,No"/>
+          </row>
+          <row name="rowGlobalInvoiceInfo" reveal="[SATInfo_GlobalInvoice]=True">
+            <control type="label" label="Fecha Inicio" span="2"/>
+            <control type="date" span="2" name="SATInfo_GlobalStartDate" readonly="true"/>
+            <control type="label" label="Fecha Final" span="2"/>
+            <control type="date" span="2" name="SATInfo_GlobalEndDate" readonly="true"/>
+            <control type="label" label="Periodo" span="2"/>
+            <control type="text" span="2" name="SATInfo_Period" readonly="true"/>
+          </row>
+          <!-- Series -->
+          <row>
+            <control type="label" label="Serie" span="2"/>
+            <control type="text" name="SATInfo_Series" span="2" required="true"
+              default="(facilityData.InvoiceSeries)" 
+              edit="(userName)%@medwave.mx,[SATInfo_Series]="/>
+            <control type="label" label="Folio de Serie" span="2"/>
+            <control type="text" name="SATInfo_SeriesFolio" span="2"
+              edit="(userName)%@medwave.mx"/>
+            <control type="label" label="Versión" span="2"/>
+            <control type="text" name="SATInfo_SATInvoiceVersion" span="2" readonly="true"/>
+          </row>
+          <!--  Folio -->
+          <row>
+            <control type="label" span="2" label="Folio"/>
+            <control type="text" span="2" name="SATInfo_Folio" 
+              edit="(userName)%@medwave.mx"/>
+            <control type="label" span="2" label="Estatus"/>
+            <control type="select" span="4" name="SATInfo_Status"
+              default="Pending" 
+              edit="(userName)%@medwave.mx"
+              source="Pending,ReadyToPost,Rejected,Posted,ReadyToCancel,CancelRejected,PaymentRejected,Canceled" 
+              sourcelabels="Pendiente,Lista para Timbrar,Rechazado,Timbrado,Lista para Cancelar,Cancelar Rechazado,Pago Rechazado,Cancelado"/>
+            <control type="buttongroup" name="SATInfo_PaymentMethod" span="2"
+              source="PPD,PUE" edit="[SATInfo_Status]=Pending|Rejected|CancelRejected" default="PPD"/>
+          </row>
+          <row name="rowReasonForRejection" reveal="[SATInfo_Status]=Rejected|CancelRejected">
+              <control type="label" label="Razón de Rechazo" span="2"/>
+              <control type="textarea" name="ReasonForRejection" readonly="true" rows="1" span="10"/>
+          </row>
+          <row name="rowExistingReasonForCancel" reveal="[SatInfo_ReasonForCancel]!">
+              <control type="label" label="Motivo para Cancelar" span="2"/>
+              <control type="textarea" name="SatInfo_ReasonForCancel" readonly="true" rows="1" span="6"/>
+          </row>
+          <!-- Fiscal Regimen for Invoicing -->
+          <row name="rowFiscalRegimenForSATInvoice4">
+            <control type="label" label="Persona" span="3"/>
+            <control type="buttongroup" name="SATInfo_FiscalType" span="2"
+              source="Física,Moral" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected,(userName)%@medwave.mx" 
+              required="true"/>
+            <control type="label" label="Régimen Fiscal" span="2"/>
+            <control type="select" name="SATInfo_FiscalRegimen" span="5"
+              reveal="[SATInfo_FiscalType]=Física" explicit="true"
+              namefield="SATInfo_FiscalRegimenName"
+              required="true" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected,[SATInfo_FiscalRegimen]=,(userName)%@medwave.mx"
+              source="605,606,607,608,610,611,612,614,615,616,621,625,626"
+              sourcelabels="605 Sueldos y Salarios e Ingresos Asimilados a Salarios,
+                606 Arrendamiento,
+                607 Régimen de Enajenación o Adquisición de Bienes,
+                608 Demás ingresos,
+                610 Residentes en el Extranjero sin Establecimiento Permanente en México,
+                611 Ingresos por Dividendos (socios y accionistas),
+                612 Personas Físicas con Actividades Empresariales y Profesionales,
+                614 Ingresos por intereses,
+                615 Régimen de los ingresos por obtención de premios,
+                616 Sin obligaciones fiscales,
+                621 Incorporación Fiscal,
+                625 Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas,
+                626 Régimen Simplificado de Confianza"/>
+            <control type="select" name="SATInfo2_FiscalRegimen" span="5"
+              reveal="[SATInfo_FiscalType]=Moral" explicit="true"
+              namefield="SATInfo2_FiscalRegimenName"
+              required="true" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected,[SATInfo2_FiscalRegimen]=,(userName)%@medwave.mx"
+              source="601,603,610,616,620,622,623,624,626"
+              sourcelabels="601 General de Ley Personas Morales,
+                603 Personas Morales con Fines no Lucrativos,
+                610 Residentes en el Extranjero sin Establecimiento Permanente en México,
+                616 Sin obligaciones fiscales,
+                620 Sociedades Cooperativas de Producción que optan por diferir sus ingresos,
+                622 Actividades Agrícolas Ganaderas Silvícolas y Pesqueras,
+                623 Opcional para Grupos de Sociedades,
+                624 Coordinados,
+                626 Régimen Simplificado de Confianza"/>
+          </row>
+          <row name="rowSATCancelCode" reveal="[SATInfo_Status]=ReadyToCancel|Canceled|CancelRejected">
+            <control type="label" label="Código de Cancelar" span="4"/>
+            <control type="select" name="SatInfo_SATCancelCode" span="7" 
+              edit="{[SATInfo_Status]=ReadyToCancel+SatInfo_SATCancelCode=01,(userName)%@medwave.mx}" 
+              required="true"
+              default="01" namefield="SatInfo_SATCancelCodeDescription"
+              source="01,02,03,04" 
+              sourcelabels="01 Comprobante emitido con errores con relación,02  Comprobante Emitido con Errores sin Relación.,03  No se llevo a cabo la operación.,04 Operation nominativa relacionada en una factura global."/>
+          </row>
+          <row name="rowSATCanceled" reveal="[SATInfo_Status]=Canceled|ReadyToCancel|CancelRejected+[SATInfo_UUID]!">
+              <control type="label" label="Cancelado por SAT" span="3"/>
+              <control type="buttongroup" name="SATInfo_SatCanceled" source="True,False" sourcelabels="Sí,No" 
+                edit="(userName)%@medwave.mx" 
+                span="3"/>
+              <control type="label" label="Fecha Cancelada" span="3"/>
+              <control type="datetime" name="SATInfo_SatCanceledDateTime" span="3" 
+                edit="(userName)%@medwave.mx"/>
+          </row>
+          <row>
+            <control type="label" label="Fecha Ingresada" span="2"/>
+            <control type="datetime" span="3" name="SATInfo_DateTimeIssued" 
+                required="true" default="(dateTimeNow)" edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/>
+            <control type="label" label="Tipo de Pago" span="2"/>
+            <control type="select" name="SATInfo_PaymentType" span="5"
+              when="[SATInfo_PaymentMethod]=PPD;99"
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected" default="03" required="true"
+              source="01,02,03,04,05,06,08,12,13,14,15,17,23,24,25,26,27,28,29,30,31,99"
+              sourcelabels="01 Efectivo,02 Cheque Nominativo,03 Transferencia Electrónica de Fondos SPEI,04 Tarjeta de Crédito,05 Monedero Electrónico,06 Dinero Electrónico,08 Vales de Despensa,12 Dación en Pago,13 Pago por Subrogación,14 Pago por Consignación,15 Condonación,17 Compensación,23 Novación,24 Confusión,25 Remisión de Deuda,26 Prescripción o Caducidad,27 A Satisfacción del Acreedor,28 Tarjeta de Débito,29 Tarjeta de Servicios,30 Aplicación de Anticipos,31 Intermediario Pagos,99 Por Definir"/>
+          </row>
+          <!-- CFDI Code for SAT invoice-->
+          <row>
+            <control type="label" span="2" label="Uso de CFDI"/>
+            <control type="select" span="5" name="SATInfo_CDFICode" 
+              reveal="[SATInfo_SATInvoiceVersion]=3.3"
+              namefield="SATInfo_CDFIDescription" default="G03" explicit="true"
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected" required="true" 
+              source="D01,G01,G02,G03,I01,I02,I03,I04,I05,I06,I07,I08,P01"
+              sourcelabels="D01 Honorarios médicos dentales y gastos hospitalarios,G01 Adquisición de mercancias,G02 Devoluciones descuentos o bonificaciones,G03 Gastos en general,I01 Construcciones,I02 Mobilario y equipo de oficina por inversiones,I03 Equipo de transporte,I04 Equipo de computo y accesorios,I05 Dados troqueles moldes matrices y herramental,I06 Comunicaciones telefónicas,I07 Comunicaciones satelitales,I08 Otra maquinaria y equipo,P01 Por definir"/>
+            <control type="select" span="5" name="SATInfo2_CDFICode" 
+              reveal="[SATInfo_FiscalType]=Física+[SATInfo_SATInvoiceVersion]=4.0"
+              namefield="SATInfo2_CDFIDescription" default="G03" required="true"
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"
+              source="G01,G02,G03,I02,I03,I04,I08,D01,D02,D03,D04,D07,S01,CP01"
+              sourcelabels="G01 Adquisición de mercancias,G02 Devoluciones descuentos o bonificaciones,G03 Gastos en general,I02 Mobilario y equipo de oficina por inversiones,I03 Equipo de transporte,I04 Equipo de computo y accesorios,I08 Otra maquinaria y equipo,D01 Honorarios médicos dentales y gastos hospitalarios,D02 Gastos médicos por incapacidad o discapacidad,D03 Gastos funerales,D04 Donativos,D07 Primas por seguros de gastos médicos,S01 Sin efectos fiscales,CP01 Pagos"/>
+            <control type="select" span="5" name="SATInfo3_CDFICode" 
+              reveal="[SATInfo_FiscalType]=Moral+[SATInfo_SATInvoiceVersion]=4.0"
+              namefield="SATInfo3_CDFIDescription" default="G03" required="true"
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"
+              source="G01,G02,G03,I02,I03,I04,I08,S01,CP01"
+              sourcelabels="G01 Adquisición de mercancias,G02 Devoluciones descuentos o bonificaciones,G03 Gastos en general,I02 Mobilario y equipo de oficina por inversiones,I03 Equipo de transporte,I04 Equipo de computo y accesorios,I08 Otra maquinaria y equipo,S01 Sin efectos fiscales,CP01 Pagos"/>
+            <control type="label" span="2" label="Comprobante"/>
+            <control type="select" name="SATInfo_DocumentType" span="3"
+              source="I,E,P,D" sourcelabels="Ingreso,Egreso,Pago,Donativo"
+              readonly="true"/>
+          </row>
+          <!-- Show the patient information -->
+          <row name="rowSATPatientInfo" reveal="[SATInfo_PatientId]!">
+            <control type="label" label="Paciente" span="2"/>
+            <control type="text" name="SATInfo_PatientFirstName" span="3" readonly="true"/> 
+            <control type="text" name="SATInfo_PatientMiddleName" span="3" readonly="true"/> 
+            <control type="text" name="SATInfo_PatientLastName" span="3" readonly="true"/> 
+            <control type="button" name="btnPatientBillingScreen" icon="search" label=""
+              preset="PatientId=[SATInfo_PatientId]" span="1"
+              action="redirect" target="PatientTabModal" trigger="PatientId"/>
+          </row>
+          <!-- Attending physician and visit provider -->
+          <row name="rowSATPhysicianInfo" reveal="[SATInfo_PatientId]!">
+            <control type="label" label="Médico Tratante" span="2"/>
+            <control type="select" name="SATInfo_AttendingPhysician" span="4" 
+                explicit="true" 
+                acctsvc="true" 
+                datasource="GetUsersByAttributes" 
+                append="role=Physician" 
+                source="UserFirstMiddleLast,UserId" 
+                readonly="true"/>
+            <control type="label" label="Médico" span="2"/>
+            <control type="select" name="SATInfo_ProviderId" span="4" 
+                explicit="true" searchable="true"
+                acctsvc="true" datasource="GetUsersByAttributes" 
+                append="role=Physician,locationId=(facilityData.LocationId)" 
+                source="UserFirstMiddleLast,UserId" 
+                edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/>
+          </row>
+          <row name="rowCOIReferredBy" reveal="(facilityData.HospitalShortName)%COI|CART+[SATInfo_PatientId]!">
+            <control type="label" label="Médico Referidor" span="2"/>
+            <control type="select" name="SATInfo_ReferredBy"
+                span="4" explicit="true" sort="MdFirstName=asc"
+                acctsvc="true"
+                datasource="GetReferringMds" append="LocationId=(facilityData.LocationId)" 
+                source="MdFirstName|MdMiddleName|MdLastName|NPI,ReferringMdGuid"/>
+          </row>
+          <row name="rowCOIProviderId" reveal="(facilityData.HospitalShortName)%COI|CART+[SATInfo_PayerType]=Other">
+            <control type="label" label="Médico" span="2"/>
+            <control type="select" name="SATInfo2_ProviderId" span="4" 
+                explicit="true" searchable="true"
+                acctsvc="true" datasource="GetUsersByAttributes" 
+                append="role=Physician,locationId=(facilityData.LocationId)" 
+                source="UserFirstMiddleLast,UserId" 
+                edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/>
+            <control type="label" label="Médico Referidor" span="2"/>
+            <control type="select" name="SATInfo2_ReferredBy"
+                span="4" explicit="true" sort="MdFirstName=asc"
+                acctsvc="true"
+                datasource="GetReferringMds" append="LocationId=(facilityData.LocationId)" 
+                source="MdFirstName|MdMiddleName|MdLastName|NPI,ReferringMdGuid"/>
+          </row>
+          <!-- Show the visit information -->
+          <row name="rowSATPatientVisitInfo" reveal="[SATInfo_PatientVisit]!">
+            <control type="label" label="Admitir" span="2"/>
+            <control type="datetime" span="3" name="SATInfo_AdmitDateTime" 
+                readonly="true"/>
+            <control type="label" label="Alta" span="2"/>
+            <control type="datetime" span="3" name="SATInfo_DischargeDateTime" 
+                readonly="true"/>
+          </row>
+          <row>
+            <!-- Allow to be changed on patient bill -->
+            <control type="label" label="RFC del Pagador" span="3"/>
+            <control type="text" name="SATInfo_PayerRFC" span="3" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected" required="true"/>
+            <control type="label" label="Envío a Pagador" span="3"/>
+            <control type="datetime" name="SATInfo_DateTimeSent" span="3" edit="true"/>
+          </row>
+          <!--  Payer name -->
+          <row>
+            <control type="label" label="Razón social" span="3"/>
+            <control type="text" name="SATInfo_PayerName" span="5" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected" required="true"/> 
+            <control type="label" label="C.P." span="2"/>
+            <control type="text" name="SATInfo_PayerPostalCode" span="2" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected" required="true"/> 
+          </row>
+          <!--  Payer address -->
+          <row>
+            <control type="label" label="Domicilio del Pagador" span="3"/>
+            <control type="text" name="SATInfo_PayerAddress" span="4" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/> 
+            <control type="label" label="Teléfono" span="2"/>
+            <control type="text" name="SATInfo_PayerCellPhone" span="3" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/> 
+          </row>
+          <!-- Place issued -->
+          <row>
+            <control type="label" label="Lugar de Expedición" span="3"/>
+            <control type="text" name="SATInfo_PlaceIssued" span="4" 
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected" required="true" 
+              default="(facilityData.HospitalCity)"/> 
+            <control type="label" label="Subtotal" span="2"/>
+            <control type="calc" name="SATInfo_SATSubtotal" format="0,0.00" source="1*SATInfo_TaxableAmountTotal" span="2"/>
+          </row>
+          <!-- Invoice notes -->
+          <row>
+            <control type="label" label="Notas de Facturación" span="3"/>
+            <control type="textarea" name="SATInfo_InvoiceNotes" span="9" rows="1"
+              edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/> 
+          </row>
+
+        </column>
+        <!-- buttons -->
+        <column span="2">
+           <row>
+            <!-- Save a new invoice -->
+            <control type="button"
+            reveal="[SATInvoiceGuid]="
+            name="btnSaveNewSATInvoice"
+            span="12" icon="cloud-upload" color="green"
+            label="Guardar"
+            action="save"
+            affector="SATInvoiceGuid"
+            setaffector="InvoiceGuid"
+            capture="SATInvoiceInfo"
+            acctsvc="true"
+            datainsert="InsertSATInvoice"
+            appendinsert="LocationId=(facilityData.LocationId)"
+            provoke="SATInvoiceList,SATInfo_SATDetails"/>
+          </row>
+          <row>
+            <!-- Update SAT Invoice-->
+            <control type="button"
+            reveal="[SATInvoiceGuid]!+[SATInfo_Status]=Pending|Rejected|CancelRejected"
+            name="btnUpdateSATInvoice"
+            span="12" icon="cloud-upload"
+            label="Actualizar"
+            action="save|close|new"
+            affector="SATInvoiceGuid"
+            setaffector="InvoiceGuid"
+            capture="SATInvoiceInfo"
+            acctsvc="true"
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATInvoiceGuid]"
+            provoke="SATInvoiceList"/>
+          </row>
+          <!-- Update SAT Invoice for medwave staff -->
+          <row>
+            <control type="button"
+            reveal="{[SATInvoiceGuid]!+(userName)%@medwave.mx}"
+            name="btnUpdateSATInvoiceMedWave"
+            span="12" icon="cloud-upload"
+            label="Actualizar MedWave"
+            action="save|close|new"
+            affector="SATInvoiceGuid"
+            setaffector="InvoiceGuid"
+            capture="SATInvoiceInfo|active"
+            acctsvc="true"
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATInvoiceGuid],UpdateSATCancel=true"            
+            provoke="SATInvoiceList"/>
+          </row>
+          <!-- Reset a SAT invoice to posted from Canceled when the cancel has been rejected by SAT -->
+          <row>
+            <control type="button" name="btnResetStatusToPosted"
+              icon="edit" label="Reconocer No Cancelable" span="12" color="green"
+              reveal="[SATInfo_UUID]!+[SATInfo_Status]=Canceled|CancelRejected+[SATInfo_EsCancelable]=No Cancelable+[SATInfo_SATCanceled]!True"
+              confirm="Esta Factura es No Cancelable. Confirme que desea cambiar estatus a Timbrado"
+              action="save"
+              acctsvc="true"
+              dataupdate="UpdateSATInvoice"
+              appendupdate="InvoiceGuid=[SATInvoiceGuid],Status=Posted"
+              set="SATInfo_Status=Posted"
+              provoke="[SATInfo_ClaimGuid]!;btnResetPayerClaimToSubmitted,[SATInfo_PatientVisit]!+[SATInfo_ClaimGuid]=;btnResetPatientVisitToSubmitted"/>  
+          </row>
+          <!-- Reset a SAT inivoice to posted when the cancel has been rejected -->
+          <row>
+            <control type="button" name="btnResetStatusToPosted2"
+              icon="edit" label="Reconocer Rechazo de Cancelación" span="12" color="green"
+              reveal="[SATInfo_UUID]!+[SATInfo_Status]=Canceled|CancelRejected+[SATInfo_EstatusCancelacion]=Solicitud Rechazada+[SATInfo_SATCanceled]!True"
+              confirm="El estatus de esta cancelación es Solicitud Rechazada confirme que desea cambiar estatus a Timbrado"
+              action="save"
+              acctsvc="true"
+              dataupdate="UpdateSATInvoice"
+              appendupdate="InvoiceGuid=[SATInvoiceGuid],Status=Posted"
+              set="SATInfo_Status=Posted"
+              provoke="[SATInfo_ClaimGuid]!;btnResetPayerClaimToSubmitted,[SATInfo_PatientVisit]!+[SATInfo_ClaimGuid]=;btnResetPatientVisitToSubmitted"/>  
+          </row>
+          <row showif="never">
+            <control type="button" name="btnResetPayerClaimToSubmitted"
+              action="save"
+              acctsvc="true"
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[SATInfo_ClaimGuid],Status=Submitted"/>
+              <control type="button" name="btnResetPatientVisitToSubmitted"
+              action="save"
+              acctsvc="true"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="PatientVisitUniqueId=[SATInfo_PatientVisit],Status=Submitted"/>
+          </row>
+          <!-- Print a posted donation invoice -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=D+[SATInvoiceGuid]!+[SATInfo_Status]=Posted"
+            name="btnPrintPostedSATDonationInvoice"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="id=7eaafbac698,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATInvoiceGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print an unposted donation invoice -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=D+[SATInvoiceGuid]!+[SATInfo_Status]!Posted"
+            name="btnPrintSATDonationInvoice"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="id=7e60bf80d4b,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATInvoiceGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+           <!-- Print a posted global invoice -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_Status]=Posted+[SATInfo_GlobalInvoice]=True"
+            name="btnPrintSATGlobalInvoice"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=27a57eac410^id=c660af663e8,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATInvoiceGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a pending or canceled global invoice -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_Status]!Posted+[SATInfo_GlobalInvoice]=True"
+            name="btnPrintSATGlobalInvoiceCanceled"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=34276698d0d^id=005b8bca85c,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATInvoiceGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a posted invoice with no claim guid -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]=+[SATInfo_Status]=Posted+[SATInfo_GlobalInvoice]!True"
+            name="btnPrintSATInvoiceNoClaim"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=04df9b68016^id=cc9eac1fae8,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATInvoiceGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a pending or canceled invoice with no claim guid-->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]=+[SATInfo_Status]!Posted+[SATInfo_GlobalInvoice]!True"
+            name="btnPrintSATInvoiceNoClaimCanceled"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=0d26963b344^id=807ea59be71,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATInvoiceGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a posted invoice with claim guid -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]=Posted+(facilityData.HospitalShortName)¡COI|CART+[SATInfo_GlobalInvoice]!True"
+            name="btnPrintSATInvoiceForClaim"
+            span="12" icon="print" label="Imprimir Detalle"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=0603672155f^id=47c5d5673a6,UserName=(userName),Parameter1=(facilityData.HospitalGuid),Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],Parameter3=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a pending or canceled invoice with a claim guid -->
+          <row>
+            <control type="button"
+            reveal="{SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]!Posted+(facilityData.HospitalShortName)¡COI|CART+[SATInfo_GlobalInvoice]!True}"
+            name="btnPrintSATInvoiceForClaimCanceled"
+            span="12" icon="print" label="Imprimir Detalle"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=07317a6843d^id=aca36d550df,UserName=(userName),Parameter1=(facilityData.HospitalGuid),Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],Parameter3=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a COI posted invoice with claim guid -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]=Posted+(facilityData.HospitalShortName)%COI|CART+[SATInfo_GlobalInvoice]!True"
+            name="btnPrintSATInvoiceForCOIClaim"
+            span="12" icon="print" label="Imprimir Detalle"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=8471c51d7a1^id=1623c688ddb,UserName=(userName),Parameter1=(facilityData.HospitalGuid),Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],Parameter3=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a COI pending or canceled invoice with a claim guid -->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]!Posted+(facilityData.HospitalShortName)%COI|CART+[SATInfo_GlobalInvoice]!True"
+            name="btnPrintSATInvoiceForCOIClaimCanceled"
+            span="12" icon="print" label="Imprimir Detalle"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=22d56a7f2b7^id=4607a3510d1,UserName=(userName),Parameter1=(facilityData.HospitalGuid),Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],Parameter3=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a posted invoice with claim guid in summary format-->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]=Posted+[SATInfo_GlobalInvoice]!True"
+            name="btnPrintSummarySATInvoiceForClaim"
+            span="12" icon="print" label="Imprimir Resumen"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=c7f402ed7ee^id=17c0c6531ce,UserName=(userName),Parameter1=(facilityData.HospitalGuid),Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],Parameter3=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a pending or canceled invoice with a claim guid in summary format-->
+          <row>
+            <control type="button"
+            reveal="SATInfo_DocumentType=I+[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]!Posted+[SATInfo_GlobalInvoice]!True"
+            name="btnPrintSummarySATInvoiceForClaimCanceled"
+            span="12" icon="print" label="Imprimir Resumen"
+            action="print" 
+            mode="report" 
+            append="[SATInfo_SATInvoiceVersion]=4.0;id=286e6106d43^id=d69f88f50a2,UserName=(userName),Parameter1=(facilityData.HospitalGuid),Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],Parameter3=(facilityData.FiscalClass)"/>
+          </row>
+          <!-- Print a single cancellation report -->
+          <row>
+            <control type="button" name="btnPrintCanceledInvoiceReport"
+            reveal="[SATInvoiceGuid]!+[SATInfo_Status]=Canceled|CancelRejected"
+            span="12" icon="print" label="Informe Cancelado"
+            action="print" 
+            mode="report" 
+            append="id=3aa48f93171,UserName=(userName),FacilityId=(facility),HospitalGuid=(facilityData.HospitalGuid),InvoiceGuid=[SATInvoiceGuid],UserName=(userName),CurrentDateTime=(dateTimeNow)"/>
+          </row>
+          <row>
+            <!-- Send a patient invoice email-->
+            <control type="button"
+            reveal="{[SATInvoiceGuid]!+[SATInfo_Status]=Posted+[SATInfo_ClaimGuid]=+[SATInfo_GlobalInvoice]!True}"
+            name="btnEmailSATInvoice1"
+            span="12" icon="envelope" label="email Factura"
+            action="redirect"
+            preset="[SATInfo_SATInvoiceVersion]=4.0;mdl_ReportId=2f254f0c85c^mdl_ReportId=71a99c5f115,EmailPatientId=[SATInfo_PatientId],EmailClaimGuid=[SATInfo_ClaimGuid],mdl_EmailMessage=concat|Haga clic en este enlace para descargar el archivo XML SAT: [SATInfo_InvoiceURL],mdl_ReportName=Factura de SAT,mdl_Parameter1=(facilityData.HospitalGuid),mdl_Parameter2=[SATInvoiceGuid],mdl_Parameter3=(facilityData.FiscalClass)"
+            trigger="[SATInfo_ClaimGuid]!;GetPayerEmail,[SATInfo_PatientId]!+[SATInfo_ClaimGuid]=;GetPatientEmail"
+            target="mdlSendEmailInvoice"/>
+          </row>
+          <row>
+            <!-- Send a payer invoice email for non-COI facilities-->
+            <control type="button"
+            reveal="{[SATInvoiceGuid]!+[SATInfo_Status]=Posted+[SATInfo_ClaimGuid]!+(facilityData.HospitalShortName)¡COI|CART+[SATInfo_GlobalInvoice]!True}"
+            name="btnEmailSATInvoiceClaim"
+            span="12" icon="envelope" label="email Detalle"
+            action="redirect"
+            preset="[SATInfo_SATInvoiceVersion]=4.0;mdl_ReportId=0603672155f^mdl_ReportId=47c5d5673a6,EmailPatientId=[SATInfo_PatientId],EmailClaimGuid=[SATInfo_ClaimGuid],mdl_EmailMessage=concat|Haga clic en este enlace para descargar el archivo XML SAT: [SATInfo_InvoiceURL],mdl_ReportName=Factura de SAT,mdl_Parameter1=(facilityData.HospitalGuid),mdl_Parameter2=[SATInvoiceGuid],mdl_Parameter3=(facilityData.FiscalClass),mdl_Parameter4=[SATInfo_ClaimGuid]"
+            trigger="GetPayerEmail"
+            target="mdlSendEmailInvoice"/>
+          </row>
+           <row>
+            <!-- Send a payer invoice email for COI facilities-->
+            <control type="button"
+            reveal="{[SATInvoiceGuid]!+[SATInfo_Status]=Posted+[SATInfo_ClaimGuid]!+(facilityData.HospitalShortName)%COI|CART+[SATInfo_GlobalInvoice]!True}"
+            name="btnEmailCOISATInvoiceClaim"
+            span="12" icon="envelope" label="email Detalle"
+            action="redirect"
+            preset="[SATInfo_SATInvoiceVersion]=4.0;mdl_ReportId=8471c51d7a1^mdl_ReportId=1623c688ddb,EmailPatientId=[SATInfo_PatientId],EmailClaimGuid=[SATInfo_ClaimGuid],mdl_EmailMessage=concat|Haga clic en este enlace para descargar el archivo XML SAT: [SATInfo_InvoiceURL],mdl_ReportName=Factura de SAT,mdl_Parameter1=(facilityData.HospitalGuid),mdl_Parameter2=[SATInvoiceGuid],mdl_Parameter3=(facilityData.FiscalClass),mdl_Parameter4=[SATInfo_ClaimGuid]"
+            trigger="GetPayerEmail"
+            target="mdlSendEmailInvoice"/>
+          </row>
+          <row>
+            <!-- Send a payer invoice email in summary format -->
+            <control type="button"
+            reveal="[SATInvoiceGuid]!+[SATInfo_Status]=Posted+[SATInfo_ClaimGuid]!+[SATInfo_GlobalInvoice]!True"
+            name="btnEmailSummarySATInvoiceClaim"
+            span="12" icon="envelope" label="email Resumen"
+            action="redirect"
+            preset="[SATInfo_SATInvoiceVersion]=4.0;mdl_ReportId=c7f402ed7ee^mdl_ReportId=17c0c6531ce,EmailPatientId=[SATInfo_PatientId],EmailClaimGuid=[SATInfo_ClaimGuid],mdl_EmailMessage=concat|Haga clic en este enlace para descargar el archivo XML SAT: [SATInfo_InvoiceURL],mdl_ReportName=Factura de SAT,mdl_Parameter1=(facilityData.HospitalGuid),mdl_Parameter2=[SATInvoiceGuid],mdl_Parameter3=(facilityData.FiscalClass),mdl_Parameter4=[SATInfo_ClaimGuid]"
+            trigger="GetPayerEmail"
+            target="mdlSendEmailInvoice"/>
+          </row>
+          <!-- Set an invoice to ReadyToPost -->
+          <!-- Button to set invoice to post without sending ATC -->
+          <row>
+            <control type="button" name="btnSetSATInvoiceToPostWithoutATC"
+            reveal="[SATInvoiceGuid]!+[SATInfo_Status]=Pending|Rejected|PaymentRejected+[SATInfo_FTPPath]="
+            span="12" label="Timbrar" color="green"
+            action="trigger"
+            confirm="Confirme que desea publicar esta factura."
+            confirmsvc="true"
+            confirmrequest="GetSATInvoice"
+            appendconfirm="InvoiceGuid=[SATInvoiceGuid]"
+            confirmresponse="Status!Posted+Status!ReadyToPost|Esta factura ya está configurada para Timbrar"
+            validate="SATInvoiceInfo"
+            provoke="btnCompleteSATInvoiceToPost"/>
+          </row>
+          <!-- Button to set invoice to post and send ATC text file-->
+          <row>
+            <control type="button" name="btnSetSATInvoiceToPostWithATC"
+            reveal="[SATInvoiceGuid]!+[SATInfo_Status]=Pending|Rejected|PaymentRejected+[SATInfo_FTPPath]!"
+            span="12" label="Timbrar" color="green"
+            action="save"
+            confirm="Confirme que desea publicar esta factura."
+            confirmsvc="true"
+            confirmrequest="GetSATInvoice"
+            appendconfirm="InvoiceGuid=[SATInvoiceGuid]"
+            confirmresponse="Status!Posted+Status!ReadyToPost|Esta factura ya está configurada para Timbrar"
+            validate="SATInvoiceInfo"
+            acctsvc="true"
+            datainsert="InsertATCFiles"
+            appendinsert="ClaimGuid=[SATInfo_ClaimGuid],aTCType=V"
+            provoke="btnCompleteSATInvoiceToPost"/>
+          </row>
+          <row>
+            <control type="button" name="btnReInsertATCRecord" label="Reenviar ATC" icon="cloud-upload"
+            span="12" reveal="(userName)%Anahi"
+            action="save"
+            confirm="Confirme que desea reenviar ATC."
+            acctsvc="true"
+            datainsert="InsertATCFiles"
+            appendinsert="ClaimGuid=[SATInfo_ClaimGuid],aTCType=V"/>
+          </row>
+          <!-- Complete setting SAT invoice ready to post -->
+          <row showif="never">
+            <control type="button" name="btnCompleteSATInvoiceToPost"
+            action="save|close|new"
+            affector="none"
+            acctsvc="true"
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATInvoiceGuid],Status=ReadyToPost,SATPostedBy=(userName)"
+            provoke="SATInvoiceList"/>
+          </row>
+          <!-- Download the invoice XML -->
+          <row>
+            <control type="button" name="btnDownloadSATXML"
+              reveal="[SATInfo_InvoiceURL]!"
+              icon="download" label="Descargar XML" span="12"
+              action="download" target="[SATInfo_InvoiceURL]"/>
+          </row>
+          <!-- Download the cancelation invoice -->
+          <row>
+            <control type="button" name="btnDownloadCanceledSATXML"
+              reveal="[SATInfo_CancelledXmlURL]!"
+              icon="download" label="Descargar XML Cancelado" span="12"
+              action="download" target="[SATInfo_CancelledXmlURL]"/>
+          </row>
+          <row>
+            <control type="button" name="exportSATReportArchive1" 
+              span="12" 
+              color="white"
+              action="export"
+              mode="reportwithfile"
+              target="[SATInfo_InvoiceURL]"
+              reveal="[SATInvoiceGuid]!+[SATInfo_ClaimGuid]=+[SATInfo_Status]=Posted"
+              append="
+              [SATInfo_SATInvoiceVersion]=4.0+[SATInfo_GlobalInvoice]=True;id=27a57eac410,
+              [SATInfo_SATInvoiceVersion]=4.0+[SATInfo_GlobalInvoice]=False;id=04df9b68016,
+              [SATInfo_SATInvoiceVersion]=3.3;id=cc9eac1fae8,
+              UserName=(userName),FacilityId=(facilityData.HospitalGuid),
+              InvoiceGuid=[SATInvoiceGuid],FiscalClass=(facilityData.FiscalClass),
+              format=PDF,filename=[SATInfo_UUID]"
+              label="Descargar Archivo"
+              icon="archive"/>
+          </row>
+          <!-- Export non-COI SAT invoice -->
+          <row>
+            <control type="button" name="exportNonCOISATReportArchive2" 
+              span="12" color="white"
+              action="export"
+              mode="reportwithfile"
+              target="[SATInfo_InvoiceURL]"
+              reveal="[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]=Posted+(facilityData.HospitalShortName)¡COI|CART"
+              append="
+              [SATInfo_SATInvoiceVersion]=4.0+[SATInfo_GlobalInvoice]=True;id=27a57eac410,
+              [SATInfo_SATInvoiceVersion]=4.0+[SATInfo_GlobalInvoice]=False;id=0603672155f,
+              [SATInfo_SATInvoiceVersion]=3.3;id=47c5d5673a6,
+              UserName=(userName),Parameter1=(facilityData.HospitalGuid),
+              Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],
+              Parameter3=(facilityData.FiscalClass),format=PDF,filename=[SATInfo_UUID]"
+              label="Descargar Archivo"
+              icon="archive"/>
+          </row>
+          <!-- Export COI SAT invoice -->
+          <row>
+            <control type="button" name="exportCOISATReportArchive2" 
+              span="12" color="white"
+              action="export"
+              mode="reportwithfile"
+              target="[SATInfo_InvoiceURL]"
+              reveal="[SATInvoiceGuid]!+[SATInfo_ClaimGuid]!+[SATInfo_Status]=Posted+(facilityData.HospitalShortName)%COI|CART"
+              append="[SATInfo_SATInvoiceVersion]=4.0;id=8471c51d7a1^id=1623c688ddb,UserName=(userName),Parameter1=(facilityData.HospitalGuid),Parameter4=[SATInfo_ClaimGuid],Parameter2=[SATInvoiceGuid],Parameter3=(facilityData.FiscalClass),format=PDF,filename=[SATInfo_UUID]"
+              label="Descargar Archivo"
+              icon="archive"/>
+          </row>
+          <!-- Cancel a posted COI SAT invoice -->
+          <row name="rowCancelCOIPostedInvoice" reveal="(facilityData.HospitalShortName)%COI|CART">
+            <control type="button" name="btnCancelPostedCOISATInvoice"
+            reveal="{(user.UserRoles)%Cancel Invoices|MedWave+[SATInvoiceGuid]!+[SATInfo_Status]=Posted|CancelRejected}"
+            span="12" label="Cancelar" color="red"
+            compare="[SATInfo_HasPayments]=false|Esta factura tiene pagos. Antes de cancelar una factura, se deben cancelar los pagos."
+            preset="InvoiceToCancel_InvoiceGuid=[SATInvoiceGuid],
+            InvoiceToCancel_Status=ReadyToCancel,
+            InvoiceToCancel_DocumentType=[SATInfo_DocumentType],
+            InvoiceToCancel_PatientVisit=[SATInfo_PatientVisit],
+            InvoiceToCancel_ClaimGuid=[SATInfo_ClaimGuid],
+            InvoiceToCancel_GlobalInvoice=[SATInfo_GlobalInvoice]"
+            action="redirect" target="mdlReasonForCancel"/>
+         </row>
+          <!-- Cancel a pending or rejected COI invoice -->
+          <row name="rowCancelCOIPendingInvoice" reveal="(facilityData.HospitalShortName)%COI|CART">
+            <control type="button" name="btnCancelPendingCOISATInvoice"
+            reveal="{(user.UserRoles)%Cancel Invoices|MedWave+[SATInvoiceGuid]!+[SATInfo_Status]=Pending|Rejected+[SATInfo_HasPayments]=false}"
+            span="12" icon="remove" label="Cancelar Prefactura" color="red"
+            preset="InvoiceToCancel_InvoiceGuid=[SATInvoiceGuid],
+              InvoiceToCancel_Status=ReadyToCancel,
+              InvoiceToCancel_DocumentType=I,
+              InvoiceToCancel_PatientVisit=[SATInfo_PatientVisit],
+              InvoiceToCancel_ClaimGuid=[SATInfo_ClaimGuid]"
+            action="save"
+            affector="none"
+            acctsvc="true"
+            confirm="Confirme que desea cancelar esta prefactura."
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATInvoiceGuid],Status=Canceled,CancelDateTime=(now),SATCanceledBy=(userName)"
+            provoke="[SATInfo_ClaimGuid]!;btnReOpenPayerClaimFromPending,
+            [SATInfo_ClaimGuid]=+[SATInfo_PatientVisit]!;btnReOpenPatientInvoiceFromPending,
+            [SATInfo_PatientVisit]=;btnCancelSATInvoiceMessageNoPatient"/>
+          </row>
+          <!-- Cancel a posted SAT invoice -->
+          <row name="rowCancelPostedInvoice" reveal="(facilityData.HospitalShortName)¡COI|CART">
+            <control type="button" name="btnCancelPostedSATInvoice"
+            reveal="{(user.UserRoles)%Accounts Receivable|MedWave|SysAdmin|Cancel Invoice+[SATInvoiceGuid]!+[SATInfo_Status]=Posted|CancelRejected}"
+            span="12" label="Cancelar" color="red"
+            compare="[SATInfo_HasPayments]=false|Esta factura tiene pagos. Antes de cancelar una factura, se deben cancelar los pagos."
+            preset="InvoiceToCancel_InvoiceGuid=[SATInvoiceGuid],InvoiceToCancel_Status=ReadyToCancel,
+              InvoiceToCancel_DocumentType=[SATInfo_DocumentType],
+              InvoiceToCancel_PatientVisit=[SATInfo_PatientVisit],
+              InvoiceToCancel_ClaimGuid=[SATInfo_ClaimGuid],
+              InvoiceToCancel_GlobalInvoice=[SATInfo_GlobalInvoice]"
+            action="redirect" target="mdlReasonForCancel"/>
+         </row>
+          <!-- Cancel a pending or rejected invoice not COI or CART-->
+          <row name="rowCancelPendingInvoice" reveal="(facilityData.HospitalShortName)¡COI|CART">
+            <control type="button" name="btnCancelPendingSATInvoice"
+            reveal="{(user.UserRoles)%Accounts Receivable|MedWave|SysAdmin|Cancel Invoice+[SATInvoiceGuid]!+[SATInfo_Status]=Pending|Rejected+[SATInfo_HasPayments]=false}"
+            span="12" icon="remove" label="Cancelar Prefactura" color="red"
+            preset="InvoiceToCancel_InvoiceGuid=[SATInvoiceGuid],
+            InvoiceToCancel_Status=ReadyToCancel,
+            InvoiceToCancel_DocumentType=[SATInfo_DocumentType],
+            InvoiceToCancel_PatientVisit=[SATInfo_PatientVisit],
+            InvoiceToCancel_ClaimGuid=[SATInfo_ClaimGuid]"
+            action="save"
+            affector="none"
+            acctsvc="true"
+            confirm="Confirme que desea cancelar esta prefactura."
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATInvoiceGuid],Status=Canceled,CancelDateTime=(now),SATCanceledBy=(userName)"
+            provoke="[SATInfo_ClaimGuid]!;btnReOpenPayerClaimFromPending,[SATInfo_ClaimGuid]=+[SATInfo_PatientVisit]!;btnReOpenPatientInvoiceFromPending,[SATInfo_PatientVisit]=;btnCancelSATInvoiceMessageNoPatient"/>
+          </row>
+          <row>
+            <!-- Update the DateTimeSent when changed-->
+            <control type="button" name="btnSaveUpdatedDateTimeSent" span="12"
+              reveal="[SATInvoiceGuid]!"
+              icon="cloud-upload" label="Actualizar Envío"
+              action="save"
+              affector="none"
+              acctsvc="true"
+              dataupdate="UpdateSATInvoice"
+              appendupdate="InvoiceGuid=[SATInvoiceGuid],DateTimeSent=[SATInfo_DateTimeSent]"
+              success="Envío Salvado"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnReOpenPayerClaimFromPending"
+              action="save|close|new"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[SATInfo_ClaimGuid],Status=Pending"
+              success="6|Esta factura SAT se ha cancelado y la solicitud está en estado pendiente."
+              provoke="SATInvoiceList,PayerSATInvoiceList,btnCloseSATInvoice"/>
+              <control type="button" name="btnReOpenPatientInvoiceFromPending"
+                action="save|close|new"
+                acctsvc="true"
+                affector="none"
+                dataupdate="UpdatePatientVisitNoDepartmentTracking"
+                appendupdate="PatientVisitUniqueId=[SATInfo_PatientVisit],InvoiceStatus=Closed"
+                success="6|Esta factura SAT se ha cancelado y la visita está en estado cerrado."
+                provoke="SATInvoiceList,PatientSATInvoiceList"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+    <!-- Invoice and credit items -->
+    <group name="grpSATInvoiceItems" reveal="[SATInvoiceGuid]!">
+      <row>
+        <control type="buttongroup" name="btgInvoiceView" span="6" default="Charges"
+          source="Charges,Payments,Credits"
+          sourcelabels="Cargos,Pagos,Egresos"
+          provoke="optInvoiceGridList,SATInfo_SATDetails,grdSATRelatedPayments,grdSATRelatedCredits"/>
+      </row>
+      <row>
+        <control name="optInvoiceGridList" affector="btgInvoiceView" type="options" span="12">
+        <control type="datagrid" label="Cargos" name="SATInfo_SATDetails"       
+          searchable="true" option="Charges" rows="10" 
+          action="redirect"
+          target="mdlNewSATCharge"
+          acctsvcreq="true" 
+          filter="Active=true"
+          datarequest="GetSATInvoiceDetails"
+          appendrequest="InvoiceGuid=[SATInvoiceGuid]"        
+          source="ProductId,ItemName,Folio,Quantity,UnitId,UnitPrice,ItemSubtotal,Discount,TaxableAmount,VATTaxAmount,RetentionAmount,NetAmount"
+          sourcelabels="Clave,Artículo,Folio,Cantidad,UDM,Precio,Subtotal,Descuento,Gravable,Impuesto,Retención,Total"
+          format="|||0,000.00||0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00"
+          align="left|left|left|right|left|right|right|right|right|right|right|right"
+          total="||||||+|+|+|+|+|+"
+          calculate="ItemSubtotal=Quantity*UnitPrice,TaxableAmount=ItemSubtotal-(Discount)"
+          key="InvoiceDetailGuid"
+          onselectset="InvoiceDetailGuid=[[InvoiceDetailGuid]]"
+          onselect="InvoiceDetailGuid"> 
+          <control type="button" name="btnNewSATCharge"
+            reveal="[SATInfo_Status]=Pending"
+            icon="plus" label="Añadir Nuevo" 
+            action="redirect" target="mdlNewSATCharge"/>   
+        </control>    
+        <control type="datagrid" label="Pagos" name="grdSATRelatedPayments"                               
+          option="Payments" rows="10" 
+          acctsvcreq="true" 
+          filter="Active=true"
+          datarequest="GetSATRelatedPayments"
+          appendrequest="SATInvoiceGuid=[SATInvoiceGuid]"
+          source="DateTimeEntered,SATPaymentFolio,Status,SATInvoiceFolio,SATInvoiceUUID,SATInvoicePaymentMethod,SATInvoicePaymentCount,PatientName,SATInvoicePaymentAmount"
+          sourcelabels="Fecha,Folio,Estatus,Ingreso,UUID de Ingreso,Medio,Parcialidad,Paciente,Pago"
+          align="left|left|left|left|left|center|center|left|right"
+          format="datetime_short||||||||0,0.00"
+          total="||||||||+"
+          translate="Status"
+          sort="DateTimeEntered=desc"
+          key="SATRelatedPaymentGuid"/>  
+        <control type="datagrid" label="Egresos" name="grdSATRelatedCredits"
+          rows="10" option="Credits"
+          filter="RelatedInvoiceGuid=[SATInvoiceGuid]"
+          acctsvcreq="true"
+          datarequest="GetSATInvoice"
+          appendrequest="DocumentType=E,RelatedInvoiceGuid=[SATInvoiceGuid]"
+          source="DateTimeEntered,Folio,Status,UUID,PayerName,PatientName,InvoiceTotal"
+          sourcelabels="Fecha,Folio,Estatus,UUID,Pagador,Paciente,Total"
+          align="|left|left|left|left|left|right"
+          format="datetime_short||||||0,0.00"
+          translate="Status"
+          sort="DateTimeIssued=desc"
+          key="InvoiceGuid"/>
+        </control>
+      </row>
+      <row>
+        <control type="label" label="Introducido por" span="3"/>
+        <control type="text" name="SATInfo_EnteredByFullName" span="5" readonly="true"/>
+        <control type="datetime" name="SATInfo_DateTimeEntered" span="3" readonly="true"/>
+      </row>
+    </group>
+
+  </section>
+  <!-- New SAT invoice charges -->
+  <section type="tabmodal" title="Cargo" name="mdlNewSATCharge" size="small" badge="none">
+    <group>
+      <row>
+        <control type="hidden" name="InvoiceDetailGuid" 
+          acctsvcreq="true"
+          datarequest="GetSATInvoiceDetails"
+          appendrequest="InvoiceDetailGuid=[InvoiceDetailGuid]"
+          inject="NewSATChargesInfo"/>
+      </row>
+    </group>
+    <group name="NewSATChargesSelect" reveal="[InvoiceDetailGuid]=">      
+      <row>
+        <control type="label" label="Artículo" span="2"/>
+        <control type="typeahead" name="SATItemSelect" span="10"
+          searchable="true"
+          acctsvc="true"
+          datasource="GetItemMasterItemsBySearchCriteria"
+          term="searchCriteria"
+          append="patientChargeable=true"
+          source="ItemName,ItemMasterGuid"
+          provoke="GetSATChargeItem"/>
+        <control type="hidden"
+          name="GetSATChargeItem"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[SATItemSelect]"
+          set="SATInfo_ProductId=[[ImportId]],SATInfo_ItemName=[[ItemName]],SATInfo_ItemGuid=[[ItemMasterGuid]],SATInfo_UnitPrice=[[BasePrice]],SATInfo_UnitId=[[ConsumedUOMCode]],SATInfo_VATTaxRate=[[TaxRate]"/>     
+      </row>
+    </group>   
+
+    <group name="NewSATChargesInfo">  
+      <row>  
+        <control type="hidden" name="SATInfo_ItemGuid"/>
+        <control type="hidden" name="SATInfo_Active" default="True"/>  
+      </row>
+      <!-- Required for generic RFC -->
+      <row name="rowDetailFolio" reveal="[SATInfo_PayerRFC]=XAXX010101000">        
+        <control type="label" span="2" label="Folio"/>
+        <control type="text" span="4" name="SATDetailInfo_Folio" 
+        edit="[SATInfo_Status]=Pending|Rejected"/>
+      </row>
+      <row>        
+        <control type="label" span="2" label="Clave"/>
+        <control type="text" span="4" name="SATInfo_ProductId" 
+        edit="[SATInfo_Status]=Pending|Rejected"/>
+      </row>
+      <row>    
+        <control type="label" label="Cargo" span="2"/>
+        <control type="textarea" span="10" name="SATInfo_ItemName" 
+        edit="[SATInfo_Status]=Pending|Rejected" rows="1"/>
+      </row>
+      <row>        
+        <control type="label" label="Precio" span="2"/>       
+        <control type="text" name="SATInfo_UnitPrice" span="3" default="0.00" format="0,000.00" required="true" 
+        edit="[SATInfo_Status]=Pending|Rejected"/>
+        <control type="label" label="Cantidad" span="2"/>
+        <control type="text" span="2" name="SATInfo_Quantity" default="1.00" format="0,00.00" required="true" edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected" />
+        <control type="select" name="SATInfo_UnitId" span="2" default="Cada" 
+          source="UnitCode|UnitOfMeasure,UnitCode"
+          datasource="GetUnitsOfMeasure" acctsvc="true" required="true" 
+          edit="[SATInfo_Status]=Pending|Rejected"
+          set="SATInfo_UnitName=[[UnitOfMeasure]]"/>
+        <control type="hidden" name="SATInfo_UnitName"/>
+      </row>
+      <row>
+        <control type="label" label="Descuento" span="2"/>       
+        <control type="text" name="SATInfo_Discount" span="3" default="0.00" format="0,000.00" 
+          edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/>    
+        <control type="label" label="Subtotal" span="2"/>
+        <control type="calc" name="SATInfo_Subtotal" span="3" format="0,0.00"
+          source="SATInfo_UnitPrice*SATInfo_Quantity-SATInfo_Discount"/>
+      </row>
+      <row>
+        <control type="label" label="IVA" span="2" badge="%"/>
+        <control type="text" span="3" name="SATInfo_VATTaxRate" default="0.00" format="0,00.00" 
+          edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected|Rejected|PaymentRejected"/>
+        <control type="label" label="Impuesto" span="2"/>
+        <control type="calc" name="SATInfo_VATTaxAmount" span="3" format="0,0.00"
+          source="SATInfo_Subtotal*SATInfo_VATTaxRate/100"/>
+      </row>
+      <row>        
+        <control type="label" label="Retención" span="2" badge="%"/>
+        <control type="text" name="SATInfo_RetentionRate" span="2" format="0,0.00" edit="[SATInfo_Status]=Pending|Rejected|CancelRejected|PaymentRejected"/>
+        <control type="label" label="Retención" span="2"/>
+        <control type="calc" span="2" name="SATInfo_RetentionAmount" default="0.00" format="0,00.00"
+          source="SATInfo_Subtotal*SATInfo_RetentionRate/100"/>
+        <control type="label" label="Neto" span="1"/>
+        <control type="calc" name="SATInfo_NetAmount" span="3" format="0,0.00"
+          source="SATInfo_Subtotal+SATInfo_VATTaxAmount-SATInfo_RetentionAmount"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <control type="modalbutton" name="btnSaveNewSATDetail"
+          icon="cloud-upload" label="Guardar" color="green"
+          reveal="[InvoiceDetailGuid]=+[SATInfo_ItemGuid]!"
+          action="save|close|new"
+          acctsvc="true"
+          capture="NewSATChargesInfo"
+          affector="InvoiceDetailGuid"
+          setaffector="InvoiceDetailGuid"
+          datainsert="InsertSATInvoiceDetails"
+          appendinsert="InvoiceGuid=[SATInvoiceGuid],(facilityData.FiscalClass)=603;ObjetoImp=01,(facilityData.FiscalClass)=601;ObjetoImp=02"
+          provoke="SATInfo_SATDetails"/>
+        <control type="modalbutton" name="btnUpdateSATInvoiceDetail"
+          icon="cloud-upload" label="Actualizar Medwave"
+          reveal="(user.UserRoles)%Medwave,(userName)%sonic"
+          confirm="Reminder: SAT invoice details should not be updated for stamped invoices."
+          action="save|close|new"
+          acctsvc="true"
+          capture="NewSATChargesInfo"
+          affector="none"
+          datainsert="UpdateSATInvoiceDetails"
+          appendinsert="InvoiceDetailGuid=[InvoiceDetailGuid]"
+          provoke="SATInfo_SATDetails"/>
+      </row>
+    </group>
+  </section>  
+</partial>

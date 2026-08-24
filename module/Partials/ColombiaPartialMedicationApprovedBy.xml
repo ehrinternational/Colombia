@@ -1,0 +1,32 @@
+﻿<partial>
+	<!-- Assign a patient to an exam room (uses facility rooms) -->
+   <section type="tabmodal" badge="none" name="mdlMedicationApprovedBy" size="small" title="Validado por">
+		<group>
+			<row>
+				<control type="hidden" name="GetMedicationApprovals"
+					datarequest="GetPatientMedicationOrderByMedsGuid"
+          appendrequest="MedsGuid=[GetMedicationApprovals]"
+          inject="grpMedicationApproval"/>
+			</row>
+		</group>
+		<group name="grpMedicationApproval">
+			<row>
+				<control type="label" label="Estatus Validado" span="3"/>
+				<control type="text" name="DispenseStatus" span="3" readonly="true" translate="true"/>
+      </row>
+			<row>
+				<control type="label" label="Fecha Validado" span="3"/>
+				<control type="datetime" name="DateTimeReviewed" span="3" readonly="true"/>
+			</row>
+      <row>
+				<control type="label" label="Medicamento" span="3"/>
+				<control type="textarea" name="MedsTradeNAme" span="8" rows="2" readonly="true"/>
+      </row>
+      <row>
+				<control type="label" label="Validado por" span="3"/>
+				<control type="text" name="ReviewedByFullName" span="8" readonly="true"/>
+			</row>
+		</group>
+	</section>
+</partial>
+ 

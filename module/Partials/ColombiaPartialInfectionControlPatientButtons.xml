@@ -1,0 +1,127 @@
+<partial>
+  <!-- Partial Hospital Nursing Patient Buttons -->
+    <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+      <control type="button" name="btnAdmitSearchPatients" span="12"
+        label="Buscar Pacientes" icon="search"
+        preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+        trigger="Search_FindPatient"
+        action="redirect" target="mdlFindPatients"/>
+    </row>
+    <row showif="never">
+      <control type="button" name="AdmitSearchReturn"
+        action="trigger"
+        set="PatientId=[PatientSearchResults],PatientSearched="
+        provoke="PatientId"/>
+    </row>
+    <row>
+      <control type="button" 
+        name="Consult_PatientUpdate"
+        reveal="PatientId!" 
+        span="12" 
+        label="Actualizar"
+        affector="PatientId"
+        setaffector="RecordUniqueId"
+        capture="PatientInfo" 
+        icon="cloud-upload"
+        action="save"
+        confirm="Por favor confirme que quiere actualizar a este paciente."
+        dataupdate="UpdatePatient"
+        appendupdate="PatientId=[PatientId]"
+        provoke="btnUpdatePatientVisit"/>
+    </row>
+    <row showif="never">
+      <control type="button" name="btnUpdatePatientVisit"
+        action="save|close|new"
+        affector="PatientVisitGuid"
+        setaffector="PatientVisitUniqueId"
+        capture="VisitInfo"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+        provoke="PatientList"/>
+    </row>
+    <row>
+      <control type="button" name="addNursingNotes" span="12"
+        color="yellowgreen"
+        action="redirect|view"
+        target="patient-notes"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],notetype=Nurse"
+        label="Notas"
+        icon="user-md"/>
+    </row>
+    <row>
+      <control type="button" name="btnAcknowledgeRed"
+        reveal="[UnAcknowledgedOrders]!0"
+        span="12"
+        color="red" icon="warning-sign" 
+        label="Reconocer"
+        action="redirect|view"
+        target="acknowledge"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+        provoke="GetUnAcknowledgedOrders"/>
+      <control type="button" name="btnAcknowledgeGreen"
+        reveal="[UnAcknowledgedOrders]=0"
+        span="12"
+        color="green" icon="thumbs-up" 
+        label="Reconocer"
+        action="redirect|view"
+        target="acknowledge"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+        provoke="GetUnAcknowledgedOrders"/>
+    </row>
+    <row>
+      <!-- Print bed id -->
+      <control type="button"
+        reveal="[PatientId]!" 
+        span="12"
+        name="btnPrintBedIdentification"
+        action="print" 
+        mode="report" 
+        label="Identificación" 
+        icon="print" 
+        append="id=f098d227ae6,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]"/>
+    </row>
+    <row>
+      <!-- Display the first surgery with a Scheduled status -->
+      <control type="button" name="btnShowCurrentSurgery"
+        span="12" icon="search" label="Cirugía"
+        reveal="[PatientVisitGuid]!+[PatientId]!"
+        compare="FindSurgeryGuid!|No se encontró cirugía en proceso para este paciente."
+        preset="SurgeryViewGuid=[FindSurgeryGuid]"
+        trigger="SurgeryViewGuid"
+        action="redirect"
+        target="mdlSurgeryViewModal"/>
+    </row>
+    <row>
+      <!-- Display the patient timeline -->
+      <control type="button" name="btnTimeline"
+        reveal="[PatientId]!+[PatientVisit]!"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisit],distinct=true"/>
+    </row>
+    <row>
+    <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
+      span="12" icon="envelope" label="Email"
+      preset="bmd_PatientId=[PatientId],
+      bmd_PatientFirstName=[Consult_PatientFirstName],
+      bmd_PatientMiddleName=[Consult_PatientMiddleName],
+      bmd_PatientLastName=[Consult_PatientLastName],
+      bmd_EmailAddress=[Consult_PatientEmail]"
+      trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+      action="redirect" target="mdlSendWYSIWYGEmail"/>
+  </row>
+    <row>
+      <control type="button" name="btnInitiateTextMessage" 
+        reveal="[PatientId]!"
+        span="12" icon="envelope" label="Enviar Texto"
+        trigger="grdPhysicianMessages2"
+        preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
+        action="redirect" target="mdlSendTextMessage"/>
+    </row>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+</partial>

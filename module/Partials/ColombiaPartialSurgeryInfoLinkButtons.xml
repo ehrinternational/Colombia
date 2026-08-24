@@ -1,0 +1,73 @@
+<partial>
+  <!-- Save a new surgery -->
+  <row name="rowSaveNewSurgery" reveal="[SurgeryGuid]=">
+    <control type="button"  
+      name="btnSaveNewSurgery"
+      span="12"
+      label="Nueva Cirugía"
+      affector="SurgeryGuid"
+      setaffector="SurgeryGuid"
+      capture="SurgeryInfo" 
+      icon="cloud-upload"
+      action="save|close|new"
+      confirm="Por favor confirme que quiere generar esta Nueva Cirugía."
+      datainsert="InsertScheduledSurgeries"
+      provoke="SurgeryGuid,SurgeryTimes,LaborTimes"
+      emit="trigger|SurgeryTimes,trigger|LaborTimes"/>
+  </row>
+  <!-- Update surgery -->
+  <row name="rowUpdateSurgery" reveal="[SurgeryGuid]!+[Surgery_Status]=Requested">
+    <control type="button" 
+      name="btnUpdateSurgery"
+      span="12"
+      label="Actualizar"
+      affector="none"
+      capture="SurgeryInfo" 
+      icon="cloud-upload"
+      action="save|close|new"
+      confirm="Por favor confirme que quiere actualizar esta cirugía."
+      dataupdate="UpdateScheduledSurgeries"
+      appendupdate="surgeryGuid=[SurgeryGuid]"
+      provoke="SurgeryTimes,LaborTimes"
+      emit="trigger|SurgeryTimes,trigger|LaborTimes"/>
+  </row>
+  <!-- Cancel surgery -->
+  <row name="rowCancelSurgery" reveal="[SurgeryGuid]!+[Surgery_Status]=Requested">
+    <control type="button"   
+      name="btnCancelSurgery"
+      span="12" color="red"
+      label="Eliminar"
+      affector="none" 
+      icon="remove"
+      action="save|close|new"
+      confirm="Por favor confirme que quiere eliminar esta cirugía."
+      dataupdate="UpdateScheduledSurgeries"
+      appendupdate="surgeryGuid=[SurgeryGuid],status=Canceled"
+      provoke="SurgeryTimes,LaborTimes"
+      emit="trigger|SurgeryTimes,trigger|LaborTimes"/>
+  </row>
+  <!-- Save surgery from a template -->
+  <row name="rowSaveNewSurgeryFromTemplate" reveal="[SurgeryGuid]=">
+    <control type="button"  
+      reveal="[EditMode]=Surgery|Labor" 
+      name="btnSaveNewSurgeryFromTemplate"
+      span="12"
+      trigger="mdlSurgeryTemplateList"
+      label="De la plantilla"
+      action="redirect" target="mdlSelectTemplate"/>
+  </row>
+  <!-- Surgery quote modal for editing the quote -->
+  <row name="rowSurgeryQuoteModal" reveal="[SurgeryGuid]!">
+    <control type="button" name="btnSurgeryQuote"
+      span="12" icon="hand-right" color="green" label="Cotización"
+      trigger="SurgeryQuoteItems"
+      action="redirect" target="mdlSurgeryQuote"/>
+  </row>
+  <!-- Surgery quote template list to insert a quote from a template -->
+  <row name="rowSelectSurgeryQuote" reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]=">
+    <control type="button" name="btnSurgeryQuoteTemplateList"
+      span="12" icon="search" color="green" label="Plantillas de Cotización"
+      trigger="SelectSurgeryQuoteTemplateList"
+      action="redirect" target="mdlSelectQuoteTemplate"/>
+  </row>
+</partial>

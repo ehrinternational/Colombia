@@ -1,0 +1,182 @@
+﻿<partial>
+<!-- Enter and edit patient appointments -->
+	<section type="tabmodal" badge="none" name="mdlFirstVisitAppointmentModalWithAdmit" title="Cita del Paciente">
+		<group showif="never">
+      <row>
+        <!-- Get the appointment information from the appointment record (existing appointment) -->
+        <control type="hidden"
+          name="FirstVisit_AppointmentGuid"
+          datarequest="GetSchedulerAppointmentsByAppointmentGuid"
+          appendrequest="AppointmentGuid=[FirstVisit_AppointmentGuid]"
+          inject="FirstVisit_AppointmentInfo"
+          set="FirstVisit_PatientId=[[PatientId]]"
+          provoke="FirstVisit_PatientId"/>
+        <!-- Get the patient information and insert into the form -->
+				<control type="hidden" name="FirstVisit_PatientId"
+					datarequest="GetPatientAllFields"
+					appendrequest="PatientId=[FirstVisit_PatientId]"
+          set="FirstVisitInfo_PatientId=[FirstVisit_PatientId]"
+					inject="FirstVisit_PatientInfo"/>
+        <control type="button" name="NewFirstVisitPatient"
+          action="trigger"
+          set="FirstVisit_PatientId=[PatientSearchResults]"
+					provoke="FirstVisit_PatientId"/>
+				<control type="button" name="btnCloseFirstVisitAppointmentModal" action="close|new"/>
+			</row>
+		</group>
+		<group name="FirstVisit_PatientInfo">	
+			<columns>
+				<column span="10">
+          <row>
+            <control type="hidden" name="FirstVisit_HasOpenVisit"/>
+          </row>
+					<row>
+						<control type="label" label="Nombre/Expediente" span="4" align="left"/>
+						<control type="label" label="Apellido Paterno" span="4" align="left"/>
+						<control type="label" label="Apellido Materno" span="4" align="left"/>
+					</row>
+					<row>
+						<control type="text" name="FirstVisit_PatientFirstName" span="4" readonly="true"/>
+						<control type="text" name="FirstVisit_PatientMiddleName" span="4" readonly="true"/>
+						<control type="text" name="FirstVisit_PatientLastName" span="4" readonly="true"/> 
+				</row>
+				<row>
+					<control type="label" label="Expediente" span="2"/>
+					<control type="text" name="FirstVisit_MedicalRecordNumber" span="2" readonly="true"/>
+					<control type="label" label="Nacimiento" span="2"/>
+					<control type="date" name="FirstVisit_PatientDOB" span="3" readonly="true"/>
+          <control type="label" label="Edad" span="1"/>
+					<control type="text" name="FirstVisit_PatientAge" span="2" readonly="true"/>
+        </row>
+        <row>
+					<control type="label" label="Sexo" span="2"/>
+					<control type="select" name="FirstVisit_PatientSex" span="3" readonly="true"
+						source="Male,Female,Indeterminate"
+						sourcelabels="Masculino,Femenino,Indeterminado"/>
+				</row>
+			</column>
+		</columns>
+	</group>
+	<group name="FirstVisit_AppointmentInfo">
+				<row name="rowPatientIdFirstVisit">
+					<!-- Store the patientid -->
+					<control type="hidden" name="FirstVisitInfo_PatientId"/>
+				</row>
+				<row>
+					<!-- Select the calendar for the appointment (editable directly only for extraordinary appointments) -->
+					<!-- (Other appointmens are scheduled by selecting a time from a calndar view.) -->
+					<control type="label" label="Calendario" span="2" />
+					<control type="select" name="FirstVisit_AppointmentTypeGuid" span="4"
+						namefield="CalendarName"
+						datasource="GetSchedulerAppointmentTypesByFacility" 
+            append="LocationId=(facilityData.LocationId)" 
+						source="CalendarName,CalendarGuid"
+						set="[CalendarName]%Tele+FirstVisit_AppointmentGuid=;FirstVisit_IsTelemedicine=True,
+							[[CalendarDescription]]%Tele|Video+FirstVisit_AppointmentGuid=;FirstVisit_IsTelemedicine=True,
+							[CalendarName]¡Tele+[[CalendarDescription]]¡Tele|Video+FirstVisit_AppointmentGuid=;FirstVisit_IsTelemedicine=False"
+						readonly="true"/>
+					<control type="buttongroup" name="FirstVisit_IsTelemedicine" span="5" 
+            source="True,False" 
+            sourcelabels="Telemedicina,Presencial" 
+            default="False" edit="FirstVisit_AppointmentGuid="/>
+				</row>
+				<row>
+          <control type="label" label="Departamento" span="2"/>
+          <control type="select" name="FirstVisit_DepartmentGuid" span="4"
+            acctsvc="true" edit="FirstVisit_AppointmentGuid!+[FirstVisit_HasOpenVisit]=false"
+						explicit="true"
+            datasource="GetDepartmentsActive" 
+						append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"
+						provoke="FirstVisit_DepartmentService"/>
+					<!-- Service to admit patient to -->
+					<control type="label" label="Servicio Departamento" span="3"/>
+					<control type="select" name="FirstVisit_DepartmentService"
+            span="3" explicit="true" edit="FirstVisit_AppointmentGuid!+[FirstVisit_HasOpenVisit]=false" 
+						required="Length(FirstVisit_DepartmentService)»0"
+            filter="Active=true,DepartmentGuid=[FirstVisit_DepartmentGuid]"
+            acctsvcreq="true"
+            datarequest="GetDepartmentServices" 
+            source="ServiceName,DepartmentServicesGuid"/>
+				</row>
+				<row>
+					<!-- The datetime of the appointment (editable directly only for extraordinary appointments) -->
+					<control type="label" label="Programado" span="2" />
+					<control type="datetime" name="FirstVisit_Start" span="5" readonly="true"/>
+					<control type="label" label="Duración" badge="min" span="3"/>
+					<control type="integer" name="FirstVisit_Duration"  span="2" 
+            readonly="true" />
+				</row>
+				<row>
+					<control type="label" label="Estatus" span="2"/>
+					<control type="select" name="FirstVisit_Status" span="5"
+						source="Scheduled,Confirmed,No Show,Completed,Canceled,Reschedule"
+						sourcelabels="Agendada,Confirmada,No Asistio,Completa,Cancelado,Reprograma"
+						readonly="true" default="Scheduled"/>
+				</row>
+        <row>
+          <control type="label" label="Servicio" span="2"/>
+          <control type="select" name="FirstVisit_CaseType" span="4"
+            acctsvc="true" 
+            datasource="GetCaseTypesActive" 
+            source="CaseTypeName,CaseTypeGuid" 
+            readonly="true"/>
+          <control type="label" label="Tipo de Atención" span="2"/>
+          <control type="select" name="FirstVisit_AdmitType" span="4" 
+              sort="AdmissionType=asc" 
+              datasource="GetLookupAdmissionTypes" 
+              source="AdmissionType,AdmissionTypeGuid" 
+              explicit="true" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Referencia" span="2"/>
+          <control type="select" name="FirstVisit_ReferringSource" span="4"
+            source="Hospital,Internet,Instagram,Facebook,No Conocido"
+            readonly="true" />
+          <control type="label" label="Tipo de Llegada" span="2"/>
+          <control type="select" name="FirstVisit_AdmitSource" span="4" 
+            datasource="GetLookupAdmitSourcesByFacility" 
+            source="AdmitSource,AdmitSource"
+            readonly="true" explicit="true"
+            filter="Active=true"/>
+        </row>
+        <row>
+          <control type="label" label="Medio de Agendamiento" span="3"/>
+          <control type="select" name="FirstVisit_ContactSource" span="3"
+            readonly="true" source="Correo,Telefono,Salesforce,CRM"/>
+					<!-- Reason for the appointment -->
+					<control type="label" label="Asunto" span="2"/>
+					<control type="text" name="FirstVisit_Subject" readonly="true" span="4"/>
+				</row>
+        <row>
+					<!-- AppointmentNotes for the appointment -->
+					<control type="label" label="Observaciones" span="2"/>
+					<control type="text" name="FirstVisit2_ASANote" span="10" readonly="true"/>
+				</row>
+        <row>
+					<!-- Button to admit patient from an appointment when there is no open visit -->
+					<control type="modalbutton" name="btnAdmitPatientFromAppointment"
+						reveal="[FirstVisit_AppointmentGuid]!+[FirstVisit_HasOpenVisit]=false"
+						action="save|close|new" color="green"
+						icon="check-sign" label="Admitir Paciente"
+						confirm="Por favor, confirme que desea admitir esta paciente."
+						affector="none"
+						datainsert="InsertPatientVisitAllFields"
+						appendinsert="copyDiagnosis=true,
+							locationId=(facilityData.LocationId),
+							patientId=[FirstVisitInfo_PatientId],
+							visitType=[DefaultAdmitType],
+							(facilityData.HospitalName)%Laureate;hospitalService=Admitido,
+							(facilityData.HospitalName)¡Laureate;hospitalService=Esperando,
+							ambulatoryStatus=Inpatient,
+							preAdmit=0,admitDateTime=(dateTimeNow),
+							caseType=[FirstVisit_CaseType],
+							admitType=[FirstVisit_AdmitType],
+							admitSource=[FirstVisit_AdmitSource],
+							departmentGuid=[FirstVisit_DepartmentGuid],
+							departmentService=[FirstVisit_DepartmentService]"
+						set="HasOpenVisit=true"/>
+				</row>
+	</group>	
+  </section>
+</partial>

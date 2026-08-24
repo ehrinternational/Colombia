@@ -1,0 +1,52 @@
+<partial>
+  <template name="tmpTaskPriorityTemplate" type="markup">
+    [IF ${[[TaskPriority]]}=][icon color=green]ok[/icon][/IF]
+    [IF ${[[TaskPriority]]}=1][icon color=green]ok[/icon][/IF]
+    [IF ${[[TaskPriority]]}=2][icon color=yellow]warning-sign[/icon][/IF]
+    [IF ${[[TaskPriority]]}=3][icon color=red]warning-sign[/icon][/IF]
+  </template>
+  <template name="medsNoteTemplate" type="markup">
+    ${[[CombinedTradeName]]}[if ${[[TreatmentGoal]]}!][br][span size=10][b]Observaciones:[/b] ${[[TreatmentGoal]]}[/span][/if]
+  </template>
+  <template name="tmpDispenseStatus" type="markup" align="center">
+    [if ${[[DispenseStatus]]}=Approved][icon size=2x color=green]check-sign[/icon][/if]
+    [if ${[[DispenseStatus]]}=Rejected][icon size=2x color=red]warning-sign[/icon]
+    [br]${[[PharmacyReasonToReject]]}[/if]
+  </template>
+  <template name="DepartmentTemplate" type="markup" align="center">
+    [if ${[[Clicked]]}=]
+      [div bgcolor=white align=center][h4]${[[DepartmentName]]}[/h4][/div] [/if]
+    [if ${[[Clicked]]}!]
+      [div bgcolor=yellowgreen align=center][h4]${[[DepartmentName]]}[/h4][/div] [/if]
+  </template>
+  <template type="markup" name="tmpIdType">
+    [IF ${[[IdType]]}=SI]SIN IDENTIFICACIÓN[/IF]
+		[IF ${[[IdType]]}=RC]REGISTRO CIVIL DE NACIMIENTO[/IF]
+    [IF ${[[IdType]]}=TI]TARJETA DE IDENTIDAD[/IF]
+    [IF ${[[IdType]]}=CC]CEDULA DE CIUDADANIA[/IF]
+    [IF ${[[IdType]]}=CE]CEDULA DE EXTRANJERIA[/IF]
+    [IF ${[[IdType]]}=NI]NIT[/IF]
+    [IF ${[[IdType]]}=MS]MENOR SIN IDENTIFICAR[/IF]
+    [IF ${[[IdType]]}=PA]PASAPORTE[/IF]
+    [IF ${[[IdType]]}=AS]ADULTO SIN IDENTIFICAR[/IF]
+    [IF ${[[IdType]]}=NU]NUIP[/IF]
+    [IF ${[[IdType]]}=CD]CARNÉ DIPLOMÁTICO[/IF]
+    [IF ${[[IdType]]}=SC]SALVOCONDUCTO[/IF]
+    [IF ${[[IdType]]}=PE]PERMISO ESPECIAL PERMANENCIA[/IF]
+    [IF ${[[IdType]]}=CN]CERTIFICADO DE NACIDO VIVO[/IF]
+    [IF ${[[IdType]]}=DE]DOCUMENTO EXTRANJERO[/IF]
+    [IF ${[[IdType]]}=PT]PERMISO PROTECCIÓN TEMPORAL[/IF]
+  </template>
+  <template name="tmpOrthoApproval">
+    [if ${[[ApprovedByOrtho]]}=true][icon color=green]ok-sign[/icon][/if]
+    [if ${[[ApprovedByOrtho]]}=false][icon color=red]remove[/icon][/if]
+  </template>
+  <template name="tmpAnesthesiaApproval">
+    [if ${[[ApprovedByAnesthesia]]}=true][icon color=green]ok-sign[/icon][/if]
+    [if ${[[ApprovedByAnesthesia]]}=false][icon color=red]remove[/icon][/if]
+  </template>
+  <template name="tmpPediatricsApproval">
+    [if ${[[ApprovedByPediatrics]]}=true][icon color=green]ok-sign[/icon][/if]
+    [if ${[[ApprovedByPediatrics]]}=false][icon color=red]remove[/icon][/if]
+  </template>
+</partial>

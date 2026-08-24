@@ -1,0 +1,428 @@
+<partial>
+  <!-- Tabmodal for biomedical and maintenance  orders -->
+	<section type="tabmodal" badge="none" name="mdlBloodBankOrder" title="Orden de Sangre">
+		<group showif="never">
+			<row>
+				<control type="hidden" name="BloodBankNewStatus"/>
+				<control type="hidden" name="BloodBankOrderGuid"
+					acctsvcreq="true"
+					datarequest="GetBloodBankOrders"
+					appendrequest="OrderGuid=[BloodBankOrderGuid]"
+					inject="grpBloodBankOrderInfo"
+					provoke="GetBloodBankPatient,grdBloodBankOrderItems,bldButtonGroupSelect"/>
+        <!-- Read the patient for a blood bank order -->
+				<control type="hidden" name="GetBloodBankPatient"
+					datarequest="GetPatientAllFields"
+					appendrequest="PatientId=[BloodBankOrder_PatientId]"
+					inject="BloodBank_PatientInfo"/>
+        <!-- Save a blood bank order before printing it -->
+				<control type="button" name="btnBloodBankUpdateOrderForPrint"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpBloodBankOrderInfo"
+					dataupdate="UpdateBloodBankOrders"
+					appendupdate="OrderGuid=[BloodBankOrderGuid]"
+					provoke="grdBloodBankOrders,btnPrintBloodBankOrder,ERBloodBankOrders"/>
+    		<!-- Update the blood bank order before setting the new status -->
+        <control type="button" name="btnBloodBankSaveNewStatus"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpBloodBankOrderInfo"
+					dataupdate="UpdateBloodBankOrders"
+					appendupdate="OrderGuid=[BloodBankOrderGuid]"
+					provoke="btnBloodBankUpdateNewStatus"/>
+        <!-- Set the new status for blood bank orders -->
+				<control type="button" name="btnBloodBankUpdateNewStatus"
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					dataupdate="UpdateBloodBankOrders"
+					appendupdate="OrderGuid=[BloodBankOrderGuid],Status=[BloodBankNewStatus]"
+					provoke="grdBloodBankOrders,ERBloodBankOrders"/>
+			</row>
+		</group>
+    <!-- Patient information for blood bank order -->
+		<group name="BloodBank_PatientInfo">	
+			<columns>
+				<column span="10">
+          <row>
+            <control type="hidden" name="BloodBank_PatientVisit"/>
+            <control type="hidden" name="BloodBank_HasOpenVisit"/>
+          </row>
+					<row>
+						<control type="label" label="Nombre/Expediente" span="4" align="left"/>
+						<control type="label" label="Apellido Paterno" span="4" align="left"/>
+						<control type="label" label="Apellido Materno" span="4" align="left"/>
+					</row>
+					<row>
+						<control type="text" name="BloodBank_PatientFirstName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/>
+						<control type="text" name="BloodBank_PatientMiddleName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/>
+						<control type="text" name="BloodBank_PatientLastName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/> 
+					</row>
+					<row>
+						<control type="label" label="Expediente" span="2"/>
+						<control type="text" name="BloodBank_MedicalRecordNumber" span="2" readonly="true"/>
+						<control type="label" label="Nacimiento" span="2"/>
+						<control type="date" name="BloodBank_PatientDOB" span="3" readonly="true"/>
+						<control type="label" label="Edad" span="1"/>
+						<control type="text" name="BloodBank_PatientAge" span="2" readonly="true"/>
+					</row>
+					<row>
+						<control type="label" label="Sexo" span="2"/>
+						<control type="select" name="BloodBank_PatientSex" span="3" readonly="true"
+							required="true" 
+							source="Male,Female,Indeterminate"
+							sourcelabels="Masculino,Femenino,Indeterminado"/>
+						<control type="label" label="Tipo de Sangre" span="3"/>
+						<control type="text" name="BloodBank_BloodType" span="2" readonly="true"/>
+					</row>
+					<row>
+						<control type="label" label="Celular" span="2"/>
+						<control type="text" name="BloodBank_PatientCellPhone" span="3" readonly="true"/>
+						<control type="label" label="Email" span="2"/>
+						<control type="text" name="BloodBank_PatientEmail" span="5" readonly="true"/>
+					</row>
+				</column>
+				<column span="2">
+					<row>
+					  <control type="button" name="btnSearchBloodBankPatients"
+							reveal="[BloodBankOrder_PatientId]="
+							label="Buscar Pacientes" span="12" icon="search"
+							preset="PatientSearchSource=51"
+							action="redirect" target="mdlFindPatients"/>
+					</row>
+					<row showif="never">
+						<control type="hidden" name="SetBloodBankPatientId"
+							set="BloodBankOrder_PatientId=[PatientSearchResults]"
+							provoke="GetBloodBankPatient"/>
+					</row>
+				</column>
+			</columns>
+		</group>
+    <!-- Blood bank order information -->
+		<group name="grpBloodBankOrderInfo">
+          <row>
+            <control type="hidden" name="BloodBankOrder_PatientId"/>
+            <control type="hidden" name="BloodBankOrder_PatientVisit"/>
+          </row>
+          <row>
+            <control type="label" label="Orden" span="2"/>
+            <control type="text" name="BloodBank_OrderNumber" span="4" readonly="true"/>
+            <control type="label" label="Estatus" span="2"/>
+            <control type="select" name="BloodBank_Status" span="4"
+              source="Requested,In Process,Correction,Completed,Canceled"
+              sourcelabels="Requerido,En Proceso,Corrección,Completado,Cancelado"
+              default="Requested" readonly="true"/>
+          </row>
+          <row name="rowReasonForCancel" reveal="[BloodBank_Status]=Canceled">
+              <control type="label" label="Rázon para Cancelar" span="3"/>
+              <control type="textarea" name="BloodBank_ReasonForCancel" span="9" rows="1" readonly="true"/>
+          </row>
+          <row name="rowCanceledBy" reveal="[BloodBank_Status]=Canceled">
+              <control type="label" label="Cancelado por" span="2"/>
+              <control type="text" name="BloodBank_CanceledByName" span="4" readonly="true"/>
+              <control type="label" label="Fecha Cancelado" span="2"/>
+              <control type="datetime" name="BloodBank_DateTimeCanceled" span="4" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Departamento" span="2"/>
+            <control type="select" name="BloodBank_DepartmentGuid" span="4" 
+              acctsvc="true" required="true"  edit="true"
+              source="DepartmentNumber|DepartmentName,DepartmentGuid"
+              datasource="GetDepartmentsActive"
+              append="LocationId=(facilityData.LocationId)"
+              provoke="BloodBank_DeliverToRoomGuid"/>
+            <control type="label" label="Habitación" span="2"/>
+            <control type="select" name="BloodBank_DeliverToRoomGuid" span="4" edit="true"
+							acctsvcreq="true"
+							explicit="true"
+							datarequest="GetFacilityPatientRoomsAndBedsByDepartmentGuid"
+							appendrequest="departmentGuid=[BloodBank_DepartmentGuid]"
+							source="RoomAndBedNumber,RoomGuid"/>
+          </row>
+          <row>
+            <control type="label" label="Prioridad" span="2"/>
+            <control type="select" name="BloodBank_Priority" span="4"
+              source="Reserve,Ordinary,Emergency,Extra Emergency" default="Normal"
+              sourcelabels="Reserva,Ordinaria,Urgente,Extra Urgente" edit="true" required="true"/>
+            <control type="label" label="Requerido" span="2"/>
+            <control type="datetime" name="BloodBank_DateTimeRequired" span="4" edit="true" required="true"/>
+          </row>
+          <row>
+            <control type="label" label="Hemoglobina g/dl" span="2"/>
+            <control type="text" name="BloodBank_Hemoglobin" span="2" format="0.00"
+              edit="true" required="true"/>
+            <control type="label" label="Hematocrito g/dl" span="4"/>
+            <control type="text" name="BloodBank_Hematocrit" span="2" format="0.00"
+            edit="true" required="true"/>
+          </row>
+          <row>
+            <control type="label" label="Prueba Cruzada" span="2"/>
+            <control type="buttongroup" name="BloodBank_ReactionTest" span="2" edit="true"
+              source="True,False" required="true"
+              sourcelabels="Sí,No"/>
+            <control type="label" label="Transfusion Previa" span="2"/>
+            <control type="buttongroup" name="BloodBank_PreviousTransfusion" span="2" edit="true"
+              source="True,False" sourcelabels="Sí,No" required="true"/>
+            <control type="label" label="GO" span="2"/>
+            <control type="buttongroup" name="BloodBank_ReactionGo" span="2" 
+              source="True,False" required="true"
+              sourcelabels="Sí,No" edit="true"/>
+          </row>
+          <row name="rowTransfusionReactionDetails" reveal="[BloodBank_ReactionGo]=True">
+            <control type="label" label="G" span="2"/>
+            <control type="text" name="BloodBank_ReactionG" span="1" edit="true"/>
+            <control type="label" label="P" span="1"/>
+            <control type="text" name="BloodBank_ReactionP" span="1" edit="true"/>
+            <control type="label" label="C" span="1"/>
+            <control type="text" name="BloodBank_ReactionC" span="1" edit="true"/>
+            <control type="label" label="A" span="1"/>
+            <control type="text" name="BloodBank_ReactionA" span="1" edit="true"/>
+            <control type="label" label="" span="1"/>
+            <control type="checkbox" name="BloodBank_ReactionIng" label="InG Anti D" span="2" edit="true"/>
+          </row>
+          <row name="rowTransfusionReactions" reveal="[BloodBank_PreviousTransfusion]=True">
+            <control type="label" label="Reacciones Transfusionales" span="4"/>
+            <control type="checkbox" name="BloodBank_Hives" span="3" edit="true"
+              source="True,False" label="Urticaria"/>
+            <control type="checkbox" name="BloodBank_Chills" span="3" edit="true"
+              source="True,False" label="Escalofrios"/>
+            <control type="checkbox" name="BloodBank_Fever" span="2" edit="true"
+              source="True,False" label="Fiebre"/>
+          </row>
+          <row name="rowTransfusionReactionOther" reveal="[BloodBank_PreviousTransfusion]=True">
+            <control type="label" label="Fecha de la última" span="3"/>
+            <control type="date" name="BloodBank_DateTimeTransfusion" span="2" edit="true" required="true"/>
+            <control type="label" label="Reacciones Otras" span="2"/>
+            <control type="text" name="BloodBank_OtherReactions" span="5" edit="true"/>
+          </row>
+          <row>
+            <control type="label" label="SOLICITUD DE TRANSFUSION" span="6" align="left"/>
+            <control type="label" label="CRUZAR" align="center" span="2"/>
+            <control type="label" label="RESERVA" align="center" span="2"/>
+            <control type="label" label="TOTAL" align="center" span="2"/>
+          </row>
+          <row>
+            <control type="label" label="S.T." span="1" align="left"/>
+            <control type="label" label="Sangre Total" span="5" align="left"/>
+            <control type="integer" name="TotalBlood" span="2" min="0" edit="true"/>
+            <control type="integer" name="TotalBloodReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="TotalBloodTotal" span="2" source="TotalBlood+TotalBloodReserve"/>
+          </row>
+          <row>
+            <control type="label" label="P.G./C.E." span="1" align="left"/>
+            <control type="label" label="Paq. Glob./Concentrado Eritrocitario" span="5" align="left"/>
+            <control type="integer" name="PGCE" span="2" min="0" edit="true"/>
+            <control type="integer" name="PGCEReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="PGCETotal" span="2" source="PGCE+PGCEReserve"/>
+          </row>
+          <row>
+            <control type="label" label="P.F.C." span="1" align="left"/>
+            <control type="label" label="Plasma Fresco Congelado" span="5" align="left"/>
+            <control type="integer" name="PFC" span="2" min="0" edit="true"/>
+            <control type="integer" name="PFCReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="PFCTotal" span="2" source="PFC+PFCReserve"/>
+          </row>
+          <row>
+            <control type="label" label="P.R.P." span="1" align="left"/>
+            <control type="label" label="Plasma Rico en Plaquetas" span="5" align="left"/>
+            <control type="integer" name="PRP" span="2" min="0" edit="true"/>
+            <control type="integer" name="PRPReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="PRTTotal" span="2" source="PRP+PRPReserve"/>
+          </row>
+          <row>
+            <control type="label" label="C.P." span="1" align="left"/>
+            <control type="label" label="Concentrado Plaquetario" span="5" align="left"/>
+            <control type="integer" name="CP" span="2" min="0" edit="true"/>
+            <control type="integer" name="CPReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="CPTotal" span="2" source="CP+CPReserve"/>
+          </row>
+          <row>
+            <control type="label" label="CRIOS" span="1" align="left"/>
+            <control type="label" label="Crioprecipitados" span="5" align="left"/>
+            <control type="integer" name="CRIOS" span="2" min="0" edit="true"/>
+            <control type="integer" name="CRIOSReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="CRIOSTotal" span="2" source="CRIOS+CRIOSReserve"/>
+          </row>
+          <row>
+            <control type="label" label="P.G.P.L." span="1" align="left"/>
+            <control type="label" label="Paquete Globular Pobre en Leucocitos" span="5" align="left"/>
+            <control type="integer" name="PGPL" span="2" min="0" edit="true"/>
+            <control type="integer" name="PGPLReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="PGPLTotal" span="2" source="PGPL+PGPLReserve"/>
+          </row>
+          <row>
+            <control type="label" label="D.P." span="1" align="left"/>
+            <control type="label" label="Donación Pre-operatoria" span="5" align="left"/>
+            <control type="integer" name="DP" span="2" min="0" edit="true"/>
+            <control type="integer" name="DPReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="DPTotal" span="2" source="DP+DPReserve"/>
+          </row>
+          <row>
+            <control type="label" label="C.S." span="1" align="left"/>
+            <control type="label" label="Cell Saver" span="5" align="left"/>
+            <control type="integer" name="CS" span="2" min="0" edit="true"/>
+            <control type="integer" name="CSReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="CSTotal" span="2" source="CS+CSReserve"/>
+          </row>
+          <row>
+            <control type="label" label="A.T." span="1" align="left"/>
+            <control type="label" label="Autotransfuión" span="5" align="left"/>
+            <control type="integer" name="AT" span="2" min="0" edit="true"/>
+            <control type="integer" name="ATReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="ATTotal" span="2" source="AT+ATReserve"/>
+          </row>
+          <row>
+            <control type="label" label="Otros" span="1" align="left"/>
+            <control type="text" name="OtherProducts" span="5" align="left" edit="true"/>
+            <control type="integer" name="OtherBlood" span="2" min="0" edit="true"/>
+            <control type="integer" name="OtherReserve" span="2" min="0" edit="true"/>
+            <control type="calc" name="OtherTotal" span="2" source="OtherBlood+OtherReserve"/>
+          </row>
+          <row>
+            <control type="label" label="Total" span="6"/>
+            <control type="calc" name="CrossTotal" span="2" 
+              source="TotalBlood+PGCE+PFC+PRP+CP+CRIOS+PGPL+DP+CS+AT+OtherBlood" format="0"/>
+            <control type="calc" name="ReserveTotal" span="2"
+              source="TotalBloodReserve+PGCEReserve+PFCReserve+PRPReserve+CPReserve+CRIOSReserve+PGPLReserve+DPReserve+CSReserve+ATReserve+OtherReserve" format="0"/>
+            <control type="calc" name="GrandTotal" span="2" source="CrossTotal+ReserveTotal" format="0"/>
+          </row>
+          <row>
+            <control type="label" label="Notas de Orden" span="2"/>
+            <control type="textarea" name="BloodBank_OrderNotes" span="10" rows="1" edit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Ordenado por" span="2"/>
+            <control type="select" name="BloodBank_OrderedBy" span="4" edit="true" required="true"
+              searchable="true"
+              acctsvc="true" 
+					    datasource="GetUsersByAttributes" 
+					    append="LocationId=(facilityData.LocationId),role=Physician"
+              source="UserFirstMiddleLast,UserId"/>
+            <control type="label" label="Firmado por" span="2"/>
+            <control type="select" name="BloodBank_SignedBy" span="4" 
+              searchable="true" edit="true"
+              acctsvc="true" 
+					    datasource="GetUsersByAttributes" 
+					    append="LocationId=(facilityData.LocationId),role=Physician"
+              source="UserFirstMiddleLast,UserId"/>
+          </row>
+          <row>
+            <control type="label" label="Notas de Llegada" span="2"/>
+            <control type="textarea" name="BloodBank_DeliveryNotes" span="10" rows="1" edit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Recibe por" span="2"/>
+            <control type="select" name="BloodBank_ReceivedBy" span="4" 
+              searchable="true" edit="true"
+              acctsvc="true" 
+					    datasource="GetUsersByAttributes" 
+					    append="LocationId=(facilityData.LocationId),role=Physician|Nurse"
+              source="UserFirstMiddleLast,UserId"/>
+            <control type="label" label="Entregado" span="2"/>
+            <control type="datetime" name="BloodBank_DateTimeDelivered" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="No. de Unidad" span="2"/>
+            <control type="text" name="BloodBank_UnitQuantity" span="2" format="0.00" edit="true"/>
+            <control type="label" label="Volumen transfundido" span="4"/>
+            <control type="text" name="BloodBank_TransfusionVolume" span="2" format="0.00" edit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Hora de Inicio" span="2"/>
+            <control type="datetime" name="BloodBank_TransfusionStartDateTime" span="3" edit="true"/>
+            <control type="label" label="Hora de Termino" span="3"/>
+            <control type="datetime" name="BloodBank_TransfusionEndDateTime" span="3" edit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Notas de Transfusión" span="2"/>
+            <control type="text" name="BloodBank_TransfusionNotes" span="10" edit="true"/>
+          </row>
+          <row>
+            <!-- Save a new blood bank order -->
+            <control type="modalbutton" name="btnBloodBankSaveOrder"
+              color="green" label="Guardar"
+              reveal="[BloodBankOrderGuid]="
+              icon="cloud-upload" action="save"
+              acctsvc="true"
+              compare="[BloodBankOrder_PatientId]!|Paciente requerido!"
+              affector="BloodBankOrderGuid"
+              setaffector="OrderGuid"
+              capture="grpBloodBankOrderInfo"
+              datainsert="InsertBloodBankOrders"
+              provoke="bldButtonGroupSelect,ERBloodBankOrders"/>
+            <!-- Update an existing blood bank order -->
+            <control type="modalbutton" name="btnBloodBankUpdateOrder"
+              reveal="[BloodBankOrderGuid]!"
+             label="Actualizar"
+              icon="cloud-upload" 
+              action="save|close|new"
+              acctsvc="true"
+              affector="none"
+              capture="grpBloodBankOrderInfo"
+              dataupdate="UpdateBloodBankOrders"
+              appendupdate="OrderGuid=[BloodBankOrderGuid]"
+              provoke="grdBloodBankOrders,grdBloodBankProgramMaintenance,ERBloodBankOrders"/>
+          </row>
+          <row>
+            <control type="modalbutton" name="btnBloodBankCompleteOrder"
+              reveal="[BloodBankOrderGuid]!"
+              label="Completar" icon="calendar" color="green"
+              preset="BloodBankNewStatus=Completed"
+              action="trigger" trigger="btnBloodBankSaveNewStatus"/>
+          </row>
+          <row>
+            <control type="modalbutton" name="btnBloodBankCancelOrder"
+                reveal="[BloodBankOrderGuid]!"
+                label="Cancelar" icon="remove" color="red"
+                preset="BloodBankNewStatus=Canceled"
+                action="trigger" trigger="btnBloodBankSaveNewStatus"/>
+          </row>
+          <row>
+            <!-- Update an existing blood bank order prior to printing -->
+            <control type="modalbutton" name="btnBloodBankUpdateOrderToPrint"
+              reveal="[BloodBankOrderGuid]!"
+              label="Imprimir"
+              icon="print" 
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="grpBloodBankOrderInfo"
+              dataupdate="UpdateBloodBankOrders"
+              appendupdate="OrderGuid=[BloodBankOrderGuid]"
+              provoke="btnPrintBloodBankOrder,ERBloodBankOrders"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnPrintBloodBankOrder"
+              action="print" mode="report" 
+              append="id=1fbbcb7e377,HospitalGuid=(facilityData.HospitalGuid),OrderGuid=[BloodBankOrderGuid],UserName=(fullname),CurrentDateTime=(dateTimeNow)"/>            
+          </row>
+		</group>
+    <group name="grpBloodBankDataGrids" reveal="[BloodBankOrder_PatientId]!+[BloodBank_PatientVisit]!+[BloodBankOrderGuid]!">
+      <!-- Blood bank order datagrids -->
+      <row>
+        <control type="buttongroup" name="bldButtonGroupSelect" 
+          edit="true" mode="auto" span="12" default="Problems"
+          source="Problems,Vitals,Studies,Surgery,Documents" 
+          sourcelabels="Diagnósticos,Vitales,Estudios,Procedimientos,Documentos" 
+          provoke="bldGridList|options"/>
+      </row>
+      <row>
+        <control name="bldGridList" affector="bldButtonGroupSelect" type="options" span="12">
+          <partial link="./Partial/Grids/PartialDiagnosisActiveForPatientBloodBankNoAdd.xml"/>
+          <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatientBloodBank.xml"/>
+          <partial link="./Partial/Grids/PartialAllergiesBloodBankNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialVitalSignsBloodBankWithGraph.xml"/>
+          <partial link="./Partial/Grids/PartialLabOrderResultsBloodBank.xml"/>
+          <partial link="./Partial/Grids/PartialProcedureOrdersBloodBankNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryListForPatientBloodBankWithView.xml"/>
+          <partial link="./Partial/Grids/PartialScannedDocumentsBloodBankWithNewAndCancel.xml"/>
+          <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditBloodBankWindowMode.xml"/>
+        </control>
+       </row>
+     </group>
+     <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
+	</section>
+</partial>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ledger transactions by transaction type -->
+<module name="Libro Mayor">
+<facet name="TransactionSource"/>
+<headerbutton name="btnTransByTypeReports"
+  icon="print" label="Informes de Contabilidad"
+  preset="Report_Type=Accounting"
+  trigger="ReportList"
+  action="redirect" target="mdlReports"/>
+<!-- Lists -->
+<partial link="./Partial/Modals/PartialAccountingLedgerAccounts.xml"/>
+<partial link="./Partial/Lists/PartialLedgerTransactionsByTypeList.xml"/>
+<partial link="./Partial/Lists/PartialLedgerTransactionsByAccountList.xml"/>
+<partial link="./Partial/Admin/PartialCheckingAccountReconcilliation.xml"/>
+<partial link="./Partial/Lists/PartialFixedAssetsList.xml"/>
+<partial link="./Partial/Modals/PartialRecurringLedgerTransactionModal.xml"/>
+<!-- Modals -->
+<partial link="./Partial/Modals/PartialNewLedgerTransactionFromRecurringModal.xml"/>
+<partial link="./Partial/Modals/PartialLedgerTransactionModal.xml"/>
+<partial link="./Partial/Modals/PartialDepositTransactionModal.xml"/>
+<partial link="./Partial/Modals/PartialCheckTransactionModal.xml"/>
+<partial link="./Partial/Modals/PartialFixedAssetModal.xml"/>
+<partial link="./Partial/Modals/PartialPostFixedAssetDepreciation.xml"/>
+<partial link="./Partial/Modals/PartialUnbilledChargesTransactionModal.xml"/>
+<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

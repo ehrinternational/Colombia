@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Aprobar Interconsultas" type="onload" trigger="grdInternalConsultList">
+  <facet name="FileName" value="Consult Approval"/>
+  <!-- Display a list of internal consult requests -->
+  <partial link="Partials/ColombiaPartialInternalConsultRequestListByStatus.xml"/>
+  <partial target="NewConsultModal" link="Partials/ColombiaPartialInterconsultRequest.xml"/>
+</module>

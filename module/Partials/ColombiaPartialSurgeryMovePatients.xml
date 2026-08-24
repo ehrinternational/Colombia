@@ -1,0 +1,65 @@
+﻿<partial>
+<!-- Move patients within queus in Emergency Room -->
+  <section type="tabmodal" badge="none" name="mdlMoveSurgeryPatients" title="Mover" size="small">
+    <group>
+      <row>
+        <control type="label" label="Quirófano" span="4"/>
+        <control type="select" name="SurgeryMove_DepartmentGuid" span="4"
+          edit="true" required="true" explicit="true" default="true" persist="true"
+          filter="DepartmentName%Quirófano|Cirugía"
+          acctsvc="true"
+          datasource="GetDepartmentsActive" 
+          append="LocationId=(facilityData.LocationId)"
+          source="DepartmentName,DepartmentGuid"/>
+      </row>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnMoveToEsperando"
+          span="4" icon="move" label="Esperando"
+          compare="[SurgeryMove_DepartmentGuid]!|Se debe seleccionar un departamento de cirugía antes de trasladar a un paciente a cirugía."
+          color="orange"
+          action="save|close|new"
+          dataupdate="UpdatePatientVisitAllFields"
+          appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],
+            departmentGuid=[SurgeryMove_DepartmentGuid],hospitalService=Esperando"
+          provoke="PatientList,ClosePatientTabModal"/>
+      </row>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnMoveToPreoperatorio"
+          span="4" icon="move" label="Preoperatorio"
+          compare="[SurgeryMove_DepartmentGuid]!|Se debe seleccionar un departamento de cirugía antes de trasladar a un paciente a cirugía."
+          color="orange"
+          action="save|close|new"
+          dataupdate="UpdatePatientVisitAllFields"
+          appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],
+            departmentGuid=[SurgeryMove_DepartmentGuid],hospitalService=Preoperatorio"
+          provoke="PatientList,ClosePatientTabModal"/>
+      </row>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnMoveToCirugía"
+          span="4" icon="move" label="Cirugía"
+          compare="[SurgeryMove_DepartmentGuid]!|Se debe seleccionar un departamento de cirugía antes de trasladar a un paciente a cirugía."
+          color="orange"
+          action="save|close|new"
+          dataupdate="UpdatePatientVisitAllFields"
+          appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],
+            departmentGuid=[SurgeryMove_DepartmentGuid],hospitalService=Cirugía"
+          provoke="PatientList,ClosePatientTabModal"/>
+      </row>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnMoveToRecuperación"
+          span="4" icon="move" label="Recuperación"
+          compare="[SurgeryMove_DepartmentGuid]!|Se debe seleccionar un departamento de cirugía antes de trasladar a un paciente a cirugía."
+          color="orange"
+          action="save|close|new"
+          dataupdate="UpdatePatientVisitAllFields"
+          appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],
+            departmentGuid=[SurgeryMove_DepartmentGuid],hospitalService=Recuperación"
+          provoke="PatientList,ClosePatientTabModal"/>
+      </row>
+    </group>
+  </section>
+</partial>

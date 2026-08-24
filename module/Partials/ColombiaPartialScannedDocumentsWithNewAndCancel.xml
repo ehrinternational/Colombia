@@ -1,0 +1,93 @@
+﻿<partial>  
+  <!-- Scanned Documents -->
+  <control type="datagrid" label="Documentos Escaneados" name="ScannedForms"
+    option="Documents"
+    rows="5"
+    fitrows="true"
+    searchable="true"
+    rowcolor="PatientAccess|true=green"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientImages"
+    appendrequest="patientId=[PatientId]"
+    source="DateEntered,Category,Type,FileName,EnteredByFullName,Status"
+    sourcelabels="Fecha y Hora,Tipo,Categoría,Documento,Ingresado por,Estatus"
+    align="|left|left|left|left|left"
+    format="datetime"
+    translate="Category,Status,Type"
+    sort="DateEntered=desc"
+    key="PhotoGuid"
+    action="redirect|url" 
+    target="printables/uploadviewer.html" 
+    usesource="login"
+    append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+    <!--Button to upload scanned documents-->
+    <control type="button" 
+      name="btnScanDocuments" 
+      label="Subir Documentos" 
+      icon="folder-open"
+      append="patientId=[PatientId],patientVisit=[PatientVisitGuid]"
+      action="upload" 
+      filter="pdf,jpg,jpeg,png"
+      provoke="ScannedForms"/>
+    <!--Button to show scanned document on MiHarmoni, or "patient accessable" -->  
+  <control type="button" name="btnPatientAccess" showif="feature" 
+    label="Accesible al paciente" icon="ok-circle" color="green"
+    reveal="[[PatientAccess]]=" 
+    action="save" affector="none" acctsvc="true" 
+    dataupdate="UpdatePatientImages" appendupdate="PhotoGuid=[[PhotoGuid]],patientAccess=1" 
+    provoke="ScannedForms"/>
+  <!--Button to hide scanned document from MiHarmoni -->
+  <control type="button" name="btnNoPatientAccess" showif="feature" 
+    label="Solo instalación" icon="remove-circle" color="purple"
+    reveal="[[PatientAccess]]!" 
+    action="save" affector="none" acctsvc="true" 
+    dataupdate="UpdatePatientImages" appendupdate="PhotoGuid=[[PhotoGuid]],patientAccess=0" 
+    provoke="ScannedForms"/>
+  <!-- Button to cancel -->
+  <control type="button" name="btnCancelDocument" label="Cancelar" icon="remove"
+    showif="feature"
+    reveal="(user.UserRoles)%SysAdmin|Sys Assistant|Medical Records|MedWave"
+    confirm="Por favor, confirme que desea cancelar este documento escaneado."
+    action="save"
+    affector="none"
+    acctsvc="true"
+    dataupdate="UpdatePatientImages"
+    appendupdate="PhotoGuid=[[PhotoGuid]],status=Canceled"
+    provoke="ScannedForms"/>
+  <!-- Button to cancel -->
+  <control type="button" name="btnCancelDocumentBySocialWorker" label="Cancelar" icon="remove"
+    showif="feature"
+    reveal="(user.UserRoles)%Social Worker+(userName)=[[EnteredBy]]"
+    confirm="Por favor, confirme que desea cancelar este documento escaneado."
+    action="save"
+    affector="none"
+    acctsvc="true"
+    dataupdate="UpdatePatientImages"
+    appendupdate="PhotoGuid=[[PhotoGuid]],status=Canceled"
+    provoke="ScannedForms"/>
+  <!-- Button to deactivate -->
+  <control type="button" name="btnDeactivateDocument" label="Inactivo" color="orange"
+    reveal="[[Status]]=Active"
+    showif="feature"
+    icon="remove"
+    confirm="Por favor, confirme que desea desactivar este documento escaneado."
+    action="save"
+    affector="none"
+    acctsvc="true"
+    dataupdate="UpdatePatientImages"
+    appendupdate="PhotoGuid=[[PhotoGuid]],status=Inactive"
+    provoke="ScannedForms"/>
+  <!-- Button to deactivate -->
+  <control type="button" name="btnReactivateDocument" label="Activo" color="yellowgreen"
+    reveal="[[Status]]=Inactive"
+    showif="feature"
+    icon="edit"
+    confirm="Por favor, confirme que desea reactivar este documento escaneado."
+    action="save"
+    affector="none"
+    acctsvc="true"
+    dataupdate="UpdatePatientImages"
+    appendupdate="PhotoGuid=[[PhotoGuid]],status=Active"
+    provoke="ScannedForms"/>
+  </control>
+</partial>

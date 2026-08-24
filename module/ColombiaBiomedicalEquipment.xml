@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Equipo Biomédico" type="onload" trigger="grdMedicalDevices">
+	<facet name="FileName" value="BiomedicalEquipment"/>
+	<facet name="EquipmentCategory" value="Medical"/>
+	<headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Biomedical"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+	<!-- Display the Biomedical equipment list -->
+	<section type="tab" name="BiomedicalEquipment" title="Equipos Biomédicos" trigger="grdMedicalDevices,DeviceType">
+		<group showif="never">
+			<row>
+				<!-- Select the inventory location for biomedical inventory -->
+				<!-- This assumes that there is only one! -->
+				<control type="select" span="3" name="FindFromLocationGuid"
+          source="LocationName,LocationGuid"
+          filter="LocationType=Biomedical"
+					default="true"
+          acctsvc="true"
+          datasource="GetInventoryLocationsForThisFacility"/>
+			</row>
+		</group>
+		<group>
+			<row>
+				<!-- Select active and inactivo -->
+				<control type="buttongroup" name="btngrpDeviceActive"
+					source="True,False" sourcelabels="Activo,Inactivo" span="4"
+					default="True" provoke="grdMedicalDevices"/>
+			</row>
+			<row>
+				<!-- Display a list of biomedical equipment -->
+				<control type="datagrid" name="grdMedicalDevices"
+					label="Equipos Biomédicos" 
+					searchable="true"
+					action="redirect"
+					target="mdlBiomedicalEquipment"
+					span="12"
+					rows="20"
+					filter="Active=[btngrpDeviceActive]"
+					datarequest="GetMedicalDeviceItems"
+					appendrequest="Category=Medical,LocationId=(facilityData.LocationId)"
+					source="Active,DeviceStatus,DeviceCode,DeviceDescription,SerialNumber,Manufacturer,LocationDepartmentName,LocationRoomName"
+					sourcelabels="Activo,Estatus,Código,Equipo,Serie,Fabricante,Departamento,Cama"
+					align="|left|left|left|left|left|left|left"
+					format="boolean"
+					translate="DeviceStatus"
+					sort="DeviceDescription=asc"
+					key="DeviceGuid"
+					onselectset="DeviceGuid=[[DeviceGuid]]"
+					onselect="DeviceGuid">
+					<!-- refresh thislist -->
+					<control type="button" name="btnRefreshMedicalDevices"
+						label="Actualizar" action="trigger" trigger="grdMedicalDevices"/>
+					<!-- Redirect to the modal to enter/edit equipment -->
+					<control type="button" name="btnNewMedicalDevice"
+						label="Añadir Nuevo" icon="plus"
+						action="redirect" target="mdlBiomedicalEquipment"/>
+				</control>
+			</row>
+		</group>
+	</section>
+	<!-- Display the Work Order list -->
+	<section type="tab" name="BiomedicalWorkOrders" title="Órdenes de Trabajo" trigger="btngrpStatus">
+		<group>
+			<row>
+				<!-- Select status -->
+				<control type="buttongroup" name="btngrpStatus"
+					span="5" default="Requested"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completado,Cancelado"
+					provoke="grdMedicalDeviceWorkOrders"/>
+				<control type="select" name="BioMedical_AssignedTo"
+					span="3" edit="true"
+					acctsvc="true"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId),
+						role=Biomedical Engineer|Biomedical Manager"
+					source="FullName,UserId"
+					provoke="grdMedicalDeviceWorkOrders"/>
+				<control type="date" name="BiomedicalStartDate" span="2" edit="true" action="trigger"
+					reveal="[btngrpStatus]=Scheduled|Completed|Canceled" default="(now)"
+					trigger="[BiomedicalStartDate]!+[BiomedicalEndDate]!;grdMedicalDeviceWorkOrders"/>
+				<control type="date" name="BiomedicalEndDate" span="2" edit="true" action="trigger"
+					reveal="[btngrpStatus]=Scheduled|Completed|Canceled" default="(now)"
+					trigger="[BiomedicalStartDate]!+[BiomedicalEndDate]!;grdMedicalDeviceWorkOrders"/>
+			</row>
+			<row>
+				<!-- Display a list of work orders -->
+				<control type="datagrid" 
+					label="Órdenes de Trabajo (Equipo Biomédico)" 
+					name="grdMedicalDeviceWorkOrders"
+					searchable="true"
+					action="redirect"
+					target="mdlMedicalDeviceWorkOrder"
+					span="12"
+					rows="20"
+					rowcolor="Priority|Normal=white;High=orange;Emergency=red"
+					acctsvcreq="true"
+					datarequest="GetMedicalDeviceWorkOrders"
+					appendrequest="Status=[btngrpStatus],
+						LocationId=(facilityData.LocationId),
+						Category=Medical,
+						AssignedTo=[BioMedical_AssignedTo],
+						[btngrpStatus]=Scheduled|Completed|Canceled+[BiomedicalStartDate]!+[BiomedicalEndDate]!;StartDate=[BiomedicalStartDate],
+						[btngrpStatus]=Scheduled|Completed|Canceled+[BiomedicalStartDate]!+[BiomedicalEndDate]!;EndDate=[BiomedicalEndDate]"
+					source="DateTimeEntered,ScheduledDateTime,DateTimeCompleted,OrderNumber,DeviceCode,DeviceDescription,SerialNumber,AssignedToName,DepartmentName,DepartmentServiceName,RoomName"
+					sourcelabels="Creado,Programado,Completado,Orden,Código,Equipo,Serie,Asignado a,Departamento,Servicio,Cama"
+					align="|left|left|left|left|left|left|left|left|left|left"
+					format="datetime|datetime|datetime"
+					sort="DateTimeEntered=asc"
+					key="CompletedMaintenanceGuid"
+					onselectset="WorkOrderGuid=[[CompletedMaintenanceGuid]]"
+					onselect="WorkOrderGuid">
+					<!-- refresh thislist -->
+					<control type="button" name="btnRefreshMedicalDeviceWorkOrders"
+						icon="refresh" label="Actualizar" action="trigger" trigger="grdMedicalDeviceWorkOrders"/>
+					<control type="button" name="btnNewWorkOrderFromDeviceGrid"
+						reveal="[btngrpStatus]=Requested|Scheduled"
+						label="Añadir Nuevo" icon="plus"
+						preset="Wrk_Status=[btngrpStatus]"
+						action="redirect" 
+						target="mdlMedicalDeviceWorkOrder"/>
+				</control>
+			</row>
+		</group>
+	</section>
+
+<!-- Display a Work Order list in a celendar -->
+	<section type="tab" name="BiomedicalWorkOrderCalendar" title="Calendario de Órdenes" trigger="calMedicalDeviceWorkOrders">
+		<group>
+			<row>
+			 	<control type="calendar" span="12" 
+				 	name="calMedicalDeviceWorkOrders"
+          headerleft="add prev,next today"
+          headercenter="title"
+          headerright="dayGridMonth,timeGridWeek,timeGridDay,listMonth"
+          navlinking="true"
+					acctsvcreq="true"
+					eventcolor="Status|Requested=grey;Scheduled=green"
+					datarequest="GetMedicalDeviceWorkOrders"
+					appendrequest="Status=Scheduled,Category=Medical,LocationId=(facilityData.LocationId)"
+          map="start=ScheduledDateTime,end=ScheduledDateTime,title=DeviceDescription"
+					daterange="endDateTime=end,startDateTime=start"
+          key="CompletedMaintenanceGuid"
+					action="redirect"
+					target="mdlMedicalDeviceWorkOrder"
+					onselectset="WorkOrderGuid=[[CompletedMaintenanceGuid]]"
+					onselect="WorkOrderGuid"/>
+			</row>
+		</group>
+	</section>
+
+	<!-- Tab to enter/edit Surgery Equipment Types -->
+	<section type="tab" name="tabMedicalDeviceTypes" title="Tipos de Equipo Biomédico" trigger="grdMedicalDeviceTypes">
+  	<group>
+			<row>
+				<control type="datagrid" 
+					label="Tipos de Equipo Biomédico" 
+					name="grdMedicalDeviceTypes"
+					modalname="mdlMedicalDeviceTypes"
+					searchable="true"
+					span="12" rows="20"
+					acctsvcreq="true"
+					acctsvc="true"
+					datarequest="GetMedicalDeviceTypes"
+					appendrequest="Category=Medical"
+					datainsert="InsertMedicalDeviceTypes"
+					appendinsert="Category=Medical"
+					dataupdate="UpdateMedicalDeviceTypes"
+					source="Active,TypeCode,TypeName,TypeDescription"
+					sourcelabels="Activo,Código,Nombre,Descripción"
+					align="|left|left|left"
+					format="boolean"
+					sort="TypeName=asc"
+					key="TypeGuid"/>
+			</row>
+		</group>
+	</section>
+
+	<section type="modal" name="mdlMedicalDeviceTypes" title="Tipo de Equipo Biomédico" size="small">
+		<group>
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" span="3" name="EqType_Active" source="True,False" 
+					sourcelabels="Sí,No" default="True" edit="true" />
+			</row>
+			<row>
+				<control type="label" label="Código" span="3"/>
+				<control type="text" name="EqType_TypeCode" span="3" edit="true" />
+			</row>
+			<row>
+				<control type="label" label="Nombre del Tipo" span="3"/>
+				<control type="textarea" name="EqType_TypeName" span="7" rows="2" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Descripción del Tipo " span="3"/>
+				<control type="textarea" name="EqType_TypeDescription" span="7" rows="2" edit="true" />
+			</row>
+			<row>
+				<control type="modalbutton" 
+					showif="add"
+					name="InsertResultNext" 
+					label="Siguiente"
+					color="grey"
+					icon="circle-arrow-right"
+					modaltask="insert|add" />
+			</row>
+		</group>
+	</section>
+	<partial link="Partials/ColombiaPartialBiomedicalEquipment.xml"/>
+	<partial link="Partials/ColombiaPartialBiomedicalWorkOrder.xml"/>
+	<partial link="Partials/ColombiaPartialWorkOrderItem.xml"/>
+	<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

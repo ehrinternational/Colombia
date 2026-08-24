@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Pantalla de Consulta" type="onload" trigger="DisplayDepartmentQueue">
+  <section type="tab" name="tabConsultWaitingRoomDisplay" title="Pantalle de Consulta">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="LastPatientName"/>
+        <control type="hidden" name="LastRoomName"/>
+        <control type="hidden" name="LastPatientId"/>
+        <control type="hidden" name="PatientName1"/>
+        <control type="hidden" name="PatientRoom1"/>
+        <control type="hidden" name="PatientName2"/>
+        <control type="hidden" name="PatientRoom2"/>
+        <control type="hidden" name="PatientName3"/>
+        <control type="hidden" name="PatientRoom3"/>
+        <control type="hidden" name="PatientName4"/>
+        <control type="hidden" name="PatientRoom4"/>
+        <control type="hidden" name="PatientName5"/>
+        <control type="hidden" name="PatientRoom5"/>
+        <control type="hidden" name="PatientName6"/>
+        <control type="hidden" name="PatientRoom6"/>
+        <control type="hidden" name="PatientName7"/>
+        <control type="hidden" name="PatientRoom7"/>
+        <control type="hidden" name="PatientName8"/>
+        <control type="hidden" name="PatientRoom8"/>
+        <control type="hidden" name="PatientName9"/>
+        <control type="hidden" name="PatientRoom9"/>
+        <control type="hidden" name="PatientName10"/>
+        <control type="hidden" name="PatientRoom10"/>
+      <!-- Get the current patient being served by the department -->
+        <control type="button" name="DisplayDepartmentQueue"
+          acctsvcreq="true"
+          datarequest="GetDepartmentByDepartmentGuid"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup]"
+          set="[[ServingPatient]]!+[[ServingPatient]]![LastPatientId];PatientId=[[ServingPatient]],
+            [[ServingPatient]]!+[[ServingPatient]]!![LastPatientId];LastRoomName=[[ServingRoom]]"
+          provoke="[[ServingPatient]]!+[[ServingPatient]]![LastPatientId];btnResetPatient"/>
+        <control type="button" name="btnResetPatient" action="trigger"
+          set="PatientName10=[PatientName9],PatientRoom10=[PatientRoom9],
+          PatientName9=[PatientName8],PatientRoom9=[PatientRoom8],
+          PatientName8=[PatientName7],PatientRoom8=[PatientRoom7],
+          PatientName7=[PatientName6],PatientRoom7=[PatientRoom6],
+          PatientName6=[PatientName5],PatientRoom6=[PatientRoom5],
+          PatientName5=[PatientName4],PatientRoom5=[PatientRoom4],
+          PatientName4=[PatientName4],PatientRoom4=[PatientRoom3],
+          PatientName3=[PatientName2],PatientRoom3=[PatientRoom2],
+          PatientName2=[PatientName1],PatientRoom2=[PatientRoom1]"
+          provoke="PatientId"/>
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          set="LastPatientName=[[PatientFullName]],LastPatientId=[PatientId]"
+          provoke="dingdong|sound"/>
+      </row>
+      <row>
+        <control type="select" name="DepartmentGuidLookup"
+            span="3" acctsvc="true" explicit="true" edit="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"
+            provoke="DisplayDepartmentQueue"/>
+      </row>
+      <row>
+        <control span="2" type="image">../projects/Colombia/module/img/ShrinerBear.png</control>
+        <control type="markup" name="markUpContent" color="black" span="10"
+          reveal="[LastPatientName]!+[LastRoomName]!">
+              [h1 size=72 align=center][b name="LastPatientName"]name[/b][/h1]
+              [h1 size=72 align=center]Pasar a [span name="LastRoomName"]name[/span][/h1]
+        </control>
+      </row>
+      <row>
+        <control type="markup" name="Patient1" span="6"> [div bgcolor=white align=center][h2]${[[PatientName1]]} ${[[PatientRoom1]]}[/h2][/div]</control>
+        <control type="markup" name="Patient6" span="6"> [div bgcolor=white align=center][h2]${[[PatientName6]]} ${[[PatientRoom6]]}[/h2][/div]</control>
+      </row>
+      <row>
+        <control type="markup" name="Patient2" span="6"> [div bgcolor=white align=center][h2]${[[PatientName2]]} ${[[PatientRoom2]]}[/h2][/div]</control>
+        <control type="markup" name="Patient7" span="6"> [div bgcolor=white align=center][h2]${[[PatientName7]]} ${[[PatientRoom7]]}[/h2][/div]</control>
+      </row>
+      <row>
+        <control type="markup" name="Patient3" span="6"> [div bgcolor=white align=center][h2]${[[PatientName3]]} ${[[PatientRoom3]]}[/h2][/div]</control>
+        <control type="markup" name="Patient8" span="6"> [div bgcolor=white align=center][h2]${[[PatientName8]]} ${[[PatientRoom8]]}[/h2][/div]</control>
+      </row>
+      <row>
+        <control type="markup" name="Patient4" span="6"> [div bgcolor=white align=center][h2]${[[PatientName4]]} ${[[PatientRoom4]]}[/h2][/div]</control>
+        <control type="markup" name="Patient9" span="6"> [div bgcolor=white align=center][h2]${[[PatientName9]]} ${[[PatientRoom9]]}[/h2][/div]</control>
+      </row>
+      <row>
+        <control type="markup" name="Patient5" span="6"> [div bgcolor=white align=center][h2]${[[PatientName5]]} ${[[PatientRoom5]]}[/h2][/div]</control>
+        <control type="markup" name="Patient10" span="6"> [div bgcolor=white align=center][h2]${[[PatientName10]]} ${[[PatientRoom10]]}[/h2][/div]</control>
+      </row>
+    </group>
+  </section>
+</module>

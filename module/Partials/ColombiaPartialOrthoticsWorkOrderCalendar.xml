@@ -1,0 +1,54 @@
+<partial>
+  <section type="tab" name="tabOrthoticsWorkOrderCalendar" title="Calendario de Órdenes " trigger="calOrthoticsWorkOrders">
+		<group>
+			 <template name="dayGridMonthTemplateOrthotics" type="markup">
+            [span size=12 color=white] 
+            ${[[PatientName]]}[br]
+						${[[OrthoticType]]}
+            [/span] 
+        </template>
+         <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridWeekTemplateOrthotics" type="markup">
+            [span size=12 color=white] 
+            ${[[PatientName]]}[br]
+						${[[OrthoticType]]}
+            [/span]
+        </template>
+        <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridDayTemplateOrthotics" type="markup">
+            [span size=12 color=white] 
+            ${[[PatientName]]}[br]
+						${[[OrthoticType]]}
+            [/span]
+        </template>
+        <!-- Template for agenda (list) view that shows the provider, description, and location-->
+        <template name="listDayTemplateOrthotics" type="markup">
+            [span size=12 color=black] 
+            ${[[PatientName]]} ${[[OrthoticType]]} 
+            [/span]
+        </template>
+			<row>
+			 	<control type="calendar" span="12" name="calOrthoticsWorkOrders"
+          headerleft="add prev,next today"
+          headercenter="title"
+          headerright="dayGridMonth,timeGridWeek,timeGridDay,listDay"
+          navlinking="true"
+					acctsvcreq="true"
+					eventcolor="Status|Requested=lightblue;Completed=orange;Canceled=red;Scheduled=yellowgreen;Confirmed=darkgreen"
+					datarequest="GetOrthoticWorkOrders"
+					source="dayGridMonth=dayGridMonthTemplateOrthotics,timeGridDay=timeGridDayTemplateOrthotics,timeGridWeek=timeGridWeekTemplateOrthotics,listDay=listDayTemplateOrthotics"
+          map="start=ScheduledDateTime,end=ScheduledDateTime,title=Status"
+					daterange="endDate=end,startDate=start"
+          key="OrderGuid"
+					action="redirect"
+					target="mdlOrthoticsWorkOrder"
+					onselectset="OrthoticsWorkOrderGuid=[[OrderGuid]]"
+					onselect="OrthoticsWorkOrderGuid">
+				<control type="button" name="btnRefreshOrthoticOrderCalendar"
+					icon="refresh" label="Actualizar"
+					action="trigger" provoke="calOrthoticsWorkOrders"/>
+				</control>
+			</row>
+		</group>
+	</section>
+</partial>

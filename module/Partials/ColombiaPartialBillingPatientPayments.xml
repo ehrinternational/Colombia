@@ -1,0 +1,40 @@
+<partial>
+  <!-- Patient payments -->          
+    <control type="datagrid" label="Pagos del Paciente" name="gridPatient_receipts" rows="5" fitrows="true"
+      searchable="true"
+      option="Charges"
+      idle="[VisitSelect]="
+      action="redirect"
+      target="newpatientreceipts"
+      edit="InvoiceStatus!Canceled"
+      acctsvcreq="true"
+      sort="ReceiptDate=desc"
+      filter="ClaimGuid=null,Status!Canceled"
+      datarequest="GetPayerReceiptsByPatientVisit"
+      appendrequest="patientVisit=[VisitSelect]"
+      source="ReceiptDate,ReceiptNumber,Series,SeriesFolio,ReceiptTypeDescription,ReferenceNumber,ReceiptNotes,AmountPaid,EnteredByFullName"
+      sourcelabels="Fecha,Número,Serie,Folio,Tipo,Referencia,Notas,Importe,Ingresado por"
+      align="|left|left|left|left|left|left|right|left"
+      total="|||||||+|"
+      format="datetime|||||||0,000.00|"
+      key="ReceiptGuid"
+      onselectset="ReceiptGuid=[[ReceiptGuid]],NewRec_RemainingBalance=[PatientVisitInvoiceBalance]"
+      onselect="ReceiptGuid">
+      <control type="button" name="btnAddNewPatientReceipt"
+        icon="plus" label="Añadir Nuevo"
+        reveal="VisitSelect!+[POSSessionGuid]!"
+        preset="NewRec_RemainingBalance=[PatientVisitInvoiceBalance]"
+        action="redirect" target="newpatientreceipts"/>
+      <control type="button" name="ReversePatientReceipt" label="Revertir" icon="exchange"
+        showif="feature"
+        reveal="(facilityData.HospitalShortName)¡COI|CART+[InvoiceStatus]=Open|Closed|Submitted+[POSSessionGuid]!,
+          (facilityData.HospitalShortName)%COI|CART+[InvoiceStatus]=Open|Closed|Submitted+[POSSessionGuid]!+(user.UserRoles)%Reverse Payments"
+        action="save" 
+        confirm="¿Seguro que quieres revertir el pago de este paciente?"
+        affector="none"  
+        acctsvc="true"        
+        datainsert="ReversePayorReceiptAgainstInvoice"
+        appendinsert="ReceiptGuid=[[ReceiptGuid]],POSSessionGuid=[POSSessionGuid]"
+        provoke="gridPatient_receipts"/>
+    </control>
+</partial>

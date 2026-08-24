@@ -1,0 +1,75 @@
+<partial>
+  <!-- Partial Imaging Admit Visit information -->
+  <row>
+      <control type="hidden" name="ReadyForDischarge"/>
+      <control type="hidden" name="PriorDepartmentGuid"/>
+      <control type="hidden" name="PriorDepartmentService"/>
+  </row>
+  <row>
+    <control type="label" label="Tipo de Admisión" span="2"/>
+    <control type="select" name="mdlAdmit_AdmitType" span="4" 
+      namefield="mdlAdmit_AdmissionType"
+      datasource="GetLookupAdmissionTypesActive" 
+      source="AdmissionType,AdmissionTypeGuid" 
+      edit="true"
+      required="true" 
+      explicit="true"/>
+  </row>
+  <row>
+    <control type="label" label="Departamento" span="2"/>
+    <control type="select" name="mdlAdmit_CurrentDepartment" span="4"
+      reveal="[HasOpenVisit]=true" readonly="true"
+      acctsvc="true"
+      explicit="true"
+      datasource="GetDepartmentsActive" 
+      append="LocationId=(facilityData.LocationId)"
+      source="DepartmentName,DepartmentGuid"/>
+    <control type="select" name="AdmitSelect_DepartmentGuid" span="4"
+      reveal="[HasOpenVisit]=false" edit="true" required="true"
+      acctsvc="true"
+      datasource="GetDepartmentsActive" 
+      append="LocationId=(facilityData.LocationId)"
+      source="DepartmentName,DepartmentGuid"
+      provoke="[HasOpenVisit]=false;AdmitSelect_DepartmentService^mdlAdmit_DepartmentService"/>
+    <control type="label" label="Servicio" span="2"/>
+    <control type="select" name="mdlAdmit_DepartmentService" span="4"
+      reveal="[HasOpenVisit]=true"
+      filter="DepartmentGuid=[AdmitSelect_DepartmentGuid]"
+      explicit="true"
+      acctsvcreq="true"
+      datasource="GetDepartmentServices" 
+      source="ServiceName,DepartmentServicesGuid"/>
+    <control type="select" name="AdmitSelect_DepartmentService" span="4"
+      reveal="[HasOpenVisit]=false+Length(AdmitSelect_DepartmentService)»0" required="true" edit="true"
+      explicit="true"
+      acctsvcreq="true"
+      filter="DepartmentGuid=[AdmitSelect_DepartmentGuid]"
+      datarequest="GetDepartmentServices" 
+      source="ServiceName,DepartmentServicesGuid"/>
+  </row>
+  <row name="rowPregnancy" reveal="[Consult_PatientSex]=Female">
+    <control type="label" label="Embarazo" span="2"/>
+    <control type="buttongroup" name="IsPregnant" span="2" edit="true"
+      source="True,False" sourcelabels="Sí,No"/>
+    <control type="label" label="FUM" span="2"/>
+    <control type="date" name="DateOfLastPeriod" span="3" edit="true"/>
+    <control type="label" label="Semanas" span="2"/>
+    <control type="text" name="True_WeeksPregnant" span="1" edit="true" required="true"
+      reveal="[IsPregnant]=True"/>
+    <control type="text" name="False_WeeksPregnant" span="1" readonly="true"
+      reveal="[IsPregnant]=False"/>
+  </row>
+  <row>
+    <control type="label" label="Observaciones" span="2"/>
+    <control type="textarea" name="mdlAdmit_EdChiefComplaint" 
+      span="10" rows="1" edit="true" />
+  </row>
+  <row name="rowChargesAndPayments">
+    <control type="label" label="Cargos" span="2"/>
+    <control type="text" name="ChargeTotal" span="2" format="$0,00.00" default="$0.00" readonly="true"/>
+    <control type="label" label="Pagos" span="2"/>
+    <control type="text" name="PaymentTotal" span="2" format="$0,00.00" default="$0.00" readonly="true"/>
+    <control type="label" label="Balance" span="2"/>
+    <control type="calc" name="AccountBalance" span="2" format="$0,00.00" default="$0.00" source="ChargeTotal-PaymentTotal"/>
+  </row>
+</partial>

@@ -1,0 +1,74 @@
+﻿<partial><!--Used By Sedna-->  
+  <section type="tab" title="Pacientes Ingresados">
+    <group showif="never">
+      <row> 
+        <!-- Get the last department the user was in and set this department-->
+        <control type="button" name="GetLastDepartment" action="trigger"
+          set="HospitalizedDepartmentGuidLookup=(user.Department)"/>
+        <!-- Save the department the user selects to the user profile -->
+        <control type="button" 
+          name="SaveLastDepartment"
+          action="save"
+      		affector="none"
+      		datainsert="UpdateUserProfileSetDepartment"
+          appendinsert="UserId=(userName),departmentGuid=[HospitalizedDepartmentGuidLookup]"/>
+      </row>
+      <row>
+        <control type="select"
+          acctsvc="true" 
+          name="LookupTransferFacility" 
+          datasource="GetTransferHospitalsActive" append="LocationId=(facilityData.LocationId)" 
+          source="HospitalName,HospitalGuid"
+          default="(facilityData.HospitalName)"/>
+      </row>
+    </group>
+    <group name="SetDepartmentGroup">
+      <row>
+        <!-- Select the department -->
+        <control type="select" span="3" name="HospitalizedDepartmentGuidLookup" 
+          acctsvc="true"
+          explicit="true"
+          filter="AdmissionType=true"
+          edit="true" default="true"
+          datasource="GetDepartmentsActive" 
+          append="LocationId=(facilityData.LocationId)" 
+          source="DepartmentNumber|DepartmentName,DepartmentGuid"
+          provoke="(user.Department)![HospitalizedDepartmentGuidLookup];SaveLastDepartment,PatientList"/>
+        <!-- Subpartial to scan patient with button or gun -->
+        <partial link="./Partial/SubPartials/SubPartialScanPatientWithGunOpenVisits.xml"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnOpenPatientChartFromScan"
+          preset="PatientId=[ScannedPatientId],PatientVisitGuid=[ScannedPatientVisit]"
+          trigger="PatientId,PatientVisitGuid"
+          set="QRScannedResult=,ScannedPatientId=,ScannedOpenVisit=,ScannedPatientVisit="
+          action="redirect" target="PatientTabModal"/>
+      </row>
+      <row>
+        <control type="datagrid" label="Pacientes Ingresados" name="PatientList"
+            action="redirect" 
+            target="PatientTabModal"
+            searchable="true"
+            rows="25"
+            fitrows="true"
+            rowcolor="TriageLevel|1=white;2=green;3=green;4=red"
+            acctsvcreq="true"
+            datarequest="GetAdmittedPatientsByDepartment"
+            appendrequest="DepartmentGuid=[HospitalizedDepartmentGuidLookup],excludePhoto=true"
+            source="ReadyForDischarge,DepartmentDateTime,AdmitDateTime,AdmitDays,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,OpenRoom,AttendingDoctorFullName"
+            sourcelabels="Alta,Transferido,Admitido,Días,Expediente,Nombre,Nacimiento,Edad,Sexo,Habitación,Médico tratante"
+            translate="PatientSex"
+            align="||left|left|left|left|left|left|left|left|left"
+            format="boolean|datetime|datetime||||date"
+            sort="AdmitDateTime=asc"
+            key="RecordUniqueId"
+            onselectset="PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisitId]]"
+            onselect="PatientId,PatientVisitGuid,ButtonGroupSelect">
+            <control type="button" name="RefreshPatientList"
+              label="Actualizar" icon="refresh" 
+              action="trigger" trigger="PatientList"/>
+          </control>
+        </row>
+      </group>
+    </section>
+</partial>

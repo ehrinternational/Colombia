@@ -1,0 +1,68 @@
+﻿<partial>
+  <!-- Partial Patient Id modal  -->
+  <section type="modal" name="mdlIdentification" title="Identificación" size="small">
+    <group>
+      <row>
+        <control type="label" label="Activo" span="4"/>
+        <control type="buttongroup" name="Id_Active" span="3" source="True,False" 
+          sourcelabels="Sí,No" default="True" edit="true" />
+      </row>      
+      <row>
+        <control type="label" label="Tipo Documento" span="4"/>
+        <control type="select" name="Id_IdType" span="6" required="true" edit="true"
+          source="SI,RC,TI,CC,CE,NI,MS,PA,AS,NU,CD,SC,PE,CN,DE,PT"
+          sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
+      </row>
+      <row>
+        <control type="label" label="Numero Documento" span="4"/>
+        <control type="text" name="Id0_IdNumber" span="3" readonly="true"
+          reveal="[Id_IdType]=SI|"/>
+        <control type="text" name="Id1_IdNumber" span="3" required="true" tooltip="11 caracteres alfanuméricos"
+          reveal="[Id_IdType]=RC" edit="true"
+          regex="^[a-zA-Z0-9]{11}$"/>
+        <control type="text" name="Id2_IdNumber" span="3" required="true"  tooltip="11 caracteres numéricos"
+          reveal="[Id_IdType]=TI" edit="true"
+          regex="^[0-9]{11}$"/>
+        <control type="text" name="Id3_IdNumber" span="3" required="true"  tooltip="10 caracteres numéricos"
+          reveal="[Id_IdType]=CC"  edit="true"
+          regex="^[0-9]{10}$"/>
+        <control type="text" name="Id4_IdNumber" span="3" required="true" tooltip="7 caracteres numéricos"
+          reveal="[Id_IdType]=CE"  edit="true"
+          regex="^[0-9]{7}$"/>
+        <control type="text" name="Id5_IdNumber" span="3" required="true" tooltip="13 caracteres numéricos"
+          reveal="[Id_IdType]=NI"  edit="true"
+          regex="^[0-9]{13}$"/>
+        <control type="text" name="Id6_IdNumber" span="3" required="true" tooltip="12 caracteres alfanuméricos"
+          reveal="[Id_IdType]=MS"  edit="true"
+          regex="^[a-zA-Z0-9]{12}$"/>
+        <control type="text" name="Id7_IdNumber" span="3" required="true" tooltip="16 caracteres alfanuméricos"
+          reveal="[Id_IdType]=PA"  edit="true"
+          regex="^[a-zA-Z0-9]{16}$"/>
+        <control type="text" name="Id8_IdNumber" span="3" required="true" tooltip="10 caracteres alfanuméricos"
+          reveal="[Id_IdType]=AS"  edit="true"
+          regex="^[a-zA-Z0-9]{10}$"/>
+        <control type="text" name="Id9_IdNumber" span="3" required="true" tooltip="12 caracteres numéricos"
+          reveal="[Id_IdType]=NU"  edit="true"
+          regex="^[0-9]{12}$"/>
+        <control type="text" name="Id10_IdNumber" span="3" required="true" tooltip="11 caracteres alfanuméricos"
+          reveal="[Id_IdType]=CD"  edit="true"
+          regex="^[a-zA-Z0-9]{11}$"/>
+        <control type="text" name="Id11_IdNumber" span="3" required="true" tooltip="12 caracteres alfanuméricos"
+          reveal="[Id_IdType]=SC"  edit="true"
+          regex="^[a-zA-Z0-9]{12}$"/>
+        <control type="text" name="Id12_IdNumber" span="3" required="true" tooltip="15 caracteres numéricos"
+          reveal="[Id_IdType]=PE"  edit="true"
+          regex="^[0-9]{15}$"/>
+        <control type="text" name="Id13_IdNumber" span="3" required="true" tooltip="14 caracteres numéricos"
+          reveal="[Id_IdType]=CN"  edit="true"
+          regex="^[0-9]{14}$"/>
+        <control type="text" name="Id14_IdNumber" span="3" required="true" tooltip="16 caracteres alfanuméricos"
+          reveal="[Id_IdType]=DE"  edit="true"
+          regex="^[a-zA-Z0-9]{16}$"/>
+        <control type="text" name="Id15_IdNumber" span="3" required="true" tooltip="15 caracteres numéricos"
+          reveal="[Id_IdType]=PT"  edit="true"
+          regex="^[0-9]{15}$"/>
+      </row>
+    </group>
+  </section>
+</partial>

@@ -1,0 +1,27 @@
+﻿ <partial>
+  <!-- Internal Consult Requests for this patient-->
+  <control type="datagrid" label="Solicitud de Servicios" name="InternalConsultList" 
+      option="Services"
+      rows="10" fitrows="true"
+      action="redirect"
+      target="mdlInternalConsultModal"
+      acctsvcreq="true"
+      datarequest="GetConsultRequestsByCriteria"
+      appendrequest="ConsultType=Service,patientId=[PatientId],searchCriteria=Patient"
+      source="ConsultRequestDateTime,ConsultNumber,ConsultRequestStatus,ConsultRequestSpecialtyRequested,RequestingDepartmentName,ConsultReason"
+      sourcelabels="Solicitud,Folio,Estatus,Departamento Solicitante,Departamento Solicitado,Nota"
+      align="|left|left|left|left|left"
+      format="datetime"
+      sort="ConsultRequestDateTime=desc"
+      translate="ConsultRequestStatus"
+      key="ConsultRequestGuid"
+      onselectset="ICR_PatientId=[PatientId],ICR_PatientConsultGuid=[[ConsultRequestGuid]]"
+      onselect="ICR_PatientId,ICR_PatientConsultGuid">
+      <control type="button" name="btnNewServiceConsultRequest" icon="plus" label="Añadir Nuevo" 
+        reveal="[PatientVisitGuid]!"
+        action="redirect"
+        preset="ICR_PatientId=[PatientId],ICR_GetCompletedECDForm=,ICR_CompletedRowGuid="
+        trigger="ICR_PatientId"
+        target="mdlInternalConsultModal"/>
+    </control>
+</partial>

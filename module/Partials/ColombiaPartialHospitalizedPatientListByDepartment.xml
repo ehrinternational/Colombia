@@ -1,0 +1,68 @@
+﻿<partial>  
+  <section type="tab" name="tabPatientListByDepartment" title="Pacientes Ingresados">
+    <group showif="never">
+      <row> 
+        <control type="hidden" name="GetLastDepartment" action="trigger"
+          set="DepartmentGuidLookup=(user.Department)"/>
+        <control type="button" name="SaveLastDepartment"
+          action="save"
+      		affector="none"
+      		datainsert="UpdateUserProfileSetDepartment"
+          appendinsert="UserId=(userName),departmentGuid=[DepartmentGuidLookup]"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <!-- Select the department -->
+        <control type="select" span="5" name="DepartmentGuidLookup" 
+          acctsvc="true"
+          explicit="true"
+          filter="AdmissionType=true"
+          edit="true"
+          datasource="GetDepartmentsActive" 
+          append="LocationId=(facilityData.LocationId)" 
+          source="DepartmentNumber|DepartmentName,DepartmentGuid"
+          provoke="PatientList,SaveLastDepartment"/>
+        <!-- Subpartial to scan patient with button or gun -->
+        <partial link="./Partial/SubPartials/SubPartialScanPatientWithGunOpenVisits.xml"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnOpenPatientChartFromScan"
+          preset="PatientId=[ScannedPatientId],PatientVisitGuid=[ScannedPatientVisit]"
+          trigger="PatientId,PatientVisitGuid"
+          set="QRScannedResult=,ScannedPatientId=,ScannedOpenVisit=,ScannedPatientVisit="
+          action="redirect" target="PatientTabModal"/>
+      </row>
+      <row>
+        <control type="datagrid" label="Pacientes Ingresados" name="PatientList"
+            action="redirect" 
+            target="PatientTabModal"
+            searchable="true"
+            rows="25"
+            rowcolor="TriageLevel|1=white;2=green;3=yellow;4=red"
+            acctsvcreq="true"
+            datarequest="GetAdmittedPatientsByDepartment"
+            appendrequest="DepartmentGuid=[DepartmentGuidLookup],excludePhoto=true"
+            source="ReadyForDischarge,AdmitDateTime,AdmitDays,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,OpenRoom,AttendingDoctorFullName"
+            sourcelabels="Alta,Admitido,Días,Expediente,Nombre,Nacimiento,Edad,Sexo,Habitación,Médico tratante"
+            translate="PatientSex"
+            align="||left|left|left|left|left|left|left|left"
+            format="boolean|datetime||||date"
+            sort="AdmitDateTime=asc"
+            key="RecordUniqueId"
+            onselectset="PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisitId]]"
+            onselect="PatientId,PatientVisitGuid,ButtonGroupSelect">
+           <control type="button" name="btnQuickAdmit" color="red" icon="ambulance" label="Ingresar Urgente"
+            reveal="[FileName]%Admitting"
+            action="redirect" target="mdlQuickAdmit"/>
+          <control type="button" name="btnAdmitPatients" icon="folder-open" label="Ingresar/Buscar"
+            action="redirect" preset="PatientSearched=false"
+            target="PatientTabModal"
+            provoke="btnAdmitSearchPatients"/>
+          <control type="button" name="RefreshPatientList" label="Actualizar" icon="refresh" 
+              action="trigger" trigger="PatientList"/>
+          </control>
+        </row>
+      </group>
+    </section>
+</partial>

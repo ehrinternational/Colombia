@@ -1,0 +1,242 @@
+﻿<partial>
+<section type="tabmodal" name="mdlNewMealOrder" title="Orden de Comida" size="small" badge="none" trigger="GetActiveDietOrder">
+  <!-- Enter/edit nutrition meal orders -->
+  <group showif="never">
+    <row>
+      <control type="hidden" name="MealOrderGuid"
+        acctsvcreq="true"
+        datarequest="GetNutritionMealOrdersByMealGuid"
+        appendrequest="mealGuid=[MealOrderGuid]"
+        inject="grpMealOderInfo"
+        set="ScheduledDate=[[DateTimeScheduled]],ScheduledTime=[[DateTimeScheduled]]"
+        provoke="ExistingMealOrderDetails"/>
+      <control type="select" name="GetActiveDietOrder"
+        filter="OrderStatus=Active" default="true" translate="true"
+        explicit="true"
+        datarequest="GetNutritionDietOrdersByPatientVisit"
+        appendrequest="PatientId=[PatientId],PatientVisit=[PatientVisitGuid]"
+        source="DietType,OrderGuid"
+        set="CurrentDietOrder=[[DietType]]"/>
+      <control type="button" name="PostMealOrderDetails"
+        acctsvc="true"
+        action="batchinsert|close|new"
+        affector="none" 
+        capture="MealOrderDetails"
+        datainsert="NutritionMealToComponentRelationships"
+        provoke="ERNutritionMeals"/>
+    </row>
+  </group>
+  <group name="grpMealOderInfo">
+    <row>
+      <control type="label" label="Orden de Dieta" span="3"/>
+      <control type="text"  name="CurrentDietOrder" span="4" translate="true" readonly="true"/>
+    </row>
+    <row>
+      <control type="label" label="Estatus" span="3"/>
+      <control type="select" name="MealOrder_MealStatus" default="Scheduled"
+        source="Scheduled,Prepared,Completed,Delivered,Canceled"
+        sourcelabels="Programado,En Preparación,Completo,Entregado,Cancelado" span="4" readonly="true"/>
+    </row>
+    <row>
+      <control type="label" label="Departamento" span="3"/>
+      <control type="select" name="MealOrder_DepartmentGuid" span="4" required="true"
+          edit="true" default="[mdlAdmit_CurrentDepartment]"
+          acctsvc="true"
+          filter="AdmissionType=true"
+          datasource="GetDepartmentsActive"
+          append="LocationId=(facilityData.LocationId)"
+          source="DepartmentName,DepartmentGuid"/>
+    </row>
+    <row>
+      <control type="label" label="Comida" span="3"/>
+      <control type="select" name="MealOrder_MealType" span="8" edit="[MealOrderGuid]="
+        namefield="MealOrderName" translate="true" searchable="true" required="true" 
+        sort="MealDescription=asc"
+        acctsvc="true" explicit="true"
+        datasource="GetNutritionMeals"
+        filter="Active=true"
+        source="MealDescription,MealId"
+        set="[[MealType]]=Snack;ScheduledTime=11:30,[[MealType]]=Breakfast;ScheduledTime=07:30,[[MealType]]=Lunch;ScheduledTime=12:30,[[MealType]]=Dinner;ScheduledTime=17:30"
+        provoke="[MealOrderGuid]=;MealOrderDetails"/>
+      <control type="button" name="btnMore" icon="plus" label="" action="trigger" set="MealOrder2=True"
+        reveal="[MealOrder_MealType]!+[MealGuid]=+[MealOrder2]!True" provoke="MealOrder2_MealType"/>
+      <control type="hidden" name="MealOrder2" default="False"/>
+    </row>
+    <row name="rowMealOrder2" reveal="[MealOrder2]=True">
+      <control type="label" label="Comida 2" span="3"/>
+      <control type="select" name="MealOrder2_MealType" span="8" edit="true"
+        namefield="MealOrderName2"
+        acctsvcreq="true"  searchable="true"
+        datarequest="GetNutritionMeals"
+        filter="Active=true"
+        source="MealDescription,MealId"
+        required="true"/>
+      <control type="button" name="btnMore2" icon="plus" label="" action="trigger" set="MealOrder3=True"
+        reveal="[MealOrder2_MealType]!+[MealGuid]=+[MealOrder3]!True" provoke="MealOrder3_MealType"/>
+      <control type="button" name="btnLess2" icon="remove" label="" action="trigger" 
+        reveal="[MealOrder3]=False"
+        set="MealOrder2=False,MealOrder3=False,MealOrder4=False,MealOrder5=False"/>
+      <control type="hidden" name="MealOrder3" default="False"/>
+    </row>
+    <row name="rowMealOrder3" reveal="[MealOrder3]=True">
+      <control type="label" label="Comida 3" span="3"/>
+      <control type="select" name="MealOrder3_MealType" span="8" edit="true"
+        namefield="MealOrderName3"
+        acctsvcreq="true"  searchable="true"
+        datarequest="GetNutritionMeals"
+        filter="Active=true"
+        source="MealDescription,MealId"
+        required="true"/>
+      <control type="button" name="btnMore3" icon="plus" label="" action="trigger" set="MealOrder4=True"
+        reveal="[MealOrder3_MealType]!+[MealGuid]=+[MealOrder4]!True" provoke="MealOrder4_MealType"/>
+      <control type="button" name="btnLess3" icon="remove" label="" action="trigger"
+        reveal="[MealOrder4]=False" 
+        set="MealOrder3=False,MealOrder4=False,MealOrder5=False"/>
+      <control type="hidden" name="MealOrder4" default="False"/>
+    </row>
+    <row name="rowMealOrder4" reveal="[MealOrder4]=True">
+      <control type="label" label="Comida 4" span="3"/>
+      <control type="select" name="MealOrder4_MealType" span="8" edit="true"
+        namefield="MealOrderName4"
+        acctsvcreq="true"  searchable="true"
+        datarequest="GetNutritionMeals"
+        filter="Active=true"
+        source="MealDescription,MealId"
+        required="true"/>
+      <control type="button" name="btnMore4" icon="plus" label="" action="trigger" set="MealOrder5=True"
+        reveal="[MealOrder4_MealType]!+[MealGuid]=+[MealOrder5]!True" provoke="MealOrder5_MealType"/>
+      <control type="button" name="btnLess4" icon="remove" label="" action="trigger"
+        reveal="[MealOrder5]=False" 
+        set="MealOrder4=False,MealOrder5=False"/>
+      <control type="hidden" name="MealOrder5" default="False"/>
+    </row>
+    <row name="rowMealOrder5" reveal="[MealOrder5]=True">
+      <control type="label" label="Comida 5" span="3"/>
+      <control type="select" name="MealOrder5_MealType" span="8" edit="true"
+        namefield="MealOrderName5"
+        acctsvcreq="true"  searchable="true"
+        datarequest="GetNutritionMeals"
+        filter="Active=true"
+        source="MealDescription,MealId"
+        required="true"/>
+      <control type="button" name="btnLess5" icon="remove" label="" action="trigger" set="MealOrder5=False"/>
+    </row>
+    <row>
+      <control type="label" label="Programado" span="3"/>
+      <control type="date" name="ScheduledDate" span="4" edit="[MealOrderGuid]=" required="true" default="(now)"
+        compare="≥(now)-1"
+        set="MealOrder_DateTimeScheduled=regex|/^\S{11}/[ScheduledDate],
+        [timeHolder]=regex|/\S{8}$/[ScheduledTime],
+        MealOrder_DateTimeScheduled=concat|[MealOrder_DateTimeScheduled][timeHolder]"/>
+      <control type="time" name="ScheduledTime" span="4" edit="[MealOrderGuid]=" required="true" onchange="ScheduleDate"
+        set="MealOrder_DateTimeScheduled=regex|/^\S{11}/[ScheduledDate],
+        [timeHolder]=regex|/\S{8}$/[ScheduledTime],
+        MealOrder_DateTimeScheduled=concat|[MealOrder_DateTimeScheduled][timeHolder]"/>
+    </row>
+    <row>
+      <control type="hidden" name="timeHolder"/>
+      <control type="hidden" name="MealOrder_DateTimeScheduled"/>
+    </row>
+    <row>
+      <control type="label" label="Notas" span="3"/>
+      <control type="textarea" name="MealOrder_MealNote" span="8" rows="1" edit="[MealOrderGuid]="/>
+    </row>
+    <row>
+      <!-- Save a new patient meal order -->
+      <control type="modalbutton" name="btnSaveNewMealOrder"
+        icon="cloud-upload" label="Guardar" color="green"
+        reveal="[MealOrderGuid]="
+        action="save"
+        affector="none"
+        acctsvc="true"
+        compare="[GetActiveDietOrder]!+MealOrder_DateTimeScheduled!|Este paciente no tiene ninguna orden de dieta activa o fecha y hora esta no valido."
+        validate="grpMealOderInfo"
+        datainsert="InsertNutritionMealOrders"
+        appendinsert="PatientId=[PatientId],
+          departmentGuid=[MealOrder_DepartmentGuid],
+          mealStatus=Scheduled,
+          patientVisit=[PatientVisitGuid],
+          dateTimeScheduled=[MealOrder_DateTimeScheduled],
+          mealType=[MealOrder_MealType],
+          mealName=[MealOrderName],
+          mealNote=[MealOrder_MealNote],
+          dietOrderGuid=[GetActiveDietOrder]"
+        provoke="[MealOrder2]=True;btnSaveMealOrder2^btnCloseNutritionMealOrder"/>
+      <!-- Cancel a patient meal order -->
+      <control type="modalbutton" name="btnCancelMealOrder"
+        icon="remove" label="Cancelar" color="red"
+        reveal="[MealOrderGuid]!+[MealOrder_MealStatus]=Scheduled"
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        confirm="Por favor confirme que desea cancelar esta orden"
+        datainsert="UpdateNutritionMealOrders"
+        appendinsert="mealGuid=[MealOrderGuid],mealStatus=Canceled"
+        provoke="ERNutritionMeals"/>
+    </row>
+    <row showif="never">
+      <control type="button" name="btnSaveMealOrder2"
+        action="save"
+        affector="none"
+        acctsvc="true"
+        datainsert="InsertNutritionMealOrders"
+        appendinsert="PatientId=[PatientId],
+          mealStatus=Scheduled,
+          departmentGuid=[MealOrder_DepartmentGuid],
+          patientVisit=[PatientVisitGuid],
+          dateTimeScheduled=[MealOrder_DateTimeScheduled],
+          mealType=[MealOrder2_MealType],
+          mealName=[MealOrderName2],
+          mealNote=[MealOrder_MealNote],
+          dietOrderGuid=[GetActiveDietOrder]"
+        provoke="[MealOrder3]=True;btnSaveMealOrder3^btnCloseNutritionMealOrder"/>
+      <control type="button" name="btnSaveMealOrder3"
+        action="save"
+        affector="none"
+        acctsvc="true"
+        datainsert="InsertNutritionMealOrders"
+        appendinsert="PatientId=[PatientId],
+          mealStatus=Scheduled,
+          departmentGuid=[MealOrder_DepartmentGuid],
+          patientVisit=[PatientVisitGuid],
+          dateTimeScheduled=[MealOrder_DateTimeScheduled],
+          mealType=[MealOrder3_MealType],
+          mealName=[MealOrderName3],
+          mealNote=[MealOrder_MealNote],
+          dietOrderGuid=[GetActiveDietOrder]"
+        provoke="[MealOrder4]=True;btnSaveMealOrder4^btnCloseNutritionMealOrder"/>
+      <control type="button" name="btnSaveMealOrder4"
+        action="save"
+        affector="none"
+        acctsvc="true"
+        datainsert="InsertNutritionMealOrders"
+        appendinsert="PatientId=[PatientId],
+          mealStatus=Scheduled,
+          departmentGuid=[MealOrder_DepartmentGuid],
+          patientVisit=[PatientVisitGuid],
+          dateTimeScheduled=[MealOrder_DateTimeScheduled],
+          mealType=[MealOrder4_MealType],
+          mealName=[MealOrderName4],
+          mealNote=[MealOrder_MealNote],
+          dietOrderGuid=[GetActiveDietOrder]"
+        provoke="[MealOrder5]=True;btnSaveMealOrder5^btnCloseNutritionMealOrder"/>
+      <control type="button" name="btnSaveMealOrder5"
+        action="save"
+        affector="none"
+        acctsvc="true"
+        datainsert="InsertNutritionMealOrders"
+        appendinsert="PatientId=[PatientId],
+          mealStatus=Scheduled,
+          departmentGuid=[MealOrder_DepartmentGuid],
+          patientVisit=[PatientVisitGuid],
+          dateTimeScheduled=[MealOrder_DateTimeScheduled],
+          mealType=[MealOrder5_MealType],
+          mealName=[MealOrderName4],
+          mealNote=[MealOrder_MealNote],
+          dietOrderGuid=[GetActiveDietOrder]"
+        provoke="btnCloseNutritionMealOrder"/>
+      <control type="button" name="btnCloseNutritionMealOrder" action="close|new" provoke="ERNutritionMeals"/>
+    </row>
+  </group>
+</section>
+</partial>

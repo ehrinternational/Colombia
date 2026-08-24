@@ -1,0 +1,47 @@
+<partial>
+  <section type="tab" name="tabPatientAppointments" title="Citas de Pacientes" trigger="SetDefaultSet,grdPatientAppointmentList">
+    <group>
+      <row>
+        <control type="buttongroup" name="btngrpSelectStatusList"
+          span="6" default="Scheduled" mode="auto"
+          source="Scheduled,Confirmed,Completed,No Show,Canceled,Reschedule"
+          color="green,darkgreen,yellow,orange,red,lightblue"
+          sourcelabels="Programada,Confirmada,Completa,No Asistio,Cancelada,Reprograma"
+          trigger="[DefaultsSet]=true+[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+        <control type="date" name="calStartDate" default="now" span="2" 
+          trigger="[DefaultsSet]=true+[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+        <control type="date" name="calEndDate" default="now" span="2" 
+          trigger="[DefaultsSet]=true+[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+      </row>
+      <row showif="never">
+        <control type="hidden" name="DefaultsSet" default="false" persist="true"/>
+        <control type="button" name="SetDefaultSet" action="trigger" set="DefaultsSet=true"/>
+      </row>
+      <row>
+        <!-- Patient Appointment List with admit and edit -->
+        <control type="datagrid" label="Citas de Pacientes" name="grdPatientAppointmentList" 
+          searchable="true"
+          rows="20" span="12"
+          action="redirect"
+          filter="CalendarType=FirstVisit"
+          idle="[calStartDate]=,[calEndDate]="
+          target="[[CalendarType]]=FirstVisit;mdlFirstVisitAppointmentModal,
+          [[CalendarType]]=ConsultVisit;mdlConsultVisitAppointmentModal"
+          datarequest="GetPatientAppointmentsByDateRange"
+          appendrequest="CalendarType=FirstVisit,LocationId=(facilityData.LocationId),startDateTime=[calStartDate],endDateTime=[calEndDate],status=[btngrpSelectStatusList]"
+          source="Start,CalendarName,PatientFirstMiddleLast,Subject,ProviderFullName"
+          sourcelabels="Fecha y Hora,Calendario,Paciente,Asunto,Médico"
+          translate="Status"
+          sort="Start=desc"
+          align="|left|left|left|left"
+          format="datetime"
+          key="AppointmentGuid"
+          onselectset="[[CalendarType]]=FirstVisit;FirstVisit_AppointmentGuid=[[AppointmentGuid]],
+          [[CalendarType]]=ConsultVisit;ConsultVisit_AppointmentGuid=[[AppointmentGuid]]"
+          onselect="[[CalendarType]]=FirstVisit;FirstVisit_AppointmentGuid,
+          [[CalendarType]]=ConsultVisit;ConsultVisit_AppointmentGuid">
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

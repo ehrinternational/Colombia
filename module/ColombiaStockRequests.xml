@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Transfer Module -->
+<module name="Requisiciones de Stock" type="onload" trigger="TransferList">
+<partial link="../../ERPSpanish/module/Partials/PartialESStockRequests.xml"/>
+</module>

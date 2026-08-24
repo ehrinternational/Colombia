@@ -1,0 +1,95 @@
+<partial>
+  <!-- Tabmodal for biomedical work orders -->
+	<section type="tabmodal" badge="none" name="mdlBuildingWorkOrderRequest" title="Orden de Trabajo de Mantenimiento">
+		<group>
+			<row>
+			<control type="hidden" name="ReviewBuildingWorkOrderGuid"
+				acctsvcreq="true"
+				datarequest="GetMedicalDeviceWorkOrdersByCompletedMaintenanceGuid"
+				appendrequest="CompletedMaintenanceGuid=[ReviewBuildingWorkOrderGuid]"
+				inject="grpBuildingWorkOrderRequestInfo"/>
+			</row>
+		</group>
+		<group name="grpBuildingWorkOrderRequestInfo">
+			<row>
+				<control type="label" label="Tipo" span="2"/>
+				<control type="select" name="MtnReq_OrderType" span="3"
+					source="Maintenance,Repair,Inspection,Certification,Replacement"
+					sourcelabels="Mantenimiento,Reparar,Inspección,Certificación,Reemplazo" 
+					edit="ReviewBuildingWorkOrderGuid=" required="true" default="Maintenance"/>
+      </row>
+      <row>
+				<control type="label" label="Prioridad" span="2"/>
+				<control type="select" name="MtnReq_Priority" span="3"
+					source="Normal,High,Emergency" default="Normal"
+					sourcelabels="Normal,Alta,Urgente" edit="ReviewBuildingWorkOrderGuid=" required="true"/>
+				<control type="label" label="Requerida" span="2"/>
+				<control type="datetime" name="MtnReq_ScheduledDateTime" default="(now)" 
+					span="3" edit="ReviewBuildingWorkOrderGuid=" required="true"/>
+			</row>
+      <row>
+				<control type="label" label="Departamento" span="2"/>
+				<control type="select" span="3" name="MtnReq_DepartmentGuid"
+          acctsvc="true"
+          explicit="true" edit="ReviewBuildingWorkOrderGuid=" required="true"
+          datasource="GetDepartmentsActive" 
+          append="LocationId=(facilityData.LocationId)"
+          source="DepartmentName,DepartmentGuid"
+					provoke="MtnReq_RoomGuid,MtnReq_DeviceGuid"/>
+				<control type="label" label="Habitación" span="2"/>
+				<control type="select" name="MtnReq_RoomGuid" span="3" 
+					edit="ReviewBuildingWorkOrderGuid="
+					acctsvcreq="true"
+					explicit="true"
+					datarequest="GetFacilityPatientRoomsAndBedsByDepartmentGuid"
+					appendrequest="departmentGuid=[MtnReq_DepartmentGuid]"
+					source="RoomAndBedNumber,RoomGuid"/>
+			</row>
+			<row>
+				<!-- Select the building device to work on -->
+				<control type="label" label="Equipo" span="2"/>
+				<control type="select" name="MtnReq_DeviceGuid" span="8"
+					searchable="true" 
+					filter="Active=true"
+					datarequest="GetMedicalDeviceItems"
+					appendrequest="LocationId=(facilityData.LocationId),Category=Building,DepartmentGuid=[MtnReq_DepartmentGuid]"
+					source="DeviceCode|DeviceDescription,DeviceGuid" 
+					edit="ReviewBuildingWorkOrderGuid="/>
+			</row>
+			<row>
+				<control type="label" label="Descripción" span="2"/>
+				<control type="text" name="MtnReq_Description" span="8" edit="ReviewBuildingWorkOrderGuid=" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Instrucciones" span="2"/>
+				<control type="textarea" name="MtnReq_Notes" span="8" rows="1" edit="ReviewBuildingWorkOrderGuid=" />
+			</row>
+			<row name="rowBuildingWorkOrderEvaluation" reveal="[ReviewBuildingWorkOrderGuid]!">
+				<control type="label" label="Evaluación" span="2"/>
+				<control type="textarea" name="MtnReq_Evaluation" span="8" rows="1" edit="true"/>
+			</row>
+		</group>
+		<group>
+			<row>
+				<control type="modalbutton" name="btnSaveBuildingWorkOrderRequest"
+					reveal="[ReviewBuildingWorkOrderGuid]="
+					color="green" label="Guardar" icon="cloud-upload" 
+          action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpBuildingWorkOrderRequestInfo"
+					datainsert="InsertMedicalDeviceWorkOrders"
+					appendinsert="status=Requested,Category=Building"/>
+				<control type="modalbutton" name="btnUpdateBuildingWorkOrderRequest"
+					reveal="[ReviewBuildingWorkOrderGuid]!"
+					color="green" label="Actualizar" icon="cloud-upload" 
+          action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderRequestInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[ReviewBuildingWorkOrderGuid]"/>
+			</row>
+		</group>
+	</section>
+</partial>

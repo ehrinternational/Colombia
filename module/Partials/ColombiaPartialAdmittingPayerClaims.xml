@@ -1,0 +1,107 @@
+<partial>
+  <!-- Billing payer claims modal -->
+  <section type="tabmodal" title="Beneficios de la Atención" name="mdlNewClaims" trigger="Clm_PayerGuid" badge="none" >
+    <group showif="never">
+      <row>
+        <!-- get a payer claim and display -->
+        <control type="hidden" name="ClaimGuid"
+          acctsvcreq="true"
+          datarequest="GetPayerClaimByClaimGuid"
+          appendrequest="ClaimGuid=[ClaimGuid]"
+          inject="NewClaimsInfo"
+          provoke="Clm_PayerGuid"/>
+      </row>
+    </group>
+    <group name="NewClaimsInfo">
+      <columns>
+        <column span="10">
+          <subset>
+            <row>
+              <control type="hidden" name="Clm_PlanGuid"/>
+              <control type="hidden" name="Clm_PatientVisit"/>
+              <control type="hidden" name="Clm_PatientId"/>
+            </row>
+            <row>
+              <control type="label" label="Folio" span="2"/>
+              <control type="text" name="Clm_ClaimNumber" readonly="true" span="2" />
+              <control type="label" label="Fecha" span="1"/>
+              <control type="date" name="Clm_ClaimDate" span="3" default="now" 
+                edit="[Clm_Status]=Pending+[Clm_Recalculated]=false"/>
+              <control type="label" label="Estatus" span="1"/>
+              <control type="select" name="Clm_Status" required="true" 
+                sourcelabels="Pendiente,Facturada,Establecido,Cancelado" 
+                source="Pending,Submitted,Settled,Canceled" 
+                readonly="true" span="3" default="Pending" />
+            </row>
+            <row>
+              <control type="label" label="Plan de Beneficios" span="3"/>
+              <control type="select" name="Clm_PayerGuid" span="9" edit="[Clm_Status]=Pending"
+                filter="[ClaimGuid]=;Active=true" required="true" explicit="true"
+                datarequest="GetPatientPayersActive"
+                appendrequest="PatientId=[PatientId]"
+                source="PlanName,PatientPayerGuid"/>
+            </row>
+            <row> 
+              <control type="label" span="3" label="Pago Restante"/>
+              <control name="Pl3_RemainingOutOfPocket" type="text" span="3" edit="true" format="0.00"
+                required="[Pld_MaxOutOfPocket]»0"/>
+              <control type="label" span="3" label="Deducible Restante"/>
+              <control name="Pl3_RemainingDeductible" type="text" span="3" edit="true" format="0.00" 
+                required="[Pld_DeductibleAnnual]»0"/>
+            </row>
+            <row> 
+              <control type="label" span="3" label="Autorización"/>
+              <control name="Clm_ClaimAuthorization" type="text" span="3" edit="true" 
+                required="[Pld_RequiresAuthorization]=True"/>
+              <control type="label" span="3" label="Fecha de Autorización"/>
+              <control name="Pl3_AthorizationDate" type="date" span="3" edit="true" 
+                required="[Pld_RequiresAuthorization]=True"/>
+            </row>
+          </subset>
+        </column>
+        <column span="2">
+          <row>
+            <control type="button" name="btnInsertNewPayerClaim" span="12" label="Continuar" 
+              icon="cloud-upload" action="save" color="green"
+              reveal="[ClaimGuid]="
+              acctsvc="true"
+              affector="ClaimGuid"
+              setaffector="ClaimGuid"
+              capture="NewClaimsInfo"
+              datainsert="InsertPayerClaim"/>
+          </row>
+          <!-- Update a payer claim -->
+          <row>
+            <control type="button" name="btnUpdatePayerClaim" span="12" label="Actualizar" icon="cloud-upload" 
+              reveal="[ClaimGuid]!+[Clm_Status]=Pending"
+              action="save"
+              acctsvc="true"
+              capture="NewClaimsInfo"
+              affector="ClaimGuid"
+              setaffector="ClaimGuid"
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid]"/>
+          </row>
+          <!-- cancel a payer claim with no charges -->
+          <row>
+            <control type="button" name="btnCancelClaim" span="12"
+              label="Cancelar" icon="remove" action="save|close|new" color="red"
+              reveal="[ClaimGuid]!+[Clm_Status]=Pending+[grdPayerCharges_NetAmountTotal]=0"
+              acctsvc="true" 
+              confirm="Confirme que desea cancelar este Convenio de la Atención."
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid],Status=Canceled"
+              provoke="gridPayerclaims"/>
+          </row>
+          <row>
+            <control type="button" name="mbtDisplayPlanDetails2" label="Detalles del Plan" icon="search" span="12"
+              action="redirect"
+              target="mdlDisplayPlan"
+              preset="PlanGuid=[Clm_PlanGuid]"
+              trigger="PlanGuid"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+  </section>
+</partial>

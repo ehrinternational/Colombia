@@ -1,0 +1,27 @@
+﻿<partial>
+  <control type="datagrid" label="Programas del Paciente" name="ERPatientPrograms"
+    option="Programs" rows="5"
+    action="redirect"
+    target="mdlPatientPrograms"
+    append="patientid=[PatientId]"
+    acctsvcreq="true"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientProgramTrackingByPatientId"
+    appendrequest="patientId=[PatientId]"
+    source="Status,ProgramName,DateTimeInitiated,DateTimeRemoved,EnteredByFullName,Notes"
+    sourcelabels="Estatus,Programa,Registrada,Termino,Ingresado por,Notas"
+    translate="Status"
+    align="left|left|left|left|left|left"
+    format="||date|date|"
+    sort="DateTimeInitiated=desc"
+    key="TrackingGuid"
+    onselectset="TrackingGuid=[[TrackingGuid]]"
+    onselect="TrackingGuid">
+    <control type="button" name="addProgramTracking"
+      color="white"
+      action="redirect"
+      target="mdlPatientPrograms"
+      label="Añadir Nuevo"
+      icon="plus"/>
+  </control>
+</partial>

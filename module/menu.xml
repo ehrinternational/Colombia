@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+  <menu widescreen="true" language="es" dateformat="DMY24" version="2.01">
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaAdmittingManagement.xml" roles="MedWave,Admitting,Sys Assistant,SysAdmin,Clinic Admitting">Admisión Vigilancia</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaCustomerManagement.xml" roles="MedWave,Social Worker,Medical Director,Director">Pacientes de Primera vez</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaSocialWorker.xml" roles="MedWave,Social Worker,Sys Assistant,SysAdmin">Trabajo Social</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaMedicalRecords.xml" roles="MedWave,Admitting,SysAdmin,Clinic Admitting">Archivo Clínico</item>
+    <item widescreen="false" icon="hospital" link="../Projects/Colombia/Module/ColombiaPatientSurvey.xml" roles="MedWave,Admitting,SysAdmin,Clinic Admitting">Encuestas</item>
+    <item widescreen="false" icon="hospital" link="../Projects/Colombia/Module/ColombiaUnsignedOrders.xml" roles="MedWave,Physician,SysAdmin">Ordenes Sin Firmas</item>
+    <item widescreen="false" icon="hospital" link="../Projects/Colombia/Module/ColombiaInterconsultApproval.xml" roles="MedWave,Physician,SysAdmin">Aprobar Interconsultas</item>
+  <item icon="double-angle-right" title="Consulta">
+    <item widescreen="false" icon="user-md" link="../Projects/Colombia/Module/ColombiaConsultWallChart.xml" roles="MedWave,Admitting,SysAdmin,Administration">Pantalla Recepción</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaConsultReception.xml" roles="MedWave,Admitting,SysAdmin,Administration">Recepción Consulta Externa</item>
+    <item widescreen="true" icon="stethoscope" link="../Projects/Colombia/Module/ColombiaOutpatientNursing.xml" roles="MedWave,Nurse,Nurse Supervisor,SysAdmin">Enfermería de Consulta</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaOutpatientDoctor.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Médico de Consulta Externa</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaOutpatientNutrition.xml" roles="MedWave,Nutritionist,SysAdmin">Consulta Nutricional</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaOutpatientInvestigation.xml" roles="MedWave,Physician,SysAdmin">Investigación Clínica</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaECDFormApproval.xml" roles="MedWave,Physician,SysAdmin">Aprobar Documentos</item>
+  </item>
+  <item icon="double-angle-right" title="Servicios">
+    <item widescreen="false" icon="beaker" link="../Projects/Colombia/Module/ColombiaPharmacyManager.xml" roles="MedWave,Pharmacy Manager,SysAdmin,ServicePurchasingManager">Jefe de Farmacia</item>
+    <item widescreen="false" icon="beaker" link="../Projects/Colombia/Module/ColombiaPharmacyClerk.xml" roles="MedWave,Pharmacy,SysAdmin">Farmacia</item>
+    <item widescreen="false" icon="beaker" link="../Projects/Colombia/Module/ColombiaPharmacyReview.xml" roles="MedWave,Pharmacy,SysAdmin">Farmacovigilancia</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaOccupationalTherapy.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Terapia Ocupacional</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaDentistry.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Odontólogo</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaPhysicalTherapy.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Terapia Física</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaPsychology.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Psicología</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaRespiratoryTherapy.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Terapia Respiratoria</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaTherapy.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Terapia</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaOrthotics.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Clinic Doctor">Ortesis y Prótesis</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaPathology.xml" roles="MedWave,Pathologist,SysAdmin,Medical Director">Patología</item>
+  </item>
+  <item icon="double-angle-right" title="Hospitalización">
+     <item widescreen="true" icon="stethoscope" link="../Projects/Colombia/Module/ColombiaHospitalNursing.xml" roles="MedWave,Nurse,Nurse Supervisor,SysAdmin">Enfermería de Hospitalización</item>
+    <item widescreen="true" icon="stethoscope" link="../Projects/Colombia/Module/ColombiaNurseSupervisor.xml" roles="MedWave,Nurse Supervisor,SysAdmin">Jefe de Enfermería</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaHospitalDoctor.xml" roles="MedWave,Physician,SysAdmin,Medical Director,Medical Supervisor,Surgery Director,Hospital Doctor,Quality Manager">Médico de Hospitalización</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaHospitalKitchen.xml" roles="MedWave,Kitchen,SysAdmin">Servicios Nutricionales</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaHospitalNutrition.xml" roles="MedWave,Nutritionist,SysAdmin">Consulta Nutricional</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaPharmacyReview.xml" roles="MedWave,Pharmacy Manager,Inhalation Therapist,Pharmacy,SysAdmin">Pacientes Ingresados</item>
+  </item>
+  <item icon="double-angle-right" title="Cirugía">
+    <item widescreen="true" icon="calendar" link="../Projects/Colombia/Module/ColombiaSurgeryWaitList.xml" roles="MedWave,Admitting,Medical Bonding,SysAdmin,Surgery Request,Surgery Approval">Lista de Espera Cirugía</item>
+    <item widescreen="true" icon="calendar" link="../Projects/Colombia/Module/ColombiaSurgeryApproval.xml" roles="MedWave,Admitting,Medical Bonding,SysAdmin">Médico Ingresos</item>
+    <item widescreen="true" icon="calendar" link="../Projects/Colombia/Module/ColombiaSurgeryScheduling.xml" roles="MedWave,Admitting,SysAdmin,Surgery Director,Medical Director,Physician,Scheduling,Nurse,Nurse Supervisor,PatientPurchasing,PatientPurchasingManager">Programación de Cirugía</item>
+    <item widescreen="true" icon="stethoscope" link="../Projects/Colombia/Module/ColombiaSurgeryNursing.xml" roles="MedWave,Nurse,Nurse Supervisor,SysAdmin">Enfermería de Cirugía</item>
+    <item widescreen="true" icon="stethoscope" link="../Projects/Colombia/Module/ColombiaInfectionControl.xml" roles="MedWave,Nurse,Nurse Supervisor,SysAdmin">Control de Infecciones</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaSurgeryDoctor.xml" roles="MedWave,Physician,Surgery Director,SysAdmin,Medical Director,Medical Supervisor,Surgery Doctor">Cirujano</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaAnesthesiologist.xml" roles="MedWave,Physician,Surgery Director,SysAdmin,Medical Director,Medical Supervisor,Surgery Doctor">Anestesiólogo</item>
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaSurgerySterilization.xml" roles="MedWave,Sterile Processing,Surgery Director,SysAdmin">CEYE</item>
+    <item widescreen="false" icon="calendar" link="../Projects/Colombia/Module/ColombiaSurgeryWallChart.xml" roles="MedWave,Admitting,Medical Bonding,SysAdmin">Pantalla Quirófanos</item>
+    <item widescreen="false" icon="calendar" link="../Projects/Colombia/Module/ColombiaSurgeryWaitingWallChart.xml" roles="MedWave,Admitting,Medical Bonding,SysAdmin">Pantallas Cirugía</item>
+  </item>
+  <item icon="double-angle-right" title="Servicios Auxiliares">
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaImagingAdmitting.xml" roles="MedWave,Radiologist,Admitting,SysAdmin,Imaging">Imagenología</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaLabAdmitting.xml" roles="MedWave,Laboratory,Admitting,SysAdmin">Laboratorio</item>
+    <item widescreen="true" icon="calendar" link="../Projects/Colombia/Module/ColombiaOutpatientImagingCalendar.xml" roles="MedWave,Admitting,SysAdmin">Agendar Imagenología</item>
+    <item widescreen="true" icon="calendar" link="../Projects/Colombia/Module/ColombiaOutpatientLabCalendar.xml" roles="MedWave,Admitting,SysAdmin">Agendar Laboratorio</item> 
+    <item widescreen="true" icon="calendar" link="../Projects/Colombia/Module/ColombiaBloodBank.xml" roles="MedWave,Admitting,SysAdmin">Banco de Sangre</item> 
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaBiomedicalEquipment.xml" roles="MedWave,SysAdmin,Director,Biomedical Engineer,Biomedical Manager,ServicePurchasingManager,ServicePurchasing">Equipo Biomédico</item>
+    <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaEquipmentMaintenance.xml" roles="MedWave,SysAdmin,Director,Maintenance Engineer,Maintenance Manager,ServicePurchasingManager,ServicePurchasing">Equipo Mantenimiento</item>
+    <item widescreen="true" icon="money" link="../Projects/Colombia/Module/ColombiaLedgerTransactions.xml" roles="MedWave,Accounting,SysAdmin,Director">Contabilidad</item>
+  </item>
+  <item icon="double-angle-right" title="Compras">
+    <item widescreen="true" icon="shopping-cart" link="../Projects/Colombia/Module/ColombiaPurchasingManager.xml" roles="MedWave">Jefe de Compras</item>
+    <item widescreen="true" icon="shopping-cart" link="../Projects/Colombia/Module/ColombiaPurchaseOrders.xml" roles="MedWave">Compras</item>
+    <item widescreen="true" icon="shopping-cart" link="../Projects/Colombia/Module/ColombiaWarehouseManager.xml" roles="MedWave">Almacen</item>
+    <item widescreen="true" icon="shopping-cart" link="../Projects/Colombia/Module/ColombiaSubWarehouseManager.xml" roles="MedWave">Subalmacen</item>
+    <item widescreen="true" icon="shopping-cart" link="../Projects/Colombia/Module/ColombiaStockRequests.xml" roles="MedWave">Requisiciones de Stock</item>
+    <item widescreen="true" icon="shopping-cart" link="../Projects/Colombia/Module/ColombiaPatientStockReturns.xml" roles="MedWave">Devoluciones de Stock</item>
+    <item widescreen="true" icon="shopping-cart" link="../Projects/Colombia/Module/ColombiaRequisitions.xml" roles="MedWave">Requisiciones de Compra</item>
+    <item widescreen="true" icon="check" link="../Projects/Colombia/Module/ColombiaCountStockLocations.xml" roles="MedWave">Contar Inventario</item>
+    <item widescreen="true" icon="check" link="../Projects/Colombia/Module/ColombiaPayableInvoices.xml" roles="MedWave">Cuentas por Pagar</item>
+  </item>
+  <item icon="double-angle-right" title="Facturación">
+    <item widescreen="true" icon="money" link="../Projects/ERPSpanish/Module/ESPatientBillingMexicoV2.xml" roles="MedWave,Admitting,Cashier,Accounting,Payers,SysAdmin,Admin Assistant,Medical Director">Facturación</item>
+    <item widescreen="true" icon="money" link="../Projects/Colombia/Module/ColombiaBillingSetup.xml" roles="MedWave">Configuración de Facturación</item> 
+  </item>
+  <item icon="double-angle-right" title="Usuarios">
+    <item widescreen="true" icon="user-md" link="../Projects/Colombia/Module/ColombiaPhysicianManagement.xml" roles="MedWave,Surgery Director,Medical Supervisor,Medical Director,SysAdmin,Quality Manager,Medical Bonding">Gestión de Médicos</item>
+    <item widescreen="true" icon="file-text" link="../Projects/Colombia/Module/ColombiaUserManagement.xml" roles="MedWave,SysAdmin,Human Resource">Gestión de Usuarios</item>
+    <item widescreen="true" icon="file-text" link="../Projects/Colombia/Module/UserUpdate.xml">Mi Cuenta de Usuario</item>
+  </item>
+  <item widescreen="true" icon="group" link="../Projects/ERPSpanish/Module/ESCashier.xml" roles="MedWave">Caja</item>
+  <item widescreen="true" icon="group" link="../Projects/Colombia/Module/ColombiaInvestigation.xml" roles="MedWave,Physician,Quality Manager,Medical Supervisor,Nurse Supervisor,Director,Medical Director,Medical Records,SysAdmin">Investigación</item>
+  <item widescreen="true" icon="group" link="../Projects/Colombia/Module/ColombiaMergePatients.xml" roles="MedWave,Administration,Medical Records,SysAdmin">Combinar Pacientes</item>
+  <item widescreen="true" icon="print" link="../Projects/Colombia/Module/ColombiaAdminReports.xml" roles="MedWave,Quality Manager,Director">Informes de Administración</item>
+  <item widescreen="true" icon="print" link="../Projects/Colombia/Module/ColombiaDirectorReports.xml" roles="MedWave,Quality Manager,Director">Informes de Dirección</item>
+  <item widescreen="true" icon="print" link="../Projects/Colombia/Module/ColombiaMarketingReports.xml" roles="MedWave,Quality Manager,Director">Informes de Marketing</item>
+
+  <item icon="double-angle-right" title="Configuración">
+    <item widescreen="true" icon="h-sign" link="../Projects/FacilitySetupSpanishHIS/Module/EsMenuSetup.xml" roles="MedWave">Gestión de Menu</item>
+    <item widescreen="true" icon="calendar" link="../Projects/Colombia/Module/ColombiaCalendarManagement.xml" roles="MedWave,SysAdmin">Gestión de Calendarios</item>
+    <item widescreen="true" icon="h-sign" link="../Projects/FacilitySetupSpanishHIS/Module/EsFacilitySetup.xml" roles="MedWave,SysAdmin">Hospital</item>
+    <item widescreen="true" icon="dollar" link="../Projects/FacilitySetupSpanishHIS/Module/EsFinancialSetup.xml" roles="MedWave,SysAdmin">Finanza</item>
+    <item widescreen="true" icon="tags" link="../Projects/FacilitySetupSpanishHIS/Module/EsInventorySetup.xml" roles="MedWave,SysAdmin">Artículo Maestro</item> 
+    <item widescreen="true" icon="beaker" link="../Projects/FacilitySetupSpanishHIS/Module/EsLaboratorySetup.xml" roles="MedWave,SysAdmin">Laboratorio</item>
+    <item widescreen="true" icon="picture" link="../Projects/FacilitySetupSpanishHIS/Module/EsImagingSetup.xml" roles="MedWave,SysAdmin">Imagenología</item>
+    <item widescreen="true" icon="user-md" link="../Projects/FacilitySetupSpanishHIS/Module/EsNursingSetup.xml" roles="MedWave,SysAdmin">Enfermería</item>
+    <item widescreen="true" icon="file-text" link="../Projects/FacilitySetupSpanishHIS/Module/EsDocumentationSetup.xml" roles="MedWave,SysAdmin">Documentación</item>
+    <item widescreen="true" icon="stethoscope" link="../Projects/FacilitySetupSpanishHIS/Module/EsProcedureSetup.xml" roles="MedWave,SysAdmin">Procedimientos</item>
+    <item widescreen="true" icon="medkit" link="../Projects/PharmacySpanish/Module/EsPharmacyMeds.xml" roles="MedWave,SysAdmin">Medicamentos</item>
+    <item widescreen="true" icon="print" link="../Projects/FacilitySetupSpanishHIS/Module/EsReportSetup.xml" roles="MedWave,SysAdmin">Informes</item>
+    <item widescreen="true" icon="print" link="../Projects/FacilitySetupSpanishHIS/Module/EsCloneReportSetup.xml" roles="MedWave">Informes de Clonación</item>
+  </item>  
+</menu>

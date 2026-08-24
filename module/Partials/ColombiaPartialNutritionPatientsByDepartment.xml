@@ -1,0 +1,78 @@
+﻿<partial><!--Used By Sedna-->
+  <!-- Partial admitting patient list by department-->
+  <!--This window displays a list of currently admitted patients for a department -->
+  <section name="tabAdmittedPatients" type="tab" title="Pacientes Admitidos" trigger="PatientList">
+    <group showif="never">
+      <row> 
+        <control type="button" name="GetLastDepartment" action="trigger"
+          set="DepartmentGuidLookup=(user.Department)"/>
+        <control type="button" 
+          name="SaveLastDepartment"
+          action="save"
+      		affector="none"
+      		datainsert="UpdateUserProfileSetDepartment"
+          appendinsert="UserId=(userName),departmentGuid=[DepartmentGuidLookup]"/>
+      </row>
+    </group>
+    <group>
+      <row name="rowSetDepartment">
+          <control type="select" 
+            span="4"
+            name="DepartmentGuidLookup"
+            acctsvc="true"
+            explicit="true"
+            edit="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentNumber|DepartmentName,DepartmentGuid"
+            provoke="(user.Department)![[DepartmentGuid]];SaveLastDepartment,PatientList"/>
+      </row>
+      <row>
+        <control type="datagrid" label="Pacientes Admitidos" 
+          name="PatientList"
+          persist="true"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          edit="only"
+          span="12"
+          rows="25"
+          fitrows="true"
+          rowcolor="ReadyForDischarge|true=green"
+          idle="[DepartmentGuidLookup]=|reset"
+          acctsvcreq="true"
+          datarequest="GetAdmittedPatientsByDepartment"
+          appendrequest="excludephoto=true,DepartmentGuid=[DepartmentGuidLookup]" 
+          source="ReadyForDischarge,AdmitDateTime,AdmitDays,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,OpenRoom,AttendingDoctorFullName,AttendingDoctorMedicalSpecialty"
+          sourcelabels="Alta,Admitido,Dias,Expediente,Nombre,Nacimiento,Edad,Sexo,Habitación,Médico,Especialidad"
+          translate="PatientSex"
+          align="|||left|left|left|left|left|left|left|left"
+          format="boolean|datetime_short||||date"
+          sort="AdmitDateTime=asc"
+          key="RecordUniqueId"
+          onselectset="PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisitId]]"
+          onselect="PatientId,PatientVisitGuid"> 
+          <!-- Button to print nutrition reports -->
+          <control type="button" name="btnPrintAdmittingReportsFromAdmitList"
+              preset="Report_CalendarGuid=[calAppointmentTypeGuid],Report_Type=Nutrition" 
+              trigger="ReportList"
+              label="Informes" icon="print" action="redirect" target="mdlReports"/>
+          <control type="button" name="NursebtnSearchForPatientNoQues"
+            icon="plus" label="Buscar/Ingresar"
+            preset="PatientSearchSource=61"
+            action="redirect" target="mdlFindPatients"/>
+					<control type="button" name="RefreshAppointments2" 
+            label="Actualizar"
+						icon="refresh" 
+            action="trigger" 
+            trigger="PatientList"/>
+        </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="HospitalNurseSearch" action="redirect" target="PatientTabModal"
+            preset="PatientId=[PatientSearchResults]"
+            trigger="PatientId"/>
+        </row>
+      </group>
+  </section>
+</partial>

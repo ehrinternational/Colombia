@@ -1,0 +1,48 @@
+<partial>
+  <!-- Patient Appointment List with new and edit for outpatient, imaging and lab calendars  -->
+  <control type="hidden" name="FromCalendar" default="false"/>
+  <control type="datagrid" label="Citas del Paciente" name="Appointments" 
+    option="Appointments"
+    rows="5"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientAppointmentsByDateRange"
+    appendrequest="patientId=[PatientId],status=AllCanceled"
+    source="Start,CalendarType,CalendarName,Subject,ProviderFullName,Status"
+    sourcelabels="Fecha y Hora,Tipo,Calendario,Asunto,Médico,Estatus"
+    translate="CalendarType,Status"
+    sort="Start=desc"
+    align="|left|left|left|left|left"
+    format="datetime"
+    key="AppointmentGuid">
+   <control type="button" name="btnEditPatientConsultAppointment" label="Editar" icon="edit"
+        showif="feature" action="redirect" target="mdlConsultVisitAppointmentModal"
+        reveal="[[CalendarType]]=ConsultVisit"
+        preset="ConsultVisit_AppointmentGuid=[[AppointmentGuid]]"
+        trigger="ConsultVisit_AppointmentGuid"/>
+   <control type="button" name="btnEditPatientFirstVisitAppointment" label="Editar" icon="edit"
+        showif="feature" action="redirect" target="mdlFirstVisitAppointmentModal"
+        reveal="[[CalendarType]]=FirstVisit"
+        preset="FirstVisit_AppointmentGuid=[[AppointmentGuid]]"
+        trigger="FirstVisit_AppointmentGuid"/>
+   <control type="button" name="btnNewFirstVisitFromPatient" 
+        reveal="[Patient_Active]=true"
+        icon="plus" label="Primera Vez" 
+        preset="DefaultPatientId=[PatientId]"       
+        action="redirect" target="mdlFirstVisitCalendarAppointments"/>
+   <control type="button" name="btnNewConsultVisitFromPatient"
+        reveal="[Patient_Active]=true+[FromCalendar]=false"
+        icon="plus" label="Consulta" 
+        preset="DefaultPatientId=[PatientId],ConsultCalendarType=ConsultVisit"  
+        trigger="ConsultVisit_selAppointmentTypeGuid"     
+        action="redirect" target="mdlConsultVisitCalendarAppointments"/>     
+  <control type="button" name="btnPrintPatientAppointmentList"
+      label="Agenda" icon="print"  
+      action="print" mode="report" 
+      append="id=a835faef16d,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),PatientId=[PatientId],UserName=(fullname),CurrentDateTime=(dateTimeNow)"/>  
+  <control type="button" name="btnPrintPatientAppointment"
+      showif="feature"
+      label="Cita" icon="print"  
+      action="print" mode="report" 
+      append="id=e111f95c2bf,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),AppointmentId=[[AppointmentGuid]],UserName=(fullname),CurrentDateTime=(dateTimeNow)"/>
+  </control>
+</partial>

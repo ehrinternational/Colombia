@@ -1,0 +1,82 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabAllAdmittedPatients" type="tab" title="Pacientes Admitidos" trigger="DischargePatientList">
+    <group>
+      <row>
+        <control type="select" name="SelectAdmittingDepartment"
+          source="DepartmentName,DepartmentGuid" span="3"
+          default="Vigilancia México"
+          acctsvc="true"
+          datasource="GetDepartmentsActive"
+          append="LocationId=(facilityData.LocationId)" 
+          provoke="DischargePatientList"/>
+        <control type="hidden" name="QRScannedResultAdmit" span="3" 
+          mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+        <control type="button" name="btnScanAppointmentQRAdmit" 
+          action="scan" color="green" span="3"
+          icon="qrcode"
+          label="Escanear Paciente"
+          inject="value=[QRScannedResultAdmit]"
+          provoke="[QRScannedResultAdmit]!;GetScannedAppointmentQRAdmit"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="GetScannedAppointmentQRAdmit"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRScannedResultAdmit]"
+          set="[[HasOpenVisit]]=true;DischargePatientName=[[PatientFullName]],[[HasOpenVisit]]=true;DischargePatientVisit=[[PatientVisit]]"
+          provoke="[[HasOpenVisit]]=true;btnOpenPatientChartAdmit^btnNoPatientFoundAdmit"/>
+        <control type="button" name="btnOpenPatientChartAdmit"
+          set="QRScannedResultAdmit="
+          action="redirect" target="mdlDischargePatient"/>
+        <control type="button" name="btnNoPatientFoundAdmit"
+          action="trigger"
+          set="QRScannedResultAdmit="
+          confirm="No se ha encontrado ninguna cita activa ni paciente.|nocancel"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the department -->
+        <control type="datagrid" label="Pacientes Admitidos" name="DischargePatientList"
+          action="redirect" 
+          target="mdlDischargePatient"
+          searchable="true"
+          span="12" rows="20"
+          acctsvcreq="true"
+          datarequest="GetAdmittedPatientsByDepartment"
+          appendrequest="LocationId=(facilityData.LocationId),[SelectAdmittingDepartment]!;DepartmentGuid=[SelectAdmittingDepartment],excludePhoto=true"
+					rowcolor="ReadyForDischarge|True=green"
+          source="ReadyForDischarge,DepartmentDateTime,AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientAge,PatientSex,DepartmentName,DepartmentServiceName"
+          sourcelabels="Alta,Transferido,Admitido,Expediente,Nombre,Edad,Sexo,Atención,Servicio"
+          align="||left|left|left|left|left|left|left"
+          format="boolean|datetime|datetime"
+          translate="PatientSex"
+          sort="AdmitDateTime=asc"
+          key="RecordUniqueId"
+          onselectset="DischargePatientVisit=[[PatientVisitId]],DischargePatientName=[[PatientFullName]]"> 
+					<control type="button" name="btnRefreshPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="DischargePatientList"/>
+        </control>
+        </row>
+      </group>
+  </section>
+  <!-- Tabmodal to discharge patient -->
+  <section type="tabmodal" name="mdlDischargePatient" size="small" badge="none" title="Dar de alta al paciente">
+    <group>
+      <row>
+        <control type="hidden" name="DischargePatientVisit"/>
+      </row>
+      <row>
+        <control type="label" label="Paciente" span="3"/>
+        <control type="text" name="DischargePatientName" span="7" readonly="true"/>
+      </row>
+      <row>
+        <control type="modalbutton" name="btnDischargePatient"
+          icon="home" label="Dar de alta al paciente" color="green"
+          action="save|close|new"
+          acctsvc="true"
+          dataupdate="UpdatePatientVisitNoDepartmentTracking"
+          appendupdate="patientVisitUniqueId=[DischargePatientVisit],DischargeDateTime=(now),DischargedBy=(userName)"
+          provoke="DischargePatientList"/>
+      </row>
+    </group>
+  </section>
+</partial>

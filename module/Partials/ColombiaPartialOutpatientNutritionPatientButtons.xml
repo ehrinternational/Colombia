@@ -1,0 +1,98 @@
+<partial>
+  <!-- Partial Hospital Nutrition Patient Buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row>
+      <control type="button" name="btnNutritionReports"
+        span="12"
+        icon="print" label="Informes"
+        preset="Report_PatientId=[PatientId],Report_Type=Nutrition"
+        trigger="ReportList"
+        action="redirect" target="mdlReports"/>
+    </row>
+     <row>
+      <control type="button" 
+        name="Consult_PatientUpdate"
+        reveal="PatientId!" 
+        span="12" 
+        label="Actualizar"
+        icon="cloud-upload"
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid],dietType=[DietType]"
+        provoke="PatientList"/>
+    </row>
+    <row>
+      <control type="button" name="btnTimeline"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+    </row>
+    <row>
+      <control type="button" name="addNursingNotes" span="12"
+        color="yellowgreen"
+        action="redirect|view"
+        target="patient-notes"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],notetype=Interdisciplinary"
+        label="Notas"
+        icon="user-md"/>
+    </row>
+    <row>
+      <!-- Admit patient with no open visit -->
+      <control type="button" name="btnAdmitButton" label="Ingresar Paciente" span="12"
+        reveal="[PatientId]!+[HasOpenVisit]=false+[Patient_Active]=true"
+        color="orange" icon="cloud-upload"
+        action="save" 
+        confirm="Por favor confirme que quiere ingresar a este paciente."
+        affector="PatientVisitGuid"
+        setaffector="PatientVisitUniqueId"
+        capture="VisitInfo"
+        datainsert="InsertPatientVisitAllFields"
+        appendinsert="copyDiagnosis=true,
+          copyApprovals=true,
+          patientId=[PatientId],
+          visitType=[DefaultAdmitType],
+          hospitalService=Esperando,
+          ambulatoryStatus=Outpatient,
+          preAdmit=0,admitDateTime=(now),
+          locationId=(facilityData.LocationId),
+          readyForDischarge=false"
+        set="HasOpenVisit=true,
+          PatientVisit=[PatientVisitGuid],
+          ReadyForDischarge=false,
+          AllowDischarge=true"
+        provoke="PatientVisitGuid,ButtonGroupSelect"/>
+    </row>
+    <row>
+      <control type="hidden" name="AllowDischarge"/>
+      <control type="button" name="btnDischargePatient"
+        icon="home" label="Dar de alta" color="green" span="12"
+        reveal="[PatientVisitGuid]!+[AllowDischarge]=true"
+        confirm="Confirme que desea cerrar esta visita del paciente."
+        action="save|close|new"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid],DischargeDateTime=(now),DischargedBy=(userName)"/>
+    </row>
+    <!-- Call the patient in the waiting room -->
+    <partial link="Partials/ColombiaPartialCallPatientButton.xml"/>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+</partial>

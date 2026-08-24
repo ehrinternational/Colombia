@@ -1,0 +1,35 @@
+﻿ <partial>
+  <!-- Consult Requests for this patient-->
+  <control type="datagrid" label="Interconsultas" name="ConsultList" 
+      option="Physicians"
+      rows="5"
+      fitrows="true"
+      action="redirect"
+      target="[[ConsultType]]=External|Internal;NewConsultModal"
+      acctsvcreq="true"
+      datarequest="GetConsultRequestsByCriteria"
+      appendrequest="SearchCriteria=patient,patientId=[PatientId],facilityId=(facility)"
+      source="DateTimeEntered,ConsultNumber,ConsultType,ConsultReason,ConsultRequestStatus,ConsultRequestSpecialtyRequestedName,ProfessionalName,ConsultRequestAssignedToName"
+      sourcelabels="Solicitud,Folio,Tipo,Motivo,Estatus,Especialidad,Soliciado por,Asignado a"
+      align="|left|left|left|left|left|left|left"
+      format="datetime"
+      sort="DateTimeEntered=desc"
+      translate="ConsultType,ConsultRequestStatus"
+      key="ConsultRequestGuid"
+      onselectset="[[ConsultType]]=External|Internal;PatientConsultGuid=[[ConsultRequestGuid]],
+        [[ConsultType]]=External|Internal;InterConsult_PatientId=[PatientId]"
+      onselect="[[ConsultType]]=External|Internal;PatientConsultGuid,
+        [[ConsultType]]=External|Internal;InterConsult_PatientId">
+      <!-- button to print consult request -->
+      <control type="button" name="btnPrintConsultRequest" 
+        showif="feature" icon="print" label="Imprimir Interconsulta"
+        action="print" mode="report"
+        append="id=65df553a65f,ConsultRequestGuid=[[ConsultRequestGuid]],FacilityId=(facility),HospitalGuid=(facilityData.HospitalGuid),UserName=(userName),CurrentDateTime=(now)"/> 
+      <!-- Button for new interconsult -->
+      <control type="button" name="btnNewInterconsultRequest"
+        label="Añadir Nuevo" icon="cloud-upload"
+        preset="InterConsult_PatientId=[PatientId]"
+        trigger="InterConsult_PatientId"
+        action="redirect" target="NewConsultModal"/>
+    </control>
+</partial>

@@ -1,0 +1,54 @@
+﻿<partial>
+  <!-- Display list of consult requests by the selected criteria -->
+  <section type="tab" name="tabInternalConsultList" title="Atención Multidisciplinaria" trigger="grdInternalConsultList">
+    <group>
+      <row>
+        <control type="buttongroup" span="6"
+          name="btgInternalConsultRequestStatus"  
+          source="Active,Approved,Scheduled,Completed,Canceled"
+          sourcelabels="Activo,Aprobado,Programado,Completado,Cancelado"
+          default="Active"
+          provoke="grdInternalConsultList"/>
+        <control type="buttongroup" span="2"
+          name="btgInternalConsultRequestType"  
+          source="Internal,External"
+          sourcelabels="Interno,Externo"
+          default="Internal"
+          provoke="grdInternalConsultList"/>
+        <control type="date" name="ConsultRequestStartDate" span="2" default="(now)-30"
+          reveal="[btgInternalConsultRequestStatus]=Completed|Canceled" trigger="[ConsultRequestStartDate]!+[ConsultRequestEndDate]!;grdInternalConsultList"/>
+        <control type="date" name="ConsultRequestEndDate" span="2" default="(now)"
+          reveal="[btgInternalConsultRequestStatus]=Completed|Canceled"  trigger="[ConsultRequestEndDate]!+[ConsultRequestStartDate]!;grdInternalConsultList"/>
+      </row>
+      <row>
+        <!-- Consult Request list -->
+        <control type="datagrid" label="Atención Multidisciplinaria" name="grdInternalConsultList" 
+          span="12" rows="15"
+          searchable="true"
+          fitrows="true"
+          action="redirect"
+          target="NewConsultModal"
+          rowcolor="ConsultRequestPriority|Emergency=red;Medium=yellow;Normal=white"
+          acctsvcreq="true"
+          datarequest="GetConsultRequestsByCriteria"
+          appendrequest="LocationId=(facilityData.LocationId),
+            status=[btgInternalConsultRequestStatus],
+            [btgInternalConsultRequestStatus]=Completed|Canceled;StartDate=[ConsultRequestStartDate],
+            [btgInternalConsultRequestStatus]=Completed|Canceled;EndDate=[ConsultRequestEndDate],
+            ConsultType=[btgInternalConsultRequestType]"
+          source="DateTimeEntered,PatientFullName,ConsultNumber,ConsultType,ConsultReason,ConsultRequestStatus,ConsultRequestSpecialtyRequestedName,ProfessionalName,ConsultRequestAssignedToName"
+          sourcelabels="Solicitud,Paciente,Folio,Tipo,Motivo,Estatus,Especialidad,Soliciado por,Asignado a"
+          align="|left|left|left|left|left|left|left|left"
+          format="datetime"
+          sort="DateTimeEntered=asc"
+          translate="ConsultType,ConsultRequestStatus"
+          key="ConsultRequestGuid"
+          onselectset="InterConsult_PatientId=[[PatientId]],PatientConsultGuid=[[ConsultRequestGuid]]"
+          onselect="InterConsult_PatientId,PatientConsultGuid">
+        <control type="button" name="btnRefreshConsultList" action="trigger"
+          label="Actualizar" icon="refresh" provoke="grdInternalConsultList"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

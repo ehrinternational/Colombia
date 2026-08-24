@@ -1,0 +1,33 @@
+<partial>
+    <control type="datagrid" label="Cargos del Paciente" name="Charges_grdNewPatientCharges" rows="10"     
+      searchable="true"                          
+      option="Charges"
+      action="redirect"
+      target="mdlNewPatientCharge"
+      acctsvcreq="true" 
+      idle="[VisitSelect]=|reset"
+      filter="Status=Active"
+      datarequest="GetChargesByPatientVisit"     
+      appendrequest="patientVisit=[VisitSelect],ClaimGuid=none"     
+      source="TransactionDateTime,ChargeNumber,ItemName,TransactionQuantity,PerItemChargeAmount,TotalChargeAmount,DiscountAmount,TaxableAmount,TaxAmount,Retention,NetAmount"
+      sourcelabels="Fecha,Folio,Artículo,Cantidad,Precio,Subtotal,Descuento,Gravable,Impuesto,Retención,Total"
+      translate="Status"
+      sort="TransactionDateTime=desc"
+      format="datetime|||0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00"
+      align="left|left|left|right|right|right|right|right|right|right|right"
+      total="|||||+|+|+|+|+|+"
+      key="TransactionGuid"
+      onselectset="NewChargeGuid=[[TransactionGuid]]"
+      onselect="NewChargeGuid">
+    <control type="button" name="btnEnterNewPatientCharge"
+      icon="plus" label="Añadir Nuevo"
+      reveal="[InvoiceStatus]=Open|Closed"
+      action="redirect"
+      target="mdlNewPatientCharge"/>
+    <control type="button" name="AllocatePatientCharges" action="redirect" 
+      reveal="[InvoiceStatus]=Open|Closed"
+      preset="InvoiceCalculated=false"
+      trigger="selPayerClaims,grdPatientCharges" label="Asignar Cargos" 
+      icon="refresh" target="mdlAllocatePatientCharges"/>
+    </control>     
+</partial>

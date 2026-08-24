@@ -1,0 +1,92 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabNurseAdmittedPatients" type="tab" title="Pacientes Ingresados" trigger="GetLastNurseDepartment">
+    <group showif="never">
+      <row> 
+        <!-- Get the last department the user was in and set this department-->
+        <control type="hidden" name="GetLastNurseDepartment"
+          datarequest="GetUserProfileFromUserId2"
+          appendrequest="UserIdToGet=(userName)"
+          set="[[Department]]!;NurseDepartmentGuidLookup=[[Department]]"
+					provoke="NursePatientList"/>
+        <!-- Save the department the user selects to the user profile -->
+        <control type="button" 
+          name="SaveLastNurseDepartment"
+          action="save"
+      		affector="none"
+      		datainsert="UpdateUserProfileSetDepartment"
+          appendinsert="UserId=(userName),departmentGuid=[NurseDepartmentGuidLookup]"/>
+      </row>
+    </group>
+    <group>
+      <row>
+          <control type="select" name="NurseDepartmentGuidLookup"
+            span="4" acctsvc="true" explicit="true" edit="true" searchable="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentNumber|DepartmentName,DepartmentGuid"
+            provoke="SaveLastNurseDepartment,NursePatientList"/>
+            <!-- Select the hospital service (queue) to display -->
+          <control type="hidden" name="NurseQRScannedResult" span="3" action="trigger" 
+            trigger="NurseGetScannedPatientByQR"
+            mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+          <control type="button" name="NursebtnScanPatientQR" 
+            action="scan" color="green" span="3"
+            icon="qrcode"
+            label="Escanear Paciente"
+            inject="value=[NurseQRScannedResult]"
+            provoke="[NurseQRScannedResult]!;NurseGetScannedPatientByQR"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="NurseGetScannedPatientByQR"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRScannedResult]"
+          provoke="[[RecordUniqueId]]!;NursebtnOpenPatientChart^NursebtnNoPatientFound"/>
+        <control type="button" name="NursebtnOpenPatientChart"
+          preset="PatientId=[NurseQRScannedResult]"
+          trigger="PatientId"
+          set="NurseQRScannedResult="
+          action="redirect" target="PatientTabModal"/>
+        <control type="button" name="NursebtnNoPatientFound"
+          action="trigger"
+          set="NurseQRScannedResult="
+          confirm="No se ha encontrado ninguna paciente.|nocancel"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the department -->
+        <control type="datagrid" label="Pacientes por Departamento" name="NursePatientList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          span="12" rows="15"
+          rowcolor="TriageLevel|1=green;2=blue;3=yellow;4=red"
+          idle="[NurseDepartmentGuidLookup]=|reset"
+          acctsvcreq="true"
+          datarequest="GetAdmittedPatientsByDepartment"
+          appendrequest="DepartmentGuid=[NurseDepartmentGuidLookup],excludePhoto=true" 
+          source="ReadyForDischarge,DepartmentDateTime,AdmitDateTime,AdmitDays,MedicalRecordNumber,PatientFullName,PatientSex,PatientDOB,PatientAge,OpenRoom"
+          sourcelabels="Alta,Transferido,Admitido,Dias,Expediente,Nombre,Sexo,Nacimiento,Edad,Habitación"
+          align="|||left|left|left|left|left|left|left"
+          format="boolean|datetime|datetime|||||date"
+          translate="PatientSex"
+          sort="AdmitDateTime=asc"
+          key="RecordUniqueId"
+          onselectset="PatientId=[[RecordUniqueId]]"
+          onselect="PatientId"> 
+          <control type="button" name="NursebtnSearchForPatientNoQues"
+            icon="plus" label="Buscar/Ingresar"
+            preset="PatientSearchSource=61,DisplayOpenVisitsOnly=true"
+            action="redirect" target="mdlFindPatients"/>
+					<control type="button" name="NursebtnRefreshPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="NursePatientList"/>
+        </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="HospitalNurseSearch" action="redirect" target="PatientTabModal"
+            preset="PatientId=[PatientSearchResults]"
+            trigger="PatientId"/>
+        </row>
+      </group>
+  </section>
+</partial>

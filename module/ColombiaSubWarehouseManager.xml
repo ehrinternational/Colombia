@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Subalmacen" type="onload" trigger="dgrItemList">
+  <facet name="Project" value="Go"/>
+  <facet name="FileName" value="SubwarehouseManager"/>
+  <facet name="NewStatus"/>
+  <facet name="DefaultLocation"/>
+  <facet name="ItemMasterString"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Warehouse"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Inventory stock items for location -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockItemsByLocation.xml"/>
+  <!-- Partial medication dispense -->
+  <partial link="../../PharmacySpanish/module/Partials/PartialESPharmacyDispenseModal.xml"/>
+  <!-- Inventory Patient charge of stock items -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESPatientChargeStockItems.xml"/>
+  <!-- Inventory patient charges modal -->
+  <partial target="mdlInventoryChargeToPatient" link="../../ERPSpanish/module/Partials/PartialESInventoryPatientCharges.xml"/>
+  <!-- Inventory requisitions -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESRequisitions.xml"/>
+  <!-- Inventory stock requests -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockRequests.xml"/>
+  <!-- Inventory view patient charges modal -->
+  
+  <!-- Inventory stock item location modal -->
+  <partial target="mdlStockItemsByLocation" link="../../ERPSpanish/module/Partials/PartialESStockItemLocationModal.xml"/>
+  <!-- Inventory stock history -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESLocationStockHistory.xml"/>
+  <!-- Inventory scan and count modal -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
+  <!-- Item history -->
+  <partial target="mdlItemHistory" link="./Partial/Modals/PartialItemMasterHistory.xml"/>
+  <partial link="../../PharmacySpanish/module/Partials/PartialPharmacyDispenseReturnModal.xml"/>
+  
+  <partial link="./Partial/Modals/PartialCancelMedicationActualModal.xml"/>
+  <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

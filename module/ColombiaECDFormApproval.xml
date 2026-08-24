@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<module name="Aprobar Documentos" type="onload" trigger="ECDApprovalList">
+  <facet name="FileName" value="ApproveDocuments"/>
+    <section type="tab" name="tabApproveECDForms" title="Aprobar Documentos" trigger="ECDApprovalList">
+      <group>
+        <row>
+          <control type="label" label="Médico" span="3"/>
+          <control type="select" name="Approval_PhysicianId" span="7" 
+            searchable="true" required="true" sort="UserFirstMiddleLast=asc"
+            default="(userName)" 
+            edit="(user.UserRoles)%SysAdmin|Sys Assistant|Medical Records|Archivo Clinico|Sistemas"
+            source="UserFirstMiddleLast,UserId" 
+            acctsvc="true" datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician|Resident"
+            provoke="ECDApprovalList"/>
+        </row>
+        <row>
+          <!-- ECD forms with approval --> 
+          <control type="datagrid" label="Aprobar Documentos" name="ECDApprovalList"
+            span="12" rows="15"
+            searchable="true"
+            datarequest="GetCompletedPatientFormsForPriorVisits"
+            appendrequest="NeedsApproval=True,latestRevision=true,LocationId=(facilityData.LocationId),[Approval_PhysicianId]!;SignedBy=[Approval_PhysicianId]"
+            source="DateTimeEntered,MedicalRecordNumber,PatientFirstMiddleLast,RevisionId,Type,FormName,Status,FullUserName,SignedByFullUserName"
+            sourcelabels="Fecha y Hora,Expediente,Nombre,Modificado,Tipo,Documento,Estatus,Introducido por,Firmado por"
+            align="|left|left||left|left|left|left|left"
+            format="datetime|||boolean"
+            translate="Type,Status"
+            sort="DateTimeEntered=desc"
+            key="rowGuid">
+          <!-- Approve an ECD -->
+          <control type="button" name="btnApproveECD" icon="edit" label="Aprobar"
+            showif="feature"
+            action="redirect|url" 
+            target="ecd/index.html"
+            usesource="login"
+            append="ecdMode=approve,ecdGuid=[[rowGuid]],patientid=[[PatientId]],patientvisit=[[PatientVisit]],department=[DepartmentGuidLookup]" 
+            provoke="ECDApprovalList"/>
+          <!-- Revise an ECD -->
+          <control type="button" name="btnReviseECD" label="Revisar" icon="refresh"
+            action="redirect|url" showif="feature"
+            preset="DocumentToApprove=[[rowGuid]]"
+            target="ecd/index.html"
+            onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+            usesource="login"
+            mode="ecd"
+            append="patientid=[[PatientId]],patientvisit=[[PatientVisit]],ecdMode=reviseandapprove,ecdGuid=[[rowGuid]],department=[DepartmentGuidLookup]" 
+            confirm="Por favor confirme que desea revisar este documento"
+            provoke="ECDApprovalList"/>
+          <!-- Print an ECD -->
+          <control type="button" name="printECDForApproval" action="print"
+            usesource="login" mode="ecd" showif="feature"
+            append="ecdGuid=[[rowGuid]],patientid=[[PatientId]],patientvisit=[[PatientVisit]],department=[DepartmentGuidLookup]"
+            label="Imprimir"
+            icon="print"/>
+          <control type="button" name="btnRefreshECDApproval" icon="refresh" label="Actualizar"
+            action="trigger" provoke="ECDApprovalList"/>
+          </control>
+        </row>
+    </group>
+  </section>
+</module>

@@ -1,0 +1,110 @@
+<partial>
+  <row name="rowPatientPhoto" reveal="[PatientId]!">
+    <!-- Patient photo -->
+    <control type="image" name="Admit_ProfilePhoto" span="12" format="jpg=circle" default="null"/>
+  </row>
+  <row showif="never">
+    <control type="hidden" name="btnUpdatePatientPhoto"
+      datarequest="GetPatientPhotoBySize"
+      appendrequest="patientId=[PatientId]"
+      set="Admit_ProfilePhoto=[[BinaryPhoto]]"/>
+  </row>
+  <row>
+    <control type="button" name="btnTakeProfilePhoto" span="12" label="Foto" icon="camera"
+      reveal="[PatientId]!+[Admit_ProfilePhoto]="
+      action="patientphoto" 
+      append="patientId=[PatientId]" 
+      provoke="btnUpdatePatientPhoto" /> 
+  </row>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row name="rowSaveNewPatient" reveal="[PatientSearched]=true">
+    <control type="button" name="SaveNewPatientButton" span="12" label="Paciente Nuevo" icon="cloud-upload"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      action="save"
+      confirm="Por favor confirme que quiere generar a este paciente nuevo."
+      datainsert="InsertPatient"/>
+  </row>
+  <row name="rowAdmitPatientUpdate" reveal="[PatientId]!">
+    <!--Save patient information-->
+    <control type="button" name="btnPatientUpdate" span="12" label="Actualizar" icon="refresh"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[HasOpenVisit]=true;btnUpdatePatientVisit"/>
+  </row>
+  <!-- Partial Hospital Visit Buttons -->
+  <row name="rowSendText" reveal="[PatientCellPhone]!">
+    <control type="button" name="btnSendTextMessage2"  
+      span="12" icon="envelope" label="Texto"
+      preset="Send_PhoneNumber=[PatientCellPhone],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages2"
+      action="redirect" target="mdlSendTextMessage"/>
+  </row>
+  <row name="rowSendEmail" reveal="[Consult_PatientEmail]!">
+    <control type="button" name="btnSendEmailMessage2" span="12" icon="envelope" label="Email"
+      preset="Send_EmailAddress=[Consult_PatientEmail],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages1"
+      action="redirect" target="mdlSendEmailMessage"/>
+  </row>
+  <row>
+    <!--Print patient label-->
+    <control type="button" span="12" name="btnPrintAdultWristband" label="Pulsera Adulto" icon="print"
+      reveal="[PatientId]!" 
+      action="print" 
+      mode="report" 
+      append="(facilityData.HospitalName)=Hospital BC;id=e2ca2395f9a^id=14c214853ef,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" /> 
+  </row>
+  <row>
+      <!-- Print pediatric patient wristband -->
+      <control type="button" name="btnPrintPediatricWristband" label="Pulsera Pediátrica"
+        reveal="[PatientId]!" 
+        span="12" icon="print"
+        action="print" 
+        mode="report" 
+        append="id=1db2dfcbbc8,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]"/>
+  </row>
+   <row>
+      <!-- Print infant patient wristband -->
+      <control type="button" name="btnPrintInfantWristband" label="Pulsera Infantil"
+        reveal="[PatientId]!" 
+        span="12" icon="print"
+        action="print" 
+        mode="report" 
+        append="id=f869457b890,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]"/>
+  </row>
+  <!-- 
+  <row>
+    <control type="button" span="12" name="btnPrintBedIdentification" label="Identificación" icon="print"
+      reveal="[PatientId]!" 
+      action="print" 
+      mode="report" 
+      append="id=9014bdeef35,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisitGuid]" />
+  </row>
+  <row>
+    <control type="button" span="12" name="btnAttendingDoctorLabel" label="Puerta" icon="print"
+      reveal="[PatientVisitGuid]!" 
+      action="print" 
+      mode="report" 
+      append="id=f61504739ce,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisitGuid]" />
+  </row>-->
+</partial>

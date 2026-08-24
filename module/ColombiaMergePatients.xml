@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Hospital Go" type="onload" trigger="MergePatientsList,UnmergePatientsList">
+  <partial link="./Partial/Move/PartialMergePatientsWithListsAsTab.xml"/>
+</module>

@@ -1,0 +1,124 @@
+<partial>
+  <!-- Partial prospect patient demographic information -->
+  <row>
+    <control type="hidden" name="Patient_Active"/>
+    <control type="hidden" name="HasOpenVisit"/>
+    <control type="hidden" name="PatientVisit"/>
+    <control type="hidden" name="PatientFullName"/>
+  </row>
+  <columns>
+    <column span="2">
+      <row>
+        <!--Patient photo-->
+        <control type="image"
+          format="jpg=circle" 
+          name="Admit_ProfilePhoto"
+          default="null"
+          span="12" />
+      </row>
+    </column>
+    <column span="10">
+      <row>
+          <control type="label" label="Expediente" align="left" span="3"/>
+          <control type="label" label="Nombre(s)" align="left" span="3"/>
+          <control type="label" label="Apellido Paterno" align="left" span="3"/>
+          <control type="label" label="Apellido Materno" align="left" span="3"/>
+      </row>
+      <row>
+        <control type="text" name="Consult_MedicalRecordNumber" span="3" readonly="true"/>
+        <control type="text" name="Consult_PatientFirstName" format="ucase" span="3" readonly="true"  />
+        <control type="text" name="Consult_PatientMiddleName" format="ucase" span="3" readonly="true"  />
+        <control type="text" name="Consult_PatientLastName" format="ucase" span="3" readonly="true" />
+      </row>
+      <row>
+        <control type="label" label="Nacimiento" span="2" />
+        <control type="date" name="Consult_PatientDOB" span="2"  readonly="true"/>
+        <control type="text" name="Consult_PatientAge" span="2" readonly="true"/>
+        <control type="label" label="Sexo" span="1" />
+        <control type="select" 
+          name="Consult_PatientSex" span="2" 
+          source="Male,Female,Indeterminate"
+          readonly="true" 
+          sourcelabels="Masculino,Femenino,Indeterminado"/>
+        <control type="label" label="Sangre" span="1"/>
+        <control type="select" name="Consult_BloodType" span="2"
+          source="A+,A-,B+,B-,O+,O-,AB+,AB-" readonly="true"/>
+      </row>
+      <row>      
+        <control type="label" label="País Nacimiento" span="2"/>
+        <control type="select" name="Consult_Nationality" span="3" readonly="true"
+          default="(facilityData.HospitalCountry)" persist="true"
+          sort="CountrySpanish=asc"
+          datasource="GetCountries" 
+          source="CountrySpanish,Code"
+          trigger="[LastCountry]![Consult_Nationality];Consult_BirthPlace"/>
+        <control type="label" label="Estado Nacimiento" span ="3"/>
+        <control type="select" name="Consult_BirthPlace" span="3" readonly="true"
+          idle="Consult_Nationality=" 
+          datasource="GetStatesProvincesByCountryCode"
+          source="Name,Code" explicit="true"
+          append="countryCode=[Consult_Nationality]"
+          set="LastCountry=[Consult_Nationality],Consult_BirthPlaceKey=[[CATALOG_KEY]]"/>
+        <control type="hidden" name="Consult_BirthPlaceKey"/>
+      </row>
+    </column>
+  </columns>
+  <row>
+    <control type="label" label="CURP" span="2"/>
+    <control type="text" name="PtSSN" span="2" readonly="true"/>
+  </row>
+  <row>
+    <control type="label" label="Celular" span="2"/>
+    <control type="text" name="Consult_PatientCellPhone" span="2" readonly="true" />
+    <control type="label" label="Telefono de Casa" span="2"/>
+    <control type="text" name="Consult_PtPhoneNumber" span="2" readonly="true" />
+    <control type="label" label="Email" span="1"/>
+    <control type="text" name="Consult_PatientEmail" verify="email" span="3" readonly="true"/>
+  </row>
+  <row>
+    <control type="label" label="Parentesco" span="2"/>
+    <control type="select" name="Consult_Companion"
+      span="2" readonly="true" 
+      source="Institución,Padre,Madre,Hermana,Hermano,Abuelo,Abuela,Tía,Tío,Club Colombia,
+      Primo,Prima,Sobrino,Hermanastro,Hermanastra,Tutor Legal,Ningún parentesco,Otros"/>
+    <control type="label" label="Referencia" span="2"/>
+    <control type="select" name="Consult_ReferringSource" span="2" readonly="true" searchable="true"
+      source="Facebook,Tiktok,Linkedin,Publicidad en metro,X,Correo Electrónico,Paciente,Médico,Médico Staff,
+      Institución Gubernamental,Institución Privada,Empleado del Hospital,Escuela,Fundación,
+      Televisión,Radio,Página Web,Sponsor Club,Hospital Gubernamental,Hospital Privado,Referido de EUA,
+      Pantallas- Restaurante Casa de Toño,Tren suburbano,Pantalla en centro comercial,
+      Comercial Cinépolis,Publicidad en camiones,Publicidad en Tren Ligero,Sin Referencia"/>
+    <control type="label" label="Transporte" span="2"/>
+    <control type="select" name="Consult_Transportation" span="2" 
+      source="Transporte público,coche propio,avión,otro" 
+      readonly="true"/>
+  </row>
+  <row>
+    <control type="label" label="Diagnostico por Familia" span="4"/>
+    <control type="text" name="Consult_FamilyDiagnosis" span="8" readonly="true"/>
+  </row>
+  <row>
+    <control type="label" label="Estatus CRM" span="2" />
+    <control type="select" name="Consult_CRMStatus" span="3"
+      acctsvc="true" explicit="true" readonly="true"
+      filter="Active=true"
+      datasource="GetCRMStatusTypes"
+      source="StatusName,StatusGuid"/>
+      <!-- Update the CRMStatus for the patient -->
+    <control type="button" name="btnSetCRMStatus" reveal="[PatientId]!"
+      span="1" icon="edit" label="" edit="true"
+      preset="[Consult_CRMStatus]!;CRMUpdate_PriorStatus=[Consult_CRMStatus]"
+      trigger="grdCRMStatusChanges"
+      action="redirect" target="mdlUpdateCRMStatus"/>
+    <control type="label" label="Establecimiento" span="2"/>
+    <control type="text" name="Consult_Sector" span="4" readonly="true"/> 
+  </row>
+  <row>
+    <control type="label" label="Notas" span="2"/>
+    <control type="textarea" name="Consult_CRMNotes" span="10" rows="1" readonly="true"/>
+  </row>
+   <row>
+    <control type="label" label="Observaciones" span="2" />
+    <control type="textarea" name="Consult_Remarks" span="10" rows="1" readonly="true"/>
+  </row>
+</partial>

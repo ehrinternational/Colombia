@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Anatomía Patológica" type="onload" trigger="grdPathologyOrderList">
+  <facet name="FileName" value="Pathology"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Pathology"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Active Pathology Orders -->
+  <section type="tab" title="Anatomía Patológica" >
+    <group>
+      <row showif="never">
+        <!--  Get a scanned specimen -->
+        <control type="hidden" name="GetScannedSpecimen"
+          acctsvcreq="true"
+          datarequest="GetLabTestSpecimensBySpecimenGuid"
+          appendrequest="SpecimenGuid=[GetScannedSpecimen]"
+          set="Path_OrderGuid=[[LaboratoryOrderId]]"
+          provoke="Path_OrderGuid!;DisplayPathologyOrder"/>
+        <!-- redirect to the scanned pathology order -->
+        <control type="button" name="DisplayPathologyOrder"
+          action="redirect"
+          trigger="Path_OrderGuid"
+          target="mdlPathologyOrders"/>
+        <!-- Receive a scanned specimen -->
+        <control type="hidden" name="GetReceivedSpecimen"
+          acctsvcreq="true"
+          datarequest="GetLabTestSpecimensBySpecimenGuid"
+          appendrequest="SpecimenGuid=[GetReceivedSpecimen]"
+          set="Specimen_SpecimenGuid=[[SpecimenGuid]],Specimen_Scanned=True"
+          provoke="Specimen_SpecimenGuid!;DisplayScannedSpecimen"/>
+        <!-- Redirect to the received pathology specimen -->
+        <control type="button" name="DisplayScannedSpecimen"
+          action="redirect"
+          trigger="Specimen_SpecimenGuid"
+          target="mdlPathologySpecimens"/>
+        <control type="button" name="NewPathologyPatient"
+          action="redirect"
+          preset="PatientId=[PatientSearchResults]"
+          trigger="PatientId"
+          target="PatientTabModal"/>
+      </row>
+      <row>
+        <control type="select" name="selPathologyStatus" span="3"
+          source="Pending,Custody,Macroscopy,Analysis,Completed,Rejected,Canceled"
+          sourcelabels="Pendiente,Custodia,Macroscopia,Análisis,Completado,Rechazado,Cancelado"
+          default="Pending"
+          provoke="grdPathologyOrderList"/>
+        <control type="button" name="btnScanSpecimenForOrder" 
+          action="scan" color="green" span="3"
+          icon="qrcode"
+          label="Escanear Orden"
+          inject="value=[GetScannedSpecimen]"
+          provoke="[GetScannedSpecimen]!;GetScannedSpecimen"/>
+        <control type="button" name="btnScanSpecimenForReceipt" 
+          action="scan" color="green" span="3"
+          icon="qrcode"
+          label="Recibir Muestra"
+          inject="value=[GetReceivedSpecimen]"
+          provoke="[GetReceivedSpecimen]!;GetReceivedSpecimen"/>
+      </row>
+      <!-- table to display pathology orders -->
+      <row>
+        <control type="datagrid" name="grdPathologyOrderList" label="Órdenes del Anatomía Patológica"
+          span="12" rows="20" fitrows="true"
+          action="redirect" 
+          target="mdlPathologyOrders"
+          searchable="true"
+          idle="selPathologyStatus=|reset"
+          acctsvcreq="true"
+          datarequest="GetPathologyOrdersByCriteria"
+          appendrequest="status=[selPathologyStatus]"
+          rowcolor="Priority|Normal=green;Emergency=yellow;Interopertive=red"
+          source="DateTimeEntered,OrderNumber,Priority,LabPanelType,LabPanelName,OrderNotes,MedicalRecordNumber,PatientFullName,OrderedByFullName"
+          sourcelabels="Ordenado,Número,Prioridad,Tipo,Estudio,Observaciones,Expediente,Nombre,Ordenado por"
+          align="|left|left|left|left|left|left|left|left"
+          format="datetime"
+          translate="LabPanelType|Priority"
+          key="OrderGuid"
+          sort="DateTimeOrdered=desc"           
+          onselectset="Path_OrderGuid=[[OrderGuid]]"
+          onselect="Path_OrderGuid">
+          <control type="button" name="btnSearchForPatients"
+            icon="search" label="Buscar Pacientes"
+            preset="PatientSearchSource=46"
+            action="redirect" target="mdlFindPatients"/>
+          <control type="button" name="btnNewPathologyOrder"
+            icon="plus" label="Añadir Nuevo" 
+            action="redirect"
+            target="mdlPathologyOrders"/>
+          <control type="button"
+            name="btnRefresh"
+            label="Actualizar"
+            icon="refresh"
+            action="trigger"
+            trigger="grdPathologyOrderList"/>
+        </control>
+      </row>
+    </group>
+  </section>
+  <!-- display a list of admitted patients -->
+  <partial link="Partials/ColombiaPartialHospitalizedPatientListNoQueues.xml"/>
+  <!-- PatientTabModal is the patient chart -->
+   <section type="tabmodal" name="PatientTabModal" size="large" title="Información del Paciente"  badge="none">
+    <group name="GuidStorage">
+      <row showif="never">
+        <control type="hidden" span="4" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo"
+          set="[[HasOpenVisit]]=true;PatientVisitGuid=[[PatientVisit]]"
+          provoke="ERPathologyOrders,[[HasOpenVisit]]=true;PatientVisitGuid"/>
+        <control type="hidden" span="4" name="PatientVisitGuid" 
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[PatientVisitGuid]"
+          inject="VisitInfo"/>
+      </row>
+    </group>
+    <group name="PatientInfo">
+          <row>
+            <control type="hidden" name="Patient_HasOpenVisit"/>
+            <control type="hidden" name="Patient_DateTimeOfDeath"/>
+            <control type="hidden" name="Patient_PatientVisit"/>
+            <control type="hidden" name="Patient_DisplayCorrectedAge"/>
+          </row>
+          <row>
+            <control type="label" label="" span="2"/>
+            <control type="label" label="Nombres" align="left" span="4"/>
+            <control type="label" label="Paterno" align="left" span="3"/>
+            <control type="label" label="Materno" align="left" span="3"/>
+          </row>
+          <row>
+            <control type="label" label="" span="2"/>
+            <control type="text" name="Patient_PatientFirstName" regex="^[A-ZÑ\s]+$" format="ucase" span="4"  readonly="true"/>
+            <control type="text" name="Patient_PatientMiddleName" regex="^[A-ZÑ\s]+$" format="ucase" span="3"  readonly="true"/>
+            <control type="text" name="Patient_PatientLastName" regex="^[A-ZÑ\s]+$" format="ucase" span="3"  readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Nacimiento" span="2"/>
+            <control type="date" name="Patient_PatientDOB" span="3" readonly="true"/>
+            <control type="text" name="Patient_PatientAge" span="3" readonly="true"/>
+            <control type="label" label="Sexo(*)" span="1"/>
+            <control type="select" name="Patient_PatientSex" span="3" readonly="true" 
+              source="Male,Female,Indeterminate,Unknown"  
+              sourcelabels="Hombre,Mujer,Indeterminado,Desconocido"/>
+          </row>
+          <row>
+            <control type="label" label="Expediente" span="2"/>
+            <control type="text" name="Path2_MedicalRecordNumber" span="2" readonly="true"/> 
+            <control type="label" label="Colombia" span="1"/>
+            <control type="text" name="Path2_AccountNumber" span="2" readonly="true"/>
+            <control type="label" label="Estado Civil" span="2"/>
+            <control type="select" name="Path2_PtMaritalStatus" span="3" readonly="true"
+              datasource="GetLookupMaritalStatus"
+              source="MaritalStatus,MaritalStatus"
+              explicit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Celular" span="2"/>
+            <control type="text" name="Path2_PatientCellPhone" span="2" readonly="true"/>
+            <control type="label" label="email" span="2"/>
+            <control type="text" name="Path2_PatientEmail" span="6" readonly="true"/>
+          </row>
+    </group>
+   <group name="VisitInfo" reveal="Patient_HasOpenVisit=true">
+      <partial link="Partials/ColombiaPartialVisitInfoNoEdit.xml"/>
+    </group>
+    <group name="PatientGridGroup">
+      <row>
+        <control type="buttongroup" 
+            name="ButtonGroupSelect" 
+            edit="true"
+            persist="true"
+            source="Pathology,Studies,Problems,Documents"
+            sourcelabels="Patología,Laboratorio,Diagnósticos,Documentos" 
+            span="12" 
+            default="Pathology" 
+            provoke="ERGridList|options"/>
+      </row>
+      <row>
+        <control name="ERGridList" affector="ButtonGroupSelect" type="options" span="12">
+        <partial link="./Partial/Grids/PartialPathologyOrdersByPatientAsPathology.xml"/>
+        <partial link="./Partial/Grids/PartialLabOrdersByPatientNoEdit.xml"/>
+        <partial link="./Partial/Grids/PartialLabOrderResults.xml"/>
+        <partial link="./Partial/Grids/PartialDiagnosisActiveForPatientAddNoEdit.xml"/>
+        <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
+        <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
+        <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
+        </control>
+      </row>`
+    </group>
+  </section>
+  <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+  <partial target="mdlPathologyOrders" link="Partials/ColombiaPartialPathologyOrders.xml"/>
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+  <!-- Messaging -->
+  <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
+  <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
+  <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>
+</module>

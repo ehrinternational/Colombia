@@ -1,0 +1,27 @@
+<partial>
+  <section type="tabmodal" name="mdlReasonToCancelSurgeryApproval" title="Razón para rechazar" badge="none" size="small">
+    <!--  reason to cancel an appointment -->
+    <group name="grpReasonToCancelVisit">
+      <row>
+					<control type="label" label="Razón para cancelar" span="3"/>
+					<control type="textarea" name="ServiceApt_ReasonToCancelVisit" span="8" rows="2" edit="true" required="true"/>
+			</row>
+      <row>
+					<control type="modalbutton" name="btnCompleteVisitCancel"
+						icon="remove" color="red" label="Rechazar"
+						action="save|close|new"
+						affector="none"
+						capture="grpReasonToCancelVisit"
+            confirm="Por favor confirme que desea rechazar a este paciente para cirugía."
+            acctsvc="true"
+						dataupdate="UpdatePatientVisitNoDepartmentTracking"
+						appendupdate="patientVisitUniqueId=[PatientVisitGuid],
+              SurgeryVisitStatus=Rejected,
+              VisitCanceledBy=(userName),
+              VisitCanceledDateTime=(now)"
+            set="SurgeryVisitStatus=Rejected"
+            provoke="PatientList"/>
+		  </row>
+    </group>
+  </section>
+</partial>

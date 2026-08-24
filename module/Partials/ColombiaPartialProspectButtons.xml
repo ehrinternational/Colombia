@@ -1,0 +1,94 @@
+<partial>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row name="rowSaveNewPatient" reveal="[PatientId]=+[PatientSearched]=True" >
+    <control type="button"   
+      name="SaveNewPatientButton"
+      span="12"
+      label="Paciente Nuevo"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo|active" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere generar a este paciente nuevo."
+      datainsert="InsertPatient"
+      provoke="btnInsertInitialCRMStatusChange"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnInsertInitialCRMStatusChange"
+      action="save"
+      affector="none" 
+      acctsvc="true"
+      datainsert="InsertCRMStatusChanges"
+      appendinsert="PatientId=[PatientId],NewStatus=[Consult_CRMStatus],
+      NewStatusName=[Consult_CRMStatusName],ReasonForChange=Paciente Nuevo"
+      provoke="PatientId"/>
+  </row>
+  <row name="rowProspectPatientUpdate" reveal="[PatientId]!">
+    <!--Save patient information-->
+    <control type="button" 
+      name="btnPatientUpdate"
+      span="12" label="Actualizar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo|active" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"/>
+  </row>
+  <row>
+    <control type="button" name="btnEmailProspect" reveal="[PatientId]!+[Consult_PatientEmail]!"
+      span="12" icon="envelope" label="Email"
+      preset="bmd_PatientId=[PatientId],
+      bmd_PatientFirstName=[Consult_PatientFirstName],
+      bmd_PatientMiddleName=[Consult_PatientMiddleName],
+      bmd_PatientLastName=[Consult_PatientLastName],
+      bmd_EmailAddress=[Consult_PatientEmail]"
+      trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+      action="redirect" target="mdlSendWYSIWYGEmail"/>
+  </row>
+  <row>
+    <control type="button" name="btnInitiateTextMessage" 
+      reveal="[PatientId]!"
+      span="12" icon="envelope" label="Enviar Texto"
+      trigger="grdPhysicianMessages2"
+      preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
+      action="redirect" target="mdlSendTextMessage"/>
+  </row>
+  <row>
+    <!-- Print patient card -->
+    <control type="button"
+      reveal="[PatientId]!" 
+      span="12"
+      name="btnPrintPatientCard"
+      action="print" 
+      mode="report" 
+      label="Carnet" 
+      icon="print" 
+      append="id=429c70f9100,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" />
+  </row>
+  <row>
+    <control type="button" name="btnReports" reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Admitting,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+</partial>

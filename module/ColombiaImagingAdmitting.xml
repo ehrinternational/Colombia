@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Admisión Imagenología" type="onload" trigger="PatientList">
+  <facet name="CalendarOption" value="Imaging"/>
+  <facet name="FileName" value="ImagingAdmitting"/>
+  <facet name="PatientSearched" value="false"/>
+  <facet name="FieldEdit" value="1"/>
+  <facet name="AllowNewPatients" value="true"/>
+  <facet name="DefaultDepartment" value="Imagenología"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Imaging"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Display list of admitted patients for a selected department -->
+  <partial link="Partials/ColombiaPartialAdmittedPatientsByDepartmentAndServiceForImaging.xml"/>
+  <!-- Display a list of imaging orders -->
+  <partial link="Partials/ColombiaPartialImagingOrderList.xml"/>
+  <!-- Display list of admitted patients for all departments -->
+  <partial link="./Partial/Lists/PartialAllAdmittedPatientListNoAdmit.xml"/>
+  <!-- Stock requisitions -->
+  <partial link="(user.UserRoles)%Requisiciones e inventarios;../../ERPSpanish/module/Partials/PartialESStockRequests.xml"/>
+  <!-- Inventory count -->
+  <partial link="(user.UserRoles)%Requisiciones e inventarios;../../ERPSpanish/module/Partials/PartialESCountStockItemsByLocation.xml"/>
+  <!-- Inventory stock counting -->
+  <partial link="(user.UserRoles)%Requisiciones e inventarios;../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
+  <!--Tabmodal for admitting/reviewing hospital patients-->
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false">
+    <group name="AdmitGuidStorage" showif="never">
+      <row name="rowAdmitPatientId">
+        <!--Read the patient record and display-->
+        <control type="hidden" name="DefaultPatientId"/>
+        <control type="hidden" name="DefaultExamGuid"/>
+        <control type="hidden" name="DefaultOrderGuid"/>
+        <control type="hidden" name="DefaultParentGuid"/>
+        <control type="text" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo,rowPatientPhoto,rowRoomFullName"
+          trigger="Consult_BirthPlace"
+          set="PatientSearched=false,Consult_BirthPlace=[[BirthPlace]],[[HasOpenVisit]]=true;PatientVisitGuid=[[PatientVisit]]"
+          provoke="[[HasOpenVisit]]=true;PatientVisitGuid,ButtonGroupSelect,ERRadiologyOrders|active,ERRadiologyReports|active"/>
+        <!--Read the patient visit and display the department-->
+        <control type="hidden"
+          name="PatientVisitGuid"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[PatientVisitGuid]"
+          inject="VisitInfo"/>
+        <!-- Close the PatientTabModal screen -->
+        <control type="button" name="ClosePatientTabModal"
+          action="close|new"/>
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="PatientInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialImagingAdmitButtons.xml"/>
+        </column>
+      </columns>
+    </group> 
+    <group name="VisitInfo" reveal="[PatientId]!">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialImagingAdmitVisitButtons.xml"/>
+        </column>
+      </columns>
+    </group>
+    <!-- Patient chart datagrids -->
+    <group name="PatientGridGroup" reveal="[PatientId]!">
+      <row>
+        <control type="buttongroup" 
+          name="ButtonGroupSelect" 
+          edit="true" mode="auto" 
+          source="Studies,Problems,Medication,Identification,Addresses,Contacts,Documents,Appointments" 
+          sourcelabels="Imagenología,Diagnósticos,Medicamentos,Identificación,Direcciones,Contactos,Subir Documentos,Citas" 
+          span="12" 
+          default="Studies"  
+          provoke="GridOptions|options"/>
+      </row>
+      <row>
+        <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
+          <partial link="Partials/ColombiaPartialImagingOrdersWithNewModal.xml"/>
+          <partial link="Partials/ColombiaPartialImagingReports.xml"/>
+          <partial link="./Partial/Grids/PartialScannedImagingDocumentsInWindow.xml"/>
+          <partial link="./Partial/Grids/PartialDiagnosisActiveForPatientNoAdd.xml"/>
+          <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
+          <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
+          <partial link="Partials/ColombiaPartialInpatientMedicationWithAdministration.xml"/>
+          <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
+          <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          
+          <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
+          <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
+          <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
+          <partial link="./Partial/Grids/PartialAppointmentListForPatientImaging.xml"/>
+        </control>
+      </row>
+    </group>
+  </section>
+    <!-- Colombia Partials -->
+    <partial target="mdlMovePatient" link="Partials/ColombiaPartialMovePatients.xml"/>
+    <partial  link="Partials/ColombiaPartialPatientContactsModal.xml"/>
+    <partial target="mdlTransferPatient" link="Partials/ColombiaPartialTransferPatientWithBedAssignment.xml"/>
+    <!-- Calendars -->
+    <partial target="tabImagingAppointments" link="./Partial/Calendars/PartialCalendarImagingWithModalitiesAsModal.xml"/>
+    <partial target="mdlImagingAppointment" link="Partials/ColombiaPartialCalendarImagingAppointmentModal.xml"/>
+    <!-- General Modals -->
+    <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
+    <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial target="NewPayers" link="./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+    <partial target="ImageOrderModal" link="./Partial/Modals/PartialImagingOrderModal.xml"/>
+    <partial target="mdlNewImagingReportModal" link="./Partial/Modals/PartialNewImagingReportModal.xml"/>
+    <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+    <partial target="NewRadiologyModal" link="./Partial/Modals/PartialNewImagingOrder.xml"/>
+    <partial target="mdlNewExternalProvider" link="./Partial/Modals/PartialNewExternalProvider.xml"/>
+    <partial target="mdlNewPatientIndication" link="./Partial/Modals/PartialNewIndicationModal.xml"/>
+    <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
+		<partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>
+    <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>   
+    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
+    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+    <!-- Messaging -->
+    <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
+    <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>
+    
+</module>

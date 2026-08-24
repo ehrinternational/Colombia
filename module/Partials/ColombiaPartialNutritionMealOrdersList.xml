@@ -1,0 +1,112 @@
+﻿ <partial> 
+ <section type="tab" name="MealOrderList" title="Órdenes de Comida" trigger="NutritionMealsList">
+    <group name="grpDietaryWorkList">
+      <row>
+        <control type="select" name="DepartmentMealSearch" span="3"
+          default="true" edit="true"
+          acctsvc="true"
+          filter="AdmissionType=true"
+          datasource="GetDepartmentsActive"
+          append="LocationId=(facilityData.LocationId)"
+          source="DepartmentName,DepartmentGuid"
+          provoke="[MealOrderStartDate]!+[MealOrderEndDate]!;NutritionMealsList"/>
+        <control type="buttongroup" name="btngrpOrderStatus" span="5"
+          source="Scheduled,Prepared,Completed,Delivered,Canceled"
+          sourcelabels="Programado,En Preparación,Completo,Entregado,Cancelado"
+          default="Scheduled"
+          provoke="[MealOrderStartDate]!+[MealOrderEndDate]!;NutritionMealsList"/>
+      </row>
+      <row>
+        <control type="select" name="SelectMealType" span="3" edit="true" required="true"
+          source="Breakfast,Lunch,Dinner,Snack,Additional Food" default="Breakfast"
+          sourcelabels="Desayuno,Comida,Cena,Colación,Alimento Adicional"
+          provoke="[MealOrderStartDate]!+[MealOrderEndDate]!;NutritionMealsList"/>
+        <control type="date" name="MealOrderStartDate" span="2" default="now|00:00:00" compare="«[MealOrderEndDate]" 
+          trigger="[MealOrderStartDate]!+[MealOrderEndDate]!;NutritionMealsList"/>
+        <control type="date" name="MealOrderEndDate" span="2" default="now|23:59:59" compare="»[MealOrderStartDate]" 
+          trigger="[MealOrderStartDate]!+[MealOrderEndDate]!;NutritionMealsList"/>
+      </row>
+      <row>
+        <!-- Meal order list -->
+        <control type="datagrid" label="Órdenes de Comida" name="NutritionMealsList"
+          cols="12" rows="20"
+          mode="batch"
+          idle="[MealOrderStartDate]=,[MealOrderEndDate]="
+          postwith="MealGuid"
+          skipbatchrow="[Selected]=true"
+          appendbatch="MealStatus=Prepared"
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetNutritionMealOrders"
+          appendrequest="MealStatus=[btngrpOrderStatus],
+            DepartmentGuid=[DepartmentMealSearch],
+            MealSchedule=[SelectMealType],
+            [MealOrderStartDate]!+[MealOrderEndDate]!;StartDate=[MealOrderStartDate],
+            [MealOrderStartDate]!+[MealOrderEndDate]!;EndDate=[MealOrderEndDate]"
+          source="DateTimeScheduled,Selected,PatientFullName,PatientAge,DepartmentName,RoomName,Allergies,MealStatus,MealName,MealNote,EnteredByFullName,DateTimeEntered"
+          sourcelabels="Programada,Seleccionado,Paciente,Edad,Departamento,Habitación,Alergias,Estatus,Comida,Notas,Ordenado por,Fecha"
+          align="left||left|left|left|left|left|left|left|left|left|left"
+          format="datetime|boolean||||||||||datetime"
+          translate="MealStatus"
+          sort="DateTimeScheduled=asc"
+          key="MealGuid"
+          onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
+          onselect="NutritionMealsList|static">
+        <!-- Button to refresh the meal order list -->
+         <control type="button" name="btnRefreshMealOrders" label="Actualizar" icon="refresh"
+          action="trigger" trigger="NutritionMealsList"/>
+        <!-- Show patient and meal order -->
+        <control type="button" name="btnShowPatient" showif="feature" label="Orden"
+          action="redirect"
+          target="PatientTabModal"
+          preset="PatientId=[[PatientId]],MealOrderGuid=[[MealGuid]]"
+          trigger="PatientId,MealOrderGuid"/>
+        <!-- Feature button to cancel one meal order -->
+        <control type="button" name="btnCancelOneMealOrder" showif="feature" label="Cancelar" color="red"
+          reveal="[[MealStatus]]=Scheduled|Prepared|Completed"
+          action="save"
+          confirm="Confirme que desea cancelar este orden de comida."
+          acctsvc="true"
+          dataupdate="UpdateNutritionMealOrders"
+          appendupdate="MealGuid=[[MealGuid]],MealStatus=Canceled"
+          provoke="NutritionMealsList"/>
+        <!-- button to set selected meal orders to prepared -->
+        <control type="button" name="btnSetStatusToPrepared" label="En Preparación" color="green"
+          reveal="[btngrpOrderStatus]=Scheduled"
+          action="batchupdate" 
+          capture="NutritionMealsList"
+          dataupdate="NutritionMealOrders"
+          provoke="NutritionMealsList"/>
+        <!-- button to set selected meal orders to completed -->
+        <control type="button" name="btnSetStatusToCompleted" label="Completo" color="green"
+          reveal="[btngrpOrderStatus]=Prepared"
+          action="batchupdate" 
+          capture="NutritionMealsList"
+          appendbatch="MealStatus=Completed"
+          dataupdate="NutritionMealOrders"
+          provoke="NutritionMealsList"/>
+        <!-- button to set selected meal orders to delivered -->
+        <control type="button" name="btnSetStatusToDelivered" label="Entregado" color="green"
+          reveal="[btngrpOrderStatus]=Completed"
+          action="batchupdate" 
+          capture="NutritionMealsList"
+          appendbatch="MealStatus=Delivered"
+          dataupdate="NutritionMealOrders"
+          provoke="NutritionMealsList"/>
+        <!--  print labels for scheduled meal orders -->
+        <control type="button" name="btnPrintDietOrderLabels" label="Etiquetas Comidas" icon="print"
+          reveal="[SelectMealType]!+[btngrpOrderStatus]=Scheduled"
+          action="print" mode="report" 
+          append="id=c4b0657d139,
+            FacilityId=(facility),
+            DepartmentGuid=[DepartmentMealSearch],
+            MealSchedule=[SelectMealType],
+            StartDate=[MealOrderStartDate],
+            EndDate=[MealOrderEndDate],
+            UserName=(userName),
+            CurrentDateTime=(dateTimeNow)"/>
+          </control>
+      </row>
+    </group>
+  </section>
+</partial>

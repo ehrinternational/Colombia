@@ -1,0 +1,213 @@
+<partial>
+  <!-- Tabmodal to enter new document reqest -->
+  <section type="tabmodal" badge="none" name="mdlDocumentRequest" title="Solicitud de Expediente Físico">
+    <group name="grpGuidStorage" showif="never">
+      <row>
+        <control type="hidden" name="DocumentRequestGuid"
+          acctsvcreq="true"
+          datarequest="GetPatientDocumentRequestByDocumentRequestGuid"
+          appendrequest="documentRequestGuid=[DocumentRequestGuid]"
+          inject="grpDocumentRequest,grpReceivedByGroup"
+          set="DocumentPatientId=[[PatientId]]"
+          provoke="DocumentPatientId"/>
+        <!-- Store patient id, read and inject info -->
+        <control type="hidden" name="DocumentPatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[DocumentPatientId]"
+          inject="grpPatientInfo"
+          provoke="GetPatientVisit"/>
+        <control type="hidden" name="GetPatientVisit"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[Document_PatientVisit]"
+          inject="grpPatientVisit"/>
+      </row>
+    </group>
+    <group name="grpPatientInfo" bgcolor="white">
+        <!-- Store HasOpenVisit and PatientVisit -->
+        <row>
+          <control type="hidden" name="Document_HasOpenVisit"/>
+          <control type="hidden" name="Document_PatientVisit"/>
+        </row>
+        <!-- Display patient names -->
+        <row>
+            <control type="label" label="" span="2"/>
+            <control type="label" label="Expediente" align="left" span="1"/>
+            <control type="label" label="Nombre(s)" align="left" span="3"/>
+            <control type="label" label="Apellido Paterno" align="left" span="3"/>
+            <control type="label" label="Apellido Materno" align="left" span="3"/>
+        </row>
+        <row>
+          <control type="label" label="" span="2"/>
+          <control type="text" name="Request_MedicalRecordNumber" span="1" readonly="true"/>
+          <control type="text" name="Request_PatientFirstName" regex="^[A-ZÑ\s]+$" format="ucase" span="3" required="true" edit="true"  />
+          <control type="text" name="Request_PatientMiddleName" regex="^[A-ZÑ\s]+$" format="ucase" span="3" required="true" edit="true"  />
+          <control type="text" name="Request_PatientLastName" regex="^[A-ZÑ\s]+$" format="ucase" span="3" edit="true" />
+        </row>
+        <row>
+          <control type="label" label="Nacimiento" span="2" />
+          <control type="date" name="Request_PatientDOB" span="3" readonly="true"/>
+          <control type="text" name="Request_PatientAge" span="2" readonly="true"/>
+          <control type="label" label="Sexo" span="2" />
+          <control type="select" 
+            name="Request_PatientSex" span="2" 
+            required="true" 
+            source="Male,Female,Indeterminate"
+            readonly="true"
+            sourcelabels="Masculino,Femenino,Indeterminado"/>
+      </row>
+    </group>
+    <group name="grpPatientVisit" bgcolor="white" reveal="[Document_HasOpenVisit]=true+[DocumentPatientId]!">
+        <row>
+          <control type="label" label="Fecha y Hora Admitir" span="3"/>
+          <control type="datetime" span="5" name="Document_AdmitDateTime" readonly="true"/>      
+        </row>
+        <row>
+          <control type="label" label="Departamento" span="3"/>
+          <control type="text" span="5" name="Document_CurrentDepartmentName" readonly="true"/> 
+        </row>
+        <row>     
+          <control type="label" label="Cama" span="3"/>
+          <control type="text" name="Document_RoomFullName" span="5" readonly="true"/>
+        </row>
+    </group>
+    <group name="grpReceivedByGroup" bgcolor="white">
+      <row>
+        <control type="label" label="Recibido por" span="3"/>
+        <control type="select" name="Document_ReceivedBy" span="7" 
+          acctsvc="true" readonly="true"
+          datasource="GetUsersByAttributes"
+          append="LocationId=(facilityData.LocationId),Role=Nurse|Medical Records"
+          source="UserFirstMiddleLast,UserId"/>
+      </row>
+      <row>
+        <control type="label" label="Devuelto por" span="3"/>
+        <control type="select" name="Document_ReturnedBy" span="7" 
+          acctsvc="true" readonly="true"
+          datasource="GetUsersByAttributes"
+          append="LocationId=(facilityData.LocationId),Role=Nurse|Medical Records"
+          source="UserFirstMiddleLast,UserId"/>
+      </row>
+    </group>
+    <group name="grpDocumentRequest" bgcolor="white">
+      <!-- Document request information -->
+        <row>
+          <control type="label" label="Estatus" span="3"/> 
+          <control type="select" name="Document_Status" span="3"
+            source="Active,Out,Returned,Canceled" default="Active"
+            sourcelabels="Activo,Afuera,Devuelto,Cancelado"
+            readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Atención del Paciente" span="3"/>
+          <control type="datetime" name="Document_DateTimeRequiredBy" span="3" edit="true" required="true"/>
+          <control type="label" label="Ingresada" span="2"/>
+          <control type="datetime" name="Document_DateTimeEntered" default="(dateTimeNow)"
+            readonly="true" span="3"/>
+        </row>
+        <row>
+          <control type="label" label="Afuera" span="3"/>
+          <control type="datetime" name="Document_DateTimeResponse" span="3" readonly="true"/>
+          <control type="label" label="Devuelto" span="2"/>
+          <control type="datetime" name="Document_DateTimeReturned" readonly="true" span="3"/>
+        </row>
+        <row>
+          <control type="label" span="3" label="Prioridad"/>
+          <control type="select" name="Document_Priority" span="3"
+          required="true" edit="true" default="1" source="1,2,3" 
+          sourcelabels="Normal,Medio,Crítico"/>
+        </row>
+        <row>
+          <control type="label" label="Departamento" span="3"/>
+          <control type="select" name="Document_DepartmentGuid" edit="true" required="true" span="5"
+            acctsvc="true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)"
+            source="DepartmentNumber|DepartmentName,DepartmentGuid"/>
+        </row>
+        <row>
+          <control type="label" label="Motivo" span="3"/>
+          <control type="text" name="Document_Reason" edit="true" span="5"/>
+        </row>
+    </group>
+    <group>
+      <row>
+        <!-- Save a new document request -->
+        <control type="modalbutton" name="btnNewDocumentRequest"
+          reveal="[DocumentRequestGuid]="
+          icon="cloud-upload" label="Guardar" color="green"
+          action="save|close|new"
+          affector="DocumentRequestGuid"
+          setaffector="DocumentRequestGuid"
+          compare="DocumentPatientId!|Por favor seleccione una paciente válida."
+          acctsvc="true"
+          capture="grpDocumentRequest"
+          datainsert="InsertPatientDocumentRequest"
+          appendinsert="PatientId=[DocumentPatientId]"
+          provoke="MedicalRecordList"/>
+        <!-- Send a document out and check to see if the chart is already out-->
+        <control type="modalbutton" name="btnSendDocumentRequest"
+          reveal="[DocumentRequestGuid]!+[Document_DateTimeResponse]="
+          icon="cloud-upload" label="Afuera" color="green"
+          action="save"
+          confirmsvc="true"
+					confirmrequest="GetPatientDocumentRequest"
+					appendconfirm="criteria=Patient,PatientId=[DocumentPatientId],Status=Out"
+					confirmresponse="length=0|Este documento del paciente ya está fuera."
+          affector="DocumentRequestGuid"
+          setaffector="DocumentRequestGuid"
+          acctsvc="true"
+          capture="grpDocumentRequest"
+          dataupdate="UpdatePatientDocumentRequest"
+          appendupdate="DocumentRequestGuid=[DocumentRequestGuid]"
+          provoke="btnCompleteRecordOut"/>
+        <!-- Return a document -->
+        <control type="modalbutton" name="btnReturnDocumentRequest"
+          reveal="[DocumentRequestGuid]!+[Document_DateTimeResponse]!+[Document_DateTimeReturned]="
+          icon="cloud-upload" label="Devuelto" color="green"
+          action="save"
+          affector="DocumentRequestGuid"
+          setaffector="DocumentRequestGuid"
+          acctsvc="true"
+          capture="grpDocumentRequest"
+          dataupdate="UpdatePatientDocumentRequest"
+          appendupdate="DocumentRequestGuid=[DocumentRequestGuid]"
+          provoke="btnCompleteRecordReturn"/>
+        <!-- Update an existing document request -->
+        <control type="modalbutton" name="btnUpdateDocumentRequest"
+          reveal="[DocumentRequestGuid]!"
+          icon="cloud-upload" label="Actualizar"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          capture="grpDocumentRequest"
+          dataupdate="UpdatePatientDocumentRequest"
+          appendupdate="DocumentRequestGuid=[DocumentRequestGuid]"
+          provoke="MedicalRecordList"/>
+        <!-- Update an existing document request -->
+        <control type="modalbutton" name="btnCancelDocumentRequest"
+          reveal="[DocumentRequestGuid]!+[Document_Status]=Active+(user.UserRoles)%Jefe Archivo Cl"
+          icon="cloud-upload" label="Cancelar" color="red"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          dataupdate="UpdatePatientDocumentRequest"
+          appendupdate="DocumentRequestGuid=[DocumentRequestGuid],Status=Canceled"
+          provoke="MedicalRecordList"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnCompleteRecordOut"
+          action="save|close|new"
+          acctsvc="true"
+          dataupdate="UpdatePatientDocumentRequest"
+          appendupdate="CancelSameDay=true,DocumentRequestGuid=[DocumentRequestGuid],Status=Out,DateTimeResponse=(now)"
+          provoke="MedicalRecordList"/>
+        <control type="button" name="btnCompleteRecordReturn"
+          action="save|close|new"
+          acctsvc="true"
+          dataupdate="UpdatePatientDocumentRequest"
+          appendupdate="DocumentRequestGuid=[DocumentRequestGuid],Status=Returned,DateTimeReturned=(now)"
+          provoke="MedicalRecordList"/>
+      </row>
+    </group>
+  </section>
+</partial>

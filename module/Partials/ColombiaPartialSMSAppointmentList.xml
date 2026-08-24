@@ -1,0 +1,76 @@
+<partial>
+  <section type="tab" name="tabPatientAppointments" title="SMS por Citas" trigger="[calStartDate]!+[calEndDate]!;grdPatientAppointmentList">
+    <group>
+      <row>
+        <!-- Select the calendar  -->
+        <control type="select" name="selAppointmentTypeGuid" span="3"
+          filter="Active=true" explicit="true" sort="CalendarName=asc"
+				  datasource="GetSchedulerAppointmentTypesByFacility" 
+          append="LocationId=(facilityData.LocationId)"
+				  source="CalendarName,CalendarGuid" 
+				  provoke="grdPatientAppointmentList"/>
+        <control type="label" label="Estatus" span="1"/>
+        <control type="select" name="selApointmentStatus" span="2" source="Active,Scheduled,Confirmed"
+          sourcelabels="Activo,Programado,Confirmado" default="Active"  provoke="[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+        <control type="date" name="calStartDate" default="now+1" span="2" 
+          trigger="[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+        <control type="date" name="calEndDate" default="now+1" span="2" 
+          trigger="[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+        <control type="label" label="Contar" span="1"/>
+        <control type="calc" name="clcGridCount" source="1*Length(grdPatientAppointmentList)" span="1"/>
+      </row>
+      <row>
+        <!-- Patient Appointment List with admit and edit -->
+        <control type="datagrid" name="grdPatientAppointmentList" label="SMS por Citas de Pacientes"  searchable="true"
+          rows="20" span="12"
+          idle="[calStartDate]=,[calEndDate]=,[selApointmentStatus]="
+          filter="PatientCellPhone!"
+          unique="MedicalRecordNumber"
+          datarequest="GetPatientAppointmentsByDateRange"
+          appendrequest="LocationId=(facilityData.LocationId),[selAppointmentTypeGuid]!;AppointmentTypeGuid=[selAppointmentTypeGuid],startDateTime=[calStartDate],endDateTime=[calEndDate],status=[selApointmentStatus]"
+          source="HasOpenVisit,Start,CalendarName,MedicalRecordNumber,PatientFirstMiddleLast,Subject,ProviderFullName"
+          sourcelabels="Llegado,Fecha y Hora,Calendario,Expediente,Paciente,Asunto,Médico"
+          sort="PatientFirstMiddleLast=asc"
+          align="||left|left|left|left|left"
+          format="boolean|datetime"
+          key="AppointmentGuid">
+        <control type="button" name="btnRefreshgrdPatientAppointmentList"
+          icon="refresh" label="Actualizar" action="trigger" provoke="grdPatientAppointmentList"/>
+        <control type="button" name="btnSendSMSMessage" label="Enviar mensaje SMS" color="green"
+          action="redirect" target="mdlSendAppointmentSMS"/>
+        </control>
+      </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="mdlSendAppointmentSMS" title="SMS por Citas" size="small" badge="none">
+    <group name="grpAppointmentSMS">
+      <row>
+        <!-- Select the SMS message to send  -->
+        <control type="label" label="Formatos de SMS" span="3"/>
+        <control type="select" name="selSMSFormatsA" span="6"
+          acctsvc="true"
+          datasource="GetStandardEmailFormats"
+          append="LocationId=(facilityData.LocationId),FormatType=SMS"
+          source="FormatName,FormatGuid"
+          sort="FormatName=asc"
+          set="txtSMSSubjectA=[[Subject]],txtSMSMessageA=[[Message]]"/>
+      </row>
+      <row>
+        <control type="label" label="Tema" span="3"/>
+        <control type="text" name="txtSMSSubjectA" span="6"/>
+      </row>
+      <row>
+        <control type="textarea" name="txtSMSMessageA" span="12" rows="6"/>
+      </row>
+      <row>
+        <control type="modalbutton" name="mbtSendAppointmentSMS" label="Enviar mensaje" color="green"
+          validate="grpAppointmentSMS"
+          action="save|close|new"
+          actsvc="true"
+          datainsert="SendGroupTextMessage"
+          appendinsert="Subject=[txtSMSSubjectA],Message=[txtSMSMessageA],Type=Appointment,LocationId=(facilityData.LocationId),[selAppointmentTypeGuid]!;AppointmentTypeGuid=[selAppointmentTypeGuid],startDateTime=[calStartDate],endDateTime=[calEndDate],status=[selAppointmentList]"
+          success="Se envió un SMS a esta lista"/>
+      </row>
+    </group>
+  </section>
+</partial>

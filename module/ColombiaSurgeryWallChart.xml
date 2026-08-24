@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Pantalla de Cirugía">
+  <facet name="FileName" value="SurgeryWallChart"/>
+  <section type="tab" name="tabSurgeryAllChart" title="Pantalla de Cirugía">
+    <group>
+      <row>
+        <control type="select" name="SurgeryRoom" span="2"
+            acctsvc="true"
+            datasource="GetFacilityPatientRoomsAndBedsForThisFacility"
+            source="RoomAndBedNumber,RoomGuid"
+            provoke="SurgeryList"/>
+        <control type="date" name="StartDate" default="(now)" span="2"/>
+        <control type="date" name="EndDate" default="(now)" span="2"/>
+        <control type="hidden" name="ResetStartTime"  set="StartDate=(now),EndDate=(now)"/>
+      </row>
+      <row>
+        <!-- List of patient surgeries -->
+        <control type="datagrid" label="Cirugías" name="SurgeryList"
+          span="12" rows="24" refresh="60"
+          datarequest="GetScheduledSurgeries"
+          appendrequest="StartDate=[StartDate],EndDate=[EndDate],ByStatus=Scheduled|Confirmed|In Process|Completed,RoomGuid=[SurgeryRoom]"
+          idle="[SurgeryRoom]="
+          source="DateTimeScheduled,Status,MedicalRecordNumber,PatientName,ConfirmedDiagnosis,PrimaryProcedureName,SurgeonName,AnesthesiologistFullName,InstrumentalistFullName,CirculatingFullName,PreOpNotes"
+          sourcelabels="Fecha,Estatus,Expediente,Paciente,Diagnostico,Cirugía,Cirujano,Anestesiologo,Instrumentista,Circulante,Observaciones"
+          align="|left|left|left|left|left|left|left|left|left"
+          key="SurgeryGuid"
+          translate="Status"
+          sort="DateTimeScheduled=asc"
+          format="datetime"
+          provoke="ResetStartTime"/>
+      </row>
+    </group>
+  </section>
+</module>

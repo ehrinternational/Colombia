@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Lista de Espera de Cirugía" type="onload" trigger="SurgeryRequestList">
+  <facet name="EditMode" value="Surgery"/>
+  <facet name="DefaultSurgeryRequestGuid"/>
+  <!-- Display list of consult requests by the selected criteria -->
+  <facet name="FileName" value="SurgeryWaitList"/>
+  <partial link="Partials/ColombiaPartialSurgeryRequestList.xml"/>
+  <partial target="NewSurgeryRequestModal" link="Partials/ColombiaPartialSurgeryRequestWaitList.xml"/>
+  <partial link="Partials/ColombiaPartialSurgeryScheduleFromWaitListModal.xml"/>
+  <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+  <partial link="./Partial/Calendars/PartialCalendarSurgeryAppointmentsAsModal.xml"/>
+</module>

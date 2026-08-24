@@ -1,0 +1,15 @@
+<partial>
+    <!-- Medical records AI buttons -->
+    <row>
+      <control type="button" name="btnClaraMedicalLite" label="Clara Farmacia" span="12" action="queryai" color="lightblue"
+        reveal="(user.UserRoles)%AIPharmacy|medwave,(userName)%smith"
+        datasource="GetAIPrompts" acctsvc="true"
+        append="promptGuid=79727654-d291-497f-b381-002e207097fb"
+        source="[[PromptText]]" svctype="[[Type]]"
+        datarequest="[[QueryName]]" acctsvcreq="true" mode="tojson"
+        appendrequest="PatientId=[DispensePatientId],currentDateTime=(now)"
+        title="CLARA Medical Assistant" filename="[[PromptName]]"
+        limit="[[OutputTokens]]" linksource="[[id]]" model="[[AIModel]]"
+        generator="[[AIGenerator]]"/>
+    </row>
+</partial>

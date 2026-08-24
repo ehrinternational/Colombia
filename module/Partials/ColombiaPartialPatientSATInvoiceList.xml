@@ -1,0 +1,23 @@
+<partial>
+  <!-- Patient SAT Invoice list-->
+   <control type="datagrid" label="Facturas de DIAN" name="PatientSATInvoiceList" rows="5"
+    option="SATInvoices"
+    acctsvcreq="true"
+    action="redirect"
+    filter="ClaimGuid="
+    target="[[DocumentType]]=I;mdlSATInvoiceModal,[[DocumentType]]=P;mdlNewSATPaymentModal,[[DocumentType]]=E;mdlNewSATCredit"
+    searchable="true"
+    idle="[PatientId]=,[VisitSelect]=|reset"
+    datarequest="GetSATInvoice"
+    appendrequest="PatientId=[PatientId],PatientVisit=[VisitSelect],IncludeGeneralInvoices=true"
+    source="DateTimeIssued,SATInvoiceNumber,DocumentTypeName,PaymentMethod,PayerType,Status,Folio,PayerRFC,PayerName,InvoiceTotal"
+    sourcelabels="Fecha,Número,Comprobante,Medio,Tipo,Estatus,Folio,RFC,Pagador,Total"
+    align="|Left|left|left|left|left|left|left|left|right"
+    format="datetime_short|||||||||0,0.00"
+    translate="Status,PayerType"
+    sort="DateTimeIssued=desc"
+    key="InvoiceGuid" 
+    onselectset="[[DocumentType]]=I;SATInvoiceGuid=[[InvoiceGuid]],[[DocumentType]]=P;SATPaymentGuid=[[InvoiceGuid]],[[DocumentType]]=E;SATCreditGuid=[[InvoiceGuid]]"
+    onselect="[[DocumentType]]=I;SATInvoiceGuid,[[DocumentType]]=P;SATPaymentGuid,[[DocumentType]]=E;SATCreditGuid">
+  </control>
+</partial>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Equipo Mantenimiento" type="onload" trigger="grdMaintenanceEquipment">
+	<facet name="FileName" value="EquipmentMaintenance"/>
+  <facet name="EquipmentCategory" value="Building"/>
+	<headerbutton name="btnMaintenanceReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Maintenance"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+	<!-- Display the maintenance equipment list -->
+	<section type="tab" name="MaintenanceEquipment" title="Equipos" trigger="grdMaintenanceEquipment,DeviceType">
+		<group showif="never">
+			<row>
+				<!-- Select the inventory location for maintenance inventory -->
+				<!-- This assumes that there is only one! -->
+				<control type="select" span="3" name="FindFromInventoryLocationGuid"
+          source="LocationName,LocationGuid"
+          filter="LocationType=Maintenance"
+					default="true"
+          acctsvc="true"
+          datasource="GetInventoryLocationsForThisFacility"/>
+			</row>
+		</group>
+		<group>
+			<row>
+				<!-- Select active and inactivo -->
+				<control type="buttongroup" name="btngrpMaintenanceActive"
+					source="True,False" sourcelabels="Activo,Inactivo" span="4"
+					default="True" provoke="grdMaintenanceEquipment"/>
+			</row>
+			<row>
+				<!-- Display a list of Maintenance equipment -->
+				<control type="datagrid" label="Equipos de Mantenimiento" name="grdMaintenanceEquipment"
+					searchable="true"
+					action="redirect"
+					target="mdlMaintenanceEquipment"
+					span="12"
+					rows="20"
+					filter="Active=[btngrpMaintenanceActive]"
+					datarequest="GetMedicalDeviceItems"
+					appendrequest="Category=Building,LocationId=(facilityData.LocationId)"
+					source="Active,DeviceStatus,DeviceCode,DeviceDescription,SerialNumber,Manufacturer,LocationDepartmentName,LocationRoomName"
+					sourcelabels="Activo,Estatus,Código,Equipo,Serie,Fabricante,Departamento,Cama"
+					align="|left|left|left|left|left|left|left"
+					format="boolean"
+					translate="DeviceStatus"
+					sort="DeviceDescription=asc"
+					key="DeviceGuid"
+					onselectset="DeviceGuid=[[DeviceGuid]]"
+					onselect="DeviceGuid">
+					<!-- refresh thislist -->
+					<control type="button" name="btnRefreshMaintenances"
+						icon="refresh" label="Actualizar" action="trigger" trigger="grdMaintenanceEquipment"/>
+					<!-- Redirect to the modal to enter/edit equipment -->
+					<control type="button" name="btnNewMaintenance"
+						label="Añadir Nuevo" icon="plus"
+						action="redirect" target="mdlMaintenanceEquipment"/>
+				</control>
+			</row>
+		</group>
+	</section>
+
+	<!-- Display the Work Order list -->
+	<section type="tab" name="MaintenanceWorkOrders" title="Órdenes de Trabajo" trigger="btngrpStatus">
+		<group>
+			<row>
+				<!-- Select status -->
+				<control type="buttongroup" name="btngrpStatus"
+					span="5" default="Requested"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completado,Cancelado"
+					provoke="grdMaintenanceWorkOrders"/>
+					<control type="select" name="Building_AssignedTo"
+					span="3" edit="true"
+					acctsvc="true"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId),
+						role=Maintenance Engineer|Maintenance Manager"
+					source="FullName,UserId"
+					provoke="grdMaintenanceWorkOrders"/>
+				<control type="date" name="MaintenanceStartDate" span="2" edit="true" action="trigger"
+					reveal="[btngrpStatus]=Scheduled|Completed|Canceled" default="(now)"
+					trigger="[MaintenanceStartDate]!+[MaintenanceEndDate]!;grdMaintenanceWorkOrders"/>
+				<control type="date" name="MaintenanceEndDate" span="2" edit="true" action="trigger"
+					reveal="[btngrpStatus]=Scheduled|Completed|Canceled" default="(now)"
+					trigger="[MaintenanceStartDate]!+[MaintenanceEndDate]!;grdMaintenanceWorkOrders"/>
+			</row>
+			<row>
+				<!-- Display a list of work orders -->
+				<control type="datagrid" label="Órdenes de Trabajo" name="grdMaintenanceWorkOrders"
+					searchable="true"
+					action="redirect"
+					target="mdlMaintenanceWorkOrder"
+					span="12"
+					rows="20"
+					rowcolor="Priority|Normal=white;High=orange;Emergency=red"
+					acctsvcreq="true"
+					datarequest="GetMedicalDeviceWorkOrders"
+					appendrequest="Status=[btngrpStatus],
+						Category=Building,
+						LocationId=(facilityData.LocationId),
+						AssignedTo=[Building_AssignedTo],
+						[btngrpStatus]=Scheduled|Completed|Canceled+[MaintenanceStartDate]!+[MaintenanceEndDate]!;StartDate=[MaintenanceStartDate],
+						[btngrpStatus]=Scheduled|Completed|Canceled+[MaintenanceStartDate]!+[MaintenanceEndDate]!;EndDate=[MaintenanceEndDate]"
+					source="DateTimeEntered,ScheduledDateTime,DateTimeCompleted,OrderNumber,DeviceCode,DeviceDescription,SerialNumber,DepartmentName,LocationRoomName"
+					sourcelabels="Creado,Programado,Completado,Orden,Código,Equipo,Serie,Departamento,Cama"
+					align="|left|left|left|left|left|left|left|left"
+					format="datetime|datetime|datetime"
+					sort="DateTimeEntered=asc"
+					key="CompletedMaintenanceGuid"
+					onselectset="Mtn_WorkOrderGuid=[[CompletedMaintenanceGuid]]"
+					onselect="Mtn_WorkOrderGuid">
+					<!-- refresh thislist -->
+					<control type="button" name="btnRefreshMaintenanceWorkOrders"
+						icon="refresh" label="Actualizar" action="trigger" trigger="grdMaintenanceWorkOrders"/>
+					<control type="button" name="btnNewWorkOrderFromDeviceGrid"
+						reveal="[btngrpStatus]=Requested|Scheduled"
+						label="Añadir Nuevo" icon="plus"
+						action="redirect" 
+						target="mdlMaintenanceWorkOrder"/>
+				</control>
+			</row>
+		</group>
+	</section>
+
+<!-- Display a Work Order list in a celendar -->
+<!-- This needs an expanded call that will display all occurrances of scheduled maintenance -->
+	<section type="tab" name="EquipmentWorkOrderCalendar" title="Calendario de Órdenes" trigger="calMaintenanceWorkOrders">
+		<group>
+			<row>
+			 	<control type="calendar" span="12" 
+				 	name="calMaintenanceWorkOrders"
+          headerleft="add prev,next today"
+          headercenter="title"
+          headerright="dayGridMonth,timeGridWeek,timeGridDay,listMonth"
+          navlinking="true"
+					eventcolor="Status|Requested=grey;Scheduled=green"
+					acctsvcreq="true"
+					datarequest="GetMedicalDeviceWorkOrders"
+					appendrequest="Status=Scheduled,Category=Building,LocationId=(facilityData.LocationId)"
+          map="start=ScheduledDateTime,end=ScheduledDateTime,title=DeviceDescription"
+					daterange="endDateTime=end,startDateTime=start"
+          key="CompletedMaintenanceGuid"
+					action="redirect"
+					target="mdlMaintenanceWorkOrder"
+					onselectset="Mtn_WorkOrderGuid=[[CompletedMaintenanceGuid]]"
+					onselect="Mtn_WorkOrderGuid"/>
+			</row>
+		</group>
+	</section>
+
+	<!-- Tab to enter/edit Surgery Equipment Types -->
+	<section type="tab" name="tabMaintenanceTypes" title="Tipos de Equipo" trigger="grdMaintenanceTypes">
+  	<group>
+			<row>
+				<control type="datagrid" name="grdMaintenanceTypes"
+					label="Tipos de Equipo" 
+					modalname="mdlMaintenanceTypes"
+					searchable="true"
+					span="12" rows="20"
+					acctsvcreq="true"
+					acctsvc="true"
+					datarequest="GetMedicalDeviceTypes"
+          appendrequest="Category=Building"
+					datainsert="InsertMedicalDeviceTypes"
+          appendinsert="Category=Building"
+					dataupdate="UpdateMedicalDeviceTypes"
+					source="Active,TypeCode,TypeName,TypeDescription"
+					sourcelabels="Activo,Código,Nombre,Descripción"
+					align="|left|left|left"
+					format="boolean"
+					sort="TypeName=asc"
+					key="TypeGuid"/>
+			</row>
+		</group>
+	</section>
+
+	<section type="modal" name="mdlMaintenanceTypes" title="Tipo de Equipo" size="small">
+		<group>
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" span="3" name="EqType_Active" source="True,False" 
+					sourcelabels="Sí,No" default="True" edit="true" />
+			</row>
+			<row>
+				<control type="label" label="Código" span="3"/>
+				<control type="text" name="EqType_TypeCode" span="3" edit="true" />
+			</row>
+			<row>
+				<control type="label" label="Nombre del Tipo" span="3"/>
+				<control type="textarea" name="EqType_TypeName" span="7" rows="2" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Descripción del Tipo " span="3"/>
+				<control type="textarea" name="EqType_TypeDescription" span="7" rows="2" edit="true" />
+			</row>
+			<row>
+				<control type="modalbutton" 
+					showif="add"
+					name="InsertResultNext" 
+					label="Siguiente"
+					color="grey"
+					icon="circle-arrow-right"
+					modaltask="insert|add" />
+			</row>
+		</group>
+	</section>
+	<partial link="Partials/ColombiaPartialMaintenanceEquipment.xml"/>
+	<partial link="Partials/ColombiaPartialMaintenanceWorkOrder.xml"/>
+	<partial link="Partials/ColombiaPartialWorkOrderItem.xml"/>
+	<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

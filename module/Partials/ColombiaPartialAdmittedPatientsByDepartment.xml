@@ -1,0 +1,99 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabDepartmentAdmittedPatients" type="tab" title="Pacientes por Departamento" trigger="GetLastAdmitDepartment">
+    <group showif="never">
+      <row> 
+        <!-- Get the last department the user was in and set this department-->
+        <control type="hidden" name="GetLastAdmitDepartment"
+          datarequest="GetUserProfileFromUserId2"
+          appendrequest="UserIdToGet=(userName)"
+          set="[[Department]]!;DepartmentGuidLookup=[[Department]]"
+					provoke="PatientList"/>
+        <!-- Save the department the user selects to the user profile -->
+        <control type="button" 
+          name="SaveLastAdmitDepartment"
+          action="save"
+      		affector="none"
+      		datainsert="UpdateUserProfileSetDepartment"
+          appendinsert="UserId=(userName),departmentGuid=[DepartmentGuidLookup]"/>
+      </row>
+    </group>
+    <group>
+      <row>
+          <control type="select" name="DepartmentGuidLookup"
+            span="3" acctsvc="true" explicit="true" edit="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentNumber|DepartmentName,DepartmentGuid"
+            provoke="SaveLastAdmitDepartment,AdmitPatientList,DepartmentRoomLookup"/>
+            <!-- Select the hospital service (queue) to display -->
+         <control type="buttongroup" name="AdmitListFilter" span="5" 
+            source="Esperando,Atención,Completo,No Atendió"
+            value="Esperando"
+            action="trigger"
+            trigger="AdmitPatientList"/>
+          <control type="password" name="QRAdmitScannedResult" span="1" action="trigger" 
+            trigger="GetAdmitScannedPatientByQR"
+            mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+          <control type="button" name="btnAdmitScanPatientQR" 
+            action="scan" color="green" span="3"
+            icon="qrcode"
+            label="Escanear Paciente"
+            inject="value=[QRAdmitScannedResult]"
+            provoke="[QRAdmitScannedResult]!;GetAdmitScannedPatientByQR"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="GetAdmitScannedPatientByQR"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRAdmitScannedResult]"
+          provoke="[[RecordUniqueId]]!;btnOpenAdmitPatientChart^btnNoAdmitPatientFound"/>
+        <control type="button" name="btnOpenAdmitPatientChart"
+          preset="PatientId=[QRAdmitScannedResult]"
+          trigger="PatientId"
+          set="QRAdmitScannedResult="
+          action="redirect" target="PatientTabModal"/>
+        <control type="button" name="btnNoAdmitPatientFound"
+          action="trigger"
+          set="QRAdmitScannedResult="
+          confirm="No se ha encontrado ninguna paciente.|nocancel"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the department -->
+        <control type="datagrid" label="Pacientes por Departamento" name="AdmitPatientList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          span="12" rows="25"
+          fitrows="true"
+          gridfilter="AdmitListFilter|HospitalService"
+          acctsvcreq="true"
+          datarequest="GetAdmittedPatientsByDepartment"
+					rowcolor="ReadyForDischarge|True=green"
+          idle="[DepartmentGuidLookup]=|reset"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup],excludePhoto=true" 
+          source="ReadyForDischarge,DepartmentDateTime,AdmitDateTime,AdmitDays,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,CurrentDayAppointmentCalendar,CurrentDayAppointmentTime,AdmissionType,DepartmentServiceName,OpenRoom"
+          sourcelabels="Alta,Transferido,Admitido,Dias,Expediente,Nombre,Nacimiento,Edad,Sexo,Calendario,Hora,Atención,Servicio,Habitación"
+          align="||left|left|left|left|left|left|left|left|left|left|left"
+          format="boolean|datetime|datetime||||date"
+          translate="PatientSex"
+          sort="AdmitDateTime=asc"
+          key="RecordUniqueId"
+          onselectset="PatientId=[[RecordUniqueId]]"
+          onselect="PatientId"> 
+          <control type="button" name="NursebtnSearchForPatientNoQues"
+            icon="plus" label="Buscar/Ingresar"
+            preset="PatientSearchSource=61"
+            action="redirect" target="mdlFindPatients"/>
+					<control type="button" name="btnRefreshAdmitPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="AdmitPatientList"/>
+        </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="HospitalNurseSearch" action="redirect" target="PatientTabModal"
+            preset="PatientId=[PatientSearchResults]"
+            trigger="PatientId"/>
+        </row>
+      </group>
+  </section>
+</partial>

@@ -1,0 +1,138 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabDepartmentAdmittedPatients" type="tab" title="Pacientes por Departamento" trigger="GetLastDepartment">
+    <group showif="never">
+      <row> 
+        <!-- Get the last department the user was in and set this department-->
+        <control type="button" name="GetLastDepartment" action="trigger"
+          set="DepartmentGuidLookup=(user.Department)"/>
+        <!-- Save the department the user selects to the user profile -->
+        <control type="button" 
+          name="SaveLastDepartment"
+          action="save"
+      		affector="none"
+      		datainsert="UpdateUserProfileSetDepartment"
+          appendinsert="UserId=(userName),departmentGuid=[DepartmentGuidLookup]"/>
+      </row>
+      <row>
+        <control type="hidden" name="DepartmentLookupName"/>
+        <control type="hidden" name="ServiceLookupName"/>
+      </row>
+    </group>
+    <group>
+      <row>
+          <control type="select" name="DepartmentGuidLookup" span="3" acctsvc="true" explicit="true" edit="true"
+            filter="AdmissionType=true"
+            namefield="LookupDepartmentName"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentNumber|DepartmentName,DepartmentGuid"
+            set="DepartmentLookupName=[[DepartmentName]]"
+            provoke="OutPatientList,(user.Department)![DepartmentGuidLookup];SaveLastDepartment,DepartmentServiceLookup,DepartmentRoomLookup"/>
+          <control type="select" name="DepartmentServiceLookup" span="2" acctsvc="true" explicit="true" edit="true"
+            filter="Active=true,DepartmentGuid=[DepartmentGuidLookup]"
+            namefield="LookupServiceName"
+            acctsvcreq="true"
+            datarequest="GetDepartmentServices" 
+            source="ServiceName,DepartmentServicesGuid"
+            set="ServiceLookupName=[[ServiceName]]"
+            provoke="OutPatientList"/>
+          <control type="hidden" name="QRScannedResult" mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="GetScannedPatientByQR"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRScannedResult]"
+          provoke="[[RecordUniqueId]]!;btnOpenPatientChart^btnNoPatientFound"/>
+        <control type="button" name="btnOpenPatientChart"
+          preset="PatientId=[QRScannedResult]"
+          trigger="PatientId"
+          set="QRScannedResult="
+          action="redirect" target="PatientTabModal"/>
+        <control type="button" name="btnNoPatientFound"
+          action="trigger"
+          set="QRScannedResult="
+          confirm="No se ha encontrado ninguna paciente.|nocancel"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the department gridfilter="ListFilter|HospitalService" -->
+        <control type="datagrid" label="Pacientes por Departamento" name="OutPatientList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          span="12" rows="25"
+          fitrows="true"
+          rowcolor="ReadyForDischarge|True=green"
+          idle="[DepartmentGuidLookup]=|reset"
+          acctsvcreq="true"
+          datarequest="GetAdmittedPatientsByDepartment"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup],
+            excludePhoto=true,
+            includeAppointment=true,
+            [DepartmentServiceLookup]!;DepartmentService=[DepartmentServiceLookup]" 
+          source="ReadyForDischarge,DepartmentDateTime,ApprovedByOrtho,ApprovedByAnesthesia,ApprovedByPediatrics,
+            AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,
+            PatientSex,CurrentDayAppointmentCalendar,CurrentDayAppointmentTime,
+            AdmissionType,DepartmentServiceName,AttendingDoctorFullName,HospitalService"
+          sourcelabels="Alta,Transferido,Orto,Anes,Ped,Admitido,Expediente,Nombre,Nacimiento,Edad,Sexo,Calendario,Hora,Atención,Servicio,Médico,Estatus"
+          align="||||||left|left|left|left|left|left|left|left|left|left"
+          format="boolean|datetime|template=tmpOrthoApproval|template=tmpAnesthesiaApproval|template=tmpPediatricsApproval|datetime|||date"
+          translate="PatientSex"
+          sort="PatientFullName=asc"
+          key="RecordUniqueId"
+          onselectset="PatientId=[[RecordUniqueId]]"
+          onselect="PatientId"> 
+          <control type="button" name="btnAssignDoctor"
+            showif="feature"
+            icon="cloud-upload" label="Asignar Médico"
+            preset="PatientVisitToAssign=[[PatientVisitId]]"
+            action="redirect" target="mdlAssignDoctorFromList"/>
+          <control type="button" name="btnScanPatientQR" 
+            action="scan" color="green"
+            icon="qrcode"
+            label="Escanear"
+            inject="value=[QRScannedResult]"
+            provoke="[QRScannedResult]!;GetScannedPatientByQR"/>
+          <control type="button" name="NursebtnSearchForPatientNoQues"
+            icon="plus" label="Buscar/Ingresar"
+            preset="PatientSearchSource=61"
+            action="redirect" target="mdlFindPatients"/>
+					<control type="button" name="btnRefreshPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="OutPatientList"/>
+        </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="HospitalNurseSearch" action="redirect" target="PatientTabModal"
+            preset="PatientId=[PatientSearchResults]"
+            trigger="PatientId"/>
+        </row>
+      </group>
+  </section>
+  <section type="tabmodal" name="mdlAssignDoctorFromList" title="Asignar Médico" size="small" badge="none">
+    <group name="grpAssignDoctorFromList">
+      <row>
+        <control type="hidden" name="PatientVisitToAssign"/>
+      </row>
+      <row>
+        <control type="label" label="Médico" span="3"/>
+        <control type="select" name="selDoctorToAssign_AttendingDoctor" 
+            edit="true" span="7" required="true"
+            acctsvc="true" 
+            datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician" 
+            source="UserFirstMiddleLast,UserId"
+            searchable="true"/> 
+      </row>
+      <row>
+        <control type="modalbutton" name="btnSaveDoctorToList"
+          icon="cloud-upload" label="Guardar" color="green"
+          action="save|close|new"
+          capture="grpAssignDoctorFromList"
+          acctsvc="true"
+          dataupdate="UpdatePatientVisitNoDepartmentTracking"
+          appendupdate="PatientVisitUniqueId=[PatientVisitToAssign]"
+          provoke="OutPatientList"/>
+      </row>
+    </group>
+  </section>
+</partial>

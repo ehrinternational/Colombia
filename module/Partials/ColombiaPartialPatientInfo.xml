@@ -1,0 +1,273 @@
+<partial>
+  <!-- Partial outpatient patient demographic information -->
+  <row>
+    <control type="hidden" name="HasOpenVisit"/>
+    <control type="hidden" name="DateTimeOfDeath"/>
+    <control type="hidden" name="PatientVisit"/>
+    <control type="hidden" name="HasOpenCharges"/>
+    <control type="hidden" name="HasOpenPayments"/>
+    <control type="hidden" name="HasPatientPayer"/>
+    <control type="hidden" name="PatientFullName"/>
+  </row>
+  <row>
+      <control type="label" label="Nombre" align="left" span="3"/>
+      <control type="label" label="Segundo Nombre" align="left" span="3"/>
+      <control type="label" label="Primer Apellido" align="left" span="3"/>
+      <control type="label" label="Segundo Apellido" align="left" span="3"/>
+  </row>
+  <row>
+    <control type="text" name="Consult_PatientFirstName" span="3" required="true" edit="true" 
+      regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+    <control type="text" name="Consult_PatientNameSuffix" span="3" edit="true"
+      regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,60}$"/>
+    <control type="text" name="Consult_PatientMiddleName" span="3" required="true" edit="true"
+      regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+    <control type="text" name="Consult_PatientLastName" span="3" edit="true" 
+      regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,60}$"/>
+  </row>
+  <row>
+    <control type="label" label="Expediente" span="2"/>
+    <control type="text" name="Consult_MedicalRecordNumber" span="2" readonly="true"/> 
+   <control type="label" label="Nacionalidad" span="2"/>
+    <control type="select" name="Consult_Nationality" span="2" edit="true"
+      default="(facilityData.HospitalCountry)" persist="true"
+      sort="CountrySpanish=asc"
+      datasource="GetCountries" 
+      source="CountrySpanish,Code"/>   
+    <control type="label" label="Sangre" span="2" />
+    <control type="select" name="Consult_BloodType" span="2"
+      source="A+,A-,B+,B-,O+,O-,AB+,AB-,Desconoce"
+      edit="true"/>
+  </row>
+
+  <row>
+    <control type="label" label="Fecha Nacimiento" span="2" />
+    <control type="date" name="Consult_PatientDOB" span="3" required="true" edit="true" compare="≤now"/>
+    <control type="text" name="Consult_PatientAge" span="2" readonly="true"/>
+    <control type="label" label="Hora Nacimiento" span="3" />
+    <control type="time" name="Consult_TimeOfBirth" span="2" edit="true"/>
+  </row>
+  <row showif="never">
+    <control type="timediff" name="Consult_AgeInHours" span="1" source="[Consult_PatientDOB],(now),hours"/>
+    <control type="timediff" name="Consult_AgeInDays" span="1" source="[Consult_PatientDOB],(now),days"/>
+    <control type="timediff" name="Consult_AgeInMonths" span="1" source="[Consult_PatientDOB],(now),months"/>
+    <control type="timediff" name="Consult_AgeInYears" span="1" source="[Consult_PatientDOB],(now),years"/>
+	</row>
+  <row name="rowId" reveal="FileName%Admitting">
+    <control type="label" label="Tipo Documento" span="2"/>
+    <control type="select" name="Consult_PrimaryIdNumber" span="4" required="true" edit="true"
+      source="SI,RC,TI,CC,CE,NI,MS,PA,AS,NU,CD,SC,PE,CN,DE,PT"
+      sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
+    <control type="label" label="Numero Documento" span="3"/>
+    <control type="text" name="Consult0_PtSSN" span="3" readonly="true"
+      reveal="[Consult_PrimaryIdNumber]=SI|"/>
+    <control type="text" name="Consult1_PtSSN" span="3" required="true" tooltip="11 caracteres alfanuméricos"
+      reveal="[Consult_PrimaryIdNumber]=RC" edit="true"
+      regex="^[a-zA-Z0-9]{11}$"/>
+    <control type="text" name="Consult2_PtSSN" span="3" required="true"  tooltip="11 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=TI" edit="true"
+      regex="^[0-9]{11}$"/>
+    <control type="text" name="Consult3_PtSSN" span="3" required="true"  tooltip="10 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=CC"  edit="true"
+      regex="^[0-9]{10}$"/>
+    <control type="text" name="Consult4_PtSSN" span="3" required="true" tooltip="7 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=CE"  edit="true"
+      regex="^[0-9]{7}$"/>
+    <control type="text" name="Consult5_PtSSN" span="3" required="true" tooltip="13 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=NI"  edit="true"
+      regex="^[0-9]{13}$"/>
+    <control type="text" name="Consult6_PtSSN" span="3" required="true" tooltip="12 caracteres alfanuméricos"
+      reveal="[Consult_PrimaryIdNumber]=MS"  edit="true"
+      regex="^[a-zA-Z0-9]{12}$"/>
+    <control type="text" name="Consult7_PtSSN" span="3" required="true" tooltip="16 caracteres alfanuméricos"
+      reveal="[Consult_PrimaryIdNumber]=PA"  edit="true"
+      regex="^[a-zA-Z0-9]{16}$"/>
+    <control type="text" name="Consult8_PtSSN" span="3" required="true" tooltip="10 caracteres alfanuméricos"
+      reveal="[Consult_PrimaryIdNumber]=AS"  edit="true"
+      regex="^[a-zA-Z0-9]{10}$"/>
+    <control type="text" name="Consult9_PtSSN" span="3" required="true" tooltip="12 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=NU"  edit="true"
+      regex="^[0-9]{12}$"/>
+    <control type="text" name="Consult10_PtSSN" span="3" required="true" tooltip="11 caracteres alfanuméricos"
+      reveal="[Consult_PrimaryIdNumber]=CD"  edit="true"
+      regex="^[a-zA-Z0-9]{11}$"/>
+    <control type="text" name="Consult11_PtSSN" span="3" required="true" tooltip="12 caracteres alfanuméricos"
+      reveal="[Consult_PrimaryIdNumber]=SC"  edit="true"
+      regex="^[a-zA-Z0-9]{12}$"/>
+    <control type="text" name="Consult12_PtSSN" span="3" required="true" tooltip="15 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=PE"  edit="true"
+      regex="^[0-9]{15}$"/>
+    <control type="text" name="Consult13_PtSSN" span="3" required="true" tooltip="14 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=CN"  edit="true"
+      regex="^[0-9]{14}$"/>
+    <control type="text" name="Consult14_PtSSN" span="3" required="true" tooltip="16 caracteres alfanuméricos"
+      reveal="[Consult_PrimaryIdNumber]=DE"  edit="true"
+      regex="^[a-zA-Z0-9]{16}$"/>
+    <control type="text" name="Consult15_PtSSN" span="3" required="true" tooltip="15 caracteres numéricos"
+      reveal="[Consult_PrimaryIdNumber]=PT"  edit="true"
+      regex="^[0-9]{15}$"/>
+  </row>
+  <row>
+    <control type="label" label="Sexo" span="2" />
+    <control type="select" name="Consult_PatientSex" span="2" required="true" edit="true"
+      source="Male,Female,Indeterminate" explicit="true"
+      sourcelabels="Masculino,Femenino,Indeterminado"/>
+    <control type="label" label="Id Genero" span="2"/>
+    <control type="select" name="Consult_PatientGenderId" span="2" edit="[Consult_AgeInYears]»4"
+      required="[Consult_AgeInYears]»17"
+      source="0,1,2,3,4,5"
+      sourcelabels="0 Sin información,1	Masculino,2	Femenino,3	Transgénero,4	Neutro,5	No lo declareara"
+      when="[Consult_AgeInYears]«5;"/>
+    <control type="label" label="Orientación" span="2"/>
+    <control type="select" name="Consult_PatientGenderIdText" span="2" edit="[Consult_AgeInYears]»4"
+      required="[Consult_AgeInYears]»17"
+      source="1,2,3,4,5"
+      sourcelabels="1	Lesbiana,2	Bisexual,3	Transexual,4	Intersexual,5	Heterosexual"
+      when="[Consult_AgeInYears]«5;"/>
+  </row>
+  <row  name="rowBirthplace" reveal="FileName%Admitting">      
+    <control type="label" label="País Nacimiento" span="2"/>
+    <control type="select" name="Consult_PtCountry" span="2" edit="true" required="true"
+      default="(facilityData.HospitalCountry)" searchable="true"
+      sort="CountrySpanish=asc"
+      datasource="GetCountries" 
+      source="CountrySpanish,Code"
+      provoke="Consult_PtState"/>
+    <control type="label" label="Departamento" span ="2"/>
+    <control type="select" name="Consult_PtState" span="2" edit="true"
+      datarequest="GetStatesProvincesByCountryCode" searchable="true"
+      appendrequest="CountryCode=[Consult_PtCountry]"
+      source="Name,Code" explicit="true"
+      provoke="Consult_PtCity"/>
+      <!--provoke="Consult_PtCity"/>-->
+    <control type="label" label="Municipio" span ="2"/>
+    <control type="select" name="Consult_PtCity" span="2" edit="true"
+      searchable="true"
+      acctsvcreq="true"
+      datarequest="GetColombiaMunicipalities"
+      source="Municipality,MunicipalityCode" explicit="true"
+      append="StateCode=[Consult_PtState]"/>
+  </row>
+  <row>
+    <control type="label" label="Teléfono Primario" span="2"/>
+    <control type="text" name="Consult_PtPhoneNumber" span="2" edit="true" 
+      regex="^\+?[a-zA-Z0-9]{7,15}$" required="true"/>
+    <control type="label" label="Segundo" span="1"/>
+    <control type="text" name="Consult_PatientCellPhone" span="2" edit="true" 
+      regex="^\+?[a-zA-Z0-9]{0,15}$"/>    
+    <control type="label" label="Correo Electrónico" span="2"/>
+    <control type="text" name="Consult_PatientEmail" verify="email" span="3" edit="true"/>
+  </row>
+  <row  name="rowMigrant" reveal="FileName%Admitting">
+    <control type="label" label="Migrante" span="2"/>
+    <control type="buttongroup" name="Consult_Migrant" span="2" 
+      edit="true" default="False"
+      source="True,False"
+      sourcelabels="SI,NO"/> 
+    <control type="label" label="Grupo Poblacional" span="2" />
+    <control type="select" name="Consult_LivingArrangement" span="6" edit="true" searchable="true"
+      source="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36"
+      sourcelabels="0 SIN INFORMACIÓN,1 INDIGENTE,2 POBLACIÓN INFANTIL A CARGO DEL ICBF,3 MADRES COMUNITARIAS
+      ,4 ARTISTAS; AUTORES Y COMPOSITORES,5 OTRO GRUPO POBLACIONAL,6 RECIÉN NACIDOS,7 DISCAPACITADOS
+      ,8 DESMOVILIZADOS,9 DESPLAZADOS,10 POBLACIÓN ROM,11 POBLACIÓN RAIZAL,12 POBLACIÓN EN CENTROS PSIQUIÁTRICOS
+      ,13 MIGRATORIO,14 POBLACIÓN EN CENTROS CARCELARIOS,15 POBLACIÓN RURAL NO MIGRATORIA,16 AFROCOLOMBIANO
+      ,17 ADULTO MAYOR,18 CABEZA DE FAMILIA,19 MUJER EMBARAZADA,20 MUJER LACTANTE,21 TRABAJADOR URBANO
+      ,22 TRABAJADOR RURAL,23 VÍCTIMA DE VIOLENCIA ARMADA,24 JÓVENES VULNERABLES RURALES,25 JÓVENES VULNERABLES URBANOS
+      ,26 DISCAPACITADO - EL SISTEMA NERVIOSO,27 DISCAPACITADO - LOS OJOS,28 DISCAPACITADO - LOS OÍDOS
+      ,29 DISCAPACITADO - LOS DEMÁS ÓRGANOS DE LOS SENTIDOS (OLFATO; TACTO Y GUSTO),30 DISCAPACITADO - LA VOZ Y EL HABLA,31 DISCAPACITADO - EL SISTEMA CARDIORRESPIRATORIO Y LAS DEFENSAS
+      ,32 DISCAPACITADO - LA DIGESTIÓN; EL METABOLISMO; LAS HORMONAS,33 DISCAPACITADO - SISTEMA GENITAL Y REPRODUCTIVO
+      ,34 DISCAPACITADO - EL MOVIMIENTO DEL CUERPO; MANOS; BRAZOS; PIERNAS,35 DISCAPACITADO - LA PIEL,36 NO DEFINIDO"/>
+  </row>
+  <row>
+    <control type="label" label="Discapacidades" span="2"/>
+    <control type="buttongroup" name="Consult_HasDisabilities" span="2" 
+      edit="true" default="False"
+      source="True,False"
+      sourcelabels="SI,NO"
+      set="[Consult_HasDisabilities]=False;Consult_Disabilities="/> 
+    <control type="label" label="Tipo Discapacidad" span="2"/>
+    <control type="select" name="Consult_Disabilities" span="6" required="[Consult_HasDisabilities]=True"
+      edit="[Consult_HasDisabilities]=True" searchable="multiple"
+      source="01,02,03,04,05,06"
+      sourcelabels="01 Discapacidad física,02 Discapacidad visual,03 Discapacidad auditiva,04 Discapacidad intelectual,05 Discapacidad psicosocial,06 Sordoceguera"/>
+  </row>   
+  <row>
+    <control type="label" label="Grupo étnico" span="2"/>
+    <control type="select" name="Consult_IndigenousStatus" span="3" required="true" edit="true"
+      source="0,1,2,2,3,5,6" searchable="true"
+      sourcelabels="0 SIN INFORMACIÓN,1 INDÍGENA,2 ROM-GITANO,3 RAIZAL - ARCHIP. SAN ANDRÉS Y PROVIDENCIA,4 PALANQUERO DE SAN BASILIO,5 NEGRO; MULATO; AFROCOLOMBIANO O AFRODESCENDIENTE,6 NINGUNO DE LOS ANTERIORES"/>
+    <control type="label" label="Nivel Educativo" span="2"/>
+    <control type="select" name="Consult_LevelOfEducation" span="5" required="true" edit="true"
+      searchable="true" explicit="true"
+      source="1,2,3,4,5,6,7,8,14,9,10,11,12,13"
+      sourcelabels="1 PREESCOLAR,2 BÁSICA PRIMARIA,3 BÁSICA SECUNDARIA,4 MEDIA TÉCNICA (BACHILLER TÉC),5 TÉCNICA PROFESIONAL,6 NINGUNO,7 SIN INFORMACION,8 ESPECIALIZACIÓN,14 PROFESIONAL,9 MAESTRÍA,10 DOCTORADO,11 MEDIA ACADÉMICA O CLÁSICA,12 NORMALISTA,13 TECNOLÓGICA"/>
+  </row>
+  <row>
+    <control type="label" label="Estado Civil" span="2" />
+    <control type="select" name="Consult_PtMaritalStatus" span="3" edit="[Consult_AgeInYears]»13;"
+      source="1,2,3,4,5"
+      sourcelabels="1 Soltero,2 Casado,3 Unión Libre,4 Divorciado,5 Viudo"
+      when="[Consult_AgeInYears]«18;1,[Consult_AgeInYears]«14;"/>
+    <control type="label" label="Profesión" span="2"/>
+    <control type="select" name="Consult_EmployerName" span="5" edit="true"
+      searchable="true"
+      source="Q5,Q6,01,2,3,4,5,6,7,8,9,0A,0B,0C"
+      sourcelabels="Q5 AMA DE CASA,Q6 PENSIONADO,0 ABANIQUERO,1 ABOGADO,2 ACABADOR; CALZADO,3 ACABADOR; CERAMICA,
+      4 ACECINADOR,5 CEITADOR-ENGRASADOR,6 ACIDIFICADOR - POZOS DE PETROLE,7 ACTORES Y DIRECTORES DE CINE, 
+      8 ACTRIZ - CINE/TEATRO,9 ACTUARIO,0A ACUARELISTA,0B ACUICULTOR,0C ADAPTADOR MUSICAL"/>
+      <!-- acctsvcreq="true"
+      datarequest="GetColombiaOccupations"
+      source="Occupation,Code"/> -->
+  </row>
+  <row name="rowOccupation" reveal="FileName%Admitting">
+    <control type="label" label="Ocupacion" span="2"/>
+    <control type="select" name="Consult_Occupation" span="10" edit="true"
+      searchable="true"
+      source="000,011,012,013,021,022,031,032,033,041,042,051,052"
+      sourcelabels="DIRECCION ALTA PUBLICA Y PRIVADA - DIRECTORES; GERENTES GENERALES; DIRECTIVOS,
+        ,ADMINISTRACION Y FINANZAS - PROFESIONALES
+        ,ADMINISTRACION Y FINANZAS - ASISTENTES
+        ,ADMINISTRACION Y FINANZAS - OFICINISTAS Y AUXILIARES
+        ,CIENCIAS NATURALES Y APLICADAS - PROFESIONALES
+        ,CIENCIAS NATURALES Y APLICADAS - TECNICOS
+        ,SALUD - PROFESIONALES
+        ,SALUD - TECNICOS
+        ,SALUD - AUXILIARES
+        ,CIENCIAS SOCIALES; EDUCACION; SERVICIOS GUBERNAMENTALES Y RELIGION - PROFESIONALES
+        ,SERVICIO SOCIAL; EDUCACION Y RELIGION - NIVEL MEDIO
+        ,ARTE Y CULTURA - PROFESIONALES
+        ,ARTE; CULTURA; ESPARCIMIENTO Y DEPORTE - TECNICOS Y ESPECIALIZADOS"/>
+      <!--
+      acctsvcreq="true"
+      datarequest="GetColombiaOccupations"
+      source="Occupation,Code"/>-->
+  </row>
+  <row name="rowCRMStatus" reveal="FileName%Admitting|Social">
+    <control type="label" label="Estatus CRM" span="3" />
+    <control type="select" name="Consult_CRMStatus" span="3" readonly="true"
+      acctsvc="true" explicit="true"
+      filter="Active=true"
+      datasource="GetCRMStatusTypes"
+      source="StatusName,StatusGuid"/>
+    <!-- Update the CRMStatus for the patient -->
+    <control type="button" name="btnSetCRMStatus" span="1" icon="edit" label="" edit="true" 
+      reveal="[PatientId]!+FileName%Admitting|Social"
+      preset="CRMUpdate_PriorStatus=[Consult_CRMStatus]"
+      trigger="grdCRMStatusChanges"
+      action="redirect" target="mdlUpdateCRMStatus"/>
+    <!-- Select the facility the patient is assigned to -->
+    <control type="label" label="Establecimiento" span="2"/>
+    <control type="select" name="Select_Sector" span="3" default="(facilityData.HospitalGuid)" edit="true"
+      required="true"
+      acctsvc="true"
+      datasource="GetHospitalByGroupId"
+      append="GroupId=(facilityData.GroupId)"
+      source="HospitalName,HospitalGuid" 
+      provoke="CRMPatientList"/>
+  </row>
+  <row>
+    <control type="label" label="Nombre Responsable" span="3"/>
+    <control type="text" name="Consult_PrimaryPayorFirstName" span="9" edit="true" 
+      regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,120}$"/>
+  </row>
+</partial>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Gestión de SMS" type="onload">
+  <facet name="FileName" value="SMSManagement"/>
+  <!-- Display an appointment list for patient reminders -->
+  <partial link="Partials/ColombiaPartialSMSAppointmentList.xml"/>
+  <!-- Display a list of admitted patients to discharge -->
+  <partial link="Partials/ColombiaPartialAllAdmittedPatientsForDischarge.xml"/>
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+	<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/> 
+</module>

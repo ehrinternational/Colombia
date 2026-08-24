@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Terapia" type="onload" trigger="GetLastDepartment,SetDefaultSpecialty">
+  <facet name="FileName" value="Therapy"/>
+  <facet name="PatientSearched" value="false"/>
+  <facet name="DefaultPatientId"/>
+  <facet name="DefaultOrderType"/>
+  <facet name="DefaultOrderGuid"/>
+  <facet name="EditCalendarType" value="Therapy"/>
+  <facet name="EditCalendar" value="Terapia de Lenguaje México"/>
+  <!-- Import templates -->
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Therapy"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <headerbutton name="btnTaskCalendar"
+    icon="calendar" label="Mis Tareas"
+    preset="DefaultPatientId="
+    trigger="MyTaskAppointmentTimes"
+    action="redirect" target="mdlMyTaskAppointments"/>
+  <headerbutton name="btnConsultCalendar"
+    icon="calendar" label="Terapia"
+    preset="DefaultPatientId=,DefaultOrderGuid=,ConsultCalendarType=Therapy"
+    trigger="ConsultVisit_selAppointmentTypeGuid"
+    action="redirect" target="mdlConsultVisitCalendarAppointments"/>
+  <!-- Display list of patients by department -->
+  <partial link="Partials/ColombiaPartialAdmittedOutpatientPatientsByDepartmentAndService.xml"/>
+  <!-- Display list of admitted -->
+  <partial link="Partials/ColombiaPartialAdmittedPatientsByDepartmentHospitalNurse.xml"/>
+  <!-- Display a list of internal consult requests -->
+  <partial link="Partials/ColombiaPartialServiceConsultRequestWorklist.xml"/>
+  <!--Tabmodal for admitting/reviewing hospital patients-->
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente">
+    <group showif="never">
+      <row>
+        <!--Read the patient record and display-->
+        <control type="text"
+          name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo"
+          set="[HasOpenVisit]=true;PatientVisitGuid=[[PatientVisit]]"
+          provoke="[HasOpenVisit]=true;PatientVisitGuid,ButtonGroupSelect"/>
+        <!-- Get patient visit information -->
+        <control type="hidden" span="4" name="PatientVisitGuid" 
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[PatientVisitGuid]"
+          inject="VisitInfo"
+          provoke="[[CurrentDepartment]]=[DepartmentGuidLookup]+[DepartmentGuidLookup]!;SetHospitalService,
+            [[CurrentDepartment]]![DepartmentGuidLookup]+[DepartmentGuidLookup]!;btnApproveDeptTransfer"/>
+        <control type="button" name="btnApproveDeptTransfer" action="trigger"
+          confirm="Este paciente tiene una visita abierta en otro departamento. Confirme que desea transferirlos a su departamento."
+          provoke="SetHospitalService"/>
+        <!-- Set the hospital service and update the provider list -->
+        <control type="hidden" 
+          name="SetHospitalService"
+          datarequest="UpdatePatientVisitAllFields"
+          appendrequest="patientId=[PatientId],departmentGuid=[DepartmentGuidLookup],patientVisitUniqueId=[PatientVisitGuid],hospitalService=Atención"
+          provoke="PatientList"/>
+        <!-- Close the patient tabmodal -->
+        <control type="button" name="ClosePatientTabModal" action="close|new"/>
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="PatientInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialServicePatientButtons.xml"/>
+        </column>
+      </columns>
+    </group> 
+     <!-- Patient visit and physician buttons -->
+    <group name="VisitInfo" reveal="[PatientId]!">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialSocialWorkerVisitButtons.xml"/>
+        </column>
+      </columns>
+    </group>
+    <!-- Patient chart datagrids -->
+    <group name="PatientGridGroup" reveal="[PatientId]!">
+      <row>
+        <control type="buttongroup" 
+          name="ButtonGroupSelect" 
+          edit="true" mode="auto" span="12"
+          source="Tasks,Problems,Identification,Addresses,Contacts,Documents,Appointments,Surgery,Services,Diets" 
+          sourcelabels="Tareas,Diagnósticos,Identificación,Direcciones,Contactos,Subir Documentos,Citas,Procedimientos,Servicios,Dietas" 
+          default="Tasks"  
+          provoke="GridOptions|options"/>
+      </row>
+      <row>
+        <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
+          <partial link="./Partial/Grids/PartialPatientTasksWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
+          <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
+          <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          
+          <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
+          <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
+          <partial link="./Partial/Grids/PartialNursingNotesForPatientVisitAllTypesAsDocuments.xml"/>
+          <partial link="Partials/ColombiaPartialAppointmentListConsultsOnly.xml"/>
+          <partial link="Partials/ColombiaPartialServiceConsultRequestsForPatientWithAddAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialDietaryOrdersNoAddAsDiets.xml"/>
+        </control>
+      </row>
+    </group>
+  </section>
+    <!-- Colombia partials -->
+    <partial target="mdlInternalConsultModal" link="Partials/ColombiaPartialServiceConsultRequest.xml"/>
+    <partial  link="Partials/ColombiaPartialPatientContactsModal.xml"/>
+    <partial target="mdlMovePatient" link="Partials/ColombiaPartialMovePatients.xml"/>
+     <!-- Calendars -->
+    <partial target="mdlConsultVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarConsultAppointmentsAsModal.xml"/>
+    <partial target="mdlMyTaskAppointments" link="./Partial/Calendars/PartialCalendarMySalesTasksAsModal.xml"/>
+    <!-- Calendar Appointment modals -->
+    <partial link="./Partial/Calendars/PartialCalendarConsultVisitAppointmentModal.xml"/>
+    <!-- Admin modals -->
+    <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
+    <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+    <partial target="mdlCalendarSearchModal" link="Partials/ColombiaPartialCalendarSearchModal.xml"/>
+		<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/> 
+    <partial target="mdlTransferPatient" link="Partials/ColombiaPartialTransferPatientWithBedAssignment.xml"/>
+    <!-- Demographic modals -->
+    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial target="NewPayers" link="./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
+    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+    <!-- Messaging -->
+    <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
+    <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>
+    <partial target="mdlUpdateCRMStatus" link="./Partial/Modals/PartialUpdateCRMStatusForPatient.xml"/>
+    <partial target="mdlNewProjectTasks" link="./Partial/Messaging/PartialNewProjectTasks.xml"/>
+</module>

@@ -1,0 +1,45 @@
+<partial>
+  <!-- Partial Hospital Nutrition Patient Buttons -->
+  <row>
+      <control type="button" name="btnNutritionReports"
+        span="12"
+        icon="print" label="Informes"
+        preset="Report_PatientId=[PatientId],Report_Type=Nutrition"
+        trigger="ReportList"
+        action="redirect" target="mdlReports"/>
+    </row>
+     <row>
+      <control type="button" 
+        name="Consult_PatientUpdate"
+        reveal="PatientId!" 
+        span="12" 
+        label="Actualizar"
+        icon="cloud-upload"
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid],dietType=[DietType]"
+        provoke="PatientList"/>
+    </row>
+    <row>
+      <control type="button" name="btnTimeline"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+    </row>
+    <row>
+      <control type="button" name="addNursingNotes" span="12"
+        color="yellowgreen"
+        action="redirect|view"
+        target="patient-notes"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],notetype=Interdisciplinary"
+        label="Notas"
+        icon="user-md"/>
+    </row>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAPhysicianButtons.xml"/>
+</partial>

@@ -1,0 +1,18 @@
+﻿<partial>
+  <!-- Patient Contacts -->
+    <control type="datagrid" label="Contactos del Paciente" name="dgrContacts" 
+      option="Contacts"
+      span="12" rows="5"
+      modalname="mdlNewContacts"
+      idle="[PatientId]=|reset"
+      datarequest="GetPatientSupportContactsByPatientId"
+      appendrequest="patientId=[PatientId]"
+      datainsert="InsertPatientSupportContacts"
+      appendinsert="patientId=[PatientId]"
+      dataupdate="UpdatePatientSupportContacts"
+      source="Active,ContactRelationship,FirstName,MiddleName,LastName,HomeTelephone,MobileTelephone,EmailAddress"
+      sourcelabels="Activo,Relación,Nombre(s),Apellido Primario,Apellido Segundo,Teléfono 1,Teléfono 2,Correo Electrónico"
+      align="|left|left|left|left|left|left|left|left"
+      format="boolean" 
+      key="ContactGuid"/>
+</partial>

@@ -1,0 +1,21 @@
+<partial>
+  <!--  Patient payers datagrid -->
+  <control type="datagrid" label="Pagadores del Paciente" name="grdPatientPayers"
+    option="PatientPayers" rows="5"
+    action="redirect"
+    target="mdlPatientPayers" 
+    fitrows="true"
+    datarequest="GetPatientPayers"
+    appendrequest="patientId=[PatientId]"
+    source="Active,Ordinal,PlanName,PolicyNumber,GroupId,Subscriber"
+    sourcelabels="Activo,Ordinal,Plan,Póliza,Grupo,Suscriptor"
+    sort="Ordinal=asc"
+    format="boolean"
+    align="||left|left|left|left"
+    key="PatientPayerGuid"
+    onselectset="PatientPayerGuid=[[PatientPayerGuid]]"
+    onselect="PatientPayerGuid">
+    <control type="button" name="btnNewPatientPayer" label="Añadir Nuevo" icon="cloud-upload"
+      action="redirect" target="mdlPatientPayers"/>
+    </control>
+</partial>

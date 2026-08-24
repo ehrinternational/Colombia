@@ -1,0 +1,95 @@
+<partial>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+    
+  </row>
+  <row name="rowSaveNewPatient" reveal="[PatientId]=+[PatientSearched]=true">
+    <control type="button"   
+      name="SaveNewPatientButton"
+      span="12" color="green" icon="cloud-upload"
+      label="Paciente Nuevo"
+      action="save"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo|active"
+      confirm="Por favor confirme que quiere generar a este paciente nuevo."
+      datainsert="InsertPatient"
+      provoke="PatientId"/>
+  </row>
+  <row>
+    <control type="button" name="btnAdmitPatientWithNoAppointment" span="12"
+      icon="cloud-upload" label="Admitir Sin Cita" color="yellowgreen"
+      reveal="[PatientId]!+[HasOpenVisit]=false"
+      action="save|close|new"
+      confirm="Por favor, confirme que desea admitir a este paciente sin cita previa."
+      compare="[Consult_DepartmentGuid]!+[Consult_AdmitType]!|Seleccione un departamento y Atención para esta visita."
+      affector="none"
+      datainsert="InsertPatientVisitAllFields"
+      appendinsert="CopyDiagnosis=true,CopyApprovals=true,
+        LocationId=(facilityData.LocationId),
+        patientId=[PatientId],
+        visitType=Outpatient,
+        departmentGuid=[Consult_DepartmentGuid],
+        departmentService=[Consult_DepartmentService],
+        admitType=[Consult_AdmitType],
+        admissionType=[Consult_AdmissionType],
+        hospitalService=Esperando,
+        ambulatoryStatus=Outpatient,
+        AdmitSource=[Consult_AdmitSource],
+        preAdmit=0,
+        admitDateTime=(dateTimeNow)"
+      success="Esta paciente ha sido admitida."/>
+  </row>
+  <row name="rowAdmitDepartment" reveal="[PatientId]!+[HasOpenVisit]=false">
+    <control type="label" label="Admitir a Departamento" span="12"/>
+    <control type="select" name="Consult_DepartmentGuid" span="12" edit="true"
+      acctsvc="true" required="true"
+      source="DepartmentName,DepartmentGuid"
+      datasource="GetDepartmentsActive"
+      append="LocationId=(facilityData.LocationId)"
+      provoke="Consult_DepartmentService"/>
+  </row>
+  <row name="rowAdmitDepartmentService" reveal="[PatientId]!+[HasOpenVisit]=false">
+    <control type="label" label="Admitir a Servicio" span="12"/>
+    <control type="select" name="Consult_DepartmentService"
+      span="12" acctsvc="true" explicit="true" edit="true"
+      filter="Active=true,DepartmentGuid=[Consult_DepartmentGuid]"
+      acctsvcreq="true"
+      datarequest="GetDepartmentServices" 
+      source="ServiceName,DepartmentServicesGuid"/>
+  </row>
+  <row name="rowAdmitDepartmentAttention" reveal="[PatientId]!+[HasOpenVisit]=false">
+    <control type="label" label="Tipo de Atención" span="12"/>
+    <control type="select" name="Consult_AdmitType" span="12" 
+      namefield="Consult_AdmissionType"
+      sort="AdmissionType=asc"
+      datasource="GetLookupAdmissionTypesActive" 
+      source="AdmissionType,AdmissionTypeGuid" 
+      default="Policlínica"
+      required="true" 
+      explicit="true"
+      edit="true"/>
+  </row>
+  <row name="rowAdmitDepartmentSource" reveal="[PatientId]!+[HasOpenVisit]=false">
+    <control type="label" label="Tipo de llegada" span="12"/>
+    <control type="select" name="Consult_AdmitSource" span="12" 
+      datasource="GetLookupAdmitSourcesByFacility" 
+      source="AdmitSource,AdmitSource"
+      edit="true" sort="AdmitSource=asc"
+      required="true" 
+      explicit="true"
+      filter="Active=true"/>
+  </row>
+</partial>

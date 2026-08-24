@@ -1,0 +1,21 @@
+<partial>
+  <row>
+    <!-- Transfer patient to another department -->
+    <control type="button" name="btnTransferPatient"
+      reveal="[PatientVisitGuid]!"
+      span="12" icon="hospital" label="Transferir"
+      action="save"
+      affector="none"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="btnCompletePatientTransfer"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnCompletePatientTransfer"
+      action="redirect"
+      preset="Transfer2_DepartmentGuid=[DepartmentGuidLookup]"
+      target="mdlTransferPatient"/>
+  </row>
+</partial>

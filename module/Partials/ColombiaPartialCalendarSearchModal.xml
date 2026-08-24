@@ -1,0 +1,81 @@
+﻿<partial>
+  <!-- Find patients by name/MRN/Account number for a calendar -->	
+  <section type="tabmodal" badge="none" name="mdlCalendarSearchModal" title="Buscar Citas">
+		<group>
+      <row>
+        <control type="hidden" name="CalendarToSearch"/>
+        <control type="hidden" name="CalendarPatientToSearch"/>
+      </row>
+			<row>
+				<control type="label" label="Nombre/Expediente/CI" span="3" align="left"/>
+				<control type="label" label="Apellido Paterno" span="3" align="left"/>
+				<control type="label" label="Apellido Materno" span="3" align="left"/>
+			</row>
+			<row>
+				 <!-- Search for patients and inject info (hide once patient is chosen)-->
+				<control type="text" name="CalendarSearch_PatientFirstName" persist="true" format="asciifold" span="3" />
+				<control type="text" name="CalendarSearch_PatientMiddleName" persist="true" format="asciifold" span="3" />
+				<control type="text" name="CalendarSearch_PatientLastName" persist="true" format="asciifold" span="3" />
+				<control type="button" name="Calendarearch_btnTriggerFind"
+					span="1" icon="search" label=""
+          set="CalendarPatientToSearch="
+					action="trigger" 
+					provoke="FindCalendarSearchPatients"/>
+				<control type="button" name="CalendarSearch_btnResetFind"
+					span="1" icon="remove" label=""
+					action="trigger" 
+					set="CalendarSearch_PatientFirstName=,CalendarSearch_PatientMiddleName=,CalendarSearch_PatientLastName="/>
+			</row>
+			<row name="rowFindCalendarPatients" reveal="[CalendarPatientToSearch]=">
+        <!-- Display a list of patients for the selected criteria -->
+				<control type="datagrid" name="FindCalendarSearchPatients"
+					label="Haga clic en el Paciente que desea seleccionar." 
+					searchable="true"
+					span="12" rows="15" 
+					acctsvcreq="true"
+					datarequest="GetPatientNamesMatchingByFacilityDanEdition"  
+					appendrequest="firstName=[CalendarSearch_PatientFirstName],middleName=[CalendarSearch_PatientMiddleName],lastName=[CalendarSearch_PatientLastName]"
+					source="MedicalRecordNumber,PtSSN,PatientDOB,PatientAge,PatientFullName,EnteredByFullName,OpenPatientVisit"
+					sourcelabels="Expediente,CURP,Nacimiento,Edad,Nombre,Creado por,Visita Abierta"
+					align="|left|left|left|left|left|left"
+					format="||date||||boolean"
+					sort="PatientFullName=asc"
+					key="RecordUniqueId"
+					onselectset="CalendarPatientToSearch=[[RecordUniqueId]],
+						CalendarSearch_PatientFirstName=[[PatientFirstName]],
+						CalendarSearch_PatientMiddleName=[[PatientMiddleName]],
+						CalendarSearch_PatientLastName=[[PatientLastName]]"
+					onselect="grdPatientSearchAppointments">
+					</control>
+				</row>
+        <row name="rowSearchPatientAppointments" reveal="[CalendarPatientToSearch]!">
+          <control type="datagrid" name="grdPatientSearchAppointments" label="Citas del Paciente" 
+            span="12" rows="5"
+            action="redirect"
+            target="[[CalendarType]]=FirstVisit+[EditCalendar]=;mdlFirstVisitAppointmentModal,
+							[[CalendarType]]=ConsultVisit+[EditCalendar]=;mdlConsultVisitAppointmentModal,
+							[EditCalendar]!+[EditCalendar]%[[CalendarName]];mdlConsultVisitAppointmentModal,
+							[[CalendarType]]=Laboratory+[EditCalendar]=;mdlLabAppointment"
+						idle="[CalendarPatientToSearch]=|reset"
+            datarequest="GetPatientAppointmentsByDateRange"
+            appendrequest="patientId=[CalendarPatientToSearch],
+							startDateTime=(dateTimeNow),
+							endDateTime=(dateTimeNow)"
+            source="Start,CalendarType,CalendarName,Subject,ProviderFullName,Status"
+            sourcelabels="Fecha y Hora,Tipo,Calendario,Asunto,Médico,Estatus"
+            translate="CalendarType,Status"
+            sort="Start=desc"
+            align="|left|left|left|left|left"
+            format="datetime"
+            key="AppointmentGuid"
+            onselectset="[[CalendarType]]=FirstVisit;FirstVisit_AppointmentGuid=[[AppointmentGuid]],
+              [[CalendarType]]!FirstVisit+[[CalendarType]]!Laboratory;ConsultVisit_AppointmentGuid=[[AppointmentGuid]],
+							[[CalendarType]]=Laboratory;LabApt_AppointmentGuid=[[AppointmentGuid]]"
+            onselect="[[CalendarType]]=FirstVisit;FirstVisit_AppointmentGuid,
+							[[CalendarType]]!FirstVisit+[[CalendarType]]!Laboratory;ConsultVisit_AppointmentGuid,
+							[[CalendarType]]=Laboratory;LabApt_AppointmentGuid">
+          </control>
+        </row>
+      </group>
+    </section>
+</partial>

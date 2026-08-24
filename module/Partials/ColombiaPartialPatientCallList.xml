@@ -1,0 +1,243 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabPatientCallLst" type="tab" title="Llamar Pacientes" >
+    <group>
+      <row showif="never">
+        <control type="button" name="CallListSearch" action="redirect" target="mdlCallPatient"
+          set="CallPatientId=[PatientSearchResults]"
+          trigger="CallPatientId"/>
+        <control type="button" name="btnOpenPatientCall" action="redirect" target="mdlCallPatient"
+          set="CallPatientId=[ScannedPatientIdCall]"
+          trigger="CallPatientId"/>
+      </row>
+      <row>
+          <control type="label" label="Departamento Espera" span="2"/>
+          <control type="select" name="selWaitingDepartment"
+            span="3" acctsvc="true" explicit="true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"
+            provoke="dgrCallPatientList"/>
+          <control type="button" name="btnScanWristbandQRCall" color="green" span="2" label="Escanear Paciente" icon="qrcode"
+                action="scan" 
+                inject="value=[QRScannedResultCall]"
+                provoke="[QRScannedResultCall]!;GetScannedPatientQRCall"/>
+          <control type="hidden" name="QRScannedResultCall" span="2" action="trigger"
+              mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA" 
+              trigger="[QRScannedResultCall]!;GetScannedPatientQRCall"/>
+          <control type="hidden" name="GetScannedPatientQRCall" 
+              datarequest="GetPatientAllFields"
+              appendrequest="PatientId=[QRScannedResultCall]"
+              set="ScannedPatientIdCall=[[RecordUniqueId]],
+                ScannedPatientVisitCall=[[PatientVisit]],
+                ScannedOpenVisitCall=[[HasOpenVisit]]"
+              provoke="[ScannedPatientIdCall]!+[ScannedOpenVisitCall]=true;btnOpenPatientCall^btnNoOpenVisitCall"/>
+      </row>
+      <row showif="never">
+          <control type="text" name="ScannedPatientIdCall" span="4"/>
+          <control type="text" name="ScannedOpenVisitCall" span="4"/>
+          <control type="text" name="ScannedPatientVisitCall" span="4"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnNoOpenVisitCall" action="trigger" confirm="Este paciente no tiene una visita abierta.|nocancel"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the department -->
+        <control type="datagrid" label="Pacientes en Sala Espera" name="dgrCallPatientList"
+          action="redirect" 
+          target="mdlCallPatient"
+          searchable="true"
+          span="12" rows="25"
+          fitrows="true"
+          acctsvcreq="true"
+          datarequest="GetAdmittedPatientsByDepartment"
+          idle="[selWaitingDepartment]=|reset"
+          appendrequest="DepartmentGuid=[selWaitingDepartment],excludePhoto=true,includeAppointment=true" 
+          source="DepartmentDateTime,AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,CurrentDayAppointmentCalendar,CurrentDayAppointmentTime"
+          sourcelabels="Transferido,Admitido,Expediente,Nombre,Nacimiento,Edad,Sexo,Calendario,Hora"
+          align="||left|left|left|left|left|left|left"
+          format="datetime|datetime|||date"
+          translate="PatientSex"
+          sort="PatientFullName=asc"
+          key="RecordUniqueId"
+          onselectset="CallPatientId=[[RecordUniqueId]]"
+          onselect="CallPatientId"> 
+          <control type="button" name="btnSearchAdmitPatientFromDepartmentList"
+            icon="plus" label="Buscar Pacientes"
+            preset="PatientSearchSource=60"
+            action="redirect" target="mdlFindPatients"/>
+					<control type="button" name="btnRefreshCallPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="dgrCallPatientList"/>
+        </control>
+        </row>
+      </group>
+  </section>
+  <section type="tabmodal" name="mdlCallPatient" title="Llamar al Paciente" badge="none" size="medium">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="CallPatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[CallPatientId]"
+          inject="grpCallPatientInfo"
+          set="Call_LookupDepartmentName=[LookupDepartmentName],
+            Call_LookupServiceName=[LookupServiceName]"/>
+      </row>
+    </group>
+    <group name="grpCallPatientInfo">
+      <!-- Display patient to call -->
+      <columns>
+        <column span="10">
+          <row>
+            <control type="hidden" name="DepCall_PatientVisit"/>
+            <control type="hidden" name="DepCall_HasOpenVisit"/>
+          </row>
+          <row>
+              <control type="label" label="" span="1"/>
+              <control type="label" label="Expediente" align="left" span="2"/>
+              <control type="label" label="Nombre(s)" align="left" span="3"/>
+              <control type="label" label="Apellido Paterno" align="left" span="3"/>
+              <control type="label" label="Apellido Materno" align="left" span="3"/>
+          </row>
+          <row>
+            <control type="label" label="" span="1"/>
+            <control type="text" name="Call_MedicalRecordNumber" span="2" readonly="true"/>
+            <control type="text" name="Call_PatientFirstName" format="ucase" span="3" readonly="true"  />
+            <control type="text" name="Call_PatientMiddleName" format="ucase" span="3" readonly="true"  />
+            <control type="text" name="Call_PatientLastName" format="ucase" span="3" readonly="true" />
+          </row>
+          <row>
+            <control type="label" label="Nacimiento" span="2" />
+            <control type="date" name="Call_PatientDOB" span="2"  readonly="true"/>
+            <control type="text" name="Call_PatientAge" span="2" readonly="true"/>
+            <control type="label" label="Sexo" span="1" />
+            <control type="select" 
+              name="Call_PatientSex" span="2" 
+              source="Male,Female,Indeterminate"
+              readonly="true" 
+              sourcelabels="Masculino,Femenino,Indeterminado"/>
+            <control type="label" label="Sangre" span="1"/>
+            <control type="select" name="Call_BloodType" span="2"
+              source="A+,A-,B+,B-,O+,O-,AB+,AB-" readonly="true"/>
+          </row>
+          <row>      
+            <control type="label" label="País Nacimiento" span="2"/>
+            <control type="select" name="Call_Nationality" span="3" readonly="true"
+              default="(facilityData.HospitalCountry)" persist="true"
+              sort="CountrySpanish=asc"
+              datasource="GetCountries" 
+              source="CountrySpanish,Code"
+              trigger="[LastCountry]![Call_Nationality];Call_BirthPlace"/>
+            <control type="label" label="Estado Nacimiento" span ="3"/>
+            <control type="select" name="Call_BirthPlace" span="3" readonly="true"
+              idle="Call_Nationality=" 
+              datasource="GetStatesProvincesByCountryCode"
+              source="Name,Code" explicit="true"
+              append="countryCode=[Call_Nationality]"
+              set="LastCountry=[Call_Nationality],Call_BirthPlaceKey=[[CATALOG_KEY]]"/>
+            <control type="hidden" name="Call_BirthPlaceKey"/>
+          </row>
+          <row>
+            <control type="label" label="CURP" span="2"/>
+            <control type="text" name="PtSSN" span="2" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Celular" span="2"/>
+            <control type="text" name="Call_PatientCellPhone" span="2" readonly="true" />
+            <control type="label" label="Telefono de Casa" span="2"/>
+            <control type="text" name="Call_PtPhoneNumber" span="2" readonly="true" />
+            <control type="label" label="Email" span="1"/>
+            <control type="text" name="Call_PatientEmail" verify="email" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Parentesco" span="2"/>
+            <control type="select" name="Call_Companion"
+              span="2" readonly="true" 
+              source="Institución,Padre,Madre,Hermana,Hermano,Abuelo,Abuela,Tía,Tío,Club Colombia,
+              Primo,Prima,Sobrino,Hermanastro,Hermanastra,Tutor Legal,Ningún parentesco,Otros"/>
+            <control type="label" label="Referencia" span="2"/>
+            <control type="select" name="Call_ReferringSource" span="2" readonly="true" searchable="true"
+              source="Facebook,Tiktok,Linkedin,Publicidad en metro,X,Correo Electrónico,Paciente,Médico,Médico Staff,
+              Institución Gubernamental,Institución Privada,Empleado del Hospital,Escuela,Fundación,
+              Televisión,Radio,Página Web,Sponsor Club,Hospital Gubernamental,Hospital Privado,Referido de EUA,
+              Pantallas- Restaurante Casa de Toño,Tren suburbano,Pantalla en centro comercial,
+              Comercial Cinépolis,Publicidad en camiones,Publicidad en Tren Ligero,Sin Referencia"/>
+            <control type="label" label="Transporte" span="2"/>
+            <control type="select" name="Call_Transportation" span="2" 
+              source="Transporte público,coche propio,avión,otro" 
+              readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Diagnostico por Familia" span="4"/>
+            <control type="text" name="Call_FamilyDiagnosis" span="8" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Estatus CRM" span="2" />
+            <control type="select" name="Call_CRMStatus" span="3"
+              acctsvc="true" explicit="true" readonly="true"
+              filter="Active=true"
+              datasource="GetCRMStatusTypes"
+              source="StatusName,StatusGuid"/>
+            <control type="label" label="Establecimiento" span="2"/>
+            <control type="text" name="Consult_Sector" span="4" readonly="true"/> 
+          </row>
+          <row>
+            <control type="label" label="Notas" span="2"/>
+            <control type="textarea" name="Call_CRMNotes" span="10" rows="1" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Observaciones" span="2" />
+            <control type="textarea" name="Call_Remarks" span="10" rows="1" readonly="true"/>
+          </row>
+          <row bgcolor="white">
+            <control type="label" label="al Departamento" span="2" />
+            <control type="text" name="Call_LookupDepartmentName" span="4" readonly="true"/>
+            <control type="label" label="al Servicio" span="2" />
+            <control type="text" name="Call_LookupServiceName" span="4" readonly="true"/>
+          </row>
+        </column>
+        <column span="2">
+          <row>
+            <!--Patient photo-->
+            <control type="image"
+              format="jpg=circle" 
+              name="Call_ProfilePhoto"
+              default="null"
+              span="12" />
+          </row>
+          <row>
+            <control type="button" name="btnNotifyDepartmentCallPatient" span="12" icon="move" 
+              label="Notificar Paciente" color="green" 
+              reveal="[DepCall_HasOpenVisit]=true"
+              action="save"
+              compare="[DepartmentLookupName]!|Por favor, seleccione su departamento y servicio en la lista de pacientes."
+              acctsvc="true"
+              dataupdate="UpdateDepartment"
+              appendupdate="departmentGuid=[selWaitingDepartment],ServingPatient=[CallPatientId],ServingRoom=[DepartmentLookupName]"
+              provoke="btnAddCallDepartmentToVisit"/>
+          </row>
+          <row>
+            <control type="button" name="btnTransferCallPatient" span="12" icon="move" label="Transferir Paciente" color="green" 
+              reveal="[DepCall_HasOpenVisit]=true"
+              action="save|close|new"
+              compare="[DepartmentLookupName]!|Por favor, seleccione su departamento y servicio en la lista de pacientes."
+              confirm="Por favor confirme que desea transferir a este paciente a su departamento y servicio."
+              dataupdate="UpdatePatientVisitAllFields"
+              appendupdate="patientVisitUniqueId=[DepCall_PatientVisit],DepartmentGuid=[DepartmentGuidLookup],DepartmentService=[DepartmentServiceLookup],HospitalService=Esperando"
+              emit="trigger|DisplayWaitingCallQueue"
+              provoke="dgrCallPatientList"/>
+          </row>
+          <!-- Add the call information to the patient visit -->
+          <row showif="never">
+            <control type="button" name="btnAddCallDepartmentToVisit" 
+              action="save" 
+              acctsvc="true"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="PatientVisitUniqueId=[DepCall_PatientVisit],RoomService=[DepartmentLookupName],DateTimeCalled=(now)"
+              emit="trigger|DisplayWaitingCallQueue"
+              provoke="dgrCallPatientList"/>
+          </row>
+      </column>
+    </columns>
+    </group>
+  </section>
+</partial>

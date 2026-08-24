@@ -1,0 +1,109 @@
+<partial>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row>
+    <!-- Button to update patient visit info -->
+    <control type="button" name="btnUpdatePatientVisit"
+      icon="cloud-upload" label="Actualizar" span="12"
+      reveal="[PatientVisitGuid]!"
+      action="save|close|new"
+      affector="none"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row name="rowReportsButton">
+    <control type="button" name="btnReports"
+       reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Admitting,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+  <row>
+    <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
+      span="12" icon="envelope" label="Email"
+      preset="bmd_PatientId=[PatientId],
+      bmd_PatientFirstName=[Consult_PatientFirstName],
+      bmd_PatientMiddleName=[Consult_PatientMiddleName],
+      bmd_PatientLastName=[Consult_PatientLastName],
+      bmd_EmailAddress=[Consult_PatientEmail]"
+      trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+      action="redirect" target="mdlSendWYSIWYGEmail"/>
+  </row>
+  <row>
+      <control type="button" name="btnInitiateTextMessage" 
+        reveal="[PatientId]!"
+        span="12" icon="envelope" label="Enviar Texto"
+        trigger="grdPhysicianMessages2"
+        preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
+        action="redirect" target="mdlSendTextMessage"/>
+    </row>
+    <row>
+    <!-- Admit patient with no current visit or appointment -->
+    <control type="button" name="btnAdmitButtonFromAppointment" label="Ingresar por Cita" span="12"
+      reveal="[HasOpenVisit]=false"
+      color="orange" icon="cloud-upload"
+      action="redirect" 
+      trigger="grdAdmitVisitList"
+      target="mdlAdmitPatientFromAppointment"/>
+    </row>
+    <row>
+    <!-- Admit patient with no current visit or appointment -->
+    <control type="button" name="btnAdmitButton" label="Ingresar sin Cita" span="12"
+      reveal="[PatientId]!+[HasOpenVisit]=false"
+      color="orange" icon="cloud-upload"
+      action="save" 
+      confirm="Por favor confirme que quiere ingresar a este paciente sin cita."
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      datainsert="InsertPatientVisitAllFields"
+      appendinsert="copyDiagnosis=true,
+        copyApprovals=true,
+        patientId=[PatientId],
+        visitType=[DefaultAdmitType],
+        hospitalService=Esperando,
+        ambulatoryStatus=Inpatient,
+        preAdmit=0,
+        admitDateTime=(dateTimeNow),
+        locationId=(facilityData.LocationId)"
+      set="HasOpenVisit=true,
+        PatientVisit=[PatientVisitGuid]"
+      provoke="PatientVisitGuid,ButtonGroupSelect"/>
+    </row>
+    <row>
+      <!-- Print pediatric patient wristband -->
+      <control type="button" name="btnPrintPediatricWristband" label="Pulsera Pediátrica"
+        reveal="[PatientId]!" 
+        span="12" icon="print"
+        action="print" 
+        mode="report" 
+        append="id=1db2dfcbbc8,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]"/>
+    </row>
+    <row>
+      <!-- Print infant patient wristband -->
+      <control type="button" name="btnPrintInfantWristband" label="Pulsera Infantil"
+        reveal="[PatientId]!" 
+        span="12" icon="print"
+        action="print" 
+        mode="report" 
+        append="id=f869457b890,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]"/>
+    </row>
+</partial>

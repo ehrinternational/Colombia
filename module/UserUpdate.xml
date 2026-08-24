@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Mi Cuenta de Usuario">
+<facet name="FileName" value="UserUpdate"/>
+<section type="tab" title="Mi Cuenta de Usuario">
+    <!-- Get user information if they are using an internal login -->
+    <group name="passwordEntry" reveal="(user.ExternalLogin)=">
+     <row>
+        <control type="label" span="2" label="Contraseña"/>
+        <control type="password" span="3" name="EditPassword" required="true" edit="true"/>  
+        <control type="button" name="UserIdButton"
+          action="trigger"
+          icon="edit" label="Editar mi cuenta" span="3"
+          confirmrequest="VerifyThisUsersPassword"
+          appendconfirm="checkPassword=[EditPassword]"
+          confirmresponse="value=Correct Password|Esta contraseña no es correcta."
+          datarequest="GetUserProfileFromUserId"
+          inject="UserTabInfo"/>
+      </row>
+    </group>
+    <!-- Get user information if they are using an external login -->
+    <group name="ExternalPasswordEntry" reveal="(user.ExternalLogin)!">
+     <row>
+        <control type="button" name="GetUserIdButton"
+          action="trigger"
+          icon="edit" label="Editar mi cuenta" span="3"
+          datarequest="GetUserProfileFromUserId"
+          inject="UserTabInfo"/>
+      </row>
+    </group>
+
+    <group name="UserTabInfo" title="Mi Cuenta de Usuario">
+      <row>
+        <control type="hidden" name="UserType" span="2"/> 
+        <control type="hidden" name="Department" span="2"/> 
+      </row>
+      <row>
+        <control type="label" span="2" label="Identidad de Usuario"/>
+        <control type="text" span="3" name="My_UserId" readonly="true"/> 
+        <control type="hidden" name="UniqueId"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Firma"/>
+        <control type="usersignature" name="UserSignaturePhoto" span="9" edit="only"/>
+      </row>
+      <row>
+      	<control type="label" span="2" label=""/>
+        <control type="label" label="Nombre(s)" align="left" span="3"/>
+        <control type="label" label="Apellido Paterno" align="left" span="3"/>
+        <control type="label" label="Apellido Materno" align="left" span="3"/>
+      </row>
+      <row>
+      	<control type="label" span="2" label=""/>
+        <control type="text" name="FirstName" span="3" required="true" edit="true"/> 
+        <control type="text" name="MiddleName" span="3" required="true" edit="true" />
+        <control type="text" name="LastName" span="3" required="true" edit="true"/> 
+      </row>	
+      <row>
+        <control type="label" span="2" label="Mi Título"/>
+        <control type="text" span="3" name="Title" edit="true"/> 
+      </row>
+      <row>
+      	<control type="label" span="2" label="RNE" />
+        <control  type="text" span="3" name="StateLicense" edit="true"/> 
+      	<control type="label" span="2" label="Email" />
+        <control  type="text" span="4" name="EmailAddress" verify=
+          "email" edit="true" required="true"/> 
+      </row>
+      <row>
+        <control type="label" span="2" label="Universidad"/>
+        <control  type="text" span="3" name="Credentials" edit="true"/> 
+        <control type="label" span="2" label="CMP" />
+        <control  type="text" span="4" name="NPI" edit="true"/>
+      </row>
+      <row>
+      	<control type="label" span="2" label="NIP"/>
+        <control  type="password" span="2" name="SignaturePin" required="true" 
+          regex="^\d{4,7}$" edit="true"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Teléfono de Oficina"/>
+        <control type="text" span="2" name="OfficePhoneNumber" edit="true"/> 
+        <control type="label" span="3" label="Confirmar NIP" />
+        <control  type="password" span="2" name="ConfirmSignaturePin" 
+          required="true" equalto="SignaturePin" edit="true"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Celular"/>
+        <control  type="text" span="2" name="CellPhoneNumber" required="true" edit="true"/> 
+      </row>
+      <row>
+      	<control type="label" span="4" label=""/>
+         <control type="button" 
+      		span="3" reveal="[UniqueId]!"
+      		name="SaveUserButton" 
+      		label="Actualizar"
+          icon="cloud-upload"
+      		affector="none"
+      		capture="UserTabInfo"
+      		action="save|new"
+      		datainsert="UpdateUserAccountProfiles"
+          confirm="Confirma que quieres actualizar la información"/>
+       </row>
+    </group>
+
+    <group name="ChangePasswordGroup" title="Restablecer Mi Contraseña" reveal="[UniqueId]!+(user.ExternalLogin)=">
+      <row>
+        <control type="label" align="left" span="6" label="Importante: Las contraseñas deben tener entre 7 y 50 caracteres y al menos una letra mayúscula, una letra minúscula, un número y uno de las siguientes caracteres especiales: @ $ % ! ? *"/>
+      </row>
+      <row>
+        <control type="label" span="4" label="Contraseña Actual" />
+        <control type="password" span="2" name="OldPassword" required="true" equalto="EditPassword" edit="true"/>  
+      </row>
+      <row>
+        <control type="label" span="4" label="Contraseña Nueva" />
+        <control type="password" span="2" name="NewPassword" required="true" edit="true" regex="^((?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[$@$!%*?])[A-Za-z\d$@$!%*?]{7,50})$"/> 
+      </row>
+      <row>
+        <control type="label" span="4" label="Confirmar Nueva Contraseña" />
+        <control type="password" span="2" name="ConfirmPassword" required="true" edit="true"   equalto="NewPassword"/>
+      </row>
+    </group>
+    <group name="SaveMyPasswordGroup" reveal="[UniqueId]!+(user.ExternalLogin)=">
+      <row>
+        <control type="label" span="4" label=""/>
+         <control type="button" 
+          span="3"
+          name="SavePasswordButton" 
+          label="Restablecer Mi Contraseña"
+          icon="cloud-upload"
+          affector="none"
+          capture="ChangePasswordGroup"
+          action="save|new"
+          datainsert="ChangePassword"
+          confirm="Una vez que reestablezca su contraseña se cerrará su sesión. Por favor, vuelva a iniciar sesión con su nueva contraseña."
+          provoke="(logout)"/>
+       </row>
+    </group>
+  </section>
+</module>

@@ -1,0 +1,96 @@
+﻿<partial>
+<section type="tabmodal" name="mdlPatientPrograms" title="Programa del Paciente" size="small" badge="none">
+  <group>
+    <row>
+      <control type="hidden" name="TrackingGuid"
+        acctsvcreq="true"
+        datarequest="GetPatientProgramTrackingByTrackingGuid"
+        appendrequest="TrackingGuid=[TrackingGuid]"
+        inject="grpTrackingInfo"
+        provoke="[[EnteredBy]]!;GetEnteredByName,[[RemovedBy]]!;GetRemovedByName"/>
+      <control type="hidden" name="GetEnteredByName"
+        datarequest="GetUserProfileFromUserId2"
+        appendrequest="userIdToGet=[Program_EnteredBy]"
+        set="Program_EnteredByName=[[UserFullName]]"/>  
+      <control type="hidden" name="GetRemovedByName"
+        datarequest="GetUserProfileFromUserId2"
+        appendrequest="userIdToGet=[Program_RemovedBy]"
+        set="Program_RemovedByName=[[UserFullName]]"/>  
+    </row>
+  </group>
+  <group name="grpTrackingInfo">
+    <row>
+      <control type="label" label="Estatus" span="3"/>
+      <control type="select" name="Program_Status" 
+        source="Active,Completed,Canceled" default="Active" readonly="true"
+        sourcelabels="Activo,Completado,Cancelado" span="3" edit="true"/>
+    </row>
+    <row>
+      <control type="label" label="Fecha Inicio" span="3"/>
+      <control type="date" name="Program_DateTimeInitiated" span="3" edit="true" default="(now)"/>
+      <control type="label" label="Iniciado por" span="2"/>
+      <control type="text" name="Program_EnteredByName" span="3" readonly="true"/>
+      <control type="hidden" name="Program_EnteredBy"/>
+    </row>
+    <row>
+      <control type="label" label="Programa" span="3"/>
+      <control type="select" name="Program_ProgramGuid" span="9" edit="true" required="true"
+        acctsvc="true"
+        filter="ProgramType!Nutricional"
+        datasource="GetProgramsActive"
+        source="ProgramName,ProgramGuid"
+        explicit="true"/>
+    </row>
+    <row>
+      <control type="label" label="Notas" span="3"/>
+      <control type="textarea" name="Program_Notes" span="9" rows="1" edit="true"/>
+    </row>
+    <row  name="rowRemoved" reveal="[TrackingGuid]!+[Program_Status]=Canceled">
+      <control type="label" label="Fecha Termino" span="3"/>
+      <control type="date" name="Program_DateTimeRemoved" span="3" readonly="true"/>
+      <control type="label" label="Terminado por" span="3"/>
+      <control type="text" name="Program_RemovedByName" span="3" readonly="true"/>
+      <control type="hidden" name="Program_RemovedBy"/>
+    </row>
+    <row>
+      <control type="modalbutton" name="btnSaveTracking" icon="cloud-upload" label="Guardar" color="green"
+        reveal="[TrackingGuid]="
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        preset="EnteredBy=(userName),Program_DateTimeInitiated=(dateTimeNow)"
+        capture="grpTrackingInfo"
+        datainsert="InsertPatientProgramTracking"
+        appendinsert="patientId=[PatientId]"
+        provoke="ERPatientPrograms"/>
+      <control type="modalbutton" name="btnUpdateTracking" icon="cloud-upload" label="Actualizar" color="grey"
+        reveal="[TrackingGuid]!"
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        capture="grpTrackingInfo"
+        dataupdate="UpdatePatientProgramTracking"
+        appendupdate="TrackingGuid=[TrackingGuid]"
+        provoke="ERPatientPrograms"/>
+      <control type="modalbutton" name="btnCancelTracking" icon="remove" label="Cancelar" color="red"
+        reveal="[TrackingGuid]!+[Program_Status]=Active"
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        confirm="Por favor, confirme que desea cancelar esta asignación de programa."
+        dataupdate="UpdatePatientProgramTracking"
+        appendupdate="TrackingGuid=[TrackingGuid],RemovedBy=(userName),DateTimeRemoved=(dateTimeNow),Status=Canceled"
+        provoke="ERPatientPrograms"/>
+      <control type="modalbutton" name="btnCompleteTracking" icon="check" label="Completar" color="green"
+        reveal="[TrackingGuid]!+[Program_Status]=Active"
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        confirm="Por favor, confirme que desea completar esta asignación del programa"
+        dataupdate="UpdatePatientProgramTracking"
+        appendupdate="TrackingGuid=[TrackingGuid],Status=Completed"
+        provoke="ERPatientPrograms"/>
+    </row>
+  </group>
+</section>
+</partial>

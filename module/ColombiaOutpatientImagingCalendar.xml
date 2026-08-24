@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Programar Imagenología" type="onload" trigger="AppointmentTimes">
+  <facet name="CalendarOption" value="Imaging"/>
+  <facet name="FileName" value="OutpatientImagingAppointments"/>
+  <!-- Display a simple calendar for the outpatient clinic  -->
+  <partial link="./Partial/Calendars/PartialCalendarImagingWithModalities.xml"/>
+  <partial target="mdlImagingAppointment" link="Partials/ColombiaPartialCalendarImagingAppointmentModal.xml"/>
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+  <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
+
+</module>

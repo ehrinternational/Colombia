@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Gestión de Médicos" type="onload" trigger="UserList">
+  <facet name="FileName" value="UserManagement"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Users"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <partial link="./Partial/Admin/PartialPhysicianManagement.xml"/>
+  <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

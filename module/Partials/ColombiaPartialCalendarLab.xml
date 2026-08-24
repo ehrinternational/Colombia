@@ -1,0 +1,164 @@
+﻿<partial>
+  <!-- A calendar view is shown and the user can select the calendar and view -->
+  <section type="tab" name="tabCalendarAppointments" title="Citas de Laboratorio" trigger="calAppointmentTypeGuid,GetLastCalendar,LabApt_AppointmentTypeGuid">
+    <group showif="never">
+      <row>
+        <control type="text" name="CalendarEditMode" default="false"/>
+        <control type="text" name="Drop_Source"/>
+        <control type="text" name="Drop_AppointmentGuid"/>
+        <control type="text" name="Drop_StartTime"/>
+        <control type="text" name="Drop_EndTime"/>
+        <control type="text" name="Drop_PatientFirstMiddleLast"/>
+      </row>
+      <row>
+        <!-- Templates are used to format the data shown in each calendar view -->
+        <!-- This allows each view to have an appropriate data set -->
+        <!-- A green checkmark is shown if the appointment is confirmed -->
+        <!-- A facetime-video icon is shown if IsTelemedicine is set to true -->
+        <!-- Template for month and week views that shows only the patient name-->
+        <template name="dayGridMonthTemplate" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]}[/span] 
+        </template>
+         <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridWeekTemplate" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]}[br]
+            [/span]
+        </template>
+        <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridDayTemplate" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} 
+            [/span]
+        </template>
+        <!-- Template for agenda (list) view that shows the provider, description, and location-->
+        <template name="listMonthTemplate" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} 
+            [/span]
+        </template>
+        <!-- Template for bacground scheduler times records-->
+        <template name="BackgroundTemplate" type="markup">
+            [span size=12 color=darkred] 
+            ${[[Reason]]}
+            [/span]
+        </template>
+      </row>
+      <row>
+        <control type="button" name="btnUpdateDrop"
+          action="save"
+          affector="none" 
+          dataupdate="UpdateSchedulerAppointments"
+				  appendupdate="appointmentGuid=[Drop_AppointmentGuid],start=[Drop_StartTime],end=[Drop_EndTime],calculateDuration=true,txtMessage=[MoveTextMessage]"/>
+        <control type="button" name="btnUpdateResize"
+          action="save"
+          affector="none" 
+          dataupdate="UpdateSchedulerAppointments"
+				  appendupdate="appointmentGuid=[Drop_AppointmentGuid],start=[Drop_StartTime],end=[Drop_EndTime],calculateDuration=true"/>
+      </row>
+      <row>
+        <control type="hidden" name="GetLastCalendar"
+          datarequest="GetUserProfileFromUserId2"
+          appendrequest="UserIdToGet=(userName)"
+          inject="rowSetCalendar"
+					provoke="btnSetLastCalendar"/>
+      </row>
+      <!-- Set the calendar to the last calendar for this user -->
+      <row name="rowSetCalendar" showif="never">
+        <control type="hidden" name="LastCalendarGuid"/>
+        <control type="button" name="btnSetLastCalendar"
+          action="trigger" set="calAppointmentTypeGuid=[LastCalendarGuid]"
+          provoke="LabAppointmentTimes,CalendarProviderId"/>
+        <!-- Save the last calendar accessed by this user -->
+        <control type="button" name="SaveLastCalendar"
+          action="save" affector="none"
+      		datainsert="UpdateUserAccountProfiles"
+          appendinsert="UserId=(userName),lastCalendarGuid=[calAppointmentTypeGuid]"/>
+      </row>
+    </group>
+  	<group name="rowLabCalendarDisplay" reveal="[CalendarEditMode]=false">
+      <row name="rowCalendarSelection">
+        <!-- Buttongroup to select status (Active=scheduled and confirmed, Completed=completed and No Show, All=all but canceled -->
+        <control type="buttongroup" name="btngrpSelectStatus"
+          span="4" default="Active"
+          source="Active,Completed,No Show,Canceled"
+          sourcelabels="Activo,Completado,Ausente,Cancelado"
+          trigger="LabAppointmentTimes"/>
+        <!-- Select the calendar to view -->
+        <control type="select" 
+				  name="calAppointmentTypeGuid" span="3"
+          namefield="calAppointmentName"
+				  datasource="GetSchedulerAppointmentTypesByFacility" append="LocationId=(facilityData.LocationId)" 
+				  source="CalendarName,CalendarGuid" 
+					filter="CalendarType=[CalendarOption]"
+          explicit="true"
+				  default="true"
+				  edit="true" 
+					sort="CalendarName=asc"
+				  provoke="SaveLastCalendar,LabAppointmentTimes"/>
+      </row>
+			<row>
+          <!-- Display lab calendar -->
+          <control type="calendar" 
+            span="12"
+            aspect="10/7"
+            edit="true"
+            name="LabAppointmentTimes"
+            headerleft="prevYear,nextYear prev,next today"
+            headercenter="title"
+            headerright="dayGridMonth,timeGridWeek,timeGridDay,listDay"
+            navlinking="true"
+            slotduration="00:15"
+            duration="00:30"
+            businesshours="1,2,3,4,5=06:00-20:00"
+            eventcolor="Type|Background=grey;Block=grey;Scheduled=yellowgreen;Confirmed=darkgreen;Completed=orange;Canceled=red"
+            source="dayGridMonth=dayGridMonthTemplate,timeGridWeek=timeGridWeekTemplate,timeGridDay=timeGridDayTemplate,listDay=listMonthTemplate"
+            bgsource="dayGridMonth=BackgroundTemplate,timeGridWeek=BackgroundTemplate,timeGridDay=BackgroundTemplate,listDay=BackgroundTemplate"
+            bgevent="Status|Background=true"
+            editable="AppointmentGuid!"
+            editduration="AppointmentGuid!"
+            idle="[calAppointmentTypeGuid]=|reset"
+            acctsvcreq="true"
+            datarequest="GetSchedulerExceptionsByDateRange"
+            appendrequest="calendarGuid=[calAppointmentTypeGuid],status=[btngrpSelectStatus]"
+            map="start=StartDateTime,end=EndDateTime,title=rowguid"
+          	daterange="start=start,end=end"
+            key="key"
+            action="redirect"
+            target="mdlLabAppointment"
+            selectable="true"
+            selectabletarget="[btngrpSelectStatus]=Active;mdlLabAppointment"
+            onselectableset="LabApt_Source=1,PatientSearched=false,LabApt_Subject=Prueba de Laboratorio,LabApt_AppointmentTypeGuid=[calAppointmentTypeGuid],LabApt_Start=[[start]],LabApt_End=[[end]],LabApt_Duration=[[duration]],LabApt_Status=Scheduled,LabApt_ModalityCode=[selModalitySelect]"
+            onselectset="LabApt_Source=1,LabApt_AppointmentGuid=[[AppointmentGuid]],LabApt_AppointmentTypeGuid=[calAppointmentTypeGuid],LabApt_Start=[[start]]"
+            onselect="[LabApt_AppointmentGuid]!;LabApt_AppointmentGuid"
+            droptarget="none"
+            ondropset="Drop_Source=1,Drop_AppointmentTypeGuid=[calAppointmentTypeGuid],Drop_AppointmentGuid=[[AppointmentGuid]],Drop_StartTime=[[StartDateTime]],Drop_EndTime=[[EndDateTime]],Drop_PatientFirstMiddleLast=[[PatientFirstMiddleLast]]"
+            ondrop="[btngrpSelectStatus]=Active;btnUpdateDrop^LabAppointmentTimes"
+            resizetarget="none"
+            onresize="[btngrpSelectStatus]=Active;btnUpdateResize^LabAppointmentTimes"
+            onresizeset="Drop_Source=1,Drop_AppointmentTypeGuid=[calAppointmentTypeGuid],Drop_AppointmentGuid=[[AppointmentGuid]],Drop_StartTime=[[StartDateTime]],Drop_EndTime=[[EndDateTime]],Drop_PatientFirstMiddleLast=[[PatientFirstMiddleLast]]">
+          <!-- Button to insert a new lab calendar -->
+           <control type="button" name="btnNewLabCalendar"
+            label="Añadir Nuevo" icon="cloud-upload"
+            preset="CalendarEditMode=true"
+            action="redirect" target="mdlSimpleCalendarSetup"/>
+          <!-- Button to edit this calendar  -->
+          <control type="button" name="btnEditImagingCalendar"
+            label="Agendar" icon="edit"
+            reveal="[calAppointmentTypeGuid]!"
+            preset="Simple_CalendarGuid=[calAppointmentTypeGuid],CalendarEditMode=true" 
+            trigger="Simple_CalendarGuid"
+            action="redirect" target="mdlSimpleCalendarSetup"/>
+          <!-- Button to refresh the calendar -->
+          <control type="button" name="btnRefreshCalendar"
+            icon="refresh" label="Actualizar" action="trigger" trigger="LabAppointmentTimes"/>
+          </control>
+      </row>
+		</group>
+  </section>
+</partial>

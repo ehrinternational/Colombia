@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Primera vez" type="onload" trigger="btnSetSectorDefault">
+  <facet name="FileName" value="CustomerManagement"/>
+  <facet name="PatientSearched" value="false"/>
+  <facet name="DefaultPatientId"/>
+  <facet name="DefaultOrderType"/>
+  <facet name="DefaultOrderGuid"/>
+  <!-- Import templates -->
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Social Worker"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <headerbutton name="btnTaskCalendar"
+    icon="calendar" label="Mis Tareas"
+    preset="DefaultPatientId="
+    trigger="MyTaskAppointmentTimes"
+    action="redirect" target="mdlMyTaskAppointments"/>
+  <headerbutton name="btnFirstVisitCalendar"
+    icon="calendar" label="Primera Vez"
+    preset="DefaultPatientId=,DefaultOrderGuid="
+    trigger="grdFirstVisitAppointmentTimes"
+    action="redirect" target="mdlFirstVisitCalendarAppointments"/>
+  <!-- Display list of prospect patients for a selected CRMStatus -->
+  <partial link="Partials/ColombiaPartialProspectivePatientList.xml"/>
+  <!-- Display an appointment list for patient reminders -->
+  <partial link="Partials/ColombiaPartialAppointmentListByStatus.xml"/>
+  <!--Tabmodal for admitting/reviewing hospital patients-->
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="CRMPatientList">
+    <group showif="never">
+      <row>
+        <!--Read the patient record and display-->
+        <control type="text"
+          name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo,rowRoomFullName"
+          set="PatientSearched=false"
+          provoke="[Consult_Nationality]![LastCountry];Consult_BirthPlace,ButtonGroupSelect"/>
+        <!-- Close the patient tabmodal -->
+        <control type="button" name="ClosePatientTabModal" action="close|new"/>
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="PatientInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialProspectButtons.xml"/>
+        </column>
+      </columns>
+    </group> 
+    <!-- Patient chart datagrids -->
+    <group name="PatientGridGroup" reveal="[PatientId]!">
+      <row>
+        <control type="buttongroup" 
+          name="ButtonGroupSelect" 
+          edit="true" mode="auto" span="12"
+          source="Tasks,Problems,Identification,Addresses,Contacts,Documents,Appointments,Surgery" 
+          sourcelabels="Tareas,Diagnósticos,Identificación,Direcciones,Contactos,Subir Documentos,Citas,Cirugía" 
+          default="Tasks"  
+          provoke="GridOptions,PatientTasks,ERPastProblemList,ERAllergyList,Identification,PatientPhones,Addresses,Contacts,EREcdForms,ScannedForms,Appointments,ERSurgeries"/>
+      </row>
+      <row>
+        <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
+          <partial link="./Partial/Grids/PartialPatientTasksWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
+          <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialIdentificationGrid.xml"/>
+          <partial link="./Partial/Grids/PartialPatientAddressesForMexico.xml"/>
+          <partial link="./Partial/Grids/PartialPatientPhones.xml"/>
+          <partial link="./Partial/Grids/PartialPatientContactsWithModal.xml"/>
+          <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
+          <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
+          <partial link="Partials/ColombiaPartialAppointmentListForPatientWithCalendars.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+        </control>
+      </row>
+    </group>
+  </section>
+    <!-- Colombia partials -->
+    <partial  link="Partials/ColombiaPartialPatientContactsModal.xml"/>
+     <!-- Calendars -->
+    <partial target="mdlFirstVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarFirstVisitAppointmentsAsModal.xml"/>
+    <partial target="mdlFirstVisitAppointmentModal" link="./Partial/Calendars/PartialCalendarFirstVisitAppointmentModal.xml"/>
+    <partial target="mdlConsultVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarConsultAppointmentsAsModal.xml"/>
+    <partial link="./Partial/Calendars/PartialCalendarConsultVisitAppointmentModal.xml"/>
+    <partial target="mdlCalendarSearchModal" link="Partials/ColombiaPartialCalendarSearchModal.xml"/>
+    <partial target="mdlMyTaskAppointments" link="./Partial/Calendars/PartialCalendarMySalesTasksAsModal.xml"/>
+    <!-- Admin modals -->
+    <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
+    <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+		<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/> 
+    <partial target="mdlAssignPhysician" link="./Partial/Admin/PartialAssignAttendingPhysician.xml"/>
+    <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
+    <!-- Demographic modals -->
+    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial target="NewPayers" link="./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
+    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+    <!-- Messaging -->
+		<partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
+    <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>
+    <partial target="mdlUpdateCRMStatus" link="./Partial/Modals/PartialUpdateCRMStatusForPatient.xml"/>
+    <partial target="mdlNewProjectTasks" link="./Partial/Messaging/PartialNewProjectTasks.xml"/>
+</module>

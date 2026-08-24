@@ -1,0 +1,52 @@
+<partial>
+  <!-- Patient Appointment List with new and edit for outpatient, imaging and lab calendars -->
+  <control type="hidden" name="FromCalendar" default="false"/>
+  <control type="datagrid" label="Citas del Paciente" name="Appointments" 
+    option="Appointments"
+    rows="5"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientAppointmentsByDateRange"
+    appendrequest="patientId=[PatientId],startDateTime=(dateTimeNow),endDateTime=(dateTimeNow),Status=AllCanceled"
+    source="Start,CalendarType,CalendarName,Subject,ProviderFullName,Status"
+    sourcelabels="Fecha y Hora,Tipo,Calendario,Asunto,Médico,Estatus"
+    translate="CalendarType,Status"
+    sort="Start=desc"
+    align="|left|left|left|left|left"
+    format="datetime"
+    key="AppointmentGuid">
+  <control type="button" name="btnPrintPatientAppointmentList"
+      label="Agenda" icon="print"  
+      action="print" mode="report" 
+      append="id=a835faef16d,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),PatientId=[PatientId],UserName=(fullname),CurrentDateTime=(dateTimeNow)"/>  
+  <control type="button" name="btnPrintPatientAppointment"
+      showif="feature"
+      label="Cita" icon="print"  
+      action="print" mode="report" 
+      append="id=e111f95c2bf,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),AppointmentId=[[AppointmentGuid]],UserName=(fullname),CurrentDateTime=(dateTimeNow)"/>
+  <!-- Button to edit First Visit appointments -->
+  <control type="button" name="btnEditFirstVisit"
+    showif="feature"
+    reveal="[[CalendarType]]=FirstVisit"
+    icon="edit" label="Editar" 
+    preset="FirstVisit_AppointmentGuid=[[AppointmentGuid]]"
+    trigger="FirstVisit_AppointmentGuid"
+    action="redirect" 
+    target="mdlFirstVisitAppointmentModal"/>
+  <!-- Button to enter new first visit appointments -->
+  <control type="button" name="btnNewFirstVisitAppointment"
+    reveal="[Patient_Active]=true"
+    preset="DefaultPatientId=[PatientId]"
+    icon="plus" label="Primera Vez"
+    trigger="grdFirstVisitAppointmentTimes" 
+    action="redirect" 
+    target="mdlFirstVisitCalendarAppointments"/>
+  <!-- Button to enter new outpatient appointments -->
+  <control type="button" name="btnNewConsultAppointment"
+    reveal="[Patient_Active]=true+[FromCalendar]=false"
+    preset="DefaultPatientId=[PatientId]"
+    icon="plus" label="Consulta"
+    trigger="grdConsultVisitAppointmentTimes" 
+    action="redirect" 
+    target="mdlConsultVisitCalendarAppointments"/>
+  </control>
+</partial>

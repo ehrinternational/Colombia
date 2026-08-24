@@ -1,0 +1,94 @@
+<partial>
+  <section type="tab" name="tabPatientAppointments" title="Citas de Pacientes" trigger="[calStartDate]!+[calEndDate]!;grdPatientAppointmentList">
+    <group>
+      <row>
+        <control type="date" name="calStartDate" default="now" span="2" 
+          trigger="[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+        <control type="date" name="calEndDate" default="now" span="2" 
+          trigger="[calStartDate]!+[calEndDate]!;grdPatientAppointmentList"/>
+        <control type="hidden" name="QRScannedResult" 
+          mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+        <control type="button" name="btnScanPatientQR" 
+          action="scan" color="green" span="3"
+          icon="qrcode"
+          label="Escanear Paciente"
+          inject="value=[QRScannedResult]"
+          provoke="[QRScannedResult]!;GetScannedPatientQR"/>
+        <control type="button" name="btnNewFirstTimePatient" span="2"
+          icon="plus" label="Buscar/Ingresar"
+          preset="PatientSearched=False"
+          action="redirect" target="PatientTabModal"/>
+      </row>
+      <row showif="never">
+        <control type="hidden" name="GetScannedPatientQR"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRScannedResult]"
+          set="[[MergedToPatientId]]!;QRScanResult=[[MergedToPatientId]],FirstVisit_HasOpenVisit=[[HasOpenVisit]]"
+          provoke="[[RecordUniqueId]]=;btnNoPatientFound,
+            [[RecordUniqueId]]!+[[MergedToPatientId]]!;btnPatientWasMerged,
+            [[RecordUniqueId]]!+[[HasOpenVisit]]!true+[[MergedToPatientId]]=;hidFindPatientAppointment,
+            [[RecordUniqueId]]!+[[HasOpenVisit]]=true+[[MergedToPatientId]]=;btnPatientHasOpenVisit"/>
+        <control type="button" name="btnPatientWasMerged" action="trigger"
+          confirm="Aviso: Esta expediente de paciente se fusionó con una nueva. Solicite a un trabajador social que emita una nueva tarjeta de paciente para este paciente."
+          provoke="GetScannedPatientQR"/>
+        <control type="hidden" name="hidFindPatientAppointment"
+          default="true" sort="Start"
+          datarequest="GetPatientAppointmentsByDateRange"
+          appendrequest="Top1ByDate=true,patientId=[QRScannedResult],startDateTime=[calStartDate],endDateTime=[calEndDate]"
+          source="CalendarType,AppointmentGuid"
+          set="[[AppointmentGuid]]!;FirstVisit_AppointmentGuid=[[AppointmentGuid]]"
+          provoke="[[AppointmentGuid]]!;btnOpenPatientAppointment^btnOpenPatientChart"/>
+        <control type="button" name="btnOpenPatientAppointment"
+          action="redirect" target="mdlFirstVisitAppointmentModalWithAdmit"
+          set="QRScannedResult="
+          trigger="FirstVisit_AppointmentGuid"/>
+        <control type="button" name="btnOpenPatientChart"
+          preset="PatientId=[QRScannedResult]"
+          trigger="PatientId"
+          set="QRScannedResult="
+          action="redirect" target="PatientTabModal"/>
+        <control type="button" name="btnNoPatientFound"
+          action="trigger"
+          set="QRScannedResult="
+          confirm="No se ha encontrado ninguna paciente.|nocancel"/>
+        <control type="button" name="btnPatientHasOpenVisit"
+          action="trigger"
+          set="QRScannedResult="
+          confirm="Esta paciente ya tiene una visita abierta.|nocancel"/>
+      </row>
+      <row>
+        <!-- Patient Appointment List with admit and edit -->
+        <control type="datagrid" name="grdPatientAppointmentList"
+          label="Citas de Pacientes"  
+          searchable="true"
+          rows="20" span="12"
+          action="redirect"
+          idle="[calStartDate]=,[calEndDate]="
+          filter="IsTelemedicine!true"
+          rowcolor="HasOpenVisit|true=green"
+          target="mdlFirstVisitAppointmentModalWithAdmit"
+          datarequest="GetPatientAppointmentsByDateRange"
+          appendrequest="LocationId=(facilityData.LocationId),startDateTime=[calStartDate],endDateTime=[calEndDate],status=Active"
+          source="HasOpenVisit,Start,CalendarName,MedicalRecordNumber,PatientFirstMiddleLast,Subject,ProviderFullName"
+          sourcelabels="Llegado,Fecha y Hora,Calendario,Expediente,Paciente,Asunto,Médico"
+          translate="Status"
+          sort="NameAndDate=asc"
+          align="||left|left|left|left|left"
+          format="boolean|datetime"
+          key="AppointmentGuid"
+          onselectset="FirstVisit_AppointmentGuid=[[AppointmentGuid]]"
+          onselect="FirstVisit_AppointmentGuid">
+        <control type="button" name="btnRefreshgrdPatientAppointmentList"
+          icon="refresh" label="Actualizar" action="trigger" provoke="grdPatientAppointmentList"/>
+        <control type="button" name="btnAppointmentListReport"
+          reveal="[calStartDate]!+[calEndDate]!"
+          action="print" 
+          mode="report" 
+          label="Reporte de Citas" 
+          icon="print" 
+          append="id=51c0deeacdb,HospitalGuid=(facilityData.HospitalGuid),LocationId=(facilityData.LocationId),UserName=(userName),FacilityId=(facility),StartDate=[calStartDate],EndDate=[calEndDate]"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

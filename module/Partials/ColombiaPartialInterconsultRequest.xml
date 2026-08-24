@@ -1,0 +1,341 @@
+ <partial>
+  <!-- Tobmodal to enter/edit a consult request -->
+  <section type="tabmodal" badge="none" title="Solicitud de Interconsulta" name="NewConsultModal" size="medium">
+    <group showif="never">
+      <row>
+        <!-- Store the PatientId, read and inject the patient info -->
+        <control type="hidden" name="InterConsult_PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[InterConsult_PatientId]"
+          inject="ICTPatientInfo"/>
+        <!-- Store the PatientConsultGuid, read and inject the info -->
+        <control type="hidden" name="PatientConsultGuid"
+          acctsvcreq="true"
+          datarequest="GetConsultRequestsByConsultRequestGuid"
+          appendrequest="consultRequestGuid=[PatientConsultGuid]"
+          inject="grpConsultInfo"
+          provoke="ConsultCalls"/>
+      </row>
+    </group>
+    <group name="ICTPatientInfo">
+      <columns>
+        <column span="10">
+          <row>
+            <control type="hidden" name="InterConsult_PatientVisit"/>
+          </row>
+          <row>
+              <control type="label" label="" span="2"/>
+              <control type="label" label="Expediente" align="left" span="1"/>
+              <control type="label" label="Nombre(s)" align="left" span="3"/>
+              <control type="label" label="Apellido Paterno" align="left" span="3"/>
+              <control type="label" label="Apellido Materno" align="left" span="3"/>
+          </row>
+          <row>
+            <control type="label" label="" span="2"/>
+            <control type="text" name="InterConsult_MedicalRecordNumber" span="1" readonly="true"/>
+            <control type="text" name="InterConsult_PatientFirstName" format="ucase" span="3" readonly="true"  />
+            <control type="text" name="InterConsult_PatientMiddleName" format="ucase" span="3" readonly="true"  />
+            <control type="text" name="InterConsult_PatientLastName" format="ucase" span="3" readonly="true" />
+          </row>
+          <row>
+            <control type="label" label="Nacimiento" span="2" />
+            <control type="date" name="InterConsult_PatientDOB" readonly="true" span="2"/>
+            <control type="text" name="InterConsult_PatientAge" readonly="true" span="2"/>
+            <control type="label" label="Sexo" span="2" />
+            <control type="select" 
+              name="InterConsult_PatientSex" span="3" 
+              readonly="true"  
+              source="Male,Female,Indeterminate,Unknown"  
+              sourcelabels="1 Masculino,2 Femenino,3 No Definido,4 Desconocido"/>
+          </row>
+          <row>
+            <control type="label" label="Celular" span="2"/>
+            <control type="text" name="InterConsult_PatientCellPhone" span="2" readonly="true"/>
+            <control type="label" label="Casa" span="1"/>
+            <control type="text" name="InterConsult_PtPhoneNumber" span="2" readonly="true"/>
+            <control type="label" label="Email" span="1"/>
+            <control type="text" name="InterConsult_PatientEmail" readonly="true" span="4"/>
+          </row>
+        </column>
+        <column span="2">
+          <row>
+            <!-- Patient photo -->
+            <control type="image" name="Interconsult_ProfilePhoto"
+              format="jpg=circle" default="null" span="12"/>
+          </row>
+          <row>
+            <control type="button" name="btnSearchPatientNames"
+              reveal="[InterConsult_PatientId]="
+              label="Buscar" span="12" icon="search" color="grey"
+              preset="PatientSearchSource=52,Search_PatientFirstName=[InterConsult_PatientFirstName],Search_PatientMiddleName=[InterConsult_PatientMiddleName],Search_PatientLastName=[InterConsult_PatientLastName]"
+              trigger="Search_FindPatient"
+              action="redirect" target="mdlFindPatients"/>
+            <control type="hidden" name="SetInterconsultPatientId"
+              datarequest="GetPatientAllFields"
+              appendrequest="PatientId=[PatientSearchResults]"
+              inject="rowInterConsultPatientId"
+              provoke="InterConsult_PatientId"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+      <!-- Consult request group -->
+    <group name="grpConsultInfo">
+        <row>
+          <control type="label" label="Tipo de Consulta" span="2"/>
+          <control type="buttongroup" name="InterConsult_ConsultType" span="2"
+            source="Internal,External" 
+            sourcelabels="Interno,Externo"
+            required="true" edit="[ConsultRequestStatus]=Active|Scheduled" default="Internal"/>
+          <control type="buttongroup" name="AttentionType" span="4"
+            source="Physician,Patient"
+            sourcelabels="Médico Colombia,Referido Paciente"
+            edit="[ConsultRequestStatus]=Active|Scheduled" default="Physician"/>
+          <control type="label" label="Programado" span="1"/>
+          <control type="datetime" name="ConsultScheduledDateTime" span="2" readonly="true"/>
+        </row>
+        <!-- New field ExamType for Colombia -->
+        <row name="rowExamType" reveal="[AttentionType]=Patient">
+          <control type="label" label="Estudio" span="2"/>
+          <control type="select" name="InterConsult_ExamType" span="4" edit="[ConsultRequestStatus]=Active|Scheduled"
+            required="true" sort="true"
+            source="Patología,Resonancia,Tomografia simple,Tomografia tridimensional,Electromiografía,
+            Potenciales evocados,Electroencefalograma,Holter,Gammagrafia renal,Angiotomografía,
+            Arteriografía,Angioresonancia,Gammagrafía ósea,Angiografía,Artroresonancia,PET -CP FDG"/>
+        </row>
+        <row name="rowEnteredBy" reveal="[PatientConsultGuid]!">
+          <control type="label" span="2" label="Originado por"/>
+          <control type="text" name="InterConsult_EnteredByFullName" span="3" readonly="true"/>
+          <control type="datetime" span="3" name="InterConsult_DateTimeEntered" readonly="true" default="now"/>
+          <control type="label" span="1" label="Folio"/>
+          <control type="text" span="2" name="InterConsult_ConsultNumber" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" span="2" label="Fecha de Solicitud"/>
+          <control type="datetime" span="3" name="ConsultRequestDateTime" 
+            edit="[ConsultRequestStatus]=Active|Scheduled" required="true" default="now"/>
+          <control type="label" span="1" label="Prioridad"/>
+          <control type="select" span="2" name="ConsultRequestPriority"  
+            source="Normal,Medium,Emergency"
+            sourcelabels="Normal,Medio,Emergencia"
+            default="Normal" edit="[ConsultRequestStatus]=Active|Scheduled"
+            required="true"/>
+          <control type="label" span="1" label="Estatus"/>
+          <control type="select" span="2" name="ConsultRequestStatus"  
+            source="Active,Approved,Scheduled,Completed,Canceled"
+            sourcelabels="Pendiente,Aprobado,Programado,Completado,Cancelado"
+            default="Active" readonly="true" required="true"/>
+        </row>
+        <row>
+          <control type="label" label="Departamento solicitante" span="3"/>
+          <control type="select" name="InterConsult_RequestingDepartment"
+            span="3" required="true"
+            acctsvc="true" explicit="true" 
+            edit="[ConsultRequestStatus]=Active|Scheduled"
+            default="[DepartmentGuidLookup]"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)"
+            source="DepartmentName,DepartmentGuid"
+            provoke="InterConsult_DepartmentServiceGuid"/>
+          <control type="label" label="Servicio Solicitante" span="2"/>
+          <control type="select" name="InterConsult_DepartmentServiceGuid"
+            span="3" acctsvc="true" explicit="true" edit="[ConsultRequestStatus]=Active|Scheduled"
+            filter="Active=true,DepartmentGuid=[InterConsult_RequestingDepartment]"
+            acctsvcreq="true"
+            datarequest="GetDepartmentServices" 
+            source="ServiceName,DepartmentServicesGuid"/>
+        </row>
+        <row>
+          <!-- Specialties that have no parent specialty -->
+          <control type="label" span="3" label="Especialidad requerida"/>
+          <control type="select" span="3" name="ConsultRequestSpecialtyRequested"
+            explicit="true"
+            edit="[ConsultRequestStatus]=Active|Scheduled" 
+            acctsvc="true"
+            required="true"
+            datasource="GetMedicalSpecialties" 
+            source="Specialty,MedicalSpecialtyGuid"
+            provoke="[ConsultRequestSpecialtyRequested]!;ConsultReferringMD"/>
+          <control type="label" span="2" label="Médico Solicitado"/>
+          <!-- Assign internal physician -->
+          <control type="select" name="ConsultRequestAssignedToId" 
+            reveal="[InterConsult_ConsultType]=Internal"
+            namefield="ConsultRequestAssignedToName"
+            edit="[ConsultRequestStatus]=Active|Scheduled" span="3"
+            acctsvc="true" datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician" 
+            source="UserFirstMiddleLast,UserId"
+            searchable="true"/>
+          <!-- Assign external physician -->
+          <control type="select" name="ConsultReferringMD"
+            reveal="[InterConsult_ConsultType]=External"
+            filter="MedicalSpecialtyGuid=[ConsultRequestSpecialtyRequested]"
+            span="3" explicit="true" edit="true" 
+            sort="true"
+            acctsvcreq="true"
+            datarequest="GetReferringMds" 
+            appendrequest="LocationId=(facilityData.LocationId)" 
+            source="MedicalSpecialtyName|FullName,ReferringMdGuid"
+            set="ExternalPhysician=[[FullName]]"/>
+        </row>
+        <row name="rowOutsidePhysician" reveal="[AttentionType]=Patient">
+          <control type="label" label="Interconsultante" span="2"/>
+          <control type="text" name="ExternalPhysician" span="3" edit="true"/>
+          <control type="label" label="Institución" span="2"/>
+          <control type="select" name="ExternalHospital" span="4" edit="true"
+            source="Hospital General de México,Hospital ABC,Hospital Infantil Privado,Hospital Ángeles,Clínica Lomas Altas,Hospital Médica Sur"/>
+        </row>
+        <!-- Consult reason (required)-->
+        <row>
+          <control type="label" label="Motivo" span="2"/>
+          <control type="textarea" name="ConsultReason" rows="2" span="9" 
+            edit="[ConsultRequestStatus]=Active|Scheduled" required="true"/>
+        </row>
+        <!-- Observations (notes) (optional)-->
+        <row>
+          <control type="label" label="Resumen" span="2"/>
+          <control type="textarea" name="OtherReason" rows="2" span="9" 
+            edit="[ConsultRequestStatus]=Active|Scheduled"/>
+        </row>
+        <!--  Response -->
+        <row>
+          <control type="label" label="Respuesta" span="2"/>
+          <control type="textarea" name="ConsultNote" rows="2" span="9" 
+            edit="[ConsultRequestStatus]=Active|Scheduled"/>
+        </row>
+        <!-- Originating specialty (required)-->
+        <row name="rowAssignedPhysician">
+          <control type="label" span="2" label="Solicitado por"/>
+          <control type="select" span="3" name="ConsultRequestingSpecialty"
+            explicit="true"
+            searchable="true"
+            edit="[ConsultRequestStatus]=Active|Scheduled" 
+            acctsvc="true"
+            required="true"
+            datasource="GetMedicalSpecialties" 
+            source="Specialty,MedicalSpecialtyGuid"/>
+          <!-- Originating physician -->
+          <control type="label" span="2" label="Médico Solicitante"/>
+           <control type="select" name="ProfessionalId" 
+            namefield="ProfessionalName"
+            edit="[ConsultRequestStatus]=Active|Scheduled" span="4"
+            acctsvc="true" datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician" 
+            source="UserFirstMiddleLast,UserId"
+            searchable="true"/>
+        </row>
+        <row name="rowConsultUserPin" reveal="[PatientConsultGuid]=">
+          <control type="label" label="NIP" span="2"/>
+          <control type="password" name="ConsultUserPIN" span="2" required="true"/>
+        </row>
+    </group>
+    <group name="NewConsultButtons">
+      <row>
+        <!-- Save and close new records -->
+        <control type="modalbutton" name="btnSaveConsult2" reveal="[PatientConsultGuid]="
+          color="green" label="Guardar" icon="cloud-upload" 
+          action="save|new|close"
+          affector="PatientConsultGuid"
+          setaffector="ConsultRequestGuid"
+          acctsvc="true"
+          capture="grpConsultInfo"
+          datainsert="InsertConsultRequests"
+          appendinsert="PatientAccountNumber=[Consult_AccountNumber],
+          LocationId=(facilityData.LocationId),
+          PatientId=[InterConsult_PatientId],
+          PatientVisit=[InterConsult_PatientVisit],
+          PatientFirstName=[Consult_PatientFirstName],
+          PatientMiddleName=[Consult_PatientMiddleName],
+          PatientLastName=[Consult_PatientLastName],
+          PatientDOB=[Consult_PatientDOB],
+          PatientSex=[Consult_PatientSex]"
+          provoke="ConsultList,grdInternalConsultList"/>
+        <!-- update an existing record -->
+        <control type="modalbutton" 
+          reveal="PatientConsultGuid!+[ConsultRequestStatus]=Active|Scheduled"
+          name="UpdateAndCloseConsult" color="grey"
+          label="Actualizar" icon="cloud-upload" 
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          capture="grpConsultInfo"
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[PatientConsultGuid]"
+          provoke="ConsultList,grdInternalConsultList"/>
+        <!-- Create a consult appointment from an interconsult -->
+        <control type="modalbutton" name="btnRequestConsultCalendar"
+          reveal="[FileName]=Consult Reception+[ConsultRequestStatus]=Active|Approved"
+          icon="calendar" label="Consulta"
+          preset="DefaultPatientId=[InterConsult_PatientId],DefaultOrderGuid=[PatientConsultGuid],DefaultOrderType=Interconsult"
+          trigger="ConsultVisit_selAppointmentTypeGuid"
+          action="redirect" target="mdlConsultVisitCalendarAppointments"/>
+        <!-- Create a clinic appointment from an interconsult -->
+        <control type="modalbutton"  name="btnRequestClinicCalendar"
+          reveal="[FileName]=Consult Reception+[ConsultRequestStatus]=Active|Approved"
+          icon="calendar" label="Clinicas"
+          preset="DefaultPatientId=[InterConsult_PatientId],DefaultOrderGuid=[PatientConsultGuid],DefaultOrderType=Interconsult"
+          trigger="AppointmentTimes|resource,selProviderSearch"
+          action="redirect" target="tabCalendarAppointments"/>
+        <!-- Cancel an existing record -->
+        <control type="modalbutton" name="btnCancelAndCloseConsult"
+          reveal="PatientConsultGuid!+[ConsultRequestStatus]=Active|Approved|Scheduled"
+          label="Cancelar" icon="remove" color="red"
+          action="save"
+          affector="none"
+          confirm="Por favor confirme que desea cancelar esta interconsulta."
+          acctsvc="true"
+          capture="grpConsultInfo"
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[PatientConsultGuid]"
+          set="NewInterconsultStatus=Canceled"
+          provoke="SetInterconsultStatus"/>
+         <!-- Approve an existing record -->
+        <control type="modalbutton" name="btnApproveAndCloseConsult"
+          reveal="PatientConsultGuid!+[ConsultRequestStatus]=Active+(user.UserRoles)%Physician"
+          label="Aprobar" icon="edit" color="yellowgreen"
+          action="save"
+          affector="none"
+          confirm="Por favor confirme que desea aprobar esta interconsulta."
+          acctsvc="true"
+          capture="grpConsultInfo"
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[PatientConsultGuid]"
+          set="NewInterconsultStatus=Approved"
+          provoke="SetInterconsultStatus"/>
+        <control type="modalbutton" name="btnCompleteConsult"
+          reveal="PatientConsultGuid!+[ConsultRequestStatus]=Active|Scheduled|Approved+(user.UserRoles)%Physician"
+          label="Completar" icon="edit" color="green"
+          action="save"
+          affector="none"
+          confirm="Por favor confirme que desea completar esta interconsulta."
+          acctsvc="true"
+          capture="grpConsultInfo"
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[PatientConsultGuid]"
+          set="NewInterconsultStatus=Completed"
+          provoke="SetInterconsultStatus"/>
+      </row>
+      <!-- Set the status after saving an interconsult -->
+      <row showif="never">
+        <control type="hidden" name="NewInterconsultStatus"/>
+        <control type="hidden" name="NewScheduledDateTime"/>
+        <control type="button" name="SetInterconsultStatus"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[PatientConsultGuid],ConsultRequestStatus=[NewInterconsultStatus]"
+          provoke="ConsultList,grdInternalConsultList"/>
+        <control type="button" name="SetInterconsultStatusToScheduled"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[PatientConsultGuid],
+            ConsultRequestStatus=Scheduled,
+            ConsultScheduledDateTime=[NewScheduledDateTime]"
+          provoke="ConsultList,grdInternalConsultList"/>
+      </row>
+    </group>
+  </section>
+  </partial>

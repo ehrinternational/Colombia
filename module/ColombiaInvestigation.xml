@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--Last edit by Dan 4/13/2018-->
+<module name="Investigación" type="onload" trigger="PatientList">
+  <facet name="FieldEdit" value="0"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Investigation"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <section type="tab" title="Investigación" >
+    <group name="CriteriaGroup">
+      <row>
+        <control type="label" label="Nombre/Expediente" align="left" span="3"/>
+        <control type="label" label="Paterno" span="3" align="left" />
+        <control type="label" label="Materno" span="3" align="left" />
+      </row>
+      <row>
+        <control type="text" name="FirstNameToSearch" span="3" edit="true" value="" trigger="PatientSearch" />
+        <control type="text" name="MiddleNameToSearch" span="3" edit="true" value="" trigger="PatientSearch" />
+        <control type="text" name="LastNameToSearch" span="3" edit="true" value="" trigger="PatientSearch" />
+        <control type="button" 
+          name="RefreshPatientList" 
+          span="2" 
+          label="Investigar" 
+          icon="refresh"
+          action="trigger"
+          trigger="PatientList"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha de Inicio" span="2"/>
+        <control type="date" span="2" name="SearchStartDate"  required="true" default="now-15"/>
+        <control type="label" label="Fecha Final" span="2"/>
+        <control type="date" span="2" name="SearchEndDate"  required="true" default="now"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <control type="datagrid" 
+          label="Pacientes Dados de Alta" 
+          name="PatientList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          edit="only"
+          span="12"
+          rows="20"
+          datarequest="GetPatientVisitsByCriteria"
+          appendrequest="LocationId=(facilityData.LocationId),startDate=[SearchStartDate],endDate=[SearchEndDate],firstName=[FirstNameToSearch],middleName=[MiddleNameToSearch],lastName=[LastNameToSearch]"
+          source="AdmitDateTime,DischargeDateTime,AdmitType,AdmitSource,MRNNumber,PatientFullName,PatientDOB,PatientSex"
+          sourcelabels="Admitir,Alta,Tipo de Atención,Tipo de Llegada,Expediente,Nombre,Nacimiento,Sexo"
+          align="|left|left|left|left|left|left|left"
+          format="datetime|datetime|||||date"
+          translate="PatientSex"
+          sort="AdmitDateTime=desc"
+          key="PatientVisitUniqueId"
+          onselectset="PatientId=[[PatientId]],PatientVisitGuid=[[PatientVisitUniqueId]]"
+          onselect="PatientId,PatientVisitGuid,ButtonGroupSelect"/>
+      </row>
+    </group>
+  </section>
+  <!-- Patient tabmodal -->
+  <section type="tabmodal" name="PatientTabModal" size="large" 
+    title="Información del Paciente" edit="false">
+    <group name="GuidStorage">
+      <row showif="never">
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo"/>
+        <control type="hidden" name="PatientVisitGuid"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[PatientVisitGuid]"
+          inject="VisitInfo"
+          provoke="ButtonGroupSelect"/>
+      </row>
+    </group>
+    <group name="PatientInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <row name="rowPatientPhoto" reveal="[PatientId]!">
+            <!--Patient photo-->
+            <control type="image"
+              format="jpg=circle" 
+              name="Admit_ProfilePhoto"
+              default="null"
+              span="12" />
+            </row>
+            <row>
+              <control type="button" name="btnReports"
+                span="12"
+                icon="print" label="Informes"
+                preset="Report_PatientId=[PatientId],Report_Type=Patient,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+                trigger="ReportList,Report_VisitId"
+                action="redirect" target="mdlReports"/>
+            </row>
+            <row>
+            <control type="button" name="btnRegisterDeath" span="12"
+              reveal="[PatientId]!+[DateTimeOfDeath]="
+              icon="remove" color="grey" label="Defunción"
+              trigger="GetDeathCertificate" 
+              action="redirect" target="mdlDeathCertificate"/>
+          </row>
+          <row>
+            <control type="button" name="btnRegisterExistingDeath" span="12"
+              reveal="[PatientId]!+[DateTimeOfDeath]!"
+              icon="remove" color="red" label="Defunción" 
+              trigger="GetDeathCertificate"
+              action="redirect" target="mdlDeathCertificate"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+
+    <group name="VisitInfo">
+      <columns>
+        <column span="10">
+          <row>
+            <control type="label" label="Origen de llegada" span="3"/>
+            <control type="select" name="mdlAdmit_AdmitSource" span="3" 
+              datasource="GetLookupAdmitSourcesByFacility" 
+              source="AdmitSource,AdmitSource"
+              default="true"
+              explicit="true"
+              filter="Active=true"/>
+            <control type="label" label="Tipo de llegada" span="3"/>
+            <control type="select" name="mdlAdmit_BedStatus" span="3" 
+              source="Voluntario,Emergencia"
+              explicit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Tipo de Admisión" span="2"/>
+            <control type="select" name="mdlAdmit_AdmitType" span="4" 
+              namefield="mdlAdmit_AdmissionType"
+              datasource="GetLookupAdmissionTypesActive" 
+              source="AdmissionType,AdmissionTypeGuid" 
+              explicit="true"/>
+            <control type="label" label="Modo de llegada" span="2"/>
+            <control type="select" name="mdlAdmit_AmbulanceID" 
+              acctsvc="true"
+              datasource="GetLookupAmbulanceId"
+              source="AmbulanceId,AmbulanceId"
+              explicit="true"
+              span="4" edit="true"/>
+          </row>
+          <row name="rowAttendingDoctor"> 
+            <control type="label" label="Médico de Guardia" span="2"/>
+            <control type="select" name="ReferringDoctor"
+              searchable="true"
+              acctsvc="true" datasource="GetUsersByAttributes" append="LocationId=(facilityData.LocationId),role=Physician"
+              source="UserFirstMiddleLast,UserId"
+              span="4" explicit="true" />
+            <control type="label" label="Motivo de Consulta" span="2"/>
+            <control type="textarea" name="mdlAdmit_EdChiefComplaint" 
+              span="4" rows="1"  />
+          </row>
+          <row>
+            <control type="label" label="Médico Tratante" span="3"/>
+            <control type="text" name="AttendingDoctorFullName" span="3" readonly="true"/>
+            <control type="label" label="Especialidad" span="2"/>
+            <control type="text" name="AttendingMedicalSpecialty" span="4" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Caso-Médico legal" span="3"/>
+            <control type="buttongroup" name="mdlAdmit_LawEnforcement" span="3" source="True,False" sourcelabels="Sí,No"/>
+            <control type="label" label="Folio de Notificación" span="3"/>
+            <control type="text" name="mdlAdmit_FolioNumber" span="3"/>
+          </row>
+          <row>
+            <control type="label" label="Fecha y Hora Alta" span="3"/>
+            <control type="datetime" name="DischargeDateTime" readonly="true" span="3"/>
+          </row>
+          <row>
+            <control type="label" label="Disposición de Alta" span="3"/>
+            <control type="text" name="DischargeDisposition" readonly="true" span="4"/>
+          </row>
+          <row>
+            <control type="label" label="Nota de Alta" span="3"/>
+            <control type="textarea" name="Note" span="9" rows="1" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="" span="2"/>
+            <control type="label" label="Aprobado" align="left" span="3"/>
+            <control type="label" label="Aprobado por" align="left" span="4"/>
+            <control type="label" label="Fecha Aprobado" align="left" span="3"/>
+          </row>
+          <row>
+            <control type="label" label="Ortopedia" span="2"/>
+            <control type="buttongroup" name="ApprovedByOrtho" span="3"
+              source="True,False" sourcelabels="Sí,No" readonly="true"
+              set="[OrthoApprover]=;OrthoApprover=(userName),[OrthoApprover]=;OrthoApprovedDateTime=(now)"
+              provoke="btnUpdatePatientVisit"/>
+            <control type="select" name="OrthoApprover" span="4"
+              searchable="true" readonly="true" 
+              source="UserFirstMiddleLast,UserId" 
+              acctsvc="true" 
+              datasource="GetUsersByAttributes" 
+              append="LocationId=(facilityData.LocationId),role=Physician"/>
+            <control type="datetime" name="OrthoApprovedDateTime" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Anestesia" span="2"/>
+            <control type="buttongroup" name="ApprovedByAnesthesia" span="3"
+              source="True,False" sourcelabels="Sí,No" readonly="true"
+              set="[AnesthesiaApprover]=;AnesthesiaApprover=(userName),[AnesthesiaApprover]=;AnesthesiaApprovedDateTime=(now)"
+              provoke="btnUpdatePatientVisit"/>
+            <control type="select" name="AnesthesiaApprover" span="4"
+              searchable="true" readonly="true" 
+              source="UserFirstMiddleLast,UserId" 
+              acctsvc="true" 
+              datasource="GetUsersByAttributes" 
+              append="LocationId=(facilityData.LocationId),role=Physician"/>
+            <control type="datetime" name="AnesthesiaApprovedDateTime" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Pediatria" span="2"/>
+            <control type="buttongroup" name="ApprovedByPediatrics" span="3"
+              source="True,False" sourcelabels="Sí,No" readonly="true"
+              set="[PediatricsApprover]=;PediatricsApprover=(userName),[PediatricsApprover]=;PediatricsApprovedDateTime=(now)"
+              provoke="btnUpdatePatientVisit"/>
+            <control type="select" name="PediatricsApprover" span="4"
+              searchable="true" readonly="true" 
+              source="UserFirstMiddleLast,UserId" 
+              acctsvc="true" 
+              datasource="GetUsersByAttributes" 
+              append="LocationId=(facilityData.LocationId),role=Physician"/>
+            <control type="datetime" name="PediatricsApprovedDateTime" span="3" readonly="true"/>
+          </row>
+        </column>
+        <column span="2">
+            <row>
+            <control type="button" name="btnTimeline"
+              span="12"
+              color="yellow" icon="time" 
+              label="Cronograma"
+              action="redirect|view"
+              target="timeline"
+              append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+          </row>
+          <row>
+            <control type="button" 
+              name="btnPrintTriage"
+              action="print" span="12"
+              mode="report" label="Triage" icon="print" 
+              append="id=c28498a6142,FacilityId=(facility),PatientVisitId=[PatientVisitGuid],UserName=(userName),CurrentDateTime=(dateTimeNow)" />
+          </row>
+        </column>
+      </columns>
+    </group>
+
+    <group name="PatientGridGroup">
+      <row>
+        <control type="buttongroup" 
+          name="ButtonGroupSelect" 
+          source="Problems,Allergy,Vitals,Diets,Nursing,Physicians,Studies,Medication,Documents"
+          sourcelabels="Diagnóstico,Alergias,Vitales,Dietas,Enfermera,Médicos,Estudios,Medicamentos,Documentos" 
+          span="12" mode="auto" 
+          default="Problems"  
+          action="trigger" 
+          trigger="ERGridList|options"/>
+      </row>
+
+      <row>
+        <control name="ERGridList" affector="ButtonGroupSelect" type="options" span="12">
+          <control type="datagrid" label="Diagnósticos Activos" name="ERProblemList" 
+            option="Problems"
+            rows="5"
+            fitrows="true"
+            filter="Status!Canceled"
+            rowcolor="rowcolor|orange=orange"
+            datarequest="GetPatientProblemsWithRelatedSymptomsByVisit"
+            appendrequest="patientId=[PatientId]"
+            source="DateTimeEntered,ProblemType,ProblemDescription,ProblemNoteText,Status,EnteredByFullName"
+            sourcelabels="Fecha,Tipo,Diagnóstico,Nota,Estatus,Firmado por"
+            translate="ProblemType"
+            sort="DateTimeEntered=desc"
+            align="left|left|left|left|left|left"
+            format="datetime"
+            key="ProblemGuid"/>
+
+        <control type="datagrid" label="Historial de Diagnósticos" 
+            name="ProblemHistory" 
+            option="Problems"
+            rows="5"
+            fitrows="true"
+            edit="false"
+            rowcolor="rowcolor|orange=orange"
+            datarequest="GetPatientProblemsWithRelatedSymptomsByVisit"
+            appendrequest="patientId=[PatientId]"
+            source="DateTimeEntered,Type,ProblemDescription,ProblemNoteText,Status,EnteredByFullName"
+            sourcelabels="Fecha,Tipo,Diagnóstico,Notas,Estatus,Firmado por"
+            translate="Type,Status"
+            sort="DateTimeEntered=desc"
+            align="left|left|left|left|left|left"
+            format="datetime"
+            key="ProblemGuid"/>
+
+          <control type="datagrid" label="Alergias Activas" name="ERAllergyList"
+            option="Allergy"
+            modalname=""
+            filter="AllergyStatus=Active"
+            span="12"
+            rows="5"
+            fitrows="true"
+            datasource=""
+            datarequest="GetPatientKnownAllergies"
+            appendrequest="patientId=[PatientId]"
+            datainsert=""
+            dataupdate=""
+            source="AllergyEnteredDateTime,Allergen,Reaction,ReactionSeverity,AllergyNote,EnteredByFullName"
+            sourcelabels="Fecha y Hora,Alergias,Reacción,Gravedad,Nota,Firmado por"
+            translate="Reaction{,},ReactionSeverity"
+            align="left|left|left|left|left|left|left"
+            format="datetime"
+            sort="AllergyEnteredDateTime=desc"
+            key="RecId"/>
+
+          <control type="datagrid" label="Signos Vitales" name="ERVitalSigns" 
+            option="Vitals"
+            rows="5"
+            fitrows="true"
+            datasource=""
+            datarequest="GetPatientVitalSignsDefault"
+            appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+            datainsert=""
+            dataupdate=""
+            source="DateTimeEntered,Weight,Temperature,HeartRate,SBP,DBP,Map,SpO2,O2,SupplementalO2Rate,Pain,FullUserName"
+            sourcelabels="Fecha y Hora,Peso(kg),Temp,FC,PAS,PAD,PAM,SpO2%,FiO2%,O2 L/min,Dolor,Firmado por"
+            align="left|right|right|right|right|right|right|right|right|right|right|left"
+            format="datetime||0.0"
+            translate="O2Modifier"
+            sort="DateTimeEntered=desc"
+            key="RecId">
+            <control type="button" 
+              name="VitalGraphButton"
+              icon="bar-chart"
+              label="Gráficas"
+              action="redirect|view"
+              target="vitals-graph"
+              append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+          </control>
+
+          <control type="datagrid" label="Fluidos" name="ERFluids" 
+            option="Vitals"
+            span="12"
+            rows="5"
+            fitrows="true"
+            datarequest="GetFluidsWithNameForThisPatient"
+            appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+            source="UserDefinedDateTime,FluidType,FluidCategory,FluidName,FluidVolume,FluidVolumeRunningTotal,ValueUOM,Status,Notes,EnteredByFullName"
+            sourcelabels="Fecha y Hora,Tipo,Categoría,Nombre,Volumen,Balance,UDM,Estatus,Nota,Enfermera"
+            align="left|left|left|left|left|left|left|left|left"
+            format="datetime"
+            translate="FluidType,FluidCategory,Status"
+            sort="UserDefinedDateTime=desc"
+            key="RecId"/>
+
+          <control type="datagrid" label="Signos Vitales Neuro" name="ERNeuroVitalSigns" 
+          option="Vitals"
+          modalname=""
+          span="12"
+          rows="5"
+          fitrows="true"
+          datasource=""
+          datarequest="GetPatientVitalSignsNeuro"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          datainsert=""
+          dataupdate=""
+          source="UserDefinedDateTime,NeuroMotor,NeuroVerbal,NeuroEyeOpening,FixedReactive,GlasgowComaScale,Notes,FullUserName"
+          sourcelabels="Fecha y Hora,Motor,Verbal,Ojo,Reactivo,Glasgow,Nota,Firmado por"
+          align="left|right|right|right|right|right|right|left"
+          format="datetime"
+          sort="UserDefinedDateTime=desc"
+          key="RecId"/>
+
+        <control type="datagrid" label="Signos Vitales de Glicemia" name="ERBloodSugarVitalSigns" 
+          option="Vitals"
+          modalname=""
+          span="12"
+          rows="5"
+          fitrows="true"
+          datasource=""
+          datarequest="GetPatientVitalSignsBloodSugar"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          datainsert=""
+          dataupdate=""
+          source="UserDefinedDateTime,BloodSugar,RBS,FBS,InsulinRegular,InsulinIntermediate,Notes,Status,FullUserName"
+          sourcelabels="Fecha y Hora,Glicemia,Aleatorio,Ayuno,Insulina,Insulina Intermedio,Nota,Estatus,Firmado por"
+          align="left|right|right|right|right|right|left|left"
+          format="datetime"
+          sort="UserDefinedDateTime=desc"
+          key="RecId"/>
+
+          <control type="datagrid" label="Dietas" name="ERDietList"
+          option="Diets"
+          rows="10"
+          fitrows="true"
+          datarequest="GetNutritionDietOrdersByPatientVisit"
+          appendrequest="PatientId=[PatientId],PatientVisit=[PatientVisitGuid]"
+          source="DateTimeEntered,OrderNumber,DietType,OrderTypeText,Texture,Consistency,OrderNotes,OrderedByFullName"
+          sourcelabels="Fecha y Hora,Número,Dieta,Tipo,Textura,Consistencia,Nota,Firmado por"
+          align="left|left|left|left|left|left"
+          format="datetime"
+          translate="DietType,OrderTypeText,Texture,Consistency"
+          sort="DateTimeEntered=desc"
+          key="OrderGuid"/>
+
+          <control type="datagrid" label="Actividades de Enfermería Activas" name="ERNursingOrders" 
+          option="Nursing"
+          filter="Status=Active"
+          modalname="" 
+          span="12"
+          rows="5"
+          fitrows="true"
+          datasource=""
+          datarequest="GetNursingOrdersForThisPatientVisit"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          source="DateTimeEntered,Nursing Order,Frequency,Note,SignedByFullName"
+          sourcelabels="Fecha y Hora,Actividad,Frecuencia,Nota,Firmado por"
+          align="|left|left|left|left"
+          format="datetime"
+          sort="DateTimeEntered=desc"
+          key="NursingOrderGuid"/>
+
+          <control type="datagrid" 
+            label="Actividades de Enfermería Completadas" 
+            name="ERNursingOrdersComplete"
+            option="Nursing"
+            filter="Status!Active"
+            rows="5"
+            fitrows="true"
+            datarequest="GetNursingOrderAdministrationsByPatientVisit"
+            appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+            source="DateTimeEntered,NursingOrder,Frequency,Note,Status,ReasonNotDone,AdministeredByFullName"
+            sourcelabels="Fecha y Hora,Actividades,Frecuencia,Nota,Estatus,Motivo,Realizado por"
+            align="|left|left|left|left"
+            format="datetime"
+            translate="Status,ReasonNotDone"
+            sort="DateTimeEntered=desc"
+            key="rowguid"/>
+
+          <control type="datagrid" label="Notas de Enfermería" name="ERNursingNotes" 
+            option="Nursing"
+            filter="Type=Nurse"
+            span="12"
+            rows="5"
+            fitrows="true"
+            datasource=""
+            datarequest="GetNursingNotesForThisPatientVisit"
+            appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+            source="DateTimeEntered,NoteType,NursingNote,EnteredByFullName"
+            sourcelabels="Fecha y Hora,Tipo,Nota,Firmado por"
+            align="left|left|left|left"
+            format="datetime"
+            sort="DateTimeEntered=desc"
+            key="rowguid"/>
+
+        <control type="datagrid" label="Notas Interdisciplinarias" name="ERInterdisciplineNotes"
+          option="Nursing"
+          filter="Type=Interdisciplinary"
+          modalname="" 
+          span="12"
+          rows="5"
+          fitrows="true"
+          datasource=""
+          datarequest="GetNursingNotesForThisPatientVisit"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          datainsert=""
+          dataupdate=""
+          source="DateTimeEntered,NoteType,NursingNote,EnteredByFullName"
+          sourcelabels="Fecha y Hora,Tipo,Nota,Firmado por"
+          align="left|left|left|left"
+          format="datetime"
+          sort="DateTimeEntered=desc"
+          key="rowguid"/>
+
+        <control type="datagrid" label="Médicos" name="ERPhysicianAssignments" 
+          option="Physicians"
+          span="12"
+          rows="5"
+          fitrows="true"
+          datasource=""
+          datarequest="GetPhysicianAssignmentsByPatientVisit"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          datainsert=""
+          dataupdate=""
+          source="EnteredDateTime,ProviderType,ProviderFullName"
+          sourcelabels="Fecha y Hora,Tipo,Médico"
+          translate="ProviderType"
+          align="left|left|left|left"
+          format="datetime"
+          sort="EnteredDateTime=desc"
+          key="rowguid"/>
+
+          <control type="datagrid" label="Interconsultas" name="ConsultList" 
+            option="Physicians"
+            rows="5"
+            fitrows="true"
+            action="redirect"
+            target="[[ConsultType]]=External|Internal;NewConsultModal"
+            acctsvcreq="true"
+            datarequest="GetConsultRequestsByCriteria"
+            appendrequest="SearchCriteria=patient,patientId=[PatientId],facilityId=(facility)"
+            source="DateTimeEntered,ConsultNumber,ConsultType,ConsultReason,ConsultRequestStatus,ConsultRequestSpecialtyRequestedName,ProfessionalName,ConsultRequestAssignedToName"
+            sourcelabels="Solicitud,Folio,Tipo,Motivo,Estatus,Especialidad,Soliciado por,Asignado a"
+            align="|left|left|left|left|left|left|left"
+            format="datetime"
+            sort="DateTimeEntered=desc"
+            translate="ConsultType,ConsultRequestStatus"
+            key="ConsultRequestGuid"
+            onselectset="[[ConsultType]]=External|Internal;PatientConsultGuid=[[ConsultRequestGuid]],
+              [[ConsultType]]=External|Internal;InterConsult_PatientId=[PatientId]"
+            onselect="[[ConsultType]]=External|Internal;PatientConsultGuid,
+              [[ConsultType]]=External|Internal;InterConsult_PatientId">
+            <!-- button to print consult request -->
+            <control type="button" name="btnPrintConsultRequest" 
+              showif="feature" icon="print" label="Imprimir Interconsulta"
+              action="print" mode="report"
+              append="id=65df553a65f,ConsultRequestGuid=[[ConsultRequestGuid]],FacilityId=(facility),HospitalGuid=(facilityData.HospitalGuid),UserName=(userName),CurrentDateTime=(now)"/> 
+          </control>
+          <!-- Lab orders -->
+          <control type="datagrid" label="Órdenes de Laboratorio por Visita" name="ERLabOrders"
+            option="Studies"
+            span="12"
+            rows="5"
+            action="redirect"
+            target="mdlLabOrders"
+            datarequest="GetPatientLabTestOrdersByPatientVisit"
+            appendrequest="patientVisit=[PatientVisitGuid]"
+            source="DateTimeOrdered,DateTimeScheduled,OrderNumber,CPTDescription,OrderInstructions,Status,OrderedByFullName"
+            sourcelabels="Fecha y Hora,Fecha Programada,Orden,Pruebas de Laboratorio,Instrucciones,Estatus,Ordenado por"
+            align="left|left|left|left|left|left|left|left"
+            translate="Status"
+            format="datetime|datetime"
+            sort="DateTimeOrdered=desc"
+            key="OrderGuid"
+            onselectset="LabOrderGuid=[[OrderGuid]]"
+            onselect="LabOrderGuid"/>
+
+          <control type="datagrid" label="Órdenes de Medicamentos Activas (haga clic para más información)" name="ERMedications"
+          option="Medication"
+          action="redirect" 
+          target="MedicationDetailModal"
+          filter="Status=Active"
+          span="12"
+          rows="5"
+          fitrows="true"
+          datarequest="GetPatientMedications"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          source="DateStarted,DateStopped,Type,MedsTradeName,Frequency,MedsRoute,DesiredDoseValue,DoseUnit,OrderedByFullName"
+          sourcelabels="Inicio,Parado,Tipo,Medicamento,Frecuencia,Vía,Dosis,UDM,Ordenado"
+          align="left|left|left|left|left|left|left|left|left"
+          format="datetime|datetime"
+          translate="Type,MedsRoute"
+          sort="DateStarted=desc"
+          onselectset="MedicationGuid=[[MedsGuid]]"
+          key="MedsGuid"
+          provoke="MedicationGuid">
+            <control type="button" name="btnVidalConsult1"
+                action="redirect|link" target="https://mx.vidal-consult.com/?CustID=FUCAM"
+                mode="window"
+                label="Investigación Vidal" icon="file-text"/>
+          </control>
+
+          <control type="datagrid" label="Medicamentos Programados Activos" name="ERMedicationAdmin"
+          option="Medication"
+          filter="Status=Active"
+          modalname=""
+          span="12"
+          rows="5"
+          fitrows="true"
+          datasource=""
+          datarequest="GetOpenMedicationAdministrationRecords"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          datainsert=""
+          dataupdate=""
+          source="StartTime,MedicationName,Frequency,MedRoute"
+          sourcelabels="Inicio,Medicamento,Frecuencia,Vía"
+          align="left|left|left|left|left|left|left"
+          format="datetime"
+          translate="MedsRoute"
+          sort="StartTime=desc"
+          key="MedSchedGuid">
+          </control>
+          <!--  Completed medication administrations-->
+          <control type="datagrid" label="Registro de Medicamentos Administrados" 
+            name="ERMedicationHistory"
+            option="Medication"
+            filter="Status!Active"
+            rows="5"
+            fitrows="true"
+            datarequest="GetAllMedicationAdministrationRecords"
+            appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+            source="DateTimeAdministered2,MedicationName,Frequency,MedRoute,MedStrength,MedStrengthOverride,DoseUnit,MedQuantity,MedQuantityOverride,QuantityUnit,Status,AdministeredByFullName"
+            sourcelabels="Fecha y Hora,Medicamento,Frecuencia,Vía,Dosis,Admin.,UDM,Cantidad,Admin.,UDM,Estatus,Administrada por"
+            align="left|left|left|left|right|right|left|right|right|left|left|left"
+            format="datetime||||0.[000]|0.[000]||0.[000]|0.[000]"
+            translate="MedRoute,DoseUnit,Status,QuantityUnit"
+            sort="DateTimeAdministered2=desc"
+            key="key">
+            <control type="button" name="btnCompletedMedReport"
+              icon="print" label="Reporte"
+              action="print" mode="report"
+              append="id=b088565b66e,FacilityId=(facility),HospitalGuid=(facilityData.HospitalGuid),PatientId=[PatientId],PatientVisit=[PatientVisitGuid],UserName=(userName),CurrentDateTime=(now)"/> 
+            </control>
+
+          <control type="datagrid" label="Órdenes de Imagenología" name="ERRadiologyOrders"
+          option="Studies"
+          span="12"
+          rows="5"
+          fitrows="true"
+          datasource=""
+          datarequest="GetPatientImagingOrdersByPatientVisit"
+          appendrequest="patientVisit=[PatientVisitGuid]"
+          datainsert=""
+          dataupdate=""
+          source="DateTimeEntered,OrderNumber,OrderPriority,ImagingOrderDescription,OrderStatus,EnteredByFullName"
+          sourcelabels="Fecha y Hora,Número,Prioridad,Orden,Estatus,Ordenado"
+          align="left|left|left|left|left|left"
+          translate="OrderPriority"
+          format="datetime"
+          sort="DateTimeEntered=desc"
+          key="ImagingOrderGuid"/>
+        
+        <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
+
+        <control type="datagrid" label="Informes de Imagenología" name="ERRadiologyReports"
+          option="Studies"
+          span="12"
+          rows="5"
+          fitrows="true"
+          action="redirect|link" 
+          target="(facilityData.RadiologyInformationSystem)!None;ImageViewerLink" mode="window"
+          datarequest="GetPatientImagingReportsByPatientVisit"
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+          datainsert=""
+          dataupdate=""
+          source="ReportDateTime,OrderNumber,ProcedureDescription,Report,RadiologistLastName"
+          sourcelabels="Fecha y Hora,Número,Procedimiento,Informe,Radiólogo"
+          align="left|left|left|left|left|left"
+          format="datetime"
+          sort="ReportDateTimes=desc"
+          key="rowguid"/>
+
+          <control type="datagrid" 
+          label="Patología"          
+          name="PathologyScannedForms"
+          option="Studies"
+          rows="5"
+          fitrows="true"
+          filter="Category=Patología"
+          datarequest="GetPatientImages"
+          appendrequest="patientId=[PatientId]"
+          source="DateEntered,Category,Type,FileName,Note,Status"
+          sourcelabels="Fecha y Hora,Categoría,Tipo,Documento,Nota,Estatus"
+          align="left|left|left|left|left"
+          format="datetime"
+          translate="Category,Status"
+          sort="DateTimeEntered=desc"
+          key="PhotoGuid"
+          action="redirect|url" 
+          target="printables/uploadviewer.html" 
+          usesource="login"
+          append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]"
+          onelectset="PhotoGuid=[[PhotoGuid]]">            
+            <control type="button" 
+              name="ScanDocuments" 
+              label="Escanear Patología" 
+              icon="folder-open"
+              append="patientId=[PatientId],patientVisit=[PatientVisitGuid]"
+              default="Patología"
+              action="upload" 
+              filter="pdf,jpg,jpeg,png"
+              provoke="PathologyScannedForms"/>
+            <control type="button"
+              name="CancelDocumentButton"
+              showif="feature"
+              label="Cancelar"
+              icon="remove"
+              confirm="Por favor, confirme que desea cancelar este documento escaneado."
+              action="save"
+              acctsvc="true"
+              datainsert="UpdatePatientFilesByPhotoGuid"
+              appendinsert="photoGuid=[[PhotoGuid]],status=Canceled"
+              provoke="PathologyScannedForms"/>
+          </control>
+          <control type="datagrid" label="Documentos" name="EREcdForms"
+          option="Documents"
+          edit="only"
+          span="12"
+          rows="5"
+          fitrows="true"
+          action="redirect|url" 
+          target="ecd/index.html"
+          usesource="login"
+          filter="MostRecent=true"
+          searchable="true"
+          append="ecdGuid=[[FormGuid]],patientid=[PatientId],patientvisit=[PatientVisitGuid],ecdMode=revise,department=[DepartmentGuidLookup]" 
+          datarequest="GetCompletedPatientFormsForPriorVisits"
+          appendrequest="patientId=[PatientId]"
+          source="DateTimeEntered,RevisionId,Type,FormName,FullUserName"
+          sourcelabels="Fecha y Hora,Modificado,Tipo,Documento,Firmado por"
+          align="left|left|left|left|left"
+          format="datetime|boolean"
+          translate="Type"
+          sort="DateTimeEntered=desc"
+          key="FormGuid">
+          <control type="button" name="btnCombinedECDs" label="Visualizador DCEs" color="lightblue"
+            reveal="[PatientId]!"
+            action="redirect"
+            target="mdlCombinedECDForms"
+            trigger="hidGetPatientToDisplay"/>
+          <control type="button" name="uploadECD" action="generateupload"
+            mode="ecd" showif="feature" provoke="ScannedForms"
+            append="ecdGuid=[[rowGuid]],patientid=[[PatientId]],patientvisit=[[PatientVisit]]"
+            color="lightblue"
+            label="Subir a Documentos"
+            icon="cloud-upload"/>
+          <control type="button" name="btnShowVersions" 
+            action="redirect" target="mdlViewVersions"
+            reveal="[[RevisionId]!0"
+            preset="ECDFormGuid=[[FormGuid]]"
+            showif="feature" label="Versiones" icon="search" 
+            trigger="ECDVersionList"/>
+          <control type="button" name="printECD2" action="print"
+          usesource="login" mode="ecd" showif="feature"
+          append="ecdGuid=[[rowGuid]],patientid=[[PatientId]],patientvisit=[[PatientVisit]]"
+          label="Imprimir"
+          icon="print"/>
+        </control>
+        <!-- Scanned Documents -->
+        <control type="datagrid" 
+          label="Documentos Escaneados" 
+          name="ScannedForms"
+          option="Documents"
+          rows="5"
+          fitrows="true"
+          searchable="true"
+          datarequest="GetPatientImages"
+          appendrequest="patientId=[PatientId]"
+          source="DateEntered,Category,Type,FileName,Status"
+          sourcelabels="Fecha y Hora,Tipo,Categoría,Documento,Estatus"
+          align="|left|left|left|left"
+          format="datetime"
+          translate="Category,Status,Type"
+          sort="DateEntered=desc"
+          key="PhotoGuid"
+          action="redirect|url" 
+          target="printables/uploadviewer.html" 
+          usesource="login"
+          append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+          <!--Button to upload scanned documents-->
+          <control type="button" 
+            name="btnScanDocuments" 
+            label="Subir Documentos" 
+            icon="folder-open"
+            append="patientId=[PatientId],patientVisit=[PatientVisitGuid]"
+            action="upload" 
+            filter="pdf,jpg,jpeg,png"
+            provoke="ScannedForms"/>
+          <control type="button"
+            name="btnCancelDocument"
+            showif="feature"
+            label="Cancelar"
+            icon="remove"
+            confirm="Por favor, confirme que desea cancelar este documento escaneado."
+            action="save"
+            affector="none"
+            acctsvc="true"
+            dataupdate="UpdatePatientImages"
+            appendupdate="PhotoGuid=[[PhotoGuid]],status=Canceled"
+            provoke="ScannedForms"/>
+        </control>
+        </control>
+       </row>
+     </group>
+   </section>
+   <partial link="./Partial/Modals/PartialPatientDeathCertificate.xml"/>
+   <partial link="./Partial/Modals/PartialViewECDVersions.xml"/>
+   <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+   <partial target="MedicationDetailModal" link="./Partial/Modals/PartialMedicationDetailModal.xml"/>
+   <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
+   <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+   <partial target="mdlLabOrders" link="./Partial/Modals/PartialLabOrdersWithScanResultsModalNoEdit.xml"/>
+   <partial target="ImageOrderModalForReview" link="./Partial/Modals/PartialImagingOrderModalForReview.xml"/>
+   <partial link="Partials/ColombiaPartialInterconsultRequestNoEdit.xml"/>
+   <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
+</module>

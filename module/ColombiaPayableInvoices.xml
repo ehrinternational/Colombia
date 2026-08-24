@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Invoice Module -->
+<module name="Cuentas por Pagar" type="onload" trigger="APInvoice_PayableInvoiceList">
+  <facet name="NewStatus"/>
+  <facet name="AllowNewInvoices" value="true"/>
+  <partial link="../../ERPSpanish/module/Partials/PartialESAPInvoicesNotMexico.xml"/>
+</module>

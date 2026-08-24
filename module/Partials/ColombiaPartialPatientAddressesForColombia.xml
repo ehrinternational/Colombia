@@ -1,0 +1,22 @@
+<partial>
+    <!-- Patient Addresses -->
+    <control type="datagrid" label="Direcciones del Paciente" name="grdAddresses" option="Addresses"
+      span="12" rows="5"
+      idle="[PatientId]="
+      action="redirect"
+      target="mdlAddresses"
+      datarequest="GetPatientAddresses"
+      appendrequest="patientId=[PatientId]"
+      source="Active,Selected,AddressType,StreetAddressLine1,State,ProvinceText,CityOther,PostalCode"
+      sourcelabels="Activo,Primario,Tipo,Dirección,Departamento,Municipio,Localidad,Código Postal" 
+      align="||left|left|left|left|left"
+      translate="AddressType"
+      format="boolean|primary"
+      key="AddressGuid"
+      onselectset="AddressGuid=[[AddressGuid]]"
+      onselect="AddressGuid">
+      <control type="button" name="btnNewPatientAddressColombia"
+        icon="plus" label="Añadir Nuevo"
+        action="redirect" target="mdlAddresses"/>
+      </control>
+</partial>

@@ -1,0 +1,70 @@
+<partial>
+  <!-- Partial Hospital Patient Visit information -->
+    <row>
+      <control type="hidden" name="mdlAdmit_DischargeDisposition"/>
+      <control type="hidden" name="mdlAdmit_DischargeCondition"/>
+    </row>
+    <row>
+        <control type="label" label="Origen de llegada" span="3"/>
+        <control type="select" name="mdlAdmit_AdmitSource" span="3" 
+          datasource="GetLookupAdmitSourcesByFacility" 
+          source="AdmitSource,AdmitSource"
+          edit="true" 
+          required="true" 
+          explicit="true"
+          filter="Active=true"/>
+        <control type="label" label="Tipo de llegada" span="3"/>
+        <control type="select" name="mdlAdmit_BedStatus" span="3" 
+          source="Voluntario,Emergencia"
+          edit="true" 
+          required="true" 
+          explicit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo de Admisión" span="2"/>
+        <control type="select" name="mdlAdmit_AdmitType" span="4" 
+          datasource="GetLookupAdmissionTypes" 
+          source="AdmissionType,AdmissionTypeGuid" 
+          edit="true"
+          required="true" 
+          explicit="true"
+          filter="Active=true"/>
+        <control type="label" label="Modo de llegada" span="2"/>
+        <control type="select" name="mdlAdmit_AmbulanceID" 
+            acctsvc="true"
+            datasource="GetLookupAmbulanceId"
+            source="AmbulanceName,AmbulanceName"
+            explicit="true"
+            span="4" edit="true"/>
+      </row>
+      <row name="rowAttendingDoctor"> 
+        <control type="label" label="Médico de Guardia" span="2"/>
+        <control type="select" name="ReferringDoctor"
+          searchable="true"
+          acctsvc="true" datasource="GetUsersByAttributes" append="LocationId=(facilityData.LocationId),role=Physician"
+          source="UserFirstMiddleLast,UserId"
+          span="4" explicit="true" edit="true"/>
+        <control type="label" label="Motivo de Consulta" span="2"/>
+        <control type="textarea" name="mdlAdmit1_EdChiefComplaint" 
+          reveal="(facilityData.HospitalShortName)%OCC"
+          default="Exceso de peso / grasa corporal"
+          span="4" rows="1" edit="true" />
+        <control type="textarea" name="mdlAdmit2_EdChiefComplaint" 
+          reveal="(facilityData.HospitalShortName)¡OCC"
+          span="4" rows="1" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Autorizo el tratamiento de mis datos Personales(Envio Información)" span="10"/>
+        <control type="buttongroup" name="mdlAdmit_PatientAuthorization" source="True,False" span="2" edit="true" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="Médico Tratante" span="2"/>
+        <control type="select" name="AttendingDoctor"
+          searchable="true"
+          acctsvc="true" datasource="GetUsersByAttributes" append="LocationId=(facilityData.LocationId),role=Physician"
+          source="UserFirstMiddleLast,UserId"
+          span="4" explicit="true" edit="[PatientVisitGuid]="/>
+        <control type="label" label="Especialidad" span="2"/>
+        <control type="text" name="AttendingMedicalSpecialty" span="4" readonly="true"/>
+      </row>
+</partial>

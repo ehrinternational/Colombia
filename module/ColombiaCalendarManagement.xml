@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Gestión de Calendarios" type="onload" trigger="dgrFirstVisitCalendars">
+  <facet name="FileName" value="CalendarManagement"/>
+  <facet name="CalendarOption"/>
+  <facet name="SurgeryWardName" value="Quirófano central"/>
+  <facet name="LaborWardName" value="Tococirugía"/>
+  <!-- FirstVisit appointments -->
+  <partial link="./Partial/Calendars/PartialCalendarFirstVisitSetup.xml"/>
+  <!-- Specialist calendar for all types of consult appointments -->
+  <partial link="./Partial/Calendars/PartialCalendarConsultVisitSetup.xml"/>
+  <!-- Consult calendar for all types of consult appointments -->
+  <partial link="./Partial/Calendars/PartialCalendarPhysiciansAsResourcesSetup.xml"/>
+  <!-- Imaging calendar for modality appointments -->
+  <partial link="./Partial/Calendars/PartialCalendarImagingWithModalitiesSetup.xml"/>
+  <!-- Surgery calendar setup -->
+  <partial link="./Partial/Calendars/PartialCalendarSurgerySetup.xml"/>
+  <!-- Lab calendar setup -->
+  <partial link="./Partial/Calendars/PartialCalendarLabSetup.xml"/>
+  <!-- Calendar services setup -->
+  <partial link="./Partial/Calendars/PartialCalendarServiceTypesSetupAsModal.xml"/>
+</module>

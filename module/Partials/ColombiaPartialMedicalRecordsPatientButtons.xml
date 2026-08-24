@@ -1,0 +1,78 @@
+<partial>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row>
+    <!--Print patient label-->
+    <control type="button" reveal="[PatientId]!" name="btnPrintLabel" 
+      span="12"
+      action="print" 
+      mode="report" 
+      label="Etiquetas" 
+      icon="print" 
+      append="id=14c214853ef,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" /> 
+  </row>
+  <row>
+    <!--Print patient label-->
+    <control type="button" reveal="[PatientId]!" name="btnPrintRecordsLabel"
+      span="12"
+      action="print" 
+      mode="report" 
+      label="Expediente" 
+      icon="print" 
+      append="id=ff19ca6f157,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" /> 
+  </row>
+  <row>
+    <control type="button" name="btnInactivatePatient" span="12"
+      reveal="[Consult_Active]=True+[PatientId]!"
+      icon="remove" label="Desactivar" color="red"
+      action="redirect" target="mdlReasonToDeactivate"/>
+  </row>
+  <row>
+    <control type="button" name="btnActivatePatient" span="12"
+      icon="plus" label="Activar" color="green"
+      action="save" reveal="[Consult_Active]=False"
+      confirm="Por favor confirme que desea activar a este paciente."
+      affector="none"
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId],Active=True,DateTimeDeactivated=null"
+      set="Consult_Active=True"
+      provoke="btnReverseCancelOrders"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnCancelOrders"
+      action="save"
+      acctsvc="true"
+      dataupdate="UpdatePatientCancelOrdersOnDeath"
+      appendupdate="PatientId=[PatientId]"
+      success="Las citas y pedidos para este paciente han sido cancelados."/>
+    <control type="button" name="btnReverseCancelOrders"
+      action="save"
+      acctsvc="true"
+      dataupdate="UpdatePatientReverseCancelOrdersOnDeath"
+      appendupdate="PatientId=[PatientId]"
+      success="Las citas y órdenes para este paciente han sido reabiertas."/>
+  </row>
+  <row>
+      <!-- Display the patient timeline -->
+      <control type="button" name="btnTimeline"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+  </row>
+   <partial link="Partials/ColombiaPartialCLARAMedicalRecordsButtons.xml"/>
+</partial>

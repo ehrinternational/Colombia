@@ -1,0 +1,57 @@
+<partial>
+  <row>
+    <!-- Button to update patient visit info -->
+    <control type="button" name="btnUpdatePatientVisit"
+      reveal="[PatientVisitGuid]!"
+      icon="cloud-upload" label="Actualizar" span="12"
+      action="save|close|new"
+      affector="none"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <control type="button" name="btnReports"
+       reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Admitting,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+  <row>
+    <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
+      span="12" icon="envelope" label="Email"
+      preset="bmd_PatientId=[PatientId],
+      bmd_PatientFirstName=[Consult_PatientFirstName],
+      bmd_PatientMiddleName=[Consult_PatientMiddleName],
+      bmd_PatientLastName=[Consult_PatientLastName],
+      bmd_EmailAddress=[Consult_PatientEmail]"
+      trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+      action="redirect" target="mdlSendWYSIWYGEmail"/>
+  </row>
+  <row>
+    <control type="button" name="btnInitiateTextMessage" 
+      reveal="[PatientId]!"
+      span="12" icon="envelope" label="Enviar Texto"
+      trigger="grdPhysicianMessages2"
+      preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
+      action="redirect" target="mdlSendTextMessage"/>
+  </row>
+  <row>
+      <control type="button" name="btnDischargePatient"
+        icon="home" label="Dar de alta" color="green" span="12"
+        reveal="[PatientVisitGuid]!+[AllowDischarge]=true"
+        confirm="Confirme que desea cerrar esta visita del paciente."
+        action="save|close|new"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid],DischargeDateTime=(now),DischargedBy=(userName)"/>
+        <control type="hidden" name="AllowDischarge"/>
+    </row>
+  <!-- Call the patient in the waiting room -->
+  <partial link="Partials/ColombiaPartialCallPatientButton.xml"/>
+  <partial link="Partials/ColombiaPartialCLARAPhysicianButtons.xml"/>
+</partial>

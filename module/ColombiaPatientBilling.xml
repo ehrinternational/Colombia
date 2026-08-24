@@ -1,0 +1,899 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XML for Views version 1.0-->
+<module name="Facturación" type="onload" trigger="GetPOSSessionForUser,PatientPayerGroup_PayerStateProvince,Payers_PayerStateProvince,PatientList">
+  <facet name="InvoiceCalculated" default="False"/>
+  <facet name="DateTimeProcessed"/>
+  <facet name="FileName" value="PatientBilling"/>
+  <headerbutton name="btnBillingReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Cashier"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Display a list of patients -->
+  <partial link="Partials/ColombiaPartialAllAdmittedPatientList.xml"/>
+  <!-- SAT Invoices -->
+  <partial link="Partials/ColombiaPartialSATInvoices.xml"/>
+  <!-- Insurers -->
+  <partial link="Partials/ColombiaPartialBillingPayersAndInsurers.xml"/>
+  <!-- Patient tabmodal -->
+  <section type="tabmodal" name="PatientTabModal" title="Facturas del Paciente" badge="none" size="medium" provoke="InvoiceList">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo"
+          provoke="Consult_BirthPlace,VisitSelect"/>
+        <!--Read the patient visit and display the contents -->
+        <control type="hidden" name="GetPatientVisit"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[VisitSelect]"
+          inject="PatientVisitInfo"
+          set="[InvoiceProcess]=False"
+          provoke="[VisitSelect]!;GetChargesAndPayments,ButtonGroupSelect"/>
+        <!-- Get charges and payment totals for the visit -->
+        <control type="hidden" name="GetChargesAndPayments"
+          acctsvcreq="true"
+          datarequest="GetPatientChargeAndPaymentTotals"
+          appendrequest="PatientId=[PatientId],PatientVisit=[VisitSelect]"
+          inject="rowPatientCharges"
+          set="PatientAccountBalance=[[PatientAccountBalance]]"/>
+        <!-- Get the patient payer information -->
+        <control type="hidden" name="GetPatientPayer"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          set="HasPatientPayer=[[HasPatientPayer]]"/>
+        <control type="hidden"
+          name="GetOpenChargesStatus"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          set="HasOpenCharges=[[HasOpenCharges]],HasOpenPayments=[[HasOpenPayments]]"/>
+        <control type="button" name="ClosePatientTabModal" action="close|new"/>
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="PatientInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialBillingPatientButtons.xml"/>
+        </column>
+      </columns>
+    </group>
+    <!--  Patient visit information -->
+    <group name="patientVisitGroup"> 
+      <columns>
+        <column span="10">    
+          <row divider="true">
+            <control type="label" label="Visita" span="2" />
+            <control type="select" name="VisitSelect" span="5"   
+              explicit="true" default="true"
+              source="AdmitDateTime|DischargeDateTime|VisitInvoiceBalance,PatientVisitUniqueId" 
+              datarequest="GetPatientVisitsByFacilityAndPatient"
+              appendrequest="LocationId=(facilityData.LocationId),PatientId=[PatientId]"
+              format="datetime^Ninguna|datetime^Visita Abierta|0,000.00"
+              set="InvoiceCalculated=False"
+              provoke="GetPatientVisit,NewChargesInfo_ClaimGuid"/>
+            <control type="label" label="Saldo del Paciente" span="3" />
+            <control type="text" name="PatientAccountBalance" span="2" default="0.00" 
+              readonly="true" format="0,000.00"/>  
+          </row> 
+        </column>
+      </columns> 
+    </group>
+    <group name="PatientVisitInfo" reveal="[VisitSelect]!">  
+      <columns>
+        <column span="10">  
+          <row>
+            <control type="label" label="Fecha Admisión" span="2"/>
+            <control type="datetime" name="PVI_AdmitDateTime" span="3" readonly="true"/>   
+            <control type="label" label="Fecha de Alta" span="2"/>
+            <control type="datetime" name="PVI_DischargeDateTime" span="3" readonly="true"/> 
+          </row>
+          <row>
+            <control type="label" label="Fecha Factura" span="2"/>
+            <control type="date" span="4" name="InvoiceBillDate" 
+              edit="InvoiceStatus=Open|Closed+[InvoiceCalculated]=False" required="true"/>        
+            <control type="label" label="Vencimiento" span="2"/>
+            <control type="date" span="4" name="InvoiceDueDate" edit="InvoiceStatus=Open|Closed+[InvoiceCalculated]=False" required="[InvoiceProcess]=True"/>         
+          </row>
+          <row>
+            <control type="label" label="Folio" span="2"/>
+            <control type="text" name="PVI_InvoiceNumber" span="3" readonly="true"/>
+            <control type="label" label="Estatus" span="2"/>
+            <control type="select" span="3" name="InvoiceStatus" 
+              source="Open,Closed,Submitted,Settled"
+              sourcelabels="Abierto,Cerrado,En Proceso,Pagado"        
+              readonly="true"/>       
+          </row>    
+          <row>
+            <control type="label" label="Origen llegada" span="2"/>
+            <control type="select" name="PVI_AdmitSource" span="3" 
+              datasource="GetLookupAdmitSourcesByFacility" 
+              source="AdmitSource,AdmitSource"
+              readonly="true" />
+            <control type="label" label="Tipo de llegada" span="3"/>
+            <control type="select" name="PVI_BedStatus" span="3" 
+              source="Voluntario,Emergencia"
+              readonly="true" />
+          </row>
+          <row>
+            <control type="label" label="Tipo Admisión" span="2"/>
+            <control type="select" name="PVI_AdmitType" span="3" 
+              datasource="GetLookupAdmissionTypes" 
+              source="AdmissionType,AdmissionTypeGuid" 
+              readonly="true"/>
+            <control type="label" label="Modo de llegada" span="2"/>
+            <control type="select" name="PVI_AmbulanceID" span="3"
+                acctsvc="true"
+                datasource="GetLookupAmbulanceId"
+                source="AmbulanceName,AmbulanceName"
+                readonly="true"/>
+          </row>
+          <row> 
+            <control type="label" label="Médico de Guardia" span="2"/>
+            <control type="select" name="ReferringDoctor" span="4"
+              searchable="true"
+              acctsvc="true" datasource="GetUsersByAttributes" 
+              append="LocationId=(facilityData.LocationId),role=Physician"
+              source="UserFirstMiddleLast,UserId"
+              edit="true"/>
+            <control type="label" label="Motivo de Consulta" span="2"/>
+            <control type="textarea" name="mdlAdmit1_EdChiefComplaint" span="4" rows="1" edit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Médico Tratante" span="2"/>
+            <control type="select" name="AttendingDoctor" span="4"
+              searchable="true"
+              acctsvc="true" datasource="GetUsersByAttributes" 
+              append="LocationId=(facilityData.LocationId),role=Physician"
+              source="UserFirstMiddleLast,UserId"
+              explicit="true" edit="[PatientVisitGuid]="/>
+            <control type="label" label="Especialidad" span="2"/>
+            <control type="text" name="AttendingMedicalSpecialty" span="4" readonly="true"/>
+          </row>
+          <row>
+            <!-- Allow to be changed on patient bill -->
+            <control type="label" label="Razón Social" span="2"/>
+            <control type="text" name="PVI_PayerName" span="4" 
+              edit="[InvoiceStatus]=Open|Closed+[InvoiceCalculated]=False" 
+              required="[InvoiceProcess]=True"/> 
+          </row>
+          <row>
+            <control type="label" label="Notas" span="2"/>
+            <control type="textarea" name="BillingNotes" span="10" rows="1" 
+            edit="[InvoiceStatus]=Open|Closed+[InvoiceCalculated]=False"/>  
+          </row>
+        </column>
+        <column span="2">
+          <row>
+            <!-- Reopen a patient invoice with a closed status -->
+            <control type="button" span="12" name="btnOpenStatus" icon="cloud-upload" label="Abierta"
+              reveal="[InvoiceStatus]=Closed"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=Open"
+              set="InvoiceStatus=Open"
+              confirm="Confirme que desea volver a abrir esta factura."/>
+          </row>
+          <!-- Allow a support person to set an invoice to submitted -->
+          <row>
+            <control type="button" span="12" name="btnMedwaveSubmitted"
+              icon="cloud-upload" label="Facturada Medwave"
+              reveal="(user.UserRoles)%Medwave|MedWave"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=Submitted"
+              set="InvoiceStatus=Submitted"
+              confirm="Confirme que desea volver a factura esta factura."/>
+          </row>
+          <row>
+            <!-- Allow asupport person to set a status to paid-->
+            <control type="button" span="12" name="btnMedwavePaid" icon="cloud-upload" label="Pagado Medwave"
+              reveal="(user.UserRoles)%Medwave|MedWave+[InvoiceStatus]=Open|Closed"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=Settled"
+              set="InvoiceStatus=Settled"
+              confirm="Confirme que desea volver a pagado esta factura."/>
+          </row>
+          <row>
+            <!-- Allow asupport person to set a status to open-->
+            <control type="button" span="12" name="btnMedwaveOpenStatus"
+              icon="cloud-upload" label="Abierta Medwave"
+              reveal="(user.UserRoles)%Medwave|MedWave"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=Closed"
+              set="InvoiceStatus=Closed"
+              confirm="Confirme que desea volver a abrir esta factura."/>
+          </row>
+          <row>
+            <control type="button" span="12" name="btnMedwaveSetSeries"
+              icon="cloud-upload" label="Serie Medwave"
+              reveal="(user.UserRoles)%Medwave|MedWave"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],Series=[PVI_Series]"
+              confirm="Confirme que desea actualizar serie."/>
+          </row>
+          <row>
+            <control type="button" span="12" name="btnSettledStatus"
+              icon="cloud-upload" label="Pagado" color="green"
+              reveal="[InvoiceStatus]=Submitted"
+              preset="NewStatus=Settled"
+              compare="[PatientVisitInvoiceBalance]=0|El saldo de la factura debe ser cero para marcar el pago."
+              confirmsvc="true"
+              confirmrequest="VerifySettledClaims"
+              appendconfirm="PatientVisit=[VisitSelect]"
+              confirmresponse="value=1|Los Cargos del pagador deben liquidarse antes de liquidar la factura del Paciente."
+              confirm="Favor de Confirmar que quiere marcar esta factura como pagada."
+              action="trigger" provoke="btnSetNewStatus"/>
+          </row>
+          <!-- Set an invoice to Settled without recalculating when there are no charges -->
+          <row>
+            <control type="button" span="12" name="btnSettledStatusNoCharges"
+              icon="cloud-upload" label="Completar sin Cargos" color="green"
+              reveal="[InvoiceStatus]=Closed+Length(Charges_grdNewPatientCharges)=0+[InvoiceCalculated]=True+[gridPatient_AmountPaidTotal]=0"
+              confirm="Confirme que desea liquidar esta factura sin cargos"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=Settled"
+              set="InvoiceStatus=Settled"/>
+          </row>
+          <!-- Set an invoice to Settled when it has been calculated and there are no charges -->
+          <row>
+            <control type="button" span="12" name="btnSettledStatusNoNetCharges"
+              icon="cloud-upload" label="Completar sin Cargos" color="green"
+              reveal="[InvoiceStatus]=Closed+[PatientVisitChargeTotal]=0+[InvoiceCalculated]=True+[gridPatient_AmountPaidTotal]=0"
+              confirm="Confirme que desea liquidar esta factura sin cargos"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=Settled"
+              set="InvoiceStatus=Settled"/>
+          </row>
+          <!-- Close an open patient visit -->
+          <row>
+            <control type="button" span="12" name="btnClosedStatus"
+              icon="cloud-upload" label="Cerrar" color="yellow"
+              reveal="[InvoiceStatus]=Open+[VisitSelect]!"
+              confirm="Confirme que desea cerrar esta factura."
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="PatientVisitInfo|active"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect]"
+              set="NewStatus=Closed"
+              provoke="btnSetStatus"/>
+          </row>
+          <row>
+            <!-- Edit an invoice after recalculating -->
+            <control type="button" span="12" name="btnOpenInvoiceAfterRecalculating"
+              icon="cloud-upload" label="Editar"
+              reveal="[InvoiceStatus]=Closed+[InvoiceCalculated]=True"
+              set="InvoiceCalculated=False"
+              confirm="Confirme que desea editar la visita de este paciente antes de procesarla."
+              action="trigger"/>
+          </row>
+          <!-- Recalculate a patient bill while the patient visit is still open -->
+          <row>
+            <control type="button" span="12" name="btnRecalculateOpenPatientInvoice"
+              icon="refresh" label="Recalcular" action="trigger"
+              reveal="{[InvoiceStatus]=Open+[VisitSelect]!}"
+              preset="InvoiceBillDate=(dateTimeNow),InvoiceDueDate=(dateTimeNow)"
+              provoke="btnCompleteRecalculateOpenPatientInvoice"/>
+          </row>
+          <row showif="never">
+            <!-- Update the patient visit prior to recalculating -->
+            <control type="button" name="btnCompleteRecalculateOpenPatientInvoice"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="PatientVisitInfo|active"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect]"
+              provoke="btnCompleteRecalculateOpenInvoice"/>
+            <control type="button" name="btnCompleteRecalculateOpenInvoice"
+              action="save" 
+              acctsvc="true"
+              datainsert="RecalculatePatientInvoice"
+              appendinsert="patientVisit=[VisitSelect]"
+              set="InvoiceCalculated=True"
+              provoke="Charges_grdNewPatientCharges|active"/>
+          </row>
+          <row>
+            <control type="button" span="12" name="btnRecalculatePatientInvoice"
+              icon="refresh" label="Recalcular" action="trigger"
+              reveal="{[InvoiceStatus]=Closed+[VisitSelect]!+[InvoiceCalculated]=False+[PVI_SATInvoice]=True}"
+              preset="InvoiceBillDate=(dateTimeNow),InvoiceDueDate=(dateTimeNow)"
+              provoke="btnCompleteRecalculatePatientInvoice"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCompleteRecalculatePatientInvoice"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="PatientVisitInfo|active"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect]"
+              provoke="btnUpdatePatientProcessInvoice"/>
+          </row>
+          <!-- Recalculate the patient's bill without repricing -->
+          <row>
+            <control type="button" span="12" name="btnRecalculatePatientInvoiceNoRepricing"
+              icon="refresh" label="Recalcular sin precios nuevos" action="trigger"
+              reveal="{[InvoiceStatus]=Closed+[VisitSelect]!+[InvoiceCalculated]=False+[DateTimeProcessed]!+[PVI_SATInvoice]=True}"
+              preset="InvoiceBillDate=(dateTimeNow),InvoiceDueDate=(dateTimeNow)"
+              provoke="btnCompleteRecalculatePatientInvoiceNoRepricing"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCompleteRecalculatePatientInvoiceNoRepricing"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="PatientVisitInfo|active"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect]"
+              provoke="btnUpdatePatientProcessInvoiceWithoutRepricing"/>
+          </row>
+          <!-- Recalculate the patient's bill including repricing -->
+          <row>
+            <control type="button" span="12" name="btnRecalculatePatientInvoiceNoInvoice"
+              icon="refresh" label="Recalcular" action="trigger"
+              reveal="{[InvoiceStatus]=Closed+[VisitSelect]!+[InvoiceCalculated]=False+[PVI_SATInvoice]=False}"
+              preset="InvoiceBillDate=(dateTimeNow),InvoiceDueDate=(dateTimeNow)"
+              provoke="btnCompleteRecalculatePatientInvoiceNoInvoice"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCompleteRecalculatePatientInvoiceNoInvoice"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="PatientVisitInfo|active"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect]"
+              provoke="btnUpdatePatientProcessInvoice"/>
+          </row>
+          <!-- Recalculate the patient's bill without repricing -->
+          <row>
+            <control type="button" span="12" name="btnRecalculatePatientInvoiceNoRepricingNoInvoice"
+              icon="refresh" label="Recalcular sin precios nuevos" action="trigger"
+              reveal="{[InvoiceStatus]=Closed+[VisitSelect]!+[InvoiceCalculated]=False+[DateTimeProcessed]!+[PVI_SATInvoice]=False}"
+              preset="InvoiceBillDate=(dateTimeNow),InvoiceDueDate=(dateTimeNow)"
+              provoke="btnCompleteRecalculatePatientInvoiceNoRepricingNoInvoice"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCompleteRecalculatePatientInvoiceNoRepricingNoInvoice"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="PatientVisitInfo|active"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect]"
+              provoke="btnUpdatePatientProcessInvoiceWithoutRepricing"/>
+          </row>
+          <row showif="never">
+              <control type="button" name="btnUpdatePatientProcessInvoice"
+                action="save"
+                affector="none"
+                capture="PatientInfo|active"
+                dataupdate="UpdatePatient"
+                appendupdate="patientId=[PatientId]"
+                provoke="btnCompleteRecalculate"/>
+              <control type="button" name="btnCompleteRecalculate"
+                action="save" 
+                acctsvc="true"
+                datainsert="RecalculatePatientInvoice"
+                appendinsert="patientVisit=[VisitSelect]"
+                set="InvoiceCalculated=True"
+                provoke="Charges_grdNewPatientCharges|active"/>
+              <control type="button" name="btnUpdatePatientProcessInvoiceWithoutRepricing"
+                action="save"
+                affector="none"
+                capture="PatientInfo|active"
+                dataupdate="UpdatePatient"
+                appendupdate="patientId=[PatientId]"
+                set="InvoiceCalculated=True"
+                provoke="Charges_grdNewPatientCharges|active"/>
+          </row>
+          <row>
+            <!-- button to insert a patient sat invoice -->
+            <control type="button" span="12" name="btnInsertSATPatientInvoice" action="trigger"
+              reveal="[PVI_SATInvoice]=True+[InvoiceProcess]=False+[InvoiceCalculated]=True+[InvoiceStatus]=Closed+[VisitSelect]!+[PatientVisitCharges]»0"
+              icon="cloud-upload" label="Procesar" color="green"
+              preset="[InvoiceProcess]=True"
+              provoke="btnCompletePatientInvoice"/>
+          </row>
+              <!--confirmsvc="true"
+              confirmrequest="VerifySATInvoiceInsert"
+              appendconfirm="patientId=[PatientId],patientVisit=[VisitSelect]"
+              confirmresponse="=1|No se puede procesar la visita de este paciente. Existe una factura del SAT vigente para la visita de este paciente."-->
+
+          <row showif="never">
+            <control type="hidden" name="InvoiceProcess" default="False"/>
+            <control type="button" name="btnCompletePatientInvoice"
+              validate="PatientVisitInfo"
+              confirm="Por favor, confirme que desea procesar esta factura."
+              oncancelset="[InvoiceProcess]=False"
+              action="save"
+              affector="none"
+              acctsvc="true"
+              datainsert="InsertSATInvoice"
+              appendinsert="ProcessCharges=true,
+              GlobalInvoice=False,
+              NewInvoiceStatus=Submitted,
+              [PVI_FiscalType]=Física;FiscalRegimen=[PVI_FiscalRegimen]^FiscalRegimen=[PVI2_FiscalRegimen],
+              [PVI_FiscalType]=Física;FiscalRegimenName=[PVI_FiscalRegimenName]^FiscalRegimenName=[PVI2_FiscalRegimenName],
+              LocationId=(facilityData.LocationId),
+              PatientId=[PatientId],
+              PatientName=[PatientFullName],
+              PatientVisit=[VisitSelect],
+              AdmitDateTime=[PVI_AdmitDateTime],
+              DischargeDateTime=[PVI_DischargeDateTime],
+              PayerType=Patient,
+              Series=[PVI_Series],
+              Folio=[PVI_InvoiceNumber],
+              Status=Pending,
+              PaymentMethod=[PVI_PaymentMethod],
+              DateTimeIssued=(dateTimeNow),
+              PaymentType=[PVI_PaymentType],
+              FiscalType=[PVI_FiscalType],
+              (facilityData.SATInvoiceVersion)=3.3;CDFICode=[PVI_CFDICode],
+              [PVI_FiscalType]=Física+(facilityData.SATInvoiceVersion)=4.0;CDFICode=[PVI2_CFDICode],
+              [PVI_FiscalType]=Moral+(facilityData.SATInvoiceVersion)=4.0;CDFICode=[PVI3_CFDICode],
+              DocumentType=I,
+              PayerRFC=[PVI_PayerRFC],
+              PayerName=[PVI_PayerName],
+              PayerAddress=[PVI_PayerAddress],
+              PayerCellPhone=[PVI_PayerCellPhone],
+              PayerPostalCode=[PVI_PayerPostalCode],
+              PlaceIssued=(facilityData.HospitalCity),
+              InvoiceNotes=[BillingNotes],
+              ReferredBy=[Consult_ReferredBy],
+              ProviderId=[Consult1_AttendingPhysician],
+              AttendingPhysician=[Consult1_AttendingPhysician]"
+            provoke="^btnSetInvoiceToSubmitted"/>
+          </row>
+          <row>
+            <!-- Insert a general SAT Invoice when no patient invoice has been selected and the invoice is fully paid -->
+            <control type="button" name="btnInsertGeneralSATInvoice" span="12"
+              icon="cloud-upload" label="Factura PG" color="green" action="trigger" 
+              reveal="[PVI_SATInvoice]=False+[InvoiceStatus]=Open|Closed+[VisitSelect]!+[PatientVisitCharges]»0+[PatientVisitInvoiceBalance]=0+[InvoiceCalculated]=True}"
+              confirm="Por favor, confirme que desea completar esta visita con factura PG."
+              compare="[PVI_Series]!+[PVI_PaymentType]!|Serie y Tipo de Pago requerida."
+              provoke="btnCompleteGeneralSATInvoice"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCompleteGeneralSATInvoice"
+              action="save"
+              preset="(noclose)=true"
+              affector="NewSATInvoiceGuid"
+              setaffector="InvoiceGuid"
+              acctsvc="true"
+              datainsert="InsertSATInvoice"
+              appendinsert="SATInvoiceVersion=(facilityData.SATInvoiceVersion),
+              GlobalInvoice=False,
+              NewInvoiceStatus=Submitted,
+              [PVI_FiscalType]=Física;FiscalRegimen=[PVI_FiscalRegimen]^FiscalRegimen=[PVI2_FiscalRegimen],
+              [PVI_FiscalType]=Física;FiscalRegimenName=[PVI_FiscalRegimenName]^FiscalRegimenName=[PVI2_FiscalRegimenName],
+              LocationId=(facilityData.LocationId),
+              PatientId=[PatientId],
+              PatientName=[PatientFullName],
+              PatientVisit=[VisitSelect],
+              ProviderId=[Consult1_AttendingPhysician],
+              AttendingPhysician=[Consult1_AttendingPhysician],
+              AdmitDateTime=[PVI_AdmitDateTime],
+              DischargeDateTime=[PVI_DischargeDateTime],
+              PayerType=Patient,
+              Series=[PVI_Series],
+              Folio=[PVI_InvoiceNumber],Status=Pending,
+              PaymentMethod=[PVI_PaymentMethod],
+              DateTimeIssued=(dateTimeNow),
+              PaymentType=[PVI_PaymentType],
+              (facilityData.SATInvoiceVersion)=4.0;CDFICode=S01,
+              (facilityData.SATInvoiceVersion)=3.3;CDFICode=P01,
+              (facilityData.SATInvoiceVersion)=4.0;CFDIDescription=S01 Sin efectos fiscales,
+              (facilityData.SATInvoiceVersion)=3.3;CFDIDescription=P01 Por definir,
+              DocumentType=I,
+              PayerRFC=XAXX010101000,
+              DateTimeSent=(dateTimeNow),
+              PayerName=[PVI_PayerName],
+              PayerPostalCode=[PVI_PayerPostalCode],
+              PlaceIssued=(facilityData.HospitalCity),
+              InvoiceNotes=[BillingNotes]"
+              provoke="[NewSATInvoiceGuid]!;btnInsertGeneralSATDetails^btnNoInvoiceGuidReturned"/>
+          </row>
+          <row>
+            <!-- Notify user that there is a balance outstanding -->
+            <control type="button" name="btnProcessGeneralSATInvoice" span="12"
+              icon="cloud-upload" label="Factura PG" color="green" 
+              action="trigger"
+              reveal="{[PVI_SATInvoice]=False+[InvoiceStatus]=Open|Closed+[VisitSelect]!+[PatientVisitCharges]»0+[PatientVisitInvoiceBalance]!0+[InvoiceCalculated]=True}"
+              confirm="La cuenta tiene un saldo pendiente, favor de validar.|nocancel"
+              set="(noclose)=false"/>
+          </row>
+          <row showif="never">
+            <!-- Store new Invoice Guid for use by detail lines-->
+            <control type="hidden" name="NewSATInvoiceGuid"/>
+            <!-- Insert new SAT Invoice details for General invoices -->
+            <control type="button" name="btnInsertGeneralSATDetails"
+              action="save"
+              acctsvc="true"
+              datainsert="InsertSATInvoiceCharges"
+              appendinsert="InvoiceType=General,PatientVisit=[VisitSelect],InvoiceGuid=[NewSATInvoiceGuid]"
+              provoke="[PatientVisitInvoiceBalance]=0;btnSetInvoiceToSettled^btnSetInvoiceToSubmitted"/>
+            <!-- Update the patient invoice status to 'Submitted' after the invoice has been created -->
+            <control type="button" name="btnSetInvoiceToSubmitted"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],InvoiceStatus=Submitted,DateTimeProcessed=(now)"
+              set="InvoiceStatus=Submitted"
+              provoke="(facilityData.GeneralLedgerUse)=true+(facilityData.HospitalCountry)!MEX;btnPostInvoiceToGeneralLedger^btnTriggerReadyToPost"/>
+            <!-- Update patient invoice to paid status -->
+            <control type="button" name="btnSetInvoiceToSettled"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],InvoiceStatus=Settled,DateTimeProcessed=(now)"
+              set="InvoiceStatus=Settled"
+              provoke="(facilityData.GeneralLedgerUse)=true+(facilityData.HospitalCountry)!MEX;btnPostInvoiceToGeneralLedger^btnTriggerReadyToPost"/>
+            <!-- Post patient invoice to General Ledger  -->
+            <control type="button" name="btnPostInvoiceToGeneralLedger"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              datainsert="PostPatientInvoice"
+              appendinsert="PatientVisitUniqueId=[VisitSelect],PatientId=[PatientId],ClaimGuid=,ReferenceNumber=[PVI_InvoiceNumber],TransactionDate=(dateTimeNow),PostedBy=(userName),Description=[PatientFullName],DepartmentGuid=[PVI_CostCenter]"
+              provoke="btnTriggerReadyToPost"/>
+            <!-- Set the SAT Invoice status to 'ReadyToPost' if this is a General Public invoice -->
+            <control type="button" name="btnTriggerReadyToPost"
+              action="trigger"
+              set="[PVI_SATInvoice]=True;(noclose)=false"
+              provoke="[PVI_SATInvoice]=False;btnUpdateGeneralSATInvoiceStatusToReadyToPost^PatientSATInvoiceList"/>
+            <!-- Set the SAT invoice status to 'ready to post' for General Public invoices -->
+            <control type="button" name="btnUpdateGeneralSATInvoiceStatusToReadyToPost"
+              action="save"
+              acctsvc="true"
+              dataupdate="UpdateSATInvoice"
+              appendupdate="InvoiceGuid=[NewSATInvoiceGuid],Status=ReadyToPost"
+              set="(noclose)=false"
+              provoke="PatientSATInvoiceList"/>
+            <control type="button" name="btnClosePatientBilling" action="close|new"/>
+            <control type="button" name="btnNoInvoiceGuidReturned" action="trigger"
+              confirm="No se generó ninguna factura. Póngase en contacto con el soporte técnico para resolver este problema.|nocancel"
+              set="InvoiceCalculated=False"/>
+          </row>
+          <row>
+            <!--  Button to print patient invoice -->
+            <control type="button" name="btnPrintInvoice" 
+              label="Cuenta Visita" icon="print" span="12" 
+              action="print" mode="report" 
+              append="id=49fd60deec2,LocationFacility=(facilityData.HospitalGuid),FacilityId=(facility),PatientId=[PatientId],PatientVisit=[VisitSelect],UserName=(userName),CurrentDateTime=(dateTimeNow)"/>            
+          </row>
+          <row>
+            <!--  Button to print patient account statement -->
+            <control type="button" name="btnPrintStatement" 
+              label="Cuenta Paciente" icon="print" span="12" 
+              action="print" mode="report" 
+              append="id=41b281c6283,LocationFacility=(facilityData.HospitalGuid),FacilityId=(facility),PatientId=[PatientId],UserName=(userName),CurrentDateTime=(dateTimeNow)"/>            
+          </row>
+          <row>
+            <!--  Button to print patient invoice -->
+            <control type="button" name="btnPrintTotalInvoice"
+              reveal="[VisitSelect]!" 
+              label="Cuenta Total" icon="print" span="12" 
+              action="print" mode="report" 
+              append="id=cddf4aa7b2f,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),PatientVisit=[VisitSelect],UserName=(userName),CurrentDateTime=(dateTimeNow)"/>            
+          </row>
+          <row>
+            <!-- Merge charges from patient visits-->
+            <control type="button" name="btnMergeVisits"
+              icon="copy" label="Combinar" span="12"
+              reveal="[InvoiceStatus]=Open+[VisitSelect]!"
+              trigger="selPatientVisits"
+              action="redirect" target="mdlMergeVisits"/>
+          </row>
+          <row>
+            <!-- Attach unassigned charges -->
+            <control type="button" name="btnHasOpenCharges"
+              icon="edit" label="Cargos Sin Asignar" span="12" color="orange"
+              reveal="[InvoiceStatus]=Open|Closed+[VisitSelect]!+[HasOpenCharges]=true"
+              trigger="grdOpenCharges"
+              action="redirect" target="mdlOpenCharges"/>
+          </row>
+          <row>
+            <!-- Attach unassigned payments -->
+            <control type="button" name="btnHasOpenPayments"
+              icon="edit" label="Pagos Sin Asignar" span="12" color="orange"
+              reveal="[InvoiceStatus]=Open|Closed+[VisitSelect]!+[HasOpenPayments]=true"
+              trigger="grdOpenPayments"
+              action="redirect" target="mdlOpenPayments"/>
+          </row>
+          <row>
+            <!-- AI billing assistant -->
+            <control type="button" name="btnAIBillingAssistant" span="12" action="trigger"
+              reveal="[VisitSelect]!+(userName)%ehrinternational|sonic"
+              label="CLARA" icon="search" color="green"
+              acctsvcreq="true"
+              datarequest="GetAIPrompts"
+              appendrequest="PromptGuid=975d0215-8d4f-43fa-88b1-9d41fc52a159"
+              set="aip_PromptName=[[PromptName]],aip_PromptText=[[PromptText]],aip_Type=[[Type]],
+                aip_AIRole=[[AIRole]],aip_AIReasoning=[[AIReasoning]],aip_OutputTokens=[[OutputTokens]],
+                aip_QueryName=[[QueryName]],aip_AIModel=[[AIModel]],aip_AIGenerator=[[AIGenerator]]"
+              provoke="btnAIUploadData"/>
+          </row>
+          <row showif="never">
+            <control type="hidden" name="aip_QueryName"/>
+            <control type="hidden" name="aip_PromptName"/>
+            <control type="hidden" name="aip_PromptText"/>
+            <control type="hidden" name="aip_AIGenerator"/>
+            <control type="hidden" name="aip_Type"/>
+            <control type="hidden" name="aip_AIRole"/>
+            <control type="hidden" name="aip_AIModel"/>
+            <control type="hidden" name="aip_AIReasoning"/>
+            <control type="hidden" name="aip_OutputTokens"/>
+            <control type="button" name="btnAIUploadData"
+              action="queryai"
+              datarequest="[aip_QueryName]" acctsvcreq="true" mode="tojson"
+              appendrequest="PatientId=[PatientId],PatientVisitId=[VisitSelect],currentDateTime=(now)"
+              source="[aip_PromptText]" title="[aip_PromptName]" filename="TestFile" svctype="[aip_Type]"
+              role="[aip_AIRole]" reasoning="[aip_AIReasoning]"
+              limit="[aip_OutputTokens]" linksource="[[id]]" model="[aip_AIModel]" generator="[aip_AIGenerator]"/>
+          </row>
+          <!-- Update the invoice and set a new status -->
+          <row showif="never">
+            <control type="hidden" name="NewStatus"/>
+            <control type="button" name="btnSetNewStatus"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              capture="PatientVisitInfo"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect]"
+              provoke="[NewStatus]=Settled;btnSetSettledStatus,[NewStatus]=Closed;btnSetClosedStatus,[NewStatus]!Closed|Settled;btnSetStatus"/>
+            <control type="button" name="btnSetStatus"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=[NewStatus]"
+              set="InvoiceStatus=[NewStatus]"/>
+            <control type="button" name="btnSetSettledStatus"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=[NewStatus],SettledDate=(dateTimeNow)"
+              set="InvoiceStatus=[NewStatus]"/>
+            <control type="button" name="btnSetClosedStatus"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientVisitNoDepartmentTracking"
+              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=[NewStatus],InvoiceClosedDate=(dateTimeNow)"
+              set="InvoiceStatus=[NewStatus]"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+    <!-- Display the total charges for the patient visit -->
+    <group name="grpChargeTotals" bgcolor="white" reveal="[VisitSelect]!">
+      <row name="rowPatientCharges">
+        <control type="hidden" name="ChargeTotal"/>
+        <control type="hidden" name="PaymentTotal"/>
+        <control type="hidden" name="PatientVisitCharges"/>
+        <control type="hidden" name="PayerVisitCharges"/>
+        <control type="hidden" name="PatientVisitPayments"/>
+        <control type="hidden" name="PayerVisitPayments"/>
+        <control type="hidden" name="PayerVisitCoPays"/>
+        <control type="hidden" name="PayerVisitDeductibles"/>
+        <control type="hidden" name="PayerVisitCoInsurance"/>
+        <control type="hidden" name="PayerVisitMedicalCoInsurance"/>
+        <control type="hidden" name="PatientVisitCoPays"/>
+        <control type="hidden" name="PatientVisitDeductibles"/>
+        <control type="hidden" name="PatientVisitCoInsurance"/>
+        <control type="hidden" name="PatientVisitMedicalCoInsurance"/>
+      </row>
+      <row>   
+        <control type="label" span="2" label="Cargos" align="left"/>
+        <control type="label" span="2" label="Copagos" align="left"/>
+        <control type="label" span="2" label="Deducible" align="left"/>
+        <control type="label" span="2" label="Coaseguro" align="left"/>
+        <control type="label" span="2" label="Coaseguro Médico" align="left"/>
+      </row>
+      <row>
+        <control type="calc" name="PatientVisitChargeTotal" span="2" format="0,00.00" 
+          default="0.00"  source="1*PatientVisitCharges"/>
+        <control type="calc" name="PatientVisitCoPaysTotal" span="2" format="0,00.00"  
+          default="0.00" source="1*PatientVisitCoPays"/>
+        <control type="calc" name="PatientVisitDeductibleTotal" span="2" format="0,00.00"  
+          default="0.00" source="PatientVisitDeductibles*1"/>
+        <control type="calc" name="PatientVisitCoInsuranceTotal" span="2" format="0,00.00"  
+          default="0.00" source="1*PatientVisitCoInsurance"/>
+        <control type="calc" name="PatientVisitMedicalCoInsuranceTotal" offset="1" span="2" format="0,00.00"  
+          default="0.00" source="1*PatientVisitMedicalCoInsurance"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Pagos"/>
+        <control type="calc" name="PatientVisitPaymentTotal" span="2" format="0,00.00"  
+          default="0.00" source="PatientVisitPayments*1"/>
+        <control type="label" span="2" label="Saldo"/>
+        <control type="calc" name="PatientVisitInvoiceBalance" span="2" format="0,00.00" 
+          default="0.00" source="PatientVisitChargeTotal-(PatientVisitPaymentTotal)" />              
+      </row>
+    </group>      
+     <!-- Patient visit datagrids -->
+    <group name="PatientGridGroup" reveal="[PatientId]!+[VisitSelect]!">
+      <row>
+        <control type="buttongroup" name="ButtonGroupSelect" span="12"
+          edit="true" mode="auto" default="Charges"
+          source="Charges,PatientPayers,PayerClaims,Addresses,Contacts,Documents,SATInvoices,Quotes,Appointments" 
+          sourcelabels="Cargos,Beneficios,Beneficios de Atención,Direcciones,Contactos,Documentos,Facturas,Cotizaciones,Citas" 
+          provoke="GridOptions|options"/>
+      </row>
+      <row>
+        <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
+          <partial link="Partials/ColombiaPartialBillingPatientCharges.xml"/>
+          <partial link="Partials/ColombiaPartialBillingPatientPayments.xml"/>
+          <partial link="Partials/ColombiaPartialPatientPayers.xml"/>
+          <partial link="Partials/ColombiaPartialPatientClaims.xml"/>
+          <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
+          <partial link="./Partial/Grids/PartialPatientQuotesNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialECDFormsWithRevisionsNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialScannedDocumentsWithNewAndCancel.xml"/>
+          <partial link="Partials/ColombiaPartialPatientSATInvoiceList.xml"/>
+          <partial link="./Partial/Grids/PartialAppointmentListForPatientNoEdit.xml"/>
+        </control>
+      </row>    
+    </group> 
+  </section>
+  <!-- Tabmodal to merge patient visits -->
+  <section type="tabmodal" name="mdlMergeVisits" title="Combinar Visitas" badge="none" size="small">
+    <group>
+      <row>
+        <!-- Get a list of invoices with closed status -->
+        <control type="label" label="Visitas del Paciente" span="4"/>
+        <control type="select" name="selPatientVisits" span="6"
+          searchable="multiple" 
+          acctsvcreq="true"
+          explicit="true"
+          filter="InvoiceStatus=Closed,ExistingPostedSAT=False"
+          default="[VisitSelect]"
+          source="AdmitDateTime|DischargeDateTime,PatientVisitUniqueId" 
+          datarequest="GetPatientVisitsByFacilityAndPatient"
+          appendrequest="LocationId=(facilityData.LocationId),PatientId=[PatientId]"
+          format="datetime^Ninguna|datetime^Visita Abierta|0,000.00"/>
+      </row>
+      <row>
+        <control type="modalbutton" name="btnMergePatientVisits"
+          icon="copy" color="green" label="Combinar"
+          reveal="[selPatientVisits]!"
+          confirm="Confirme que desea combinar estas visitas de pacientes."
+          acctsvc="true"
+          action="save|close|new"
+          affector="none"
+          datainsert="MergePatientVisits"
+          appendinsert="ToPatientVisit=[VisitSelect],FromPatientVisit=[selPatientVisits]"
+          provoke="VisitSelect"/>
+      </row>
+    </group>
+  </section>
+  <!-- tabmodal to assign patient charges -->
+  <section type="tabmodal" name="mdlOpenCharges" title="Cargos Sin Asignar" badge="none" provoke="GetOpenChargesStatus,Charges_grdNewPatientCharges">
+    <group>
+      <row>
+        <control type="datagrid" label="Cargos Sin Asignar" name="grdOpenCharges" span="12"      
+          rows="10" fitrows="true"
+          acctsvcreq="true" 
+          filter="Status=Active"
+          datarequest="GetChargesByPatientVisit"     
+          appendrequest="patientVisit=null,patientId=[PatientId],ClaimGuid=none"     
+          source="TransactionDateTime,ItemName,TransactionQuantity,PerItemChargeAmount,TotalChargeAmount,DiscountAmount,TaxableAmount,TaxAmount,Retention,NetAmount"
+          sourcelabels="Fecha,Artículo,Cantidad,Precio,Subtotal,Descuento,Gravable,Impuesto,Retención,Total"
+          sort="TransactionDateTime=desc"
+          format="datetime||0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00"
+          align="left|left|right|right|right|right|right|right|right|right"
+          total="||||+|+|+|+|+|+"
+          key="TransactionGuid">
+          <control type="button" name="btnCancelUnasignedCharge"
+            icon="remove" color="red" label="Cancelar"
+            showif="feature"
+            confirm="Confirma que deseas cancelar este cargo."
+            action="save"
+            acctsvc="true"
+            dataupdate="UpdatePatientCharge"
+            appendupdate="TransactionGuid=[[TransactionGuid]],status=Canceled"
+            provoke="grdOpenCharges"/>
+          <control type="button" name="btnAsignUnasignedCharge"
+            icon="cloud-upload" color="green" label="Asignar Cargo"
+            showif="feature"
+            confirm="Confirme que desea asignar este cargo a la visita seleccionada."
+            action="save"
+            acctsvc="true"
+            dataupdate="UpdatePatientCharge"
+            appendupdate="TransactionGuid=[[TransactionGuid]],patientVisit=[VisitSelect]"
+            provoke="grdOpenCharges"/>
+          </control>
+      </row>
+    </group>
+  </section>
+  <!-- tabmodal to assign patient payments that were entered without a patient visit -->
+  <section type="tabmodal" name="mdlOpenPayments" title="Pagos Sin Asignar" badge="none" provoke="GetOpenChargesStatus,gridPatient_receipts">
+    <group>
+      <row>
+        <control type="datagrid" label="Pagos del Paciente Sin Asignar" name="grdOpenPayments"
+          searchable="true"
+          span="12" rows="5"                   
+          acctsvcreq="true"
+          sort="ReceiptDate=desc"
+          filter="Status!Canceled,PatientVisit="
+          datarequest="GetPayerReceiptsByPatientId"
+          appendrequest="patientId=[PatientId]"
+          source="ReceiptDate,ReceiptNumber,ReceiptTypeDescription,ReferenceNumber,ReceiptNotes,AmountPaid,EnteredByFullName"
+          sourcelabels="Fecha,Número,Tipo,Referencia,Notas,Importe,Ingresado por"
+          align="|left|left|left|left|right|left"
+          total="|||||+"
+          format="datetime|||||0,000.00"
+          key="ReceiptGuid">
+          <control type="button" name="btnAsignUnasignedPayment"
+            icon="remove" color="green" label="Asignar Pago"
+            showif="feature"
+            confirm="Confirme que desea asignar este pago a la visita seleccionada."
+            action="save"
+            acctsvc="true"
+            dataupdate="UpdatePayorReceiptAgainstInvoice"
+            appendupdate="ReceiptGuid=[[ReceiptGuid]],patientVisit=[VisitSelect]"
+            provoke="grdOpenPayments"/>
+        </control>
+      </row>
+    </group>
+  </section>
+  <!-- HarmoniColombia modals -->
+  <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
+  <partial link="Partials/ColombiaPartialNewSATCredit.xml"/>
+  <partial link="Partials/ColombiaPartialNewSATInvoice.xml"/>
+  <partial link="Partials/ColombiaPartialMoneyLaundering.xml"/>
+  <!-- Billing modals -->
+  <partial link="Partials/ColombiaPartialPayerClaims.xml"/>
+  <partial link="Partials/ColombiaPartialContractsModal.xml"/>
+  <partial link="./Partial/Modals/PartialBillingAllocateCharges.xml"/>
+  <partial link="./Partial/Modals/PartialBillingDeallocateCharges.xml"/>
+  <partial link="./Partial/Modals/PartialBillingNewPatientChargesMexico.xml"/>
+  <partial link="./Partial/Modals/PartialBillingNewPatientPayments.xml"/>
+  <partial link="./Partial/Modals/PartialBillingNewPayerReceiptsWithRetention.xml"/>
+  <partial link="./Partial/Modals/PartialBillingNewPayerChargesOnClaims.xml"/>
+  <partial link="./Partial/Modals/PartialBillingEditPayerChargesOnClaims.xml"/>
+  <partial link="./Partial/Modals/PartialEmailSATInvoice.xml"/>
+  <partial link="./Partial/Modals/PartialPatientQuoteModalWithPatientInfo.xml"/>
+  <!-- Cashier modals -->
+  <partial link="./Partial/Admin/PartialCashierOpenSession.xml"/>
+  <partial link="./Partial/Admin/PartialCashierCloseSession.xml"/>
+  <!-- General modals -->
+  <partial link="./Partial/Admin/PartialPatientSearchModal.xml"/>
+  <partial link="./Partial/Messaging/PartialSendEmailMessageToPatient.xml"/>
+  <partial link="./Partial/Admin/PartialReportModals.xml"/>    
+  <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
+  <partial link="./Partial/Modals/PartialReferringMds.xml"/>
+</module>

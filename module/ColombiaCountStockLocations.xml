@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Contar Inventario" type="onload" trigger="dgrCountItemList">
+<headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Warehouse"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+<!-- Inventory stock items for location -->
+<partial link="../../ERPSpanish/module/Partials/PartialESCountStockItemsByLocation.xml"/>
+<!-- Inventory count modal -->
+<partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
+<!-- Inventory history modal -->
+<partial target="mdlItemHistory" link="./Partial/Modals/PartialItemMasterHistory.xml"/>
+<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

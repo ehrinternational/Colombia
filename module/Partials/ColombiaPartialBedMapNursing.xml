@@ -1,0 +1,895 @@
+﻿<partial>
+  <!-- Supervisor bed map (includes adding/removing beds and other options) -->
+  <!-- Requires PartialReadyForDischarge.xml and PartialAssignAttendingPhysician.xml -->
+  <template name="patientGridTemplate" type="markup" align="center">
+    [div bgcolor=white align=center][h4]${[[Ward]]}[/h4]
+    [h4]${[[RoomAndBedNumber]]} (${[[RoomType]]})[/h4]
+    [h5]${[[PatientName]]}[/h5]
+    [b]Diagnóstico[/b] ${[[PrimaryDiagnosis]]}[br]
+    [b]Médico:[/b] ${[[AttendingDoctorFullName]]}[br]
+    [b]Enfermera:[/b] ${[[NurseFullName]]}[/div][br]
+    [if ${[[RoomMaintenanceStatus]]}=Blocked][div bgcolor=white align=center][b]Bloqueado: ${[[MaintenanceDescription]]}[/b][/div][br][/if]
+    [if ${[[Reserved]]}=true][div bgcolor=white align=center][icon size=2x color=blue]calendar[/icon][b] Reservado:[/b] [span format=datetime]${[[ReservedForDateTime]]}[/span][br] ${[[ReservedForPatientFullName]]}[/div][br][/if]
+    [if ${[[ReadyForDischarge]]}=true][div bgcolor=white align=center][icon size=2x color=green]home[/icon][b] Listo para el Alta[/b][br][b]Plan Alta:[/b] [span format=datetime]${[[ExpectedDischargeDateTime]]}[/span][/div][br][/if]
+    [if ${[[UnacknowledgedOrders]]}»0][div bgcolor=white align=center][icon size=2x color=orange]hand-right[/icon][b] Órdenes no Reconocidas[/b][/div][br][/if]
+    [if ${[[lateMarExists]]}=true][div bgcolor=white align=center][icon size=2x color=red]warning-sign[/icon][b] Medicamentos Tardíos[/b][/div][/if]
+    [if ${[[PreDischarge]]}=true][div bgcolor=white align=center][b]Pre Alta[/b][/div][/if]
+  </template>
+  <section type="tab" name="BedMapTab" title="Mapa de Camas" trigger="MapBedList">
+    <group name="MapHospitalRecord">
+        <row showif="never">
+            <control type="select" 
+                span="3"
+                acctsvc="true" 
+                name="BedMapLookupTransferFacility" 
+                datasource="GetTransferHospitalsActive" append="LocationId=(facilityData.LocationId)" 
+                source="HospitalName,HospitalGuid"
+                default="(facilityData.HospitalName)"/>
+            <control type="hidden" name="DepartmentGuid"/>
+        </row>
+    </group>
+    <group>
+      <row>
+        <control type="select" reveal="MapBedCriteria=Department"
+            name="MapDepartmentList" 
+            span="3" 
+            acctsvc="true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)"
+            source="DepartmentName,DepartmentGuid" 
+            default="true"
+            set="DepartmentGuid=[[DepartmentGuid]]"
+            provoke="MapBedList"/>
+        <control type="select" reveal="MapBedCriteria=Ward"
+            name="MapWardList" 
+            span="3" 
+            acctsvc="true"
+            datasource="GetHospitalWardsForThisFacilityActive" 
+            append="LocationId=(facilityData.LocationId)"
+            source="Ward,WardGuid" 
+            default="true"
+            set="DepartmentGuid=[[DepartmentGuid]]"
+            provoke="MapBedList"/>
+        <control type="select" reveal="MapBedCriteria=Physician"
+            name="MapselectPhysicians"
+            span="3"
+            searchable="true"
+            filter="UserRoles%Physician"
+            datasource="GetUsersForThisFacility" 
+            append="LocationId=(facilityData.LocationId),active=true"
+            source="UserFirstMiddleLast,UserId"
+            provoke="MapBedList"/>
+        <control type="select" reveal="MapBedCriteria=Nurse"
+            name="MapselectNurses"
+            span="3"
+            searchable="true"
+            datasource="GetNursesAndPhysiciansForThisFacility"
+            append="nurseOnly=true"
+            source="Name,UserId"
+            provoke="MapBedList"/>
+        <control type="buttongroup" name="MapBedCriteria"
+            span="6" mode="auto"
+            source="Department,Ward,Physician,Nurse,AllActive,Inactive" 
+            sourcelabels="Servicio,Sala,Médico,Enfermera,Hospital,Inactivo" 
+            default="Ward"
+            provoke="MapBedList"/>
+    </row>
+    <row>
+        <control
+            type="repeater"
+            refresh="60"
+            label="Mapa de Camas"
+            name="MapBedList"
+            items="600" span="12" columns="4"
+            fititems="true"
+            group="Ward"
+            controlset="header"
+            acctsvcreq="true"
+            searchable="PatientName,PrimaryDiagnosis,AttendingDoctorFullName,NurseFullName,ReservedForPatientFullName,RoomAndBedNumber,RoomType"
+            itemcolor="RoomMaintenanceStatus|Available=green;Cleaning=orange;Quarantine=red;Maintenance=grey"
+            datarequest="GetFacilityPatientRoomsAndBedsForThisFacility"
+            appendrequest="criteria=[MapBedCriteria],departmentGuid=[MapDepartmentList],wardGuid=[MapWardList],physicianId=[MapselectPhysicians],nurseId=[MapselectNurses]"
+            source="patientGridTemplate"
+            sort="RoomAndBedNumber=asc"
+            key="RoomGuid">
+
+            <!-- Assign bed type to a bed -->
+            <control type="button" name="MapbtnAssignRoomType"
+              icon="refresh" label="Asignar Tipo"
+              showif="feature"
+              color="blue"
+              preset="Assign_RoomGuid=[[RoomGuid]]"
+              trigger="Assign_RoomGuid"
+              action="redirect"
+              target="mdlAssignRoomType"/>
+            <!-- Assign ready to discharge and discharge datetime -->
+            <control type="button"
+                showif="feature"
+                reveal="[[PatientId]]!+(facilityData.HospitalShortName)!HIMFG"
+                name="MapAssignDischargeStatus"
+                label="Listo para el Alta"
+                icon="home"
+                action="redirect"
+                preset="Ready_PatientId=[[PatientId]],Ready_PatientVisitGuid=[[PatientVisit]]"
+                trigger="GetReadyForDischarge"
+                target="mdlReadyForDischarge"/>
+            <!-- Acknowledge Orders -->
+            <control type="button" name="MapAcknowledgeOrders" label="Reconocer Órdenes" icon="check-mark"
+              showif="feature"
+              reveal="[[UnacknowledgedOrders]]!0"
+              action="redirect|view"
+              target="acknowledge"
+              append="patientid=[[PatientId]],patientvisit=[[PatientVisit]],distinct=true"
+              provoke="MapBedList"/>
+            <!-- Activate Inactive beds -->
+            <control type="button"
+                name="MapOpenStatus"
+                reveal="MapBedCriteria=Inactive"
+                showif="feature"
+                color="green"
+                icon="plus"
+                label="Activar"
+                action="save"
+                affector="none"
+                acctsvc="true"
+                datainsert="UpdateFacilityPatientRooms"
+                appendinsert="roomGuid=[[RoomGuid]],active=true"
+                provoke="MapBedList"/>
+            <!--  Assign a patient to a bed -->
+            <control type="button"
+                showif="feature"
+                reveal="[[PatientName]]=+[MapBedCriteria]!Inactive+[[RoomMaintenanceStatus]]!Blocked"
+                name="MapAssignPatient"
+                label="Asignar Paciente"
+                icon="plus"
+                preset="AssignPatient_RoomGuid=[[RoomGuid]],Assign_RoomToAssign=[[RoomAndBedNumber]]"
+                trigger="AssignPatientId"
+                action="redirect"
+                target="mdlAssignPatientBed"/>
+            <!-- Assign a scanned patient to the selected room -->
+            <control type="button" name="btnScanPatientAssignRoom" 
+              reveal="[[PatientId]]=,MapBedCriteria!Inactive"
+              showif="feature"
+              action="scan" color="green"
+              icon="qrcode"
+              label="Asignar Paciente"
+              inject="value=[GetScanPatientAssignRoom]"
+              preset="hidScanRoomToAssign=[[RoomGuid]]"
+              provoke="[GetScanPatientAssignRoom]!;GetScanPatientAssignRoom"/>    
+            <!-- Assign a bed request -->
+            <control type="button"
+                showif="feature"
+                reveal="[[PatientName]]=+[MapBedCriteria]!Inactive+[AllowBedReservations]=true"
+                name="MapAssignRequest"
+                label="Asignar Solicitud"
+                icon="plus"
+                action="redirect"
+                preset="Request_RoomGuid=[[RoomGuid]]"
+                trigger="grdApprovedBedRequests"
+                target="mdlAssignBedRequest"/>
+            <!--  Cancel a patent bed assignment -->
+            <control type="button"
+                showif="feature"
+                reveal="[[PatientId]]!"
+                name="MapCancelPatient"
+                label="Cancelar Paciente"
+                icon="remove"
+                confirm="Por favor, confirme que desea cancelar esta asignación de cama de paciente."
+                action="save"
+                acctsvc="true"
+                affector="none"
+                dataupdate="UpdatePatientBedAssignment"
+                appendupdate="bedAssignmentGuid=[[BedAssignmentGuid]],dateTimeCheckedOut=(dateTimeNow),status=Closed"
+                provoke="MapBedList"/>
+            <!-- View patient information -->    
+            <control type="button"
+                showif="feature"
+                reveal="[[PatientId]]!+[FileName]!BedManagement"
+                name="MapReviewPatient"
+                icon="folder-open"
+                label="Ficha del Paciente"
+                preset="PatientId=[[PatientId]],PatientVisitGuid=[[PatientVisit]]"
+                trigger="PatientId,PatientVisitGuid"
+                action="redirect"
+                target="PatientTabModal"/>
+             <control type="button"
+                showif="feature"
+                reveal="[[PatientId]]!+[FileName]=BedManagement"
+                name="MapReviewPatientForBedManagement"
+                icon="folder-open"
+                label="Ficha del Paciente"
+                preset="Review_PatientId=[[PatientId]]"
+                trigger="Review_PatientId"
+                action="redirect"
+                target="PatientTabModal"/>
+            <!-- Assign a nurse to a bed -->
+            <control type="button"
+                showif="feature"
+                name="MapAssignNurse"
+                reveal="[[BedAssignmentGuid]]!"
+                tooltip="Asignar Enfermera"
+                label="Asignar Enfermera"
+                icon="plus"
+                preset="AssignNurse_BedAssignmentGuid=[[BedAssignmentGuid]]"
+                action="redirect"
+                target="mdlAssignNurse"/>
+            <!-- Set PreDischarge to patient bed assignment -->
+            <control type="button" name="MapPreDischargePatient"
+                showif="feature" reveal="[[PatientId]]!+[[PreDischarge]]!true+(facilityData.HospitalName)%Durango"
+                label="Pre Alta" icon="edit"
+                action="save"
+                acctsvc="true"
+                affector="none"
+                dataupdate="UpdatePatientBedAssignment"
+                appendupdate="bedAssignmentGuid=[[BedAssignmentGuid]],PreDischarge=true"
+                provoke="MapBedList"/>
+            <!-- Cancel a PreDischarge status -->
+              <control type="button" name="MapCancelPreDischargePatient"
+                showif="feature" reveal="[[PatientId]]!+[[PreDischarge]]=true+(facilityData.HospitalName)%Durango"
+                label="Cancelar Pre Alta" icon="edit" color="red"
+                action="save"
+                acctsvc="true"
+                affector="none"
+                dataupdate="UpdatePatientBedAssignment"
+                appendupdate="bedAssignmentGuid=[[BedAssignmentGuid]],PreDischarge=false"
+                provoke="MapBedList"/>
+            <!-- Reserve a bed -->
+            <control type="button"
+                name="MapReserveStatus"
+                showif="feature"
+                reveal="[[Reserved]]=False,MapBedCriteria!Inactive"
+                icon="refresh"
+                label="Reservar Cama"
+                preset="Reserve_RoomGuid=[[RoomGuid]]"
+                trigger="ReservePatientId"
+                action="redirect"
+                target="mdlReserveBed"/>
+            <!-- Remove a bed reserved status -->
+            <control type="button"
+                name="MapUnReserveStatus"
+                showif="feature"
+                reveal="[[Reserved]]=True"
+                icon="refresh"
+                label="Cancelar Reserva"
+                action="redirect"
+                preset="Unreserve_RoomGuid=[[RoomGuid]],UnreservePatientId=[[ReservedForPatientId]],Rsv_ReservedForDateTime=[[ReservedForDateTime]]"
+                trigger="UnreservePatientId"
+                target="mdlUnreserveBed"/>
+            <!-- Set bed maintenance status to Available -->
+            <control type="button"
+                name="MapAvailableStatus"
+                reveal="MapBedCriteria!Inactive"
+                showif="feature"
+                color="green"
+                tooltip="Servicio"
+                icon="plus"
+                label="En Servicio"
+                action="save"
+                affector="none"
+                acctsvc="true"
+                datainsert="UpdateFacilityPatientRooms"
+                appendinsert="roomGuid=[[RoomGuid]],roomMaintenanceStatus=Available"
+                provoke="MapBedList"/>
+            <!-- Set bed maintenance status to cleaning -->
+            <control type="button"
+                name="MapCleaningStatus"
+                reveal="MapBedCriteria!Inactive"
+                color="orange"
+                showif="feature"
+                tooltip="Limpieza"
+                icon="trash"
+                label="Limpieza"
+                action="save"
+                affector="none"
+                acctsvc="true"
+                datainsert="UpdateFacilityPatientRooms"
+                appendinsert="roomGuid=[[RoomGuid]],roomMaintenanceStatus=Cleaning"
+                provoke="MapBedList"/>
+            <!-- Set bed maintenance status to Maintenance -->
+            <control type="button"
+                name="MapMaintenanceStatus"
+                reveal="MapBedCriteria!Inactive"
+                color="grey"
+                showif="feature"
+                tooltip="Mantenimiento"
+                icon="gears"
+                label="Mantenimiento"
+                action="save"
+                affector="none"
+                acctsvc="true"
+                datainsert="UpdateFacilityPatientRooms"
+                appendinsert="roomGuid=[[RoomGuid]],roomMaintenanceStatus=Maintenance"
+                provoke="MapBedList"/>
+            <!-- Set bed maintenance status to Blocked -->
+            <control type="button"
+                name="MapBlockedStatus"
+                reveal="MapBedCriteria!Inactive"
+                color="lightgrey"
+                showif="feature"
+                icon="remove"
+                label="Bloquear"
+                preset="Block_RoomGuid=[[RoomGuid]]"
+                action="redirect"
+                target="mdlBlockBed"/>
+            <!-- Set bed maintenance status to Quarantine -->
+            <control type="button"
+                name="MapQuarantineStatus"
+                reveal="MapBedCriteria!Inactive"
+                color="red"
+                showif="feature"
+                icon="warning-sign"
+                tooltip="Cuarentena"
+                label="Cuarentena"
+                action="save"
+                affector="none"
+                acctsvc="true"
+                datainsert="UpdateFacilityPatientRooms"
+                appendinsert="roomGuid=[[RoomGuid]],roomMaintenanceStatus=Quarantine"
+                provoke="MapBedList"/>     
+              <control type="button" name="MapbtnBedStats"
+                label="Estadística de Camas" 
+                icon="search"
+                color="grey" 
+                preset="GraphWardList=[MapWardList]"
+                action="redirect" target="mdlBedStats"
+                trigger="HospitalBedCount,WardBedCount,HospitalBedConditions,WardBedConditions"/>  
+               <control type="button" name="btnScanWristbandBM" 
+                action="scan"
+                icon="qrcode"
+                label="Escanear"
+                inject="value=[GetScannedPatientBM]"
+                provoke="[GetScannedPatientBM]!;GetScannedPatientBM"/>                   
+            </control>
+        </row>
+        <!-- Assign a patient when their wristband has been scanned -->
+        <row showif="never">
+          <control type="hidden" name="hidScanPatientVisit"/>
+          <control type="hidden" name="hidScanPatientId"/>
+          <control type="hidden" name="hidScanRoomToAssign"/>
+          <control type="hidden" name="GetScanPatientAssignRoom"
+            datarequest="GetPatientAllFields"
+            appendrequest="PatientId=[GetScanPatientAssignRoom]"
+            set="hidScanPatientVisit=[[PatientVisit]],hidScanPatientId=[[PatientId]]"
+            provoke="[[HasOpenVisit]]=true;btnAssignPatientRoomSC,[[HasOpenVisit]]!true;btnNoPatientFoundSC"/>
+          <control type="button" name="btnAssignPatientRoomSC"
+            action="save"
+            affector="none"
+            datainsert="InsertPatientBedAssignment"
+            appendinsert="roomGuid=[hidScanRoomToAssign],patientId=[hidScanPatientId],PatientVisit=[hidScanPatientVisit],timeTransferred=(dateTimeNow),status=Active"
+            provoke="MapBedList"/>
+          <control type="button" name="btnNoPatientFoundSC"
+            action="trigger"
+            confirm="Ninguna paciente con visita abierta encontrada.|nocancel"/>
+        </row> 
+        <!-- Get scanned patient and display PatientTabModal -->
+        <row showif="never">
+            <control type="hidden" name="GetScannedPatientBM"
+              datarequest="GetPatientAllFields"
+              appendrequest="PatientId=[GetScannedPatientBM]"
+              set="[[HasOpenVisit]]=true;PatientId=[[RecordUniqueId]],[[HasOpenVisit]]=true;PatientVisitGuid=[[PatientVisit]],[[HasOpenVisit]]=true;HasOpenVisit=[[HasOpenVisit]]"
+              provoke="[[HasOpenVisit]]=true;btnOpenPatientChartBM,[[HasOpenVisit]]!true;btnNoPatientFoundBM"/>
+            <control type="button" name="btnOpenPatientChartBM"
+              action="redirect"
+              target="PatientTabModal"
+              trigger="PatientId,PatientVisitGuid,ButtonGroupSelect"/>
+            <control type="button" name="btnNoPatientFoundBM"
+              action="trigger"
+              confirm="Ninguna paciente con visita abierta encontrada.|nocancel"/>
+        </row>
+    </group>
+</section>
+<!--  Tabmodal to block patient bed -->
+<section type="tabmodal" badge="none" name="mdlBlockBed" title="Bloquear Cama" size="small">
+  <group name="grpBlockBed">
+    <row>
+      <control type="hidden" name="Block_RoomGuid"/>
+    </row>
+    <row>
+      <control type="label" label="Motivo de Bloqueo" span="4"/>
+      <control type="textarea" name="Block_MaintenanceDescription" span="6" min="3" max="250"
+        required="true" edit="true" rows="2"/>
+    </row>
+    <row>
+      <control type="modalbutton" name="btnSaveBlockBed" icon="remove" label="Bloquear Cama" color="lightgrey"
+        action="save|close|new"
+        affector="none"
+        acctsvc="true"
+        capture="grpBlockBed"
+        datainsert="UpdateFacilityPatientRooms"
+        appendinsert="roomMaintenanceStatus=Blocked"
+        provoke="MapBedList"/>
+    </row>
+  </group>
+</section>
+<!-- Assign a new room type to a room -->
+<section type="tabmodal" badge="none" name="mdlAssignRoomType" title="Asignar Tipo de Cama" size="small">
+  <group showif="never">
+    <control type="hidden" name="Assign_RoomGuid"
+      acctsvcreq="true" 
+      persist="true"
+      datarequest="GetFacilityPatientRoomsAndBedsByRoomGuid"
+      appendrequest="RoomGuid=[Assign_RoomGuid]"
+      inject="grpAssignRoomType"/>
+  </group>
+  <group name="grpAssignRoomType">
+    <row>
+      <control type="label" label="Tipo de Cama" span="4"/>
+      <control type="select" name="Assign_RoomType"
+        injectname="RoomTypeGuid"
+        span="5" required="true"
+        acctsvc="true" edit="true"
+        explicit="true"
+        datasource="GetRoomTypesActive"
+        source="RoomTypeName,RoomTypeGuid"/>
+    </row>
+  </group>
+  <group>
+    <row>
+      <control type="label" label=" " span="8"/>
+      <control type="button" name="btnSaveAssignRoomType"
+        span="3" color="grey" icon="cloud-upload" label="Asignar" size="large"
+        action="save|close|new"
+        affector="none"
+        capture="grpAssignRoomType"
+        acctsvc="true"
+        dataupdate="UpdateFacilityPatientRooms"
+        appendupdate="RoomGuid=[Assign_RoomGuid]"
+        provoke="BedList,MapBedList"/>
+    </row>
+  </group>
+</section>
+
+<!-- Assign a new room type to a room -->
+<section type="tabmodal" badge="none" name="mdlAssignNurse" title="Asignar Enfermera" size="small">
+  <group name="grpNurseToAssign">
+    <row>
+      <control type="hidden" name="AssignNurse_BedAssignmentGuid"/>
+    </row>
+    <row>
+      <control type="label" label="Asignar Enfermera" span="4"/>
+      <control type="select"
+        name="Assign_NurseId"
+        span="6"
+        filter="UserRoles%Nurse|Nurse Supervisor"
+        searchable="true"
+        datasource="GetUsersForThisFacility"
+        append="LocationId=(facilityData.LocationId),active=true"
+        source="FullName,UserId"/>
+    </row>
+  </group>
+  <group>
+    <row>
+      <control type="label" label=" " span="8"/>
+      <control type="button" name="btnSaveAssignNurse"
+        span="3" color="grey" icon="cloud-upload" label="Guardar" size="large"
+        action="save|close|new"
+        affector="none"
+        capture="grpNurseToAssign"
+        acctsvc="true"
+        dataupdate="UpdatePatientBedAssignment"
+        provoke="MapBedList"/>
+    </row>
+  </group>
+</section>
+
+<!-- Cancel a bed reservation -->
+<section type="tabmodal" badge="none" name="mdlUnreserveBed" title="Cancelar Reserva" size="small">
+  <group>
+    <row>
+      <control type="hidden" name="Unreserve_RoomGuid"/>
+    </row>
+    <row>
+      <control type="hidden" name="UnreservePatientId"
+        datarequest="GetPatientAllFields"
+        appendrequest="PatientId=[UnreservePatientId]"
+        inject="grpPatientInfo"/>
+    </row>
+  </group>
+  <group name="grpPatientInfo">
+    <row>
+      <control type="label" label="Paciente" span="2"/>
+      <control type="text" name="Rsv_PatientFirstName" span="3" readonly="true"/>
+      <control type="text" name="Rsv_PatientMiddleName" span="3" readonly="true"/>
+      <control type="text" name="Rsv_PatientLastName" span="3" readonly="true"/>
+    </row>
+    <row>
+      <control type="label" label="Nacimiento" span="2" />
+      <control type="date" name="Rsv_PatientDOB" span="3" readonly="true"/>
+      <control type="label" label="Sexo" span="2" />
+      <control type="select" 
+        name="Rsv_PatientSex" span="3" 
+        readonly="true" 
+        source="Male,Female,Indeterminate,Unknown"  
+        sourcelabels="1 Masculino,2 Femenino,3 No Definido,4 Desconocido"/>
+    </row>
+    <row>
+      <control type="label" label="Fecha y Hora" span="4"/>
+      <control type="datetime" name="Rsv_ReservedForDateTime" span="4" readonly="true"/>
+    </row>
+  </group>
+  <group>
+      <row>
+        <control type="label" label=" " span="5"/>
+        <control type="button" name="btnCloseCancelReserve"
+          span="2" color="grey" label="Cerrar" size="large"
+          action="close|new"/>
+        <control type="button" name="btnCancelReserve"
+          span="4" color="grey" label="Cancelar Reserva" size="large"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          dataupdate="UpdateFacilityPatientRooms"
+          appendupdate="roomGuid=[Unreserve_RoomGuid],reserved=False"
+          provoke="MapBedList"/>
+      </row>
+  </group>
+</section>
+
+<!-- Insert a patient bed assignment -->
+<section type="tabmodal" badge="none" name="mdlAssignPatientBed" title="Asignar Paciente" size="small">
+  <group>
+    <row>
+      <control type="hidden" name="AssignPatient_RoomGuid"/>
+    </row>
+    <row>
+      <control type="hidden" name="Assign_GetPatientInfo"
+        datarequest="GetPatientAllFields"
+        appendrequest="patientId=[AssignPatientId]"
+        inject="grpAssignPatientInfo"/>
+    </row>
+  </group>
+  <group>
+    <row>
+      <control type="label" label="Paciente" span="2"/>
+      <control type="select" name="AssignPatientId" span="9"
+        searchable="true"
+        sort="PatientFullName=asc"
+        source="PatientFullName,RecordUniqueId"
+        datarequest="GetPatientNamesWithOpenVisitByFacility"
+        appendrequest="LocationId=(facilityData.LocationId)"
+        edit="true" required="true" provoke="Assign_GetPatientInfo"/>
+    </row>
+  </group>
+  <group name="grpAssignPatientInfo">
+    <row>
+      <control type="label" label="Paciente" span="2"/>
+      <control type="text" name="Assign_PatientFirstName" span="3" readonly="true" required="true"/>
+      <control type="text" name="Assign_PatientMiddleName" span="3" readonly="true" required="true"/>
+      <control type="text" name="Assign_PatientLastName" span="3" readonly="true"/>
+      <control type="hidden" name="Assign_PatientId" required="true"/>
+      <control type="hidden" name="Assign_PatientVisit"/>
+    </row>
+    <row>
+      <control type="label" label="Nacimiento" span="2" />
+      <control type="date" name="Assign_PatientDOB" span="3" readonly="true" required="true"/>
+      <control type="label" label="Sexo" span="3" />
+      <control type="select" 
+        name="Assign_PatientSex" span="3"  readonly="true" 
+        source="Male,Female,Indeterminate,Unknown"  
+        required="true"
+        sourcelabels="1 Masculino,2 Femenino,3 No Definido,4 Desconocido"/>
+      <!--Print patient label-->
+    </row>
+    <row>
+      <control type="label" label="Cama Actual" span="2"/>
+      <control type="text" name="Assign_RoomFullName" span="9" readonly="true"/>
+    </row>
+  </group>
+  <group>
+    <row>
+      <control type="label" label="Cama a Asignar" span="2"/>
+      <control type="text" name="Assign_RoomToAssign" span="9" readonly="true"/>
+    </row>
+  </group>
+  <group>
+      <row>
+        <control type="label" label=" " span="5"/>
+        <control type="button" name="btnCloseAssign"
+          span="2" color="grey" label="Cerrar" size="large"
+          action="close|new"/>
+        <control type="button" name="btnSaveAssign"
+          span="4" color="grey" label="Asignar Cama" size="large"
+          action="save|close|new"
+          affector="none"
+          capture="grpAssignPatientInfo"
+          confirmsvc="true"
+          confirmrequest="GetBedOccupiedStatusByRoomGuid"
+          appendconfirm="roomGuid=[AssignPatient_RoomGuid]"
+          confirmresponse="RoomOccupied=false|Esta cama ha sido asignada."
+          datainsert="InsertPatientBedAssignment"
+          appendinsert="roomGuid=[AssignPatient_RoomGuid],timeTransferred=(dateTimeNow),status=Active"
+          provoke="MapBedList,PatientList"/>
+      </row>
+  </group>
+</section>
+
+<!-- Reserve a bed for a patient -->
+<section type="tabmodal" badge="none" name="mdlReserveBed" title="Reservar una Cama" size="small">
+  <group>
+    <row>
+      <control type="hidden" name="Reserve_RoomGuid"/>
+    </row>
+    <row>
+      <control type="button" name="btnSearchConsultAdmin"
+          reveal="Criteria=Patient"
+          label="Buscar Pacientes" span="3" icon="search" color="grey"
+          preset="PatientSearchSource=9"
+          action="redirect" target="mdlFindPatients"/>
+        <control type="text" name="Mrc_PatientFullName" readonly="true" span="4"
+          reveal="Criteria=Patient"/>
+    </row>
+    
+    <row>
+      <control type="label" label="Paciente" span="2"/>
+      <control type="typeahead" name="Reserve_PatientLookup" span="9"
+        term="nameToSearch"
+        injectname="none"
+        source="PatientNameAndAccountNumber,RecordUniqueId"
+        acctsvc="true" datasource="GetPatientNamesMatchingByFacilityDanEdition"  
+        datarequest="GetPatientAllFields"
+        appendrequest="patientId=[Reserve_PatientLookup]"
+        inject="grpReservePatientInfo"
+        provoke="btnSetPatientId"
+        edit="true"/>
+    </row>
+
+    <row showif="never">
+      <control type="button" name="btnSetPatientId"
+        action="trigger" 
+        set="Reserve_ReservedForPatientId=[Reserve_PatientId],Reserve_ReservedForPatientFullName=[Reserve_PatientFullName]"/>
+    </row>
+  </group>
+  <group name="grpReservePatientInfo">
+    <row>
+      <control type="label" label=" " span="2"/>
+      <control type="text" name="Reserve_PatientFirstName" span="3" readonly="true" required="true"/>
+      <control type="text" name="Reserve_PatientMiddleName" span="3" readonly="true"  required="true"/>
+      <control type="text" name="Reserve_PatientLastName" span="3" readonly="true"/>
+      <control type="hidden" name="Reserve_PatientId"/>
+      <control type="hidden" name="Reserve_PatientFullName"/>
+      <control type="hidden" name="Reserve_ReservedForPatientId"/>
+      <control type="hidden" name="Reserve_ReservedForPatientFullName"/>
+    </row>
+    <row>
+      <control type="label" label="Nacimiento" span="2" />
+      <control type="date" name="Reserve_PatientDOB" span="3" readonly="true"  required="true"/>
+      <control type="label" label="Sexo" span="3" />
+      <control type="select" 
+        name="Reserve_PatientSex" span="3"  readonly="true" 
+        source="Male,Female,Indeterminate,Unknown"  
+        default="female"  required="true"
+        sourcelabels="1 Masculino,2 Femenino,3 No Definido,4 Desconocido"/>
+      <!--Print patient label-->
+    </row>
+    <row>
+      <control type="label" label="Reserva Para*" span="4"/>
+      <control type="datetime" name="Reserve_ReservedForDateTime" span="4" edit="true" required="true" default="now"/>
+    </row>
+    <row>
+      <control type="label" label="Nota" span="4"/>
+      <control type="textarea" name="Reserve_ReservedNote" span="6" rows="2" edit="true" />
+    </row>
+  </group>
+  <group>
+      <row>
+        <control type="label" label=" " span="5"/>
+        <control type="button" name="btnCloseReserve"
+          span="2" color="grey" label="Cerrar" size="large"
+          action="close|new"/>
+        <control type="button" name="btnSaveReserve"
+          span="4" color="grey" label="Reservar Cama" size="large"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          capture="grpReservePatientInfo"
+          confirm="Por favor, confirme que desea reservar esta cama. Nota: Se eliminarán otras reservas para este paciente. Si esta cama tiene una reserva, será reemplazada."
+          datainsert="UpdateFacilityPatientRooms"
+          appendinsert="roomGuid=[Reserve_RoomGuid],reserved=True"
+          provoke="MapBedList"/>
+      </row>
+  </group>
+</section>
+
+<!-- Show bed statistics -->
+<section type="tabmodal" badge="none" name="mdlBedStats" title="Estadística de Camas" size="small">
+    <group>
+        <row>
+            <control type="select"
+                name="GraphWardList" 
+                span="6" 
+                acctsvc="true"
+                datasource="GetHospitalWardsForThisFacilityActive" append="LocationId=(facilityData.LocationId)"
+                source="Ward,WardGuid" 
+                provoke="WardBedCount,WardBedConditions"/>
+        </row>
+        <row>
+            <control type="chart" span="6" 
+                name="HospitalBedCount" 
+                title="Camas Disponibles del Hospital"
+                mode="pie" tooltip="label" 
+                aspect="3/2" 
+                legend="right" 
+                acctsvcreq="true"
+                datarequest="GetFacilityBedStatuses"
+                source="AvailableBedCount,OccupiedBedCount"
+                sourcelabels="Disponibles,Ocupada"
+                express="sum" 
+                color="green,yellow"/>
+								
+            <control type="chart" span="6" 
+                name="WardBedCount" 
+                title="Camas Disponibles por Sala"
+                mode="pie" tooltip="label" 
+                aspect="3/2" 
+                legend="right" 
+                acctsvcreq="true"
+                datarequest="GetFacilityBedStatuses"
+                appendrequest="wardGuid=[GraphWardList]"
+                source="AvailableBedCount,OccupiedBedCount"
+                sourcelabels="Disponibles,Ocupada"
+                express="sum" 
+                color="green,yellow"/>
+        </row>
+        <row>
+            <control type="chart" span="6" 
+                name="HospitalBedConditions" 
+                title="Condición de Camas del Hospital"
+                mode="pie" tooltip="label" 
+                aspect="3/2" 
+                legend="right" 
+                acctsvcreq="true"
+                datarequest="GetFacilityBedStatuses"
+                source="AvailableBedCount,CleaningBedCount,MaintenanceBedCount,QuarantineBedCount"
+                sourcelabels="Servicio,Limpieza,Mantenimiento,Cuarentena"
+                express="sum" 
+                color="green,yellow,grey,red"/>
+
+            <control type="chart" span="6" 
+                name="WardBedConditions" 
+                title="Condición de Camas por Sala"
+                mode="pie" tooltip="label" 
+                aspect="3/2" 
+                legend="right" 
+                acctsvcreq="true"
+                datarequest="GetFacilityBedStatuses"
+                appendrequest="wardGuid=[GraphWardList]"
+                source="AvailableBedCount,CleaningBedCount,MaintenanceBedCount,QuarantineBedCount"
+                sourcelabels="Servicio,Limpieza,Mantenimiento,Cuarentena"
+                express="sum" 
+                color="green,yellow,grey,red"/>
+        </row>
+    </group>
+</section>
+<!-- Modal to enter new temporary beds -->
+<section  type="tabmodal" badge="none" name="NewBedModal" title="Cama Nueva" size="small">
+    <group name="grpBedInfo">
+      <row>
+        <control type="label" label="Activo" span ="4"/>
+        <control type="buttongroup" name="New_Active" required="true" edit="true" span="4" sourcelabels="Sí,No" default="True" source="True,False" />
+      </row>
+      <row> 
+        <control type="label" label="Estatus de la Cama" span="4" />
+        <control type="select" name="New_RoomMaintenanceStatus" 
+        source="Available,Reserved,Cleaning,Maintenance,Blocked,Quarantine" required="true" 
+        sourcelabels="En Servicio,Reservado,Limpieza,Mantenimiento,Bloqueado,Cuarentena" 
+        default="Available" edit="true" span="4"/>
+      </row>
+      <row name="rowBlockReason" reveal="[New_RoomMaintenanceStatus]=Blocked">
+        <control type="label" label="Motivo de Bloqueo" span="4"/>
+        <control type="textarea" name="BlockNew_MaintenanceDescription" span="6" min="3" max="250"
+          required="true" edit="true" rows="2"/>
+      </row>
+      <row> 
+        <control type="label" label="Sala" span="4" />
+        <control type="select" name="New_Ward" 
+        datasource="GetHospitalWardsForThisFacilityActive" append="LocationId=(facilityData.LocationId)" 
+        required="true" acctsvc="true" acctsvcreq="true" 
+        source="Ward,WardGuid" edit="true" span="6" explicit="true" />
+      </row>
+      <row>
+        <control type="label" label="Tipo de Habitación" span="4" />
+        <control type="select" name="New_RoomType" span="6" edit="true"  
+        required="true" acctsvc="true" acctsvcreq="true" 
+        explicit="true" datasource="GetRoomTypesActive"  
+        source="RoomTypeName,RoomTypeGuid"/>
+      </row>
+      <row> 
+        <control type="label" label="Habitación" span="4" />
+        <control type="text" name="New_RoomNumber" required="true" edit="true" span="4"  />
+      </row>
+      <row> 
+        <control type="label" label="Cama" span="4" />
+        <control type="text" name="New_BedNumber" required="true" edit="true" span="4"  />
+      </row>
+      <row>
+        <control type="label" label="" span="5"/>
+        <control type="button" label="Cerrar" span="3"
+            name="btnCloseNewBed"
+            size="large"
+            color="grey"
+            action="close"/>
+        <control type="button" label="Guardar" span="3"
+            name="btnSaveNewBed"
+            size="large" 
+            icon="cloud-upload"
+            color="grey"
+            action="save|close|new"
+            acctsvc="true"
+            affector="none"
+            capture="grpBedInfo"
+            datainsert="InsertFacilityPatientRooms" appendinsert="LocationId=(facilityData.LocationId)"
+            provoke="MapBedList"/>
+      </row>
+    </group>
+</section>
+<!-- Display a list of active bed requests and select patient -->
+<section type="tabmodal" badge="none" name="mdlAssignBedRequest" title="Solicitudes de Camas Aprobadas">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="Request_RequestGuid"/>
+        <control type="hidden" name="Request_RoomGuid"/>
+        <control type="hidden" name="Request_PatientId"/>
+
+        <control type="hidden" name="GetRequestPatientInfo"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[Request_PatientId]"
+          inject="rowRequestPatientInfo"/>
+      </row>
+      <row name="rowRequestPatientInfo" showif="never">
+        <control type="hidden" name="Request_HasOpenVisit"/>
+        <control type="hidden" name="Request_PatientVisit"/>
+      </row>
+      <row>
+        <control
+          type="datagrid"
+          label="Solicitudes de Camas Aprobadas"
+          name="grdApprovedBedRequests"
+          span="12" rows="10"
+          acctsvcreq="true"
+          rowcolor="Priority|1=green;2=yellow;3=red"
+          datarequest="GetFacilityBedRequests"
+          appendrequest="status=Approved,requestingToFacility=[BedMapLookupTransferFacility]"
+          source="DateTimeRequestedFor,WardName,RoomName,ExpectedLengthOfStay,PatientFullName,RequestNotes,RequestingFromFacilityName,RequestingUserName"
+          sourcelabels="Solicitado,Sala,Cama,Días,Paciente,Notas,Solicitud por,Solicitado por"
+          align="|left|left|left|left|left|left|left|left"
+          format="datetime"
+          sort="DateTimeRequestedFor=asc"
+          key="RequestGuid"
+          onselectset="Request_RequestGuid=[[RequestGuid]],Request_PatientId=[[PatientId]]"
+          onselect="GetRequestPatientInfo,CompleteBedAssignment"/>
+      </row>
+    </group>
+    <group showif="never">
+      <row>
+        <control type="button" name="CompleteBedAssignment"
+            action="trigger"
+            confirm="Por favor, confirme que desea asignar al paciente a la cama seleccionada."
+            confirmrequest="GetPatientAllFields"
+            appendconfirm="PatientId=[Request_PatientId]"
+            confirmresponse="HasOpenVisit=true|Este paciente no tiene una visita abierta. Los pacientes deben ser ingresados ​​antes de asignar una cama."
+            provoke="btnCheckBed"/>
+      </row>
+      <row>     
+        <control type="button" name="btnCheckBed"
+          action="save"
+          affector="none"
+          confirmsvc="true"
+          confirmrequest="GetBedOccupiedStatusByRoomGuid"
+          appendconfirm="roomGuid=[Request_RoomGuid]"
+          confirmresponse="RoomOccupied=false|Esta cama ha sido asignada."
+          datainsert="InsertPatientBedAssignment"
+          appendinsert="patientId=[Request_PatientId],patientVisit=[Request_PatientVisit],roomGuid=[Request_RoomGuid],timeTransferred=(dateTimeNow),status=Active"
+          provoke="btnCompleteBedRequest"/>
+      </row>      
+      <row>
+        <control type="button" name="btnCompleteBedRequest"
+          action="save|close|new"
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdateFacilityBedRequests"
+          appendupdate="requestGuid=[Request_RequestGuid],status=Completed"
+          provoke="BedList,MapBedList"/>
+      </row>
+    </group>
+</section>
+</partial>

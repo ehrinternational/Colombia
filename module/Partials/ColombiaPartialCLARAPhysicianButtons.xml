@@ -1,0 +1,26 @@
+<partial>
+    <row>
+      <control type="button" name="btnClaraMedicalPro" label="Clara Médico" span="12" action="queryai"
+        reveal="(user.UserRoles)%AIAccess|medwave+[FileName]¡Nurs"
+        datasource="GetAIPrompts" acctsvc="true"
+        append="promptGuid=02a98eb5-65c2-4273-b187-6a9e670bb92a"
+        source="[[PromptText]]" svctype="[[Type]]"
+        datarequest="[[QueryName]]" acctsvcreq="true" mode="tojson"
+        appendrequest="PatientId=[PatientId],currentDateTime=(now)"
+        title="CLARA Medical Assistant Pro" filename="[[PromptName]]"
+        limit="[[OutputTokens]]" linksource="[[id]]" model="[[AIModel]]"
+        generator="[[AIGenerator]]"/>
+    </row>
+    <row>
+      <control type="button" name="btnClaraRisk" label="Clara AX" span="12" action="queryai" color="yellow"
+        reveal="(user.UserRoles)%AIAccess|medwave"
+        datasource="GetAIPrompts" acctsvc="true"
+        append="promptGuid=bb6c4467-af3f-47d7-a1e4-9bde8d432851"
+        source="[[PromptText]]" svctype="[[Type]]"
+        datarequest="[[QueryName]]" acctsvcreq="true" mode="tojson"
+        appendrequest="PatientId=[PatientId],currentDateTime=(now)"
+        title="[[PromptName]]" filename="[[PromptName]]"
+        limit="[[OutputTokens]]" linksource="[[id]]" model="[[AIModel]]"
+        generator="[[AIGenerator]]"/>
+    </row>
+</partial>

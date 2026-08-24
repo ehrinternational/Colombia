@@ -1,0 +1,125 @@
+<partial>
+  <!-- Patient Address modal -->
+  <section type="tabmodal" name="mdlAddresses" title="Dirección del Paciente" size="small" provoke="Addresses" badge="none">
+    <group>
+      <control type="hidden" name="AddressGuid" 
+        datarequest="GetPatientAddressByAddressGuid"
+        appendrequest="AddressGuid=[AddressGuid]"
+        inject="grpAddressInfo"/>
+    </group>
+    <group name="grpAddressInfo">
+      <row>
+        <control type="label" label="Activo" span="4"/>
+        <control type="buttongroup" name="Address_Active"
+          source="True,False" sourcelabels="Sí,No" span="3" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Primario" span="4"/>
+        <control type="buttongroup" name="Address_Selected" span="3"
+          source="True,False" sourcelabels="Sí,No" edit="True" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Zona Residencia" span="4"/>
+        <control type="buttongroup" name="Address_City" span="3" edit="true"
+          source="U,R" default="U"
+          sourcelabels="Urbano,Rural"/> 
+      </row>
+      <row>
+        <control type="label" label="Tipo " span ="4"/>
+        <control type="select" name="Address_AddressType"
+          required="true"          
+          source="Home,Work,Vacation"
+          sourcelabels="Hogar,Trabajo,Vacaciones"
+          span="3" edit="true" default="Homer" />
+      </row>
+      <row>
+        <control type="label" label="Número Exterior " span ="4"/>
+        <control type="text" name="Address_ExteriorNumber" span="3" 
+           edit="true"           
+           regex="^[A-Za-z0-9 ,]{0,10}$"/>
+      </row>
+      <row>  
+        <control type="label" label="Número Interior" span ="4"/>
+        <control type="text" name="Address_InteriorNumber" span="3" 
+           edit="true" 
+           regex="^[A-Za-z0-9 ,]{0,10}$"/>        
+      </row>
+      <row>
+        <control type="label" label="Direccion Residencia" span ="4"/>
+        <control type="text" name="Address_StreetAddressLine1" span="5" edit="true" required="true"
+          regex="^[A-Za-z0-9 ,]{5,120}$"/>
+      </row>
+      <row>
+        <control type="label" label="Referencia" span ="4"/>
+        <control type="text" name="Address_StreetAddressLine2" span="5" edit="true"
+          regex="^[A-Za-z0-9 ,]{5,120}$"/>
+      </row>
+      <row>
+       <control type="label" label="País" span ="4"/>
+       <control type="select" name="Address_CountryCode" span="5" edit="true" 
+          default="(facilityData.HospitalCountry)" explicit="true"
+          namefield="Address_Country"
+          searchable="true"
+          required="true"
+          sort="CountrySpanish=asc"
+          datasource="GetCountries" 
+          source="CountrySpanish,Code"
+          provoke="Address_State"/>  
+      </row>
+      <row>
+       <control type="label" label="Departamento" span="4"/>
+       <control type="select" name="Address_State" span="5" namefield="Address_StateText"
+          explicit="true" required="true" edit="true" searchable="true"           
+          idle="[Address_CountryCode]="
+          datarequest="GetStatesProvincesByCountryCode"
+          appendrequest="CountryCode=[Address_CountryCode]"
+          source="Name,Code"
+          provoke="Address_Province"/>
+      </row>
+      <row>
+        <control type="label" label="Municipio" span="4"/>
+         <control type="select" name="Address_Province" span="5" 
+          namefield="Address_ProvinceText"      
+          edit="true" sort="Name" explicit="true"
+          searchable="true"  
+          idle="[Address_State]="   
+          acctsvcreq="true"    
+          datarequest="GetColombiaMunicipalities"         
+          appendrequest="StateCode=[Address_State]"
+          source="Municipality,MunicipalityCode"
+          provoke="Address_City" />  
+      </row>  
+      <row>
+        <control type="label" label="Localidad" span="4"/>
+         <control type="select" name="Address_City" span="5" 
+          namefield="Address_CityOther"      
+          edit="true" sort="Name" explicit="true"
+          searchable="true"  
+          idle="[Address_Province]="   
+          acctsvcreq="true"    
+          datarequest="GetColombiaCommunes"         
+          appendrequest="MunicipalCode=[Address_Province]"
+          source="Commune,CommuneCode" />  
+      </row>  
+      <row>
+        <control type="label" label="Código Postal" span="4"/>
+        <control type="text" name="Address_PostalCode" span="3" edit="true"
+          regex="^(\d{6})?$"/> 
+      </row>
+      <row>
+        <control type="modalbutton" name="mbtSaveAddress" label="Guardar" color="green" icon="cloud-upload"
+          reveal="[AddressGuid]="
+          action="save|close|new"
+          capture="grpAddressInfo"
+          datainsert="InserPatientAddress"
+          appendinsert="PatientId=[PatientId]"/>
+        <control type="modalbutton" name="mbtUpdateAddress" label="Actualizar" icon="refresh"
+          reveal="[AddressGuid]!"
+          action="save|close|new"
+          capture="grpAddressInfo"
+          datainsert="UpdatePatientAddress"
+          appendinsert="AddressGuid=[AddressGuid]"/>
+      </row>
+    </group>
+  </section>  
+</partial>

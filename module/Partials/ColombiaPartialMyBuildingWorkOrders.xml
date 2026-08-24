@@ -1,0 +1,35 @@
+<partial>
+	<section type="tabmodal" name="mdlMyBuildingWorkOrderRequests" title="Órdenes de Trabajo de Mantenimiento" badge="none" size="large">
+		<group>
+			<row>
+				<!-- Display a list of work orders -->
+				<control type="datagrid" label="Mis Órdenes de Trabajo de Mantenimiento" name="grdMyBuildingWorkOrders"
+					searchable="true"
+					action="redirect"
+					target="mdlBuildingWorkOrderRequest"
+					span="12" rows="20"
+					rowcolor="Priority|Normal=white;High=orange;Emergency=red"
+					acctsvcreq="true"
+					datarequest="GetMedicalDeviceWorkOrders"
+					appendrequest="Category=Building,EnteredBy=(userName)"
+					source="DateTimeEntered,ScheduledDateTime,DateTimeCompleted,OrderNumber,DeviceCode,DeviceDescription,SerialNumber,AssignedToName,DepartmentName,DepartmentServiceName,RoomName,Status"
+					sourcelabels="Creado,Programado,Completado,Orden,Código,Equipo,Serie,Asignado a,Departamento,Servicio,Cama,Estatus"
+					align="|left|left|left|left|left|left|left|left|left|left|left"
+					translate="status"
+					format="datetime|datetime|datetime"
+					sort="DateTimeEntered=desc"
+					key="CompletedMaintenanceGuid"
+					onselectset="ReviewBuildingWorkOrderGuid=[[CompletedMaintenanceGuid]]"
+					onselect="ReviewBuildingWorkOrderGuid">
+					<!-- refresh thislist -->
+					<control type="button" name="btnRefreshMyBuildingWorkOrders"
+						icon="refresh" label="Actualizar" action="trigger" trigger="grdMyBuildingWorkOrders"/>
+					<control type="button" name="btnMyNewBuildingWorkOrder"
+						label="Añadir Nuevo" icon="plus"
+						action="redirect" 
+						target="mdlBuildingWorkOrderRequest"/>
+          </control>
+			</row>
+		</group>
+	</section>
+</partial>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Agendar Cirugías" type="onload" trigger="SurgeryTimes">
+  <facet name="FileName" value="SurgeryDisplayBoard"/>
+  <facet name="SurgeryWardName" value="Quirófano"/>
+  <!-- Partial Surgery Calendar -->
+  <partial link="./Partial/Calendars/PartialCalendarSurgeryAppointmentsDisplayBoard.xml"/>
+  <!-- Tabmodal to enter/edit surgeries -->
+  <section type="tabmodal" badge="none" name="SurgeryTabModal" title="Información de la Cirugía">
+    <group name="SurgeryGuidGroup" showif="never">
+      <row>
+        <control type="hidden" name="SurgeryGuid"
+          datarequest="GetScheduledSurgeryBySurgeryGuid"
+          appendrequest="SurgeryGuid=[SurgeryGuid]"
+          inject="SurgeryInfo"
+          provoke="SurgeryGridList,SurgeryTeam"/>
+      </row>
+      <row name="rowPatientId">
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo"/>
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="PatientInfo">
+      <columns>
+        <column span="10">
+          <partial link="../Projects/Colombia/Module/Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="../Projects/Colombia/Module/Partials/ColombiaPartialSurgeryDisplayButtons.xml"/>
+        </column>
+      </columns>
+    </group> 
+    <!-- Surgery information -->
+    <group name="SurgeryInfo">
+      <partial link="../Projects/Colombia/Module/Partials/ColombiaPartialSurgeryDisplayInfo.xml"/>
+    </group>
+    <!-- Surgery grids -->
+    <group name="SurgeryGridGroup">
+      <row>
+        <control type="buttongroup" 
+          name="SurgeryButtonGroupSelect" 
+          edit="true"          
+          source="Team,Equipment,Resources,Supplies,Implants"
+          sourcelabels="Personal,Equipo,Recursos,Suministros,Implantes"
+          span="12" 
+          default="Team" 
+          value="Team" 
+          provoke="SurgeryGridList,SurgeryTeam,SurgeryResources,SurgerySupplies,
+            ScheduledEquipment,SurgeryImplants"/>
+      </row>
+      <row>
+        <control name="SurgeryGridList" affector="SurgeryButtonGroupSelect" type="options" span="12">
+          <partial link="./Partial/Grids/PartialSurgeryTeamNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryScheduledEquipmentNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryScheduledResourcesNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryScheduledSuppliesNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryScheduledImplantsNoEdit.xml"/>
+        </control>
+      </row>
+    </group>
+  </section>
+    <!-- General Modals -->
+    <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
+    <partial target="MedicationDetailModal" link="./Partial/Modals/PartialMedicationDetailModal.xml"/>
+    
+</module>

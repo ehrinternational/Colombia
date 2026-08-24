@@ -1,0 +1,45 @@
+﻿<partial>
+  <!-- Imaging Orders -->
+  <section type="tab" name="ImagingOrdersList" title="Órdenes de Imagenología" trigger="ImagingOrderList">
+    <group>
+      <row>
+        <control type="buttongroup" name="btngrpStatusSelect" 
+          source="Active,Scheduled,Completed,Reported,Canceled"
+          sourcelabels="Activo,Programado,Completado,Reportado,Cancelado"
+          default="Active" span="5"
+          provoke="ImagingOrderList"/>
+        <control type="date" name="imgStartDate" span="2" default="(now)-7"
+          action="trigger" trigger="[imgStartDate]!+[imgEndDate]!;ImagingOrderList"/>
+        <control type="date" name="imgEndDate" span="2" default="(now)"
+          action="trigger" trigger="[imgStartDate]!+[imgEndDate]!;ImagingOrderList"/>
+      </row>
+      <row>
+        <control type="datagrid" label="Órdenes de Imagenología" name="ImagingOrderList"
+            span="12" rows="20"
+            acctsvcreq="true"
+            action="redirect"
+            idle="[imgStartDate]=,[imgEndDate]="
+            target="ImageOrderModal"
+            searchable="true"
+            rowcolor="Status|Active=white,Scheduled=white,Completed=green,Canceled=orange"
+            datarequest="GetImagingOrdersByStatus"
+            appendrequest="LocationId=(facilityData.LocationId),
+              status=[btngrpStatusSelect],
+              StartDate=[imgStartDate],
+              EndDate=[imgEndDate]"
+            source="DateTimeEntered,DateTimeScheduledAppointment,OrderNumber,PatientMRN,PatientFullName,Category,ImagingOrderDescription,OrderPriority,OrderedByFullName"
+            sourcelabels="Fecha,Programada,Número,Expediente,Nombre,Tipo,Descripción,Prioridad,Ordenado por"
+            align="left|right|left|left|left|left|left|left|left"
+            format="datetime|datetime"
+            translate="OrderPriority"
+            key="ImagingOrderGuid"
+            sort="DateTimeEntered=asc"
+            onselectset="Img_PatientId=[[PatientId]],Img_ImageOrderGuid=[[ImagingOrderGuid]]"
+            onselect="Img_ImageOrderGuid,Img_PatientId">
+            <control type="button" name="btnRefreshImagingOrders"
+              icon="refresh" label="Actualizar" action="trigger" trigger="ImagingOrderList"/>
+          </control>
+        </row>
+      </group>
+  </section>
+</partial>

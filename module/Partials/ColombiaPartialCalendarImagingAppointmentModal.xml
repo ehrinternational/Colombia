@@ -1,0 +1,397 @@
+﻿<partial>
+<!-- PartialCalendarImagingAppointmentModal -->
+	<section type="tabmodal" badge="none" name="mdlImagingAppointment" title="Cita de Imagenología">
+		<template name="tmpImagingAppointment">
+			${(facilityData.HospitalName)}, le recuerda su próxima cita[br]
+			Registro: ${[Imaging_MedicalRecordNumber]}[br]
+			Fecha y Hora: ${[Imaging_AppointmentTime]}[br]
+			Clinica: ${[Imaging_CalendarName]}[br]
+			Tu cita requiere una validación, responde con el número según corresponda:[br]
+			1. Confirmar[br]
+			2. Cancelar[br]
+			3. Reprogramar[br]
+			4. Ayuda[br]
+			5. Contacto Incorrecto[br]
+			Ninguno de nuestros servicios tiene costo para ti. Su respuesta es requerida, gracias
+		</template>
+		<group showif="never">
+			<row>
+				<control type="hidden" name="ImagingSource"/>
+				<control type="hidden" name="Imaging_PatientSearched"/>
+				<control type="hidden" name="Imaging_AppointmentTime"/>
+				<!-- Set the appointment datetime to words -->
+				<control type="hidden" name="Imaging_GetDateTimeInWords"
+          datarequest="GetDateTimeToString"
+          appendrequest="DateTimeToConvert=[Imaging_Start],Language=Spanish"
+          set="Imaging_AppointmentTime=[[DateTimeText]]"
+					provoke="tmpImagingAppointment"/>
+        <!-- Get the appointment information from the appointment record (existing appointment) -->
+        <control type="hidden"
+          name="Imaging_AppointmentGuid"
+          datarequest="GetSchedulerAppointmentsByAppointmentGuid"
+          appendrequest="AppointmentGuid=[Imaging_AppointmentGuid]"
+          inject="rowNewImagingGetPatient,Imaging_AppointmentInfo"
+          provoke="Imaging_PatientId,Imaging_ExamGuid"/>
+      </row>
+			<row name="rowNewImagingGetPatient">
+        <!-- Get the patient information and insert into the form -->
+				<control type="hidden" name="Imaging_PatientId"
+					datarequest="GetPatientAllFields"
+					appendrequest="PatientId=[Imaging_PatientId]"
+					inject="Imaging_PatientInfo"/>
+	  	</row>
+			<row>
+				<!-- Insert Patientid from search-->
+        <control type="hidden" name="NewImagingPatientSearch"
+					set="Imaging_PatientId=[PatientSearchResults]"
+					provoke="Imaging_PatientId"/>
+      </row>
+		</group>
+		<group name="Imaging_PatientInfo">
+			<columns>
+				<column span="10">	
+					<row>
+						<control type="label" label="Nombre/Expediente" span="4" align="left"/>
+						<control type="label" label="Apellido Paterno" span="4" align="left"/>
+						<control type="label" label="Apellido Materno" span="4" align="left"/>
+					</row>
+					<row>
+						<control type="text" name="Imaging_PatientFirstName" span="4" edit="[Imaging_PatientId]="
+							action="trigger" trigger="btnImagingAptPatientSearch" required="true"/>
+						<control type="text" name="Imaging_PatientMiddleName" span="4" edit="[Imaging_PatientId]="
+							action="trigger" trigger="btnImagingAptPatientSearch" required="true"/>
+						<control type="text" name="Imaging_PatientLastName" span="4" edit="[Imaging_PatientId]="
+							action="trigger" trigger="btnImagingAptPatientSearch"/> 
+					</row>
+					<row>
+						<control type="label" label="Expediente" span="2"/>
+						<control type="text" name="Imaging_MedicalRecordNumber" span="2" readonly="true"/>
+						<control type="label" label="Nacimiento" span="2"/>
+						<control type="date" name="Imaging_PatientDOB" span="3" edit="[Imaging_PatientId]=" required="true"/>
+						<control type="label" label="Sexo" span="1" />
+						<control type="select" name="Imaging_PatientSex" span="2" edit="[Imaging_PatientId]=" 
+							source="Male,Female" sourcelabels="Masculino,Femenino" required="true"/>
+					</row>
+					<row name="rwImagingAccountNumParaguay" reveal="(facilityData.HospitalCountry)=PRY">
+						<control type="label" label="RUC" span="2" />
+						<control type="text" name="Imaging_AccountNumber" span="3"
+							onblur="[Imaging_AccountNumber]!;btnVerifyRUC"
+							edit="true"/>
+						<control type="label" label="C.I." span="1" />
+						<control type="text" name="Imaging_PtSSN" span="3" required="true" 
+							edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Celular" span="2" />
+						<control type="text" name="Imaging_PatientCellPhone" span="2" edit="[Imaging_PatientId]="/>
+						<control type="label" label="email" span="2"/>
+						<control type="text" name="Imaging_PatientEmail" span="6" edit="[Imaging_PatientId]="/>
+					</row>
+				</column>
+				<column span="2">
+					<row name="rowNewAptImagingPatientPhoto" reveal="[Imaging_PatientId]!+[Imaging_ProfilePhoto]!">
+						<!--Patient photo-->
+						<control type="image"
+							format="jpg=circle" 
+							name="Imaging_ProfilePhoto"
+							span="12" />
+					</row>
+					<row>
+						<control type="button" name="btnImagingAptPatientSearch"
+								label="Buscar" span="12" icon="search" color="grey"
+								reveal="[Imaging_PatientId]="
+								preset="Imaging_PatientSearched=true,PatientSearchSource=11,Search_PatientFirstName=[Imaging_PatientFirstName],Search_PatientMiddleName=[Imaging_PatientMiddleName],Search_PatientLastName=[Imaging_PatientLastName]"
+								trigger="Search_FindPatient"
+								action="redirect" target="mdlFindPatients"/>
+					</row>
+					</column>
+				</columns>
+	</group>
+	<group name="Imaging_AppointmentInfo">
+		<columns>
+			<column span="10">
+				<row>
+					<control type="hidden" name="Imaging_OrderGuid"/>
+					<control type="hidden" name="Imaging_OrderType"/>
+				</row>
+				<row>
+					<!-- Select the calendar for the appointment (editable directly only for extraordinary appointments) -->
+					<!-- (Other appointmens are scheduled by selecting a time from a calndar view.) -->
+					<control type="label" label="Calendario" span="2" />
+					<control type="select" name="Imaging_AppointmentTypeGuid" span="4"
+						namefield="Imaging_CalendarName"
+						datasource="GetSchedulerAppointmentTypesByFacility" 
+						append="LocationId=(facilityData.LocationId)" 
+						source="CalendarName,CalendarGuid" 
+						readonly="true"
+						provoke="Imaging_Service"/>
+					<control type="label" label="Departamento" span="2"/>
+					<control type="select" name="Imaging_DepartmentGuid" span="4"
+						namefield="Imaging_DepartmentName"
+						edit="[Imaging_Status]=Scheduled|Confirmed|Reschedule"
+            acctsvc="true" required="true" explicit="true"
+            datasource="GetDepartmentsActive" 
+						append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"/>
+				</row>
+				<row>
+					<!-- Select the imaging modality -->
+					<control type="label" label="Modalidad" span="2" />
+					<control type="select" name="Imaging_ModalityGuid" span="9"
+						namefield="Imaging_ModalityText"
+						source="ModalityName,ModalityGuid"
+						acctsvc="true" explicit="true"
+						datasource="GetLookupFacilityModalityDevices" 
+						append="LocationId=(facilityData.LocationId)"
+						required="true" edit="true" 
+						set="Imaging_ModalityType=[[ModalityCode]]"
+						provoke="Imaging_ExamGuid"/>
+					<control type="hidden" name="Imaging_ModalityType"/>
+				</row>
+				<row>
+					<!-- Select the Imaging Study -->
+					<control type="label" label="Estudio" span="2" />
+					<control type="select" span="9" name="Imaging_ExamGuid"
+						namefield="Imaging_ExamName"
+						source="ImageOrderName,ImageOrderGuid"
+						datasource="GetImagingOrderItemsActive"
+						append="imageOrderType=[Imaging_ModalityType]"
+						explicit="true"
+						edit="true"/>
+				</row>
+				<row>
+					<!-- The datetime of the appointment (editable directly only for extraordinary appointments) -->
+					<control type="label" label="Programado" span="2" />
+					<control type="datetime" name="Imaging_Start" 
+						span="4" edit="true" required="true" when="«01:00;08:00" persist="true"/>
+					<control type="label" label="Duración" badge="min" span="3"/>
+					<control type="integer" name="Imaging_Duration" when="=1440;15" span="2" edit="true" required="true"/>
+				</row>
+				<row>
+						<control type="label" label="Estatus" span="2"/>
+						<control type="select" name="Imaging_Status" span="3"
+							source="Scheduled,Confirmed,No Show,Completed,Canceled,Reschedule"
+							sourcelabels="Agendada,Confirmada,No Asistio,Completa,Cancelado,Reprograma"
+							readonly="true" default="Scheduled"/>
+
+						<control type="label" label="Tipo de Atención" span="3"/>
+						<control type="select" name="Imaging_AdmitType" span="4" 
+							sort="AdmissionType=asc"
+							datasource="GetLookupAdmissionTypesActive" 
+							source="AdmissionType,AdmissionTypeGuid" 
+							required="true" 
+							explicit="true"
+							edit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Servicio" span="2"/>
+						<control type="select" name="Imaging_CaseType" span="4"
+							acctsvc="true" required="true"
+							datasource="GetCaseTypesActive" 
+							source="CaseTypeName,CaseTypeGuid" 
+							edit="[Imaging_Status]=Scheduled|Confirmed|Reschedule"/>
+						<control type="label" label="Atención" span="2"/>
+						<control type="select" name="Imaging_Service" 
+							namefield="Imaging_ServiceName"
+							explicit="true" span="4" required="true"
+							datarequest="GetSchedulerServicesByFacility"
+							appendrequest="CalendarGuid=[Imaging_AppointmentTypeGuid],status=Active" 
+							source="ServiceDescription,ServiceGuid" 
+							set="[Imaging_Service]!+[Imaging_AppointmentGuid]!;Imaging_Duration=[[DefaultDurationMinutes]],
+								[Imaging_Service]!+[Imaging_AppointmentGuid]!;Imaging_Subject=[[ServiceDescription]]"
+							edit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Tipo de Llegada" span="2"/>
+						<control type="select" name="Imaging_AdmitSource" span="4" 
+							datasource="GetLookupAdmitSourcesByFacility" 
+							source="AdmitSource,AdmitSource"
+							edit="[Imaging_Status]=Scheduled|Confirmed|Reschedule" 
+							default="true"
+							required="true" 
+							explicit="true"
+							filter="Active=true"/>
+						<control type="label" label="Médico" span="2" />
+						<control type="select" name="ImagingProvider_ProviderId" span="4" 
+							namefield="NewAptProvider" explicit="true"
+							sort="UserFirstMiddleLast=asc"
+							acctsvc="true" 
+							datasource="GetUsersByAttributes" 
+							append="LocationId=(facilityData.LocationId),role=Physician" 
+							source="UserFirstMiddleLast,UserId" 
+							edit="[Imaging_Status]=Scheduled|Confirmed"/>
+					</row>
+					<row>
+						<control type="label" label="Medio de Agendamiento" span="3"/>
+						<control type="select" name="Imaging_ContactSource" span="3"
+							required="true" edit="[Imaging_Status]=Scheduled|Confirmed|Reschedule"
+							source="Correo,Telefono,Salesforce,CRM,Presencial"/>
+						<!-- Reason for the appointment -->
+						<control type="label" label="Asunto" span="2"/>
+						<control type="text" name="Imaging_Subject" 
+							default="Visita Consulta"
+							edit="[Imaging_Status]=Scheduled|Confirmed|Reschedule" 
+							required="true" span="4"/>
+					</row>
+					<row>
+						<!-- Reason for the appointment -->
+						<control type="label" label="Observaciones" span="2"/>
+						<control type="text" name="Imaging_ASANote" 
+							edit="[Imaging_Status]=Scheduled|Confirmed|Reschedule" 
+							span="10"/>
+					</row>
+			</column>
+			<column span="2">
+				<row>
+						<control type="button" name="btnConfirmImagingAppointment"
+							reveal="Imaging_AppointmentGuid!"
+							span="12" action="save|close|new" color="green"
+							icon="check-sign" label="Confirmar"
+							affector="none"
+							dataupdate="UpdateSchedulerAppointments"
+							appendupdate="appointmentGuid=[Imaging_AppointmentGuid],status=Confirmed"
+							provoke="[ImagingSource]=3;grdPatientAppointmentList,[ImagingSource]!3;ImgAppointmentTimes,[ImagingSource]!3;ImagingAppointments"/>
+					</row>
+					<row>
+							<!-- Button to complete an appointment (shown only in edit mode)-->
+						<control type="button" name="btnCompleteImagingAppointment"
+							reveal="Imaging_AppointmentGuid!"
+							span="12" action="save|close|new" color="yellow"
+							icon="cloud-upload" label="Completar"
+							confirm="Por favor, confirme que desea completar esta cita."
+							affector="none"
+							dataupdate="UpdateSchedulerAppointments"
+							appendupdate="appointmentGuid=[Imaging_AppointmentGuid],Status=Completed"
+							provoke="[ImagingSource]=3;grdPatientAppointmentList,[ImagingSource]!3;ImgAppointmentTimes,[ImagingSource]!3;ImagingAppointments"/>
+					</row>
+					<row>
+						<!-- Button to set an appointment to No Show (shown only in edit mode) -->
+						<control type="button" name="btnImagingNoShow"
+								reveal="Imaging_AppointmentGuid!"
+								span="12" action="save|close|new" color="orange"
+								icon="cloud-upload" label="Ausente"
+								confirm="Por favor, confirme que desea cambiar el estatus de esta cita a ausente."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[Imaging_AppointmentGuid],Status=No Show"
+								provoke="[ImagingSource]=3;grdPatientAppointmentList,[ImagingSource]!3;ImgAppointmentTimes,[ImagingSource]!3;ImagingAppointments"/>
+						</row>
+						<row>
+							<!-- Button to cancel an appointment (shown only in edit mode) -->
+							<control type="button" name="btnCancelImagingAppointment"
+								reveal="Imaging_AppointmentGuid!"
+								span="12" action="save|close|new" color="red"
+								icon="cloud-upload" label="Cancelar"
+								confirm="Por favor, confirme que desea cancelar esta cita."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[Imaging_AppointmentGuid],status=Canceled"
+								provoke="[ImagingSource]=3;grdPatientAppointmentList,[ImagingSource]!3;ImgAppointmentTimes,[ImagingSource]!3;ImagingAppointments"/>
+						</row>
+						<row name="rowPatientReviewChart" reveal="[FileName]=ImagingAdmitting">
+							<control type="button" name="btnDisplayPatientChart" label="Paciente"
+								span="12"
+								reveal="[Imaging_PatientId]!"
+								action="redirect" target="ReviewPatientTabModal"
+								preset="Review_PatientId=[Imaging_PatientId]"
+								trigger="Review_PatientId"/>
+						</row>
+			</column>
+		</columns>
+	</group>	
+	<group>
+		<row>
+      <!-- Save a new appointment -->
+		  <control type="modalbutton" name="btnSaveNewImagingAppointment" label="Programar Singular"
+        reveal="[Imaging_AppointmentGuid]="
+			  action="trigger" icon="cloud-upload" color="green"
+				provoke="Imaging_GetDateTimeInWords,btnCompleteNewImagingAppointment"/>
+		</row>
+		<row showif="never">
+			<control type="button" name="btnCompleteNewImagingAppointment"
+				action="save"
+			  affector="Imaging_AppointmentGuid"
+				setaffector="AppointmentGuid"
+			  capture="Imaging_AppointmentInfo"
+				compare="[Imaging_PatientId]!|Por favor seleccione un paciente para esta cita."
+				preset="ScheduleOrderStart=[Imaging_Start]"
+			  datainsert="InsertSchedulerAppointments"
+			  appendinsert="Active=true,
+					PatientId=[Imaging_PatientId],
+					reschedule=false,
+					modalityCode=[Imaging_ModalityType],
+					(facilityData.SMS)=true;sendMessage=true,
+					(facilityData.SMS)=true;txtMessage=[tmpImagingAppointment]"
+				provoke="[ImagingSource]=3;btnCloseAndUpdatePatient^btnUpdateImagingOrderStatusToScheduled"/>
+		</row>
+		<row>
+			<!-- Save a new appointment with parents -->
+		  <control type="modalbutton" name="btnSaveNewImagingAppointmentAndParents" label="Programar Grupo"
+        reveal="[Imaging_AppointmentGuid]=+[DefaultParentGuid]!"
+			  action="trigger"
+			  color="yellowgreen" icon="cloud-upload"
+				provoke="Imaging_GetDateTimeInWords,btnCompleteNewImagingAppointmentAndParents"/>
+		</row>
+		<row showif="never">
+			<control type="button" name="btnCompleteNewImagingAppointmentAndParents"
+				action="save"
+			  affector="Imaging_AppointmentGuid"
+				setaffector="AppointmentGuid"
+				confirm="Confirme que desea programar los solicitudes que pertenecen a este grupo."
+			  capture="Imaging_AppointmentInfo"
+				compare="[Imaging_PatientId]!|Por favor seleccione un paciente para esta cita."
+				preset="ScheduleOrderStart=[Imaging_Start]"
+			  datainsert="InsertSchedulerAppointments"
+			  appendinsert="Active=true,
+					PatientId=[Imaging_PatientId],
+					reschedule=false,
+					modalityCode=[Imaging_ModalityType],
+					(facilityData.SMS)=true;sendMessage=true,
+					(facilityData.SMS)=true;txtMessage=[tmpImagingAppointment]"
+				provoke="[ImagingSource]=3;btnCloseAndUpdatePatient^btnUpdateImagingOrderStatusToScheduledAndParents"/>
+		</row>
+		<row>
+			<!-- Update appointment -->
+			<control type="modalbutton" name="btnUpdateImagingAppointment" label="Actualizar"
+        reveal="[Imaging_AppointmentGuid]!"
+				action="save" 
+				confirm="Por favor confirme que quiere actualizar esta cita"
+				affector="none"
+				capture="Imaging_AppointmentInfo"
+				icon="cloud-upload"
+				dataupdate="UpdateSchedulerAppointments"
+				appendupdate="appointmentGuid=[Imaging_AppointmentGuid],
+					modalityCode=[Imaging_ModalityType]"
+				provoke="[ImagingSource]=3;btnCloseAndUpdatePatient^btnUpdateImagingOrderStatusToScheduled"/>
+      </row>
+			<row showif="never">
+				<!-- If this modal was called from the patient chart, update the patient appointment list -->
+				<control type="button" name="btnCloseAndUpdatePatient" action="close|new"
+					provoke="grdPatientAppointmentList"/>
+				<!-- If the modal was called from imaging orders, update the order and parent orders -->
+				<control type="button" name="btnUpdateImagingOrderStatusToScheduled"
+					action="save|close|new" 
+					affector="none"
+          acctsvc="true"
+					dataupdate="UpdateImagingOrderStatus"
+          appendupdate="imagingOrderGuid=[Imaging_OrderGuid],
+						appointmentGuid=[Imaging_AppointmentGuid],
+        		orderStatus=Scheduled,
+						parentGuid=null,
+            dateTimeScheduledAppointment=[Imaging_Start]"
+          provoke="ImagingOrderList,ImgAppointmentTimes"/>
+				<control type="button" name="btnUpdateImagingOrderStatusToScheduledAndParents"
+					action="save|close|new" 
+					affector="none"
+          acctsvc="true"
+					dataupdate="UpdateImagingOrderStatus"
+          appendupdate="imagingOrderGuid=[Imaging_OrderGuid],
+						appointmentGuid=[Imaging_AppointmentGuid],
+            orderStatus=Scheduled,
+            dateTimeScheduledAppointment=[Imaging_Start],
+						UpdateParents=true"
+          provoke="ImagingOrderList,ImgAppointmentTimes"/>
+			</row>
+		</group>
+  </section>
+</partial>

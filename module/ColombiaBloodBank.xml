@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Banco de Sangre" type="onload" trigger="grdBloodBankOrders">
+	<facet name="FileName" value="BloodBank"/>
+	<headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=BloodBank"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+	<!-- Display the Blood Bank Order list -->
+	<section type="tab" name="tabBloodBankOrders" title="Órdenes de Banco de Sangre" trigger="grdBloodBankOrders">
+		<group>
+			<row>
+				<!-- Select status -->
+				<control type="buttongroup" name="btngrpStatus"
+					span="5" default="Requested"
+					source="Requested,Scheduled,Correction,Completed,Canceled"
+					sourcelabels="Requerido,En Proceso,Corrección,Completado,Cancelado"
+					provoke="grdBloodBankOrders"/>
+				<control type="date" name="dteStartDate" span="2" default="(now)"
+					reveal="[btngrpStatus]=Completed|Canceled"
+					trigger="[dteStartDate]!+[dteEndDate]!;grdBloodBankOrders"/>
+				<control type="date" name="dteEndDate" span="2" default="(now)"
+					reveal="[btngrpStatus]=Completed|Canceled"
+					trigger="[dteStartDate]!+[dteEndDate]!;grdBloodBankOrders"/>
+			</row>
+			<row>
+				<!-- Display a list of work orders -->
+				<control type="datagrid" label="Órdenes de Banco de Sangre" name="grdBloodBankOrders"
+					searchable="true"
+					action="redirect"
+					target="mdlBloodBankOrder"
+					span="12" rows="20"
+					rowcolor="Priority|Emergency=orange;Extra Emergency=red"
+					acctsvcreq="true"
+					datarequest="GetBloodBankOrders"
+					appendrequest="Status=[btngrpStatus],
+						[btngrpStatus]=Completed|Canceled;StartDate=[dteStartDate],
+						[btngrpStatus]=Completed|Canceled;EndDate=[dteEndDate]"
+					source="DateTimeRequired,Priority,DateTimeCompleted,OrderNumber,PatientName,DepartmentName,DeliverToRoomName"
+					sourcelabels="Programado,Prioridad,Completado,Orden,Paciente,Departamento,Habitación"
+					align="|left|left|left|left|left"
+					format="datetime|datetime"
+					sort="DateTimeRequired=desc"
+					key="OrderGuid"
+					translate="Priority"
+					onselectset="BloodBankOrderGuid=[[OrderGuid]]"
+					onselect="BloodBankOrderGuid">
+					<!-- refresh thislist -->
+					<control type="button" name="btnRefreshBloodBankOrders"
+						icon="refresh" label="Actualizar" action="trigger" trigger="grdBloodBankOrders"/>
+					<control type="button" name="btnBloodBankOrder"
+						label="Añadir Nuevo" icon="plus"
+						action="redirect" 
+						target="mdlBloodBankOrder"/>
+				</control>
+			</row>
+		</group>
+	</section>
+
+<!-- Display a Work Order list in a celendar -->
+	<section type="tab" name="BloodBankOrderCalendar" title="Calendario de Órdenes" trigger="calBloodBankOrders">
+		<group>
+			<row>
+			 	<control type="calendar" span="12" name="calBloodBankOrders"
+          headerleft="add prev,next today"
+          headercenter="title"
+          headerright="dayGridMonth,timeGridWeek,timeGridDay,listMonth"
+          navlinking="true"
+					acctsvcreq="true"
+          eventcolor="Priority|1=green;2=orange;3=red"
+					datarequest="GetBloodBankOrders"
+          map="start=DateTimeRequired,end=DateTimeRequired,title=BloodBank"
+					daterange="endDateTime=end,startDateTime=start"
+          key="OrderGuid"
+					action="redirect"
+					target="mdlBloodBankOrder"
+					onselectset="BloodBank_OrderGuid=[[OrderGuid]]"
+					onselect="BloodBank_OrderGuid"/>
+			</row>
+		</group>
+	</section>
+  <!-- Admin modals -->
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+	<partial target="mdlBloodBankOrder" link="Partials/ColombiaPartialBloodBankOrder.xml"/>
+	<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

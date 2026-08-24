@@ -1,0 +1,19 @@
+﻿<partial>
+  <!-- Imaging Reports -->
+ <control type="datagrid" label="Informes de Imagenología" name="ERRadiologyReports"
+    option="Studies"
+    rows="5" span="12"
+    action="redirect|link" 
+    mode="window"
+    target="[[ImageViewerLink]]!;ImageViewerLink"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientImagingReportsByPatientVisit"
+    appendrequest="patientId=[PatientId]"
+    source="ReportDateTime,Status,OrderNumber,ProcedureDescription,Report,RadiologistLastName"
+    sourcelabels="Fecha y Hora,Estatus,Número,Procedimiento,Informe,Radiólogo"
+    align="left|left|left|left|left|left"
+    translate="Status"
+    format="datetime"
+    sort="ReportDateTimes=desc"
+    key="rowguid"/>
+</partial>

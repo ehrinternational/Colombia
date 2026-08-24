@@ -1,0 +1,323 @@
+<partial>
+  <!-- Modal to enter/edit surgery equipment list -->
+	<section type="tabmodal" badge="none" name="mdlBiomedicalEquipment" title="Equipo">
+		<group showif="never">
+			<row>
+				<control type="hidden" name="DeviceGuid"
+					datarequest="GetMedicalDeviceItemsByDeviceGuid"
+					appendrequest="DeviceGuid=[DeviceGuid]"
+					inject="grpMedicalDevice"
+					provoke="btngrpDeviceGrids,grdScheduledMaintenance,LocationRoom"/>
+				<control type="button" name="btnUpdateEquipmentForPrint"
+					action="save"
+					affector="none"
+					capture="grpMedicalDevice"
+					dataupdate="UpdateMedicalDeviceItems"
+					appendupdate="DeviceGuid=[DeviceGuid]"/>
+			</row>
+		</group>
+		<group name="grpMedicalDevice">
+			<columns>
+				<column span="10">
+					<row>
+						<control type="label" label="Activo" span="2"/>
+						<control type="buttongroup" name="Active" span="4"
+							source="True,False" sourcelabels="Sí,No" default="True" edit="true" />
+						<control type="label" label="Estatus" span="2"/>
+						<control type="select" name="DeviceStatus" span="4"
+							source="Service,Cleaning,Maintenance" 
+							explicit="true"
+							sourcelabels="En Uso,Limpieza,Mantenimiento" 
+							default="Service" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Código" span="2"/>
+						<control type="text" name="DeviceCode" span="4" edit="true" required="true"/>
+						<control type="label" label="Tipo" span="2"/>
+						<control type="select" name="DeviceType" span="4" edit="true" 
+							namefield="EquipmentTypeName"
+							acctsvc="true"
+							datasource="GetMedicalDeviceTypes"
+							append="Category=[EquipmentCategory]" 
+							explicit="true"
+							source="TypeName,TypeGuid" required="true"/>
+					</row>
+					<row>
+						<control type="label" label="Descripción" span="2"/>
+						<control type="textarea" name="DeviceDescription" span="10" rows="2" required="true" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Fabricante" span="2"/>
+						<control type="text" name="Manufacturer" span="10" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Proveedor" span="2"/>
+						<control type="text" name="PurchasedFrom" span="4" edit="true" />
+						<control type="label" label="Precio" span="2"/>
+						<control type="text" name="PurchasedPrice" format="0,0.00" span="4" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Fecha de Compra" span="3"/>
+						<control type="date" name="PurchasedDate" span="3" edit="true" />
+						<control type="label" label="Fecha de Operación" span="3"/>
+						<control type="date" name="InServiceDate" span="3" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Marca" span="2"/>
+						<control type="text" name="Trademark" span="4" edit="true" />
+						<control type="label" label="Modelo" span="2"/>
+						<control type="text" name="ModelNumber" span="4" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Serie" span="2"/>
+						<control type="text" name="SerialNumber" span="4" edit="true" />
+						<control type="label" label="Lote" span="2"/>
+						<control type="text" name="LotNumber" span="4" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="No. Inv. Ant" span="2"/>
+						<control type="text" name="ExternalInventory" span="4" edit="true" />
+						<control type="label" label="Fecha de Retiro" span="3"/>
+						<control type="date" name="RetireDate" span="3" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Notas" span="2"/>
+						<control type="textarea" name="Notes" span="10" rows="2" edit="true" />
+					</row>
+					<row>
+						<control type="label" label="Departamento" span="2"/>
+						<control type="select" span="4"
+							name="LocationDepartment"
+							acctsvc="true"
+							explicit="true"
+							edit="true" 
+							datasource="GetDepartmentsActive" 
+							source="DepartmentName,DepartmentGuid"
+							set="EQP_LocationId=[[LocationID]]"
+							provoke="LocationRoom"/>
+						<control type="label" label="Cama" span="2"/>
+						<control type="select" name="LocationRoom" span="4" edit="true"
+							acctsvc="true"
+							explicit="true"
+							datasource="GetFacilityPatientRoomsAndBedsByDepartmentGuid"
+							append="departmentGuid=[LocationDepartment]"
+							source="RoomAndBedNumber,RoomGuid"/>
+					</row>
+					<row>
+						<control type="label" label="Ubicación" span="2"/>
+						<control type="text" name="EQP_LocationId" span="4" edit="true" default="(facilityData.LocationId)"/>
+					</row>
+				</column>
+				<column span="2">
+					<row name="rowDevicePicture">
+            <!-- Item Master photo -->
+            <control type="image" 
+              format="square" 
+              default="null"             
+              datarequest="GetMedicalDeviceItemsByDeviceGuid"
+              appendrequest="DeviceGuid=[DeviceGuid]"
+              inject="rowDevicePicture"
+              name="LinkToPhoto" 
+              span="12"/>
+          </row>
+          <row name="rowTakeDevicePicture" reveal="[DeviceGuid]!">
+            <control type="button" 
+              name="TakeDevicePhoto" 
+              color="grey" 
+              span="12" 
+              label="Foto" 
+              icon="camera" 
+              action="devicephoto" 
+              append="deviceGuid=[DeviceGuid]" 
+              provoke="LinkToPhoto"/> 
+          </row>
+					<row>
+						<control type="button" name="btnUpdateMedicalDevice"
+							reveal="[DeviceGuid]!"
+							icon="cloud-upload" span="12" label="Actualizar"
+							action="save|close|new"
+							affector="DeviceGuid"
+							setaffector="DeviceGuid"
+							capture="grpMedicalDevice"
+							dataupdate="UpdateMedicalDeviceItems"
+							appendupdate="DeviceGuid=[DeviceGuid]"
+							provoke="grdMedicalDevices,grdMaintenanceEquipment,Sch_DeviceGuid,Wrk_DeviceGuid"/>
+					</row>
+					<row>
+						<control type="button" name="btnSaveNewDevice"
+							icon="cloud-upload" span="12" color="green" label="Guardar"
+							reveal="[DeviceGuid]="
+							action="save"
+							affector="DeviceGuid"
+							setaffector="DeviceGuid"
+							capture="grpMedicalDevice"
+							datainsert="InsertMedicalDeviceItems"
+							appendinsert="Category=[EquipmentCategory]"
+							provoke="grdMedicalDevices,grdMaintenanceEquipment,grdScheduledMaintenance,Sch_DeviceGuid,Wrk_DeviceGuid"/>
+					</row>
+					<row>
+						<!-- Print label -->
+						<control type="button"
+							name="btnPrintDeviceLabel"
+							reveal="[DeviceGuid]!"
+							span="12"
+							trigger="btnUpdateEquipmentForPrint"
+							action="print" 
+							mode="report" 
+							label="Etiqueta" 
+							icon="print" 
+							append="id=5b3dcf66134,FacilityId=(facility),UserName=(userName),EquipmentGuid=[DeviceGuid],CurrentDateTime=(dateTimeNow)"/>
+					</row>
+				</column>
+			</columns>
+		</group>
+		
+		<group name="grpDeviceGrids" reveal="[DeviceGuid]!">
+			<row>
+				<control type="buttongroup" name="btngrpDeviceGrids"
+					span="5" default="Orders"
+					source="Orders,Documents,Accessories"
+					sourcelabels="Órdenes,Documentos,Accesorios"
+					provoke="grdMedDeviceWorkOrders,grdDeviceDocuments,grdDeviceAccessories"/>
+				<control type="buttongroup" name="btngrpDeviceOptions"
+					reveal="btngrpDeviceGrids=Orders"
+					span="6" default="Requested"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completo,Cancelado"
+					provoke="grdMedDeviceWorkOrders"/>
+			</row>
+			<row name="rowOrderGrid" reveal="btngrpDeviceGrids=Orders">
+					<control type="datagrid" 
+						label="Órdenes de Trabajo" 
+						name="grdMedDeviceWorkOrders"
+						searchable="true"
+						action="redirect"
+						target="mdlMedicalDeviceWorkOrder"
+						rows="5" cols="12"
+						rowcolor="Priority|Normal=white;High=orange;Emergency=red"
+						acctsvcreq="true"
+						datarequest="GetMedicalDeviceWorkOrders"
+						appendrequest="DeviceGuid=[DeviceGuid],Status=[btngrpDeviceOptions]"
+						source="DateTimeEntered,ScheduledDateTime,DateTimeCompleted,OrderNumber,Description,CompletedByFullName,Status"
+						sourcelabels="Creado,Programado,Completado,Orden,Descripción,Completado por,Estatus"
+						align="|left|left|left|left|left|left"
+						translate="Status"
+						format="datetime|datetime|datetime"
+						sort="DateTimeEntered=asc"
+						key="CompletedMaintenanceGuid"
+						onselectset="WorkOrderGuid=[[CompletedMaintenanceGuid]]"
+						onselect="WorkOrderGuid">
+						<control type="button" name="btnNewWorkOrderFromGrid"
+							label="Añadir Nuevo" icon="plus"
+							action="redirect" 
+							preset="Wrk_DeviceGuid=[DeviceGuid],Wrk_Status=[btngrpDeviceOptions]"
+							target="mdlMedicalDeviceWorkOrder"/>
+					</control>
+			</row>
+		
+			<row name="rowDocumentsGrid" reveal="btngrpDeviceGrids=Documents">
+					<control type="datagrid" name="grdDeviceDocuments" label="Documentos de Equipo"
+						rows="5" cols="12"
+						acctsvcreq="true"
+						datarequest="GetImagingOrderFilesByImagingOrderGuid"
+						appendrequest="ImagingOrderGuid=[DeviceGuid]"
+						source="DateEntered,Category,Type,FileName,EnteredByFullName,"
+						sourcelabels="Fecha y Hora,Categoría,Tipo,Documento,Entregado"
+						translate="FileType"
+						align="left|left|left|left|left"
+						format="datetime"
+						sort="DateTimeEntered=desc"
+						key="PhotoGuid"
+						action="redirect|url"
+						target="printables/uploadviewer.html"
+						usesource="login"
+						append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+						<!-- Upload scanned documents -->
+						<control type="button"
+							name="btnMedicalDeviceScanDocuments"
+							label="Subir Documentos"
+							icon="folder-open"
+							append="LabOrderId=[DeviceGuid]"
+							action="upload"
+							filter="pdf,jpg,jpeg,png"
+							provoke="grdDeviceDocuments"/>
+					</control>
+			</row>
+			<row name="rowAccessoryGrid" reveal="btngrpDeviceGrids=Accessories">
+				<control type="datagrid" 
+						label="Accesorios" 
+						name="grdDeviceAccessories"
+						searchable="true"
+						action="redirect"
+						target="mdlMedicalDeviceAccessories"
+						rows="5" cols="12"
+						acctsvcreq="true"
+						datarequest="GetMedicalDeviceAccessoriesByMedicalDeviceGuid"
+						appendrequest="medicalDeviceGuid=[DeviceGuid]"
+						source="Active,DateTimeEntered,AccessoryName,AccessorySerialNumber"
+						sourcelabels="Activo,Creado,Nombre,Serie"
+						align="||left|left"
+						format="boolean|datetime"
+						sort="DateTimeEntered=desc"
+						key="MedicalDeviceAccessoryGuid"
+						onselectset="MedicalDeviceAccessoryGuid=[[MedicalDeviceAccessoryGuid]]"
+						onselect="MedicalDeviceAccessoryGuid">
+						<control type="button" name="btnDeviceAccessories"
+							label="Añadir Nuevo" icon="plus"
+							action="redirect" 
+							target="mdlMedicalDeviceAccessories"/>
+					</control>
+			</row>
+		</group>
+	</section>
+
+	<!-- Tabmodal for medical device accessories -->
+	<section type="tabmodal" name="mdlMedicalDeviceAccessories" title="Accesorio" badge="none" size="small">
+		<group>
+			<row>
+				<control type="hidden" name="MedicalDeviceAccessoryGuid"
+					acctsvcreq="true"
+					datarequest="GetMedicalDeviceAccessoriesByMedicalDeviceAccessoryGuid"
+					appendrequest="MedicalDeviceAccessoryGuid=[MedicalDeviceAccessoryGuid]"
+					inject="grpAccessoryInfo"/>
+			</row>
+		</group>
+		<group name="grpAccessoryInfo">
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" name="Accessory_Active" span="2" edit="true"
+					source="True,False" sourcelabels="Sí,No" default="True"/>
+			</row>
+			<row>
+				<control type="label" label="Serie" span="3"/>
+				<control type="text" name="AccessorySerialNumber" span="4" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Nombre" span="3"/>
+				<control type="text" name="AccessoryName" span="8" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" name="btnSaveAccessory"
+					reveal="[MedicalDeviceAccessoryGuid]="
+					icon="cloud-upload" label="Guardar" color="green"
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpAccessoryInfo"
+					datainsert="InsertMedicalDeviceAccessories"
+					appendinsert="medicalDeviceGuid=[DeviceGuid]"
+					provoke="grdDeviceAccessories"/>
+				<control type="modalbutton" name="btnUpdateAccessory"
+					reveal="[MedicalDeviceAccessoryGuid]!"
+					icon="cloud-upload" label="Actualizar"
+					action="save|close|new"
+					affector="none"
+					capture="grpAccessoryInfo"
+					acctsvc="true"
+					dataupdate="UpdateMedicalDeviceAccessories"
+					appendupdate="medicalDeviceAccessoryGuid=[MedicalDeviceAccessoryGuid]"
+					provoke="grdDeviceAccessories"/>
+			</row>
+		</group>
+	</section>
+</partial>

@@ -1,0 +1,36 @@
+<partial>
+  <!-- Call the patient in the waiting room -->
+  <row>
+    <control type="button" name="btnCallPatient"
+      span="12" icon="move" label="Notificar Paciente"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      color="green" 
+      action="save"
+      compare="[DepartmentRoomLookup]!|Seleccione una sala de examen en la lista abajo."
+      acctsvc="true"
+      dataupdate="UpdateDepartment"
+      appendupdate="departmentGuid=[DepartmentGuidLookup],ServingPatient=[PatientId],ServingRoom=[CurrentExamRoom]"
+      provoke="btnAddRoomServiceToVisit"/>
+  </row>
+  <row>
+    <control type="select" name="DepartmentRoomLookup" span="12"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        tooltip="Recordatorio: esta lista se completa a partir del departamento en la lista de pacientes. Si la lista está vacía, no ha seleccionado un departamento en la lista de pacientes o el departamento seleccionado no tiene salas de examen asignadas."
+        explicit="true" persist="true" edit="true"
+        filter="Active=true"
+        namefield="CurrentExamRoom"
+        acctsvcreq="true" 
+        source="RoomAndBedNumber,RoomGuid"
+        datarequest="GetFacilityPatientRoomsAndBedsByDepartmentGuid"
+        appendrequest="DepartmentGuid=[DepartmentGuidLookup]"/>
+  </row>
+  <!-- Add the call information to the patient visit -->
+  <row showif="never">
+    <control type="button" name="btnAddRoomServiceToVisit" 
+      action="save" 
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="PatientVisitUniqueId=[PatientVisitGuid],RoomService=[CurrentExamRoom],DateTimeCalled=(now)"
+      emit="trigger|DisplayDepartmentQueue,trigger|DisplayWaitingCallQueue"/>
+  </row>
+</partial>

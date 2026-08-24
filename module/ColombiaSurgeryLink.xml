@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Agendar Cirugías" type="onload" trigger="SurgeryInf_RoomGuid,SurgeryTimes">
+  <facet name="FileName" value="SurgeryLink"/>
+  <facet name="CalendarOption" value="Surgery"/>
+  <facet name="PatientSearched" value="false"/>
+  <facet name="NewStatus"/>
+  <facet name="FieldEdit" value="1"/>
+  <facet name="EditMode" value="Surgery"/>
+  <facet name="DefaultSurgeryStatus" value="Requested"/>
+  <facet name="SurgeryCalendarWard" value="Quirófano central"/>
+  <facet name="LaborWardName" value="Tococirugía"/>
+  <facet name="SurgeryWardName" value="Quirófano central"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Surgery"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Partial Surgery Calendar -->
+  <partial link="./Partial/Calendars/PartialCalendarSurgeryAppointmentsRequestsOnly.xml"/>
+  <!-- Partial Labor Calendar -->
+  <partial link="./Partial/Calendars/PartialCalendarLaborAndDeliveryAppointmentsRequestsOnly.xml"/>
+  <!-- Partial list of surgery quote templates -->
+  <partial link="./Partial/Lists/PartialSurgeryQuoteTemplateList.xml"/>
+  <!-- Surgery tab modal -->
+  <section type="tabmodal" badge="none" name="SurgeryTabModal" title="Información de la Cirugía">
+    <group name="SurgeryGuidGroup" showif="never">
+      <row>
+        <control type="hidden" name="SurgeryGuid"
+          datarequest="GetScheduledSurgeryBySurgeryGuid"
+          appendrequest="SurgeryGuid=[SurgeryGuid]"
+          inject="SurgeryInfo"
+          provoke="SurgeryGridList,SurgeryTeam,Surgery_RoomGuid"/>
+      </row>
+      <row name="rowPatientId">
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo,rowSurgeryPatient" />
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="PatientInfo" reveal="[EditMode]=Surgery|Labor">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialSurgeryLinkDetailButtons.xml"/>
+        </column>
+      </columns>
+    </group> 
+    <!-- Surgery information -->
+    <group name="SurgeryInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialSurgeryLinkInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialSurgeryInfoLinkButtons.xml"/>
+        </column>
+      </columns>
+    </group>
+  </section>
+    <!-- Go Modals -->
+    <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+    <!-- General Modals -->
+    <partial link="(facilityData.HospitalCountry)=MEX;./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+    <partial link="(facilityData.HospitalCountry)!MEX;./Partial/Modals/PartialPatientPayersModalNotMexico.xml"/>
+    <partial link="(facilityData.HospitalCountry)=MEX;./Partial/Modals/PartialPatientPayersListModalForMexico.xml"/>
+    <partial link="(facilityData.HospitalCountry)!MEX;./Partial/Modals/PartialPatientPayersListModalNotMexico.xml"/>
+    <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
+    <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryTemplateListModal.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryQuoteTemplateListModal.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryQuoteTemplateModal.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryQuoteTemplateItemModal.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryQuoteItemModal.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryQuoteItemsWithAddAndEditModal.xml"/>
+</module>

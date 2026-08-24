@@ -1,0 +1,35 @@
+﻿<partial><!--Used By Sedna-->
+<!-- Dietary orders -->
+  <control type="datagrid" label="Dietas" name="ERDietList"
+    option="Diets"
+    rows="5"
+    fitrows="true"
+    idle="[PatientId]=|reset"
+    datarequest="GetNutritionDietOrdersByPatientVisit"
+    appendrequest="PatientId=[PatientId],PatientVisit=[PatientVisitGuid]"
+    source="DateTimeEntered,OrderNumber,DietType,OrderTypeText,Texture,Consistency,OrderNotes,OrderStatus,OrderedByFullName"
+    sourcelabels="Fecha y Hora,Número,Dieta,Tipo,Textura,Consistencia,Notas,Estatus,Firmado por"
+    align="left|left|left|left|left|left|left"
+    format="datetime"
+    translate="DietType,OrderTypeText,Texture,Consistency,OrderStatus"
+    sort="DateTimeEntered=desc"
+    key="OrderGuid">
+    <!-- Add diet orders -->
+    <control type="button" name="btnDietary" label="Añadir Nuevo"
+      reveal="[HasOpenVisit]=true+(user.UserRoles)%Admitting Nurse"
+      icon="plus"
+      action="redirect|view"
+      target="dietary-add"
+      append="size=small,patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+      provoke="ERDietList"/>
+    <!-- Edit diet orders -->
+    <control type="button" name="btnEditDiet"
+      reveal="[HasOpenVisit]=true+(user.UserRoles)%Admitting Nurse"
+      showif="feature"
+      label="Editar"
+      action="redirect|view"
+      target="dietary-update"
+      append="size=small,recordGuid=[[OrderGuid]],patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+      provoke="ERDietList"/>
+  </control>
+</partial>

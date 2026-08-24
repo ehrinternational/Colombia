@@ -1,0 +1,308 @@
+ <partial>
+ <!-- Tobmodal to enter/edit a consult request -->
+ <template name="NewCallText">
+    Hola, se le informa que le solicitamos una interconsulta en Hospital Go, favor de comunicarse a la extensión 6008. 
+   </template>
+  <template name="PrivacyMessage">
+    POR FAVOR, NO IMPRIMIR ESTE EMAIL, A MENOS QUE SEA INDISPENSABLE!
+ 
+Los datos personales del remitente y la información contenida en el presente e-mail son confidenciales, por lo que queda estrictamente prohibida su reproducción, difusión, copia parcial o total, reenvío, uso, divulgación, almacenamiento, manejo, aprovechamiento, transferencia, disposición, distribución o entrega a personas no autorizadas por escrito por la institución.
+ 
+El incumplimiento a lo señalado anteriormente se considera una falta a la Ley Federal de Protección de Datos Personales en Posesión de Particulares (LFPDPPP).
+Si por equivocación Usted ha recibido este e-mail, le notificamos formalmente que el uso no autorizado por el titular de los datos personales sobre el contenido o anexos del presente correo queda prohibido. Favor de borrar inmediatamente la información y dar aviso vía e-mail al remitente del correo."
+  </template>
+  <section type="tabmodal" badge="none" title="Solicitud de Interconsulta" name="NewConsultModal">
+    <group showif="never">
+      <row name="rowInterConsultPatientId">
+        <!-- Store the PatientId, read and inject the patient info -->
+        <control type="hidden" name="InterConsult_PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[InterConsult_PatientId]"
+          inject="ICTPatientInfo"/>
+        <control type="hidden" name="InterConsult_PatientVisit"/>
+        <!-- Store the PatientConsultGuid, read and inject the info -->
+        <control type="hidden" 
+          name="PatientConsultGuid"
+          acctsvcreq="true"
+          datarequest="GetConsultRequestsByConsultRequestGuid"
+          appendrequest="consultRequestGuid=[PatientConsultGuid]"
+          inject="grpConsultInfo"
+          provoke="ConsultCalls"/>
+      </row>
+    </group>
+    <group name="ICTPatientInfo">
+        <row>
+          <control type="label" label=" " span="1"/>
+          <control type="label" label="Nombre" align="left" span="3"/>
+          <control type="label" label="Apellido Paterno" align="left" span="3"/>
+          <control type="label" label="Apellido Materno" align="left" span="3"/>
+        </row>
+        <row>
+          <control type="label" label=" " span="1"/>
+          <control type="text" name="InterConsult_PatientFirstName" regex="^[A-ZÑ\s]+$" format="ucase" span="3" readonly="true" />
+          <control type="text" name="InterConsult_PatientMiddleName" regex="^[A-ZÑ\s]+$" format="ucase" span="3" readonly="true" />
+          <control type="text" name="InterConsult_PatientLastName" regex="^[A-ZÑ\s]+$" format="ucase" readonly="true"  span="3"/>
+        </row>
+        <row>
+          <control type="label" label="Nacimiento" span="2" />
+          <control type="date" name="InterConsult_PatientDOB" readonly="true" span="2"/>
+          <control type="text" name="InterConsult_PatientAge" readonly="true" span="2"/>
+          <control type="label" label="Sexo" span="1" />
+          <control type="select" 
+            name="InterConsult_PatientSex" span="3" 
+            readonly="true"  
+            source="Male,Female,Indeterminate,Unknown"  
+            sourcelabels="1 Masculino,2 Femenino,3 No Definido,4 Desconocido"/>
+        </row>
+        <row>
+            <control type="label" label="Expediente" span="2" />
+          <control type="text" name="InterConsult_MedicalRecordNumber" span="3" readonly="true"/>
+          <control type="label" label="Estado Civil" span="2" />
+          <control type="select" name="InterConsult_PtMaritalStatus" span="3"
+            datasource="GetLookupMaritalStatus"
+            source="MaritalStatus,MaritalStatus"
+            readonly="true" />
+        </row>          
+      </group>
+      <!-- Consult request group -->
+      <group name="grpConsultInfo">
+        <row>
+          <control type="label" label="Tipo de Consulta" span="2"/>
+          <control type="buttongroup" name="ConsultType" span="4"
+            source="Emergency,Hospital" 
+            sourcelabels="Emergencia,Hospitalización"
+            required="true" readonly="true" />
+        </row>
+        <row>
+          <control type="label" span="2" label="Originado por"/>
+          <control type="text" name="EnteredByFullName" span="3" readonly="true"/>
+          <control type="datetime" span="3"
+            name="ConsultReq_DateTimeEntered" readonly="true" default="now"/>
+          <control type="label" span="1" label="Folio"/>
+          <control type="text" span="2"
+            name="ConsultNumber" readonly="true"/>
+        </row>
+        <!-- Folio number (record number of Consult Request), Date and Priority -->
+        <row>
+          <control type="label" span="2" label="Fecha de Solicitud"/>
+          <control type="datetime" span="3"
+            name="ConsultRequestDateTime" readonly="true"  required="true" default="now"/>
+          <control type="label" span="1" label="Prioridad"/>
+          <control type="select" span="2"
+            name="ConsultRequestPriority"  
+            source="Normal,Medium,Emergency"
+            sourcelabels="Normal,Alta,Emergencia"
+            default="Normal" readonly="true" 
+            required="true"/>
+          <control type="label" span="1" label="Estatus"/>
+          <control type="select" span="2"
+            name="ConsultRequestStatus"  
+            source="Active,Completed,Canceled"
+            sourcelabels="Activo,Completado,Cancelado"
+            default="Active" readonly="true" 
+            required="true"/>
+        </row>
+        <row>
+          <control type="label" label="Departamento solicitante" span="3"/>
+          <control type="select" 
+            span="3"
+            name="InterConsult_RequestingDepartment"
+            acctsvc="true" explicit="true" readonly="true" 
+            datasource="GetDepartmentsActive" 
+            source="DepartmentName,DepartmentGuid"/>
+          <!-- Specialties have no ParentSpecialty -->
+          <control type="label" span="3" label="Especialidad Requerida"/>
+          <control type="select" span="3"
+            name="ConsultRequestSpecialtyRequested"
+            explicit="true"
+            readonly="true"  
+            acctsvc="true"
+            required="true"
+            datasource="GetMedicalSpecialties" 
+            source="Specialty,MedicalSpecialtyGuid"/>
+        </row>
+        <!-- Attention type -->
+        <row>
+          <control type="label" label=" " span="3"/>
+          <control type="buttongroup" name="AttentionType" span="8"
+            source="Physician,Patient"
+            sourcelabels="Médico del rol del guardia,Referido por el paciente"
+            readonly="true" required="true"/>
+        </row>
+        <!-- Consult reason (required)-->
+        <row>
+          <control type="label" label="Motivo de Interconsulta" span="3"/>
+          <control type="textarea" name="ConsultReason" rows="1" span="8" readonly="true" required="true"/>
+        </row>
+        <!-- Observations (notes) (optional)-->
+        <row>
+          <control type="label" label="Observaciones" span="3"/>
+          <control type="textarea" name="ConsultNote" rows="1" span="8" readonly="true" />
+        </row>
+        <!-- Originating specialty (required)-->
+        <row name="rowAssignedPhysician">
+          <control type="label" span="3" label="Solicitado por"/>
+          <control type="select" span="3"
+            name="ConsultRequestingSpecialty"
+            explicit="true"
+            searchable="true"
+            readonly="true"  
+            acctsvc="true"
+            required="true"
+            datasource="GetMedicalSpecialties" 
+            source="Specialty,MedicalSpecialtyGuid"/>
+          <!-- Originating physician -->
+          <control type="label" span="2" label="Profesional"/>
+          <control type="select" name="ConsultRequestAssignedToId"
+            namefield="ConsultRequestAssignedToName"
+            acctsvc="true" 
+            datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician" 
+            source="UserFirstMiddleLast,UserId"
+            searchable="true" 
+            readonly="true"  span="3"/>
+        </row>
+        <row name="rowConsultCalls" reveal="PatientConsultGuid!">
+           <control type="datagrid"
+            label="Llamadas Especializadas"
+            name="ConsultCalls"
+            span="12" rows="3"
+            acctsvcreq="true"
+            datarequest="GetSpecialistCalls"
+            appendrequest="ConsultGuid=[PatientConsultGuid]"
+            source="DateTimeEntered,SpecialistFullName,CellPhoneNumber,EmailAddress,CallStatus,CallNotes,EnteredByFullName"
+            sourcelabels="Fecha y Hora,Especialista,Celular,Email,Estatus,Notas,Entregado por"
+            translate="CallStatus"
+            align="left|left|left|left|left|left|left"
+            format="datetime"
+            sort="DateTimeEntered=desc"
+            key="CallGuid"
+            action="redirect"
+            target="mdlEditCall"
+            onselectset="mdlEdit_CallGuid=[[CallGuid]]"
+            onselect="mdlEdit_CallGuid">
+          </control>
+        </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="mdlNewCall" badge="none" title="Llamadas Especializadas Nueva" size="small">
+    <group name="grpNewCallInfo">
+      <row>
+        <control type="label" label="Fecha y hora" span="3"/>
+        <control type="datetime" name="New_CallDateTime" span="5" default="now" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Método de llamada" span="3"/>
+        <control type="select" name="New_CallMethod" span="8"
+          searchable="multiple"
+          source="Text,Email,Telephone" required="true"
+          sourcelabels="Texto,Correo Eléctronico,Teléfono"/>
+      </row>
+      <row>
+        <control type="label" label="" span="3"/>
+        <control type="buttongroup" name="btnSpecialist"
+          default="Call" span="6"
+          source="Call,List,External"
+          sourcelabels="En llamada,Médicos,Externo"/>
+      </row>
+      <row name="rowCall" reveal="btnSpecialist=Call">
+        <control type="label" label="Especialista Programada" span="3"/>
+        <control type="select" name="New1_SpecialistId" span="8"
+          namefield="New1_SpecialistFullName"
+          acctsvcreq="true" 
+          sort="Ordinal=asc"
+          datarequest="GetScheduledSpecialistProviders" 
+          appendrequest="CurrentDate=(dateTimeNow),Specialty=[ConsultRequestSpecialtyRequested]"
+          source="Ordinal|SpecialistName,SpecialistId" 
+          readonly="true"  required="true"
+          set="New_CellPhone=[[CellPhoneNumber]],New_Email=[[EmailAddress]]"/>
+      </row>
+      <row name="rowList" reveal="btnSpecialist=List">
+        <control type="label" label="Especialista" span="3"/>
+        <control type="select" name="New2_SpecialistId" span="8"
+          namefield="New2_SpecialistFullName"
+          acctsvcreq="true" 
+          datarequest="GetUsersByAttributes" 
+          appendrequest="LocationId=(facilityData.LocationId),role=Physician,active=true"
+          source="FullName,UserId" 
+          readonly="true"  required="true"
+          set="New_CellPhone=[[CellPhoneNumber]],New_Email=[[EmailAddress]]"/>
+      </row>
+      <row name="rowNew" reveal="btnSpecialist=External">
+        <control type="label" label="Especialista Externo" span="3"/>
+        <control type="text" name="New3_SpecialistFullName" span="8" readonly="true" />
+      </row>
+      <row name="rowCellAndEmail" reveal="btnSpecialist=List|Call">
+        <control type="label" label="Celular" span="3"/>
+        <control type="text" name="New_CellPhone" span="2" readonly="true"/>
+        <control type="label" label="Email" span="1"/>
+        <control type="text" name="New_Email" span="5" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Notas de Llamada" span="3"/>
+        <control type="textarea" name="New_CallNotes" span="8" readonly="true" rows="1"/>
+      </row>
+    </group>
+  </section>
+
+  <section type="tabmodal" name="mdlEditCall" badge="none" title="Llamadas Especializadas" size="small">
+    <facet name="mdlEdit_CallGuid"
+      acctsvcreq="true"
+      datarequest="GetSpecialistCallsByCallGuid"
+      appendrequest="CallGuid=[mdlEdit_CallGuid]"
+      inject="grpEditCallInfo"
+      provoke="GetUserCell"/>
+    <facet name="GetUserCell"
+      datarequest="GetUserProfileFromUserId2"
+      appendrequest="userIdToGet=[Edit_SpecialistId]"
+      inject="rowEditCellAndEmail"/>
+    <group name="grpEditCallInfo">
+      <row>
+        <control type="hidden" name="Edit_SpecialistId"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha y hora" span="3"/>
+        <control type="datetime" name="Edit_CallDateTime" span="3" default="now" readonly="true"/>
+         <control type="label" label="Estatus" span="3"/>
+        <control type="select" name="Edit_CallStatus" span="3"
+          source="Active,Completed,No Show,Canceled"
+          sourcelabels="Activa,Completa,Ausente,Cancelada"/>
+      </row>
+      <row>
+        <control type="label" label="Método de llamada" span="3"/>
+        <control type="select" name="Edit_CallMethod" span="9"
+          searchable="multiple"
+          source="Text,Email,Telephone"
+          sourcelabels="Texto,Correo Eléctronico,Teléfono"/>
+      </row>
+      <row>
+        <control type="label" label="Especialista" span="3"/>
+        <control type="text" name="Edit_SpecialistFullName" span="7" readonly="true"/>
+      </row>
+      <row name="rowEditCellAndEmail">
+        <control type="label" label="Celular" span="3"/>
+        <control type="text" name="Edit_CellPhoneNumber" span="2" readonly="true"/>
+        <control type="label" label="Email" span="1"/>
+        <control type="text" name="Edit_EmailAddress" span="5" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Notas de Llamada" span="3"/>
+        <control type="textarea" name="Edit_CallNotes" span="9" rows="1"/>
+      </row>
+      <row>
+        <control type="label" label="Hora de respuesta" span="3"/>
+        <control type="datetime" name="Edit_ResponseDateTime" span="3" readonly="true"  default="now"/>
+      </row>
+      <row>
+        <control type="label" label="Respuesta" span="3"/>
+        <control type="select" name="Edit_ResponseOutcome" span="9"
+          source="1,2,3,4,5,6" readonly="true" 
+          sourcelabels="Sin respuesta,Respondió pero no podrá atender la interconsulta,Respondió pero se le hablará al siguiente en la lista,Respondió y asistirá a la interconsulta,Aceptó y no llegó,Aceptó y llegó"/>
+      </row>
+      <row>
+        <control type="label" label="Notas de Respuesta" span="3"/>
+        <control type="textarea" name="Edit_ResponseNotes" span="9" readonly="true"  rows="1"/>
+      </row>
+    </group>
+  </section>
+  </partial>

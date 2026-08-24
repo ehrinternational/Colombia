@@ -1,0 +1,101 @@
+<partial>
+  <!--  Modal for entering/editing Maintenance Items -->
+  <section  type="tabmodal" badge="none" name="mdlWorkOrderItems" title="Artículo de la Orden de Trabajo" size="small">
+    <group showif="never">
+      <row>
+        <!-- Read the purchase order item and inject -->
+        <control type="hidden" 
+          name="WorkOrderItemGuid" 
+          acctsvcreq="true"
+          datarequest="GetMedicalDeviceMaintenanceItemsByMaintenanceItemGuid"
+          appendrequest="MaintenanceItemGuid=[WorkOrderItemGuid]"
+          inject="grpWorkOrderItemInfo"/>
+				<!-- Read an Item Master Item and inject its values -->
+        <control type="hidden"
+          name="GetWorkOrderItemDetails"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="ItemMasterGuid=[WorkOrderItemMasterGuidLookup]"
+          inject="grpWorkOrderItemInfo"/>
+			</row>
+		</group>
+		<group name="grpWorkOrderItemSearch">
+			<row>
+				<!-- From location for transfer -->
+				<control type="label" span="3" label="Desde Ubicación"/>
+				<control type="select" span="5" name="Work_FromLocationGuid"
+					namefield="FromLocationName"
+					source="LocationName,LocationGuid"
+					acctsvc="true"
+					datasource="GetInventoryLocationsForThisFacility"
+					provoke="WorkItemMasterGuidLookup"/>
+      </row>
+ 			<row>
+			 	<control type="label" label="Buscar" span="3"/>
+				<control type="select" name="WorkItemMasterGuidLookup"
+          span="8" 
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetInventoryStockItemsForLocationByLocationGuid"
+          appendrequest="LocationGuid=[Work_FromLocationGuid]"
+          source="ItemName,ItemGuid"
+          set="Info_ItemMasterGuid=[WorkItemMasterGuidLookup]"
+          provoke="GetItemDetails"/>
+      </row>
+		</group>
+		<group name="grpWorkOrderItemInfo">
+			<row>
+				<!-- Store ItemGuid and Active values -->
+				<control type="label" label="Activo" span="2"/>
+				<control type="buttongroup" name="Work_Active" source="True,False"
+					sourcelabels="Sí,No" default="True" edit="true" span="3"/>
+				<control type="hidden" name="Work_ItemMasterGuid"/>
+			</row>
+			<row>
+				<!-- Display the item name (readonly) -->
+				<control type="label" label="Material" span="2"/>
+				<control type="textarea" span="9" name="Work_ItemName" rows="1" required="true" edit="true"/>
+			</row>
+			<row>
+				<!-- Display the item description (editable) -->
+				<control type="label" label="Descripción" span="2"/>
+				<control type="textarea" span="9" rows="1"
+					name="Work_ItemDescription" edit="true" />
+			</row>
+			<row>
+        <!-- Enter the quantity to order -->
+        <control type="label" label="Notas" span="2"/>
+        <control type="textarea" name="Work_Notes" edit="true" span="9" rows="2"/>
+			</row>
+			 <row>
+        <!-- Enter the quantity to order -->
+        <control type="label" label="Cantidad" span="2"/>
+        <control type="text" name="Work_Quantity" format="0.00" span="2" edit="true" required="true"/>
+			</row>
+		</group>
+		<group>
+			<row>
+				<control type="modalbutton" name="btnSaveWorkOrderItem"
+					reveal="[WorkOrderItemGuid]="
+					icon="cloud-upload" color="green"
+					label="Guardar" action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderItemInfo"
+					datainsert="InsertMedicalDeviceMaintenanceItems"
+					appendinsert="MaintenanceGuid=[WorkOrderGuid]"
+					provoke="grdWorkOrderItems"/>
+				<control type="modalbutton" name="btnUpdateWorkOrderItem"
+					reveal="[WorkOrderItemGuid]!"
+					icon="cloud-upload" span="3"
+					label="Actualizar" action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderItemInfo"
+					dataupdate="UpdateMedicalDeviceMaintenanceItems"
+					appendupdate="MaintenanceItemGuid=[WorkOrderItemGuid]"
+					provoke="grdWorkOrderItems"/>
+			</row>
+		</group>
+	</section>
+</partial>

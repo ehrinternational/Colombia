@@ -1,0 +1,590 @@
+<partial>
+  <!--Used to add SAT credits-->
+  <section type="tabmodal" badge="none" name="mdlNewSATCredit" title="Factura Egreso">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="SATCreditGuid"
+          acctsvcreq="true"
+          datarequest="GetSATInvoice"
+          appendrequest="InvoiceGuid=[SATCreditGuid]"
+          inject="SATCreditInfo"
+          set="NSC_EnteredByFullName=[[EnteredByFullName]],NSC_DateTimeEntered=[[DateTimeEntered]],[NSC_SATInvoiceVersion]=;NSC_SATInvoiceVersion=3.3"
+          provoke="NSC_SATDetails"/>
+        <control type="hidden" 
+          name="btnGetRelatedInvoiceForCredit"
+          acctsvcreq="true"
+          datarequest="GetSATInvoice"
+          appendrequest="IncludeBalance=true,InvoiceGuid=[NSC_RelatedInvoiceGuid]"
+          set="NSC_GlobalInvoice=[[GlobalInvoice]],NSC_PatientName=[[PatientName]],
+          NSC_PatientId=[[PatientId]],NSC_PatientVisit=[[PatientVisit]],NSC_ClaimGuid=[[ClaimGuid]],
+          NSC_RelatedUUID=[[UUID]],NSC_RelatedInvoiceBalance=[[Balance]],NSC_PaymentType=[[PaymentType]],
+          NSC_PayerRFC=[[PayerRFC]],NSC_PayerName=[[PayerName]],NSC_PayerGuid=[[PayerGuid]],
+          NSC_PayerPostalCode=[[PayerPostalCode]],NSC_PayerAddress=[[PayerAddress]],
+          NSC_PayerCellPhone=[[PayerCellPhone]],NSC_PaymentTerms=[[PaymentTerms]],
+          NSC_PlaceIssued=[[PlaceIssued]],NSC_PaymentMethod=[[PaymentMethod]],
+          NSC_RelatedInvoiceFolio=[[Folio]],NSC_PayerType=[[PayerType]],NSC_ProviderId=[[ProviderId]],
+          NSC_FiscalType=[[FiscalType]],NSC_FiscalRegimen=[[FiscalRegimen]],NSC2_FiscalRegimen=[[FiscalRegimen]]"
+          provoke="hidGetPayerClaimInfo"/>
+        <control type="hidden" name="hidGetPayerClaimInfo"
+          acctsvcreq="true"
+          datarequest="GetPayerClaimByClaimGuid"
+          appendrequest="ClaimGuid=[NSC_ClaimGuid]"
+          set="NSC_ClaimNumber=[[ClaimNumber]],NSC_PatientPayerGuid=[[PayerGuid]]"
+          provoke="hidGetPatientPayer"/>
+        <control type="hidden" name="hidGetPatientPayer"
+          datarequest="GetPatientPayersByPayerGuid"
+          appendrequest="PatientPayerGuid=[NSC_PatientPayerGuid]"
+          set="NSC_PayerGuid=[[PayerGuid]],NSC_PayerType=[[PayerType]]"/>
+      </row>
+    </group>
+    <!--  Invoice Infomation  -->
+    <group name="SATCreditInfo">
+      <columns>
+        <column span="10">
+          <row>
+            <control type="hidden" name="NSC_PatientId"/>
+            <control type="hidden" name="NSC_PatientVisit"/>
+            <control type="hidden" name="NSC_ProviderId"/>
+            <control type="hidden" name="NSC_PatientName"/>
+            <control type="hidden" name="NSC_ClaimGuid"/>
+            <control type="hidden" name="NSC_ClaimNumber"/>
+            <control type="hidden" name="NSC_PayerType"/>
+            <control type="hidden" name="NSC_GlobalInvoice"/>
+            <control type="hidden" name="NSC_PatientPayerGuid"/>
+            <control type="hidden" name="NSC_PayerGuid"/>
+            <control type="hidden" name="NSC_InvoiceURL"/>
+            <control type="hidden" name="NSC_CancelledXmlURL"/>
+            <control type="hidden" name="NSC_RelatedInvoiceGuid"/>
+            <control type="hidden" name="NSC_RelatedInvoiceFolio"/>
+          </row>
+          <row>
+            <control type="label" label="UUID" span="3"/>
+            <control type="text" name="NSC_UUID" span="6" readonly="true"/>
+          </row>
+
+          <!-- Series -->
+          <row>
+            <control type="label" label="Serie" span="3"/>
+            <control type="text" name="NSC_Series" span="2"
+              when="NSC_Series=;(facilityData.CreditSeries)" edit="[SATCreditGuid]="/>
+            <control type="label" label="Folio de Serie" span="2"/>
+            <control type="text" name="NSC_SeriesFolio" span="2" readonly="true"/>
+            <control type="label" label="Versión" span="2"/>
+            <control type="text" name="NSC_SATInvoiceVersion" span="1" readonly="true"
+              default="(facilityData.SATInvoiceVersion)"/>
+          </row>
+          <row>
+            <control type="label" span="3" label="Folio"/>
+            <control type="text" span="2" name="NSC2_Folio" readonly="true" default="Auto"/>
+            <control type="label" label="Fecha" span="3"/>
+            <control type="datetime" span="3" name="NSC_DateTimeIssued" 
+                required="true" default="(dateTimeNow)" edit="NSC_Status=Pending|Rejected"/>
+          </row>
+          <row>
+            <control type="label" span="3" label="Comprobante"/>
+            <control type="buttongroup" name="NSC_DocumentType" span="3" default="E"
+              source="I,E,P" sourcelabels="Ingreso,Egreso,Pago" 
+              mode="auto" readonly="true"/>
+            <control type="label" label="Estatus" span="3"/>
+            <control type="select" span="3" name="NSC_Status"
+              default="Pending" 
+              edit="(userName)%@medwave.mx"
+              source="Pending,ReadyToPost,Rejected,Posted,ReadyToCancel,CancelRejected,PaymentRejected,Canceled" 
+              sourcelabels="Pendiente,Lista para Timbrar,Rechazado,Timbrado,Lista para Cancelar,Cancelar Rechazado,Pago Rechazado,Cancelado"/>
+          </row>
+          <row name="rowReasonForRejectionOfCredit" reveal="[NSC_Status]=Rejected|CancelRejected">
+              <control type="label" label="Razón de Rechazo" span="2"/>
+              <control type="textarea" name="NSC_ReasonForRejection" readonly="true" rows="1" span="10"/>
+          </row>
+          <row name="rowExistingReasonForCancelOfCredit" reveal="[NSC_ReasonForCancel]!">
+              <control type="label" label="Motivo para Cancelar" span="2"/>
+              <control type="textarea" name="NSC_ReasonForCancel" readonly="true" rows="1" span="6"/>
+          </row>
+          <row name="rowSATCanceledCredit" reveal="[NSC_Status]=Canceled|ReadyToCancel|CancelRejected+[NSC_UUID]!">
+              <control type="label" label="Cancelado por SAT" span="3"/>
+              <control type="buttongroup" name="NSC_SatCanceled" span="3"
+              source="True,False" sourcelabels="Sí,No"
+              edit="(userName)%@medwave.mx"/>
+              <control type="label" label="Fecha Cancelada" span="3"/>
+              <control type="datetime" name="NSC_SatCanceledDateTime" span="3" 
+              edit="(userName)%@medwave.mx"/>
+          </row>
+          <row>
+            <control type="label" label="Tipo de Pago" span="3"/>
+            <control type="select" name="NSC_PaymentType" span="4"
+              edit="[NSC_Status]=Pending|Rejected" default="03" required="true" explicit="true"
+              source="01,02,03,04,05,06,08,12,13,14,15,17,23,24,25,26,27,28,29,30,31,99"
+              sourcelabels="01 Efectivo,02 Cheque Nominativo,03 Transferencia Electrónica de Fondos SPEI,04 Tarjeta de Crédito,05 Monedero Electrónico,06 Dinero Electrónico,08 Vales de Despensa,12 Dación en Pago,13 Pago por Subrogación,14 Pago por Consignación,15 Condonación,17 Compensación,23 Novación,24 Confusión,25 Remisión de Deuda,26 Prescripción o Caducidad,27 A Satisfacción del Acreedor,28 Tarjeta de Débito,29 Tarjeta de Servicios,30 Aplicación de Anticipos,31 Intermediario Pagos,99 Por Definir"/>
+          </row>
+          <row>
+            <!-- Set CFDI-->
+            <control type="label" span="3" label="Uso de CFDI"/>
+            <control type="select" span="9" name="NSC_CDFICode" 
+              namefield="NSC_CDFIDescription"  explicit="true" default="G02"
+              edit="NSC_Status=Pending|Rejected|CancelRejected" required="true"
+              source="D01,G01,G02,G03,I01,I02,I03,I04,I05,I06,I07,I08,S01,CP01"
+              sourcelabels="D01 Honorarios médicos dentales y gastos hospitalarios,G01 Adquisición de mercancias,G02 Devoluciones descuentos o bonificaciones,G03 Gastos en general,I01 Construcciones,I02 Mobilario y equipo de oficina por inversiones,I03 Equipo de transporte,I04 Equipo de computo y accesorios,I05 Dados troqueles moldes matrices y herramental,I06 Comunicaciones telefónicas,I07 Comunicaciones satelitales,I08 Otra maquinaria y equipo,S01 Sin efectos fiscales,CP01 Pagos"/>
+          </row>
+          <!-- Set relation type -->
+          <row>
+            <control type="label" label="Tipo de Relacion" span="3"/>
+            <control type="select" name="NSC_RelatedTypeCode" span="9"
+              source="01,02,03,04,05,06,07,08,09" required="true" explicit="true" 
+              edit="NSC_Status=Pending|Rejected"
+              sourcelabels="01 Nota de crédito de los documentos relacionados,02 Nota de débito de los documentos relacionados,03 Devolución de mercancía sobre facturas o traslados previos,04 Sustitución de los CFDI previos,05 Traslados de mercancias facturados previamente,06 Factura generada por los traslados previos,07 CFDI por aplicación de anticipo,08 Factura generada por pagos en parcialidades,09 Factura generada por pagos diferidos"/>
+          </row>
+          <!-- Related UUID -->
+          <row>
+            <control type="label" label="UUID Relacionado" span="3"/>
+            <control type="text" name="NSC_RelatedUUID" span="4" readonly="true"/>
+            <control type="label" label="Balance" span="2"/>
+            <control type="text" name="NSC_RelatedInvoiceBalance" span="3" format="0,0.00" readonly="true"/> 
+          </row>
+          <row>
+            <!-- Allow to be changed on patient bill -->
+            <control type="label" label="RFC del Pagador" span="3"/>
+            <control type="text" name="NSC_PayerRFC" span="3" readonly="true"/>
+            <control type="buttongroup" name="NSC_PaymentMethod" span="3" default="PUE"
+              source="PPD,PUE" offset="3" edit="[NSC_Status]=Pending|Rejected"/>
+          </row>
+          <!-- Fiscal Regimen for Mexico for invoicing 4.0-->
+          <row name="rowFiscalRegimenForSATCredit">
+            <control type="label" label="Persona" span="3"/>
+            <control type="buttongroup" name="NSC_FiscalType" span="2"
+              source="Física,Moral" edit="[NSC_Status]=Pending|Rejected" 
+              required="true"/>
+            <control type="label" label="Régimen Fiscal" span="2"/>
+            <control type="select" name="NSC_FiscalRegimen" span="5"
+              reveal="[NSC_FiscalType]=Física" explicit="true"
+              namefield="NSC_FiscalRegimenName"
+              required="true" edit="[NSC_Status]=Pending|Rejected"
+              source="605,606,607,608,610,611,612,614,615,616,621,625,626"
+              sourcelabels="605 Sueldos y Salarios e Ingresos Asimilados a Salarios,
+                606 Arrendamiento,
+                607 Régimen de Enajenación o Adquisición de Bienes,
+                608 Demás ingresos,
+                610 Residentes en el Extranjero sin Establecimiento Permanente en México,
+                611 Ingresos por Dividendos (socios y accionistas),
+                612 Personas Físicas con Actividades Empresariales y Profesionales,
+                614 Ingresos por intereses,
+                615 Régimen de los ingresos por obtención de premios,
+                616 Sin obligaciones fiscales,
+                621 Incorporación Fiscal,
+                625 Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas,
+                626 Régimen Simplificado de Confianza"/>
+            <control type="select" name="NSC2_FiscalRegimen" span="5"
+              reveal="[NSC_FiscalType]=Moral" explicit="true"
+              namefield="NSC2_FiscalRegimenName"
+              required="true" edit="[NSC_Status]=Pending|Rejected"
+              source="601,603,610,620,622,623,624,626"
+              sourcelabels="601 General de Ley Personas Morales,
+                603 Personas Morales con Fines no Lucrativos,
+                610 Residentes en el Extranjero sin Establecimiento Permanente en México,
+                620 Sociedades Cooperativas de Producción que optan por diferir sus ingresos,
+                622 Actividades Agrícolas Ganaderas Silvícolas y Pesqueras,
+                623 Opcional para Grupos de Sociedades,
+                624 Coordinados,
+                626 Régimen Simplificado de Confianza"/>
+          </row>
+          <row>
+            <control type="label" label="Razón social" span="3"/> 
+            <control type="text" name="NSC_PayerName" span="5" readonly="true"/> 
+            <control type="label" label="C.P." span="2"/> 
+            <control type="text" name="NSC_PayerPostalCode" span="2" readonly="true"/> 
+          </row>
+          <row>
+            <control type="label" label="Domicilio del Pagador" span="3"/>
+            <control type="text" name="NSC_PayerAddress" span="5" rows="1" edit="NSC_Status=Pending|Rejected"/> 
+            <control type="label" label="Teléfono" span="1"/> 
+            <control type="text" name="NSC_PayerCellPhone" span="3" edit="NSC_Status=Pending|Rejected"/> 
+          </row>
+          <row>
+            <control type="label" label="Lugar de Expedición" span="3"/> 
+            <control type="text" name="NSC_PlaceIssued" span="4" readonly="true"/> 
+            <control type="label" label="Subtotal" span="2"/>
+            <control type="calc" name="NSC_SATSubtotal" format="0,0.00" span="2" source="1*NSC_TaxableAmountTotal"/>
+          </row>
+          <row>
+            <control type="label" label="Notas de Egreso" span="3"/>
+            <control type="textarea" name="NSC_PaymentNotes" span="9" rows="1" edit="NSC_Status=Pending|Rejected"/>
+          </row>
+        </column>
+        <column span="2">
+          <row>
+            <!-- Save a new SAT credit (egreso) -->
+            <control type="button"
+              reveal="[SATCreditGuid]="
+              name="btnSaveNewSATCredit"
+              icon="cloud-upload" color="green" span="12"
+              label="Guardar"
+              action="save"
+              affector="SATCreditGuid"
+              setaffector="InvoiceGuid"
+              capture="SATCreditInfo"
+              acctsvc="true"
+              datainsert="InsertSATInvoice"
+              appendinsert="LocationId=(facilityData.LocationId)"
+              provoke="SATInvoiceList,NSC_SATDetails"/>
+          </row>
+          <row>
+            <!-- Update SAT Credit by Medwave users-->
+            <control type="button"
+            reveal="[SATCreditGuid]!+(userName)%@medwave.mx"
+            name="btnUpdateSATCreditMedWave"
+            span="12" icon="cloud-upload"
+            label="Actualizar MedWave"
+            action="save|close|new"
+            affector="SATCreditGuid"
+            setaffector="InvoiceGuid"
+            capture="SATCreditInfo|active"
+            acctsvc="true"
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATCreditGuid],UpdateSATCancel=true"
+            provoke="SATInvoiceList"/>
+          </row>
+          <row>
+            <!-- Update SAT credit (egreso)-->
+            <control type="button"
+              reveal="[SATCreditGuid]!+[NSC_Status]=Pending|Rejected|CancelRejected"
+              name="btnUpdateSATCredit"
+              icon="cloud-upload" span="12"
+              label="Actualizar"
+              action="save|close|new"
+              affector="SATCreditGuid"
+              setaffector="InvoiceGuid"
+              capture="SATCreditInfo"
+              acctsvc="true"
+              dataupdate="UpdateSATInvoice"
+              appendupdate="InvoiceGuid=[SATCreditGuid]"
+              provoke="SATinvoiceList"/>
+          </row>
+    
+          <!-- Print a posted credit invoice (Egreso) 3.3-->
+          <row name="rowPrintCreditPostedInvoice3" reveal="[NSC_SATInvoiceVersion]=3.3+[SATCreditGuid]!+[NSC_Status]=Posted">
+            <control type="button"
+            name="btnPrintSATCreditInvoice3"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="id=efb7f7856ee,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATCreditGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+
+          <!-- Print a posted credit invoice (Egreso) 4.0-->
+          <row name="rowPrintCreditPostedInvoice4" reveal="[NSC_SATInvoiceVersion]=4.0+[SATCreditGuid]!+[NSC_Status]=Posted">
+            <control type="button"
+            name="btnPrintSATCreditInvoice4"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="id=47b4b333f7f,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATCreditGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+
+          <!-- Print a pending or canceled credit invoice (egreso) 3.3-->
+          <row name="rowPrintPendingCreditInvoice3" reveal="[NSC_SATInvoiceVersion]=3.3+[SATCreditGuid]!+[NSC_Status]!Posted">
+            <control type="button"
+            name="btnPrintCanceledSATCreditInvoice3"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="id=4b6a1c58bc9,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATCreditGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+
+          <!-- Print a pending or canceled credit invoice (egreso) 4.0-->
+          <row name="rowPrintPendingCreditInvoice4" reveal="[NSC_SATInvoiceVersion]=4.0+[SATCreditGuid]!+[NSC_Status]!Posted">
+            <control type="button"
+            name="btnPrintCanceledSATCreditInvoice4"
+            span="12" icon="print" label="Imprimir"
+            action="print" 
+            mode="report" 
+            append="id=073ff4bded4,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATCreditGuid],FiscalClass=(facilityData.FiscalClass)"/>
+          </row>
+
+          <!-- Print a single canceled Credit report -->
+          <row>
+            <control type="button" name="btnPrintCanceledCreditReport"
+            reveal="[SATCreditGuid]!+[NSC_Status]=Canceled|CancelRejected"
+            span="12" icon="print" label="Informe Cancelado"
+            action="print" 
+            mode="report" 
+            append="id=3aa48f93171,UserName=(userName),FacilityId=(facility),HospitalGuid=(facilityData.HospitalGuid),InvoiceGuid=[SATCreditGuid],UserName=(userName),CurrentDateTime=(dateTimeNow)"/>
+          </row>
+
+          <!-- Send a credit invoice email 3.3-->
+          <row name="EmailPostedCredit3" reveal="[NSC_SATInvoiceVersion]=3.3+[SATCreditGuid]!+[NSC_Status]=Posted">
+            <control type="button"
+            name="btnEmailSATCreditInvoice3"
+            span="12" icon="envelope" label="email"
+            action="redirect"
+            preset="mdl_ReportId=e76629de61c,EmailPatientId=[NSC_PatientId],EmailClaimGuid=[NSC_ClaimGuid],mdl_EmailMessage=concat|Haga clic en este enlace para descargar el archivo XML SAT: [NSC_InvoiceURL],mdl_ReportName=Factura de SAT,mdl_Parameter1=(facilityData.HospitalGuid),mdl_Parameter2=[SATCreditGuid],mdl_Parameter3=(facilityData.FiscalClass)"
+            trigger="[NSC_ClaimGuid]!;GetPayerEmail,[NSC_PatientId]!+[NSC_ClaimGuid]=;GetPatientEmail"
+            target="mdlSendEmailInvoice"/>
+          </row>
+
+          <!-- Send a credit invoice email 4.0-->
+          <row name="EmailPostedCredit4" reveal="[NSC_SATInvoiceVersion]=4.0+[SATCreditGuid]!+[NSC_Status]=Posted">
+            <control type="button"
+            name="btnEmailSATCreditInvoice4"
+            span="12" icon="envelope" label="email"
+            action="redirect"
+            preset="mdl_ReportId=67911473ecd,EmailPatientId=[NSC_PatientId],EmailClaimGuid=[NSC_ClaimGuid],mdl_EmailMessage=concat|Haga clic en este enlace para descargar el archivo XML SAT: [NSC_InvoiceURL],mdl_ReportName=Factura de SAT,mdl_Parameter1=(facilityData.HospitalGuid),mdl_Parameter2=[SATCreditGuid],mdl_Parameter3=(facilityData.FiscalClass)"
+            trigger="[NSC_ClaimGuid]!;GetPayerEmail,[NSC_PatientId]!+[NSC_ClaimGuid]=;GetPatientEmail"
+            target="mdlSendEmailInvoice"/>
+          </row>
+
+          <!-- Set an invoice to ReadyToPost -->
+          <row>
+            <control type="button" name="btnSetSATCreditToPost"
+            reveal="[SATCreditGuid]!+[NSC_Status]=Pending|Rejected"
+            span="12" label="Timbrar" color="green"
+            action="save"
+            affector="SATCreditGuid"
+            setaffector="InvoiceGuid"
+            capture="SATCreditInfo"
+            acctsvc="true"
+            confirm="Confirme que desea publicar esta factura."
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATCreditGuid]"
+            provoke="btnSetCreditReadyToPost"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnSetCreditReadyToPost"
+              action="save|close|new"
+              affector="none"
+              acctsvc="true"
+              dataupdate="UpdateSATInvoice"
+              appendupdate="InvoiceGuid=[SATCreditGuid],Status=ReadyToPost,SATPostedBy=(userName)"
+              provoke="SATInvoiceList"/>
+          </row>
+          <!-- Download the invoice XML -->
+          <row>
+            <control type="button" name="btnDownloadSATCreditXML"
+              reveal="[NSC_InvoiceURL]!"
+              icon="download" label="Descargar XML" span="12"
+              action="download" target="[NSC_InvoiceURL]"/>
+          </row>
+          <!-- Download the cancelation invoice -->
+          <row>
+            <control type="button" name="btnDownloadCanceledSATCreditXML"
+              reveal="[NSC_CancelledXmlURL]!"
+              icon="download" label="Descargar XML Cancelado" span="12"
+              action="download" target="[NSC_CancelledXmlURL]"/>
+          </row>
+          <row>
+            <control type="button" name="exportSATReportArchive3" 
+              span="12" 
+              color="white"
+              action="export"
+              mode="reportwithfile"
+              target="[NSC_InvoiceURL]"
+              reveal="[SATCreditGuid]!+[NSC_Status]=Posted+[NSC_DocumentType]=E"
+              append="id=efb7f7856ee,UserName=(userName),FacilityId=(facilityData.HospitalGuid),InvoiceGuid=[SATCreditGuid],FiscalClass=(facilityData.FiscalClass),format=PDF,filename=[NSC_UUID]"
+              label="Descargar Archivo"
+              icon="archive"/>
+          </row>
+           <!-- Cancel a posted SAT credit memo -->
+          <row name="rowCancelPostedCOICredit" reveal="(facilityData.HospitalShortName)%COI|CART">
+            <control type="button" name="btnCancelPostedCOISATCreditMemo"
+            reveal="{(user.UserRoles)%Cancel Invoices|MedWave+[SATCreditGuid]!+[NSC_Status]=Posted}"
+            span="12" label="Cancelar" color="red"
+            preset="InvoiceToCancel_InvoiceGuid=[SATCreditGuid],InvoiceToCancel_Status=ReadyToCancel,InvoiceToCancel_DocumentType=E"
+            action="redirect" target="mdlReasonForCancel"/>
+          </row>
+           <!-- Cancel a pending or rejected invoice -->
+          <row name="rowCancelPendingCOICredit" reveal="(facilityData.HospitalShortName)%COI|CART">
+            <control type="button" name="btnCancelPendingCOISATCreditMemo"
+            reveal="{(user.UserRoles)%Cancel Invoices|MedWave+[SATCreditGuid]!+[NSC_Status]=Pending|Rejected}"
+            span="12" icon="remove" label="Cancelar Prefactura" color="red"
+            action="save"
+            affector="none"
+            acctsvc="true"
+            confirm="Confirme que desea cancelar esta prefactura."
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATCreditGuid],Status=Canceled,CancelDateTime=(now),SATCanceledBy=(userName)"
+            provoke="btnCancelSATCreditMessage"/>
+          </row>
+           <!-- Cancel a posted SAT credit memo -->
+          <row name="rowCancelPostedCredit" reveal="(facilityData.HospitalShortName)¡COI|CART">
+            <control type="button" name="btnCancelPostedSATCreditMemo"
+            reveal="{(user.UserRoles)%Accounts Receivable|MedWave|SysAdmin+[SATCreditGuid]!+[NSC_Status]=Posted}"
+            span="12" label="Cancelar" color="red"
+            preset="InvoiceToCancel_InvoiceGuid=[SATCreditGuid],InvoiceToCancel_Status=ReadyToCancel,InvoiceToCancel_DocumentType=E"
+            action="redirect" target="mdlReasonForCancel"/>
+          </row>
+           <!-- Cancel a pending or rejected invoice -->
+          <row name="rowCancelPendingCredit" reveal="(facilityData.HospitalShortName)¡COI|CART">
+            <control type="button" name="btnCancelPendingSATCreditMemo"
+            reveal="{(user.UserRoles)%Accounts Receivable|MedWave|SysAdmin+[SATCreditGuid]!+[NSC_Status]=Pending|Rejected}"
+            span="12" icon="remove" label="Cancelar Prefactura" color="red"
+            action="save"
+            affector="none"
+            acctsvc="true"
+            confirm="Confirme que desea cancelar esta prefactura."
+            dataupdate="UpdateSATInvoice"
+            appendupdate="InvoiceGuid=[SATCreditGuid],Status=Canceled,CancelDateTime=(now),SATCanceledBy=(userName)"
+            provoke="btnCancelSATCreditMessage"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCloseNewSATCredit" action="close|new"/>
+          </row>
+        </column>
+      </columns>
+  </group>
+    <!-- Credit items and details -->
+    <group name="grpSATCreditItems" reveal="[SATCreditGuid]!">
+      <row>
+        <control type="datagrid" label="Cargos" name="NSC_SATDetails"       
+          searchable="true"                         
+          span="12" rows="10" 
+          action="redirect"
+          target="[NSC_Status]=Pending|Rejected;mdlNewSATCreditItem"
+          acctsvcreq="true" 
+          filter="Active=true"
+          datarequest="GetSATInvoiceDetails"
+          appendrequest="InvoiceGuid=[SATCreditGuid]"        
+          source="ProductId,ItemName,Quantity,UnitId,UnitPrice,ItemSubtotal,Discount,TaxableAmount,VATTaxAmount,RetentionAmount,NetAmount"
+          sourcelabels="Clave,Artículo,Cantidad,UDM,Precio,Subtotal,Descuento,Gravable,Impuesto,Retención,Total"
+          format="||0,000.00||0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00"
+          align="left|left|right|left|right|right|right|right|right|right|right"
+          total="|||||+|+|+|+|+|+"
+          calculate="ItemSubtotal=Quantity*UnitPrice,TaxableAmount=ItemSubtotal-Discount"
+          key="InvoiceDetailGuid"
+          onselectset="CreditDetailGuid=[[InvoiceDetailGuid]]"
+          onselect="[NSC_Status]=Pending|Rejected;CreditDetailGuid"> 
+          <control type="button" name="btnNewSATCreditItem"
+            icon="plus" label="Añadir Nuevo" 
+            reveal="[NSC_Status]=Pending|Rejected"
+            action="redirect" target="mdlNewSATCreditItem"/>   
+        </control>       
+      </row>
+       <row>
+        <control type="label" label="Introducido por" span="3"/>
+        <control type="text" name="NSC_EnteredByFullName" span="5" readonly="true"/>
+        <control type="datetime" name="NSC_DateTimeEntered" span="3" readonly="true"/>
+      </row>
+    </group>
+  </section>
+
+  <!-- New SAT invoice charges -->
+  <section type="tabmodal" title="Cargo" name="mdlNewSATCreditItem" size="small" badge="none">
+    <group>
+      <row>
+        <control type="hidden" name="CreditDetailGuid" 
+          acctsvcreq="true"
+          datarequest="GetSATInvoiceDetails"
+          appendrequest="InvoiceDetailGuid=[CreditDetailGuid]"
+          set="ExistingCreditNet=[[NetAmount]]"
+          inject="NewSATCreditsInfo"/>
+        <control type="hidden" name="ExistingCreditNet"/>
+      </row>
+    </group>
+    <group name="grpNewSATCreditsSelect" reveal="[CreditDetailGuid]=">      
+      <row>
+        <control type="label" label="Artículo" span="2"/>
+        <control type="typeahead" name="SATCreditSelect" span="10"
+          searchable="true"
+          acctsvc="true"
+          datasource="GetItemMasterItemsBySearchCriteria"
+          term="searchCriteria"
+          append="patientChargeable=true"
+          source="ItemName,ItemMasterGuid"
+          provoke="GetSATCreditItem"/>
+        <control type="hidden"
+          name="GetSATCreditItem"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[SATCreditSelect]"
+          set="NSC_ProductId=[[ImportId]],NSC_ItemName=[[ItemName]],NSC_ItemGuid=[[ItemMasterGuid]],NSC_UnitPrice=[[BasePrice]],NSC_UnitId=[[ConsumedUOMCode]],NSC_VATTaxRate=[[TaxRate]"/>     
+      </row>
+    </group>   
+
+    <group name="NewSATCreditsInfo">  
+      <row>  
+        <control type="hidden" name="NSC_ItemGuid"/>
+        <control type="hidden" name="NSC_Active" default="True"/>  
+      </row>
+      <row>        
+        <control type="label" span="2" label="Clave"/>
+        <control type="text" span="4" name="NSC_ProductId" readonly="true"/>
+      </row>
+      <row>    
+        <control type="label" label="Cargo" span="2"/>
+        <control type="textarea" span="10" name="NSC_ItemName" readonly="true" rows="1"/>
+      </row>
+      <row>        
+        <control type="label" label="Precio" span="2"/>       
+        <control type="text" name="NSC_UnitPrice" span="3" default="0.00" format="0,000.00" required="true" edit="[NSC_Status]=Pending"/>
+        <control type="label" label="Cantidad" span="2"/>
+        <control type="text" span="2" name="NSC_Quantity" default="1.00" format="0,00.00" required="true" edit="[NSC_Status]=Pending"/>
+        <control type="select" name="NSC_UnitId" span="2" default="Cada" 
+          source="UnitCode|UnitOfMeasure,UnitCode"
+          datasource="GetUnitsOfMeasure" acctsvc="true" required="true" edit="[NSC_Status]=Pending"
+          set="NSC_UnitName=[[UnitOfMeasure]]"/>
+        <control type="hidden" name="NSC_UnitName"/>
+      </row>
+      <row>
+        <control type="label" label="Descuento" span="2"/>       
+        <control type="text" name="NSC_Discount" span="3" default="0.00" format="0,000.00" edit="[NSC_Status]=Pending"/>    
+        <control type="label" label="Subtotal" span="2"/>
+        <control type="calc" name="NSC_Subtotal" span="3" format="0,0.00"
+          source="NSC_UnitPrice*NSC_Quantity-NSC_Discount"/>
+      </row>
+      <row>
+        <control type="label" label="IVA" span="2" badge="%"/>
+        <control type="text" span="3" name="NSC_VATTaxRate" default="0.00" format="0,00.00" edit="[NSC_Status]=Pending"/>
+        <control type="label" label="Impuesto" span="2"/>
+        <control type="calc" name="NSC_VATTaxAmount" span="3" format="0,0.00"
+          source="NSC_Subtotal*NSC_VATTaxRate/100"/>
+      </row>
+      <row>        
+        <control type="label" label="Retención" span="2" badge="%"/>
+        <control type="text" name="NSC_RetentionRate" span="2" format="0,0.00" edit="[NSC_Status]=Pending"/>
+        <control type="label" label="Retención" span="2"/>
+        <control type="calc" span="2" name="NSC_RetentionAmount" default="0.00" format="0,00.00"
+          source="NSC_Subtotal*NSC_RetentionRate/100"/>
+        <control type="label" label="Total" span="1"/>
+        <control type="calc" name="NSC_NetAmount" span="3" format="0,0.00"
+          source="NSC_Subtotal+NSC_VATTaxAmount-NSC_RetentionAmount"/>
+      </row>
+      <row showif="never">
+        <control type="calc" name="RemainingBalance" source="NSC_RelatedInvoiceBalance-(NSC_NetAmount)-(NSC_NetAmountTotal)+ExistingCreditNet"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <control type="modalbutton" name="btnSaveNewSATCreditDetail"
+          icon="cloud-upload" label="Guardar" color="green"
+          reveal="[CreditDetailGuid]=+[NSC_ItemGuid]!"
+          action="save|close|new"
+          acctsvc="true"
+          capture="NewSATCreditsInfo"
+          compare="[RemainingBalance]≥0|El total es mayor que el saldo restante."
+          affector="CreditDetailGuid"
+          setaffector="InvoiceDetailGuid"
+          datainsert="InsertSATInvoiceDetails"
+          appendinsert="InvoiceGuid=[SATCreditGuid],(facilityData.FiscalClass)=603;ObjetoImp=01,(facilityData.FiscalClass)=601;ObjetoImp=02"
+          provoke="NSC_SATDetails"/>
+        <control type="modalbutton" name="btnUpdateNewSATCreditDetail"
+          icon="cloud-upload" label="Actualizar"
+          reveal="[CreditDetailGuid]!"
+          action="save|close|new"
+          acctsvc="true"
+          capture="NewSATCreditsInfo"
+          compare="[RemainingBalance]≥0|El total es mayor que el saldo restante."
+          affector="CreditDetailGuid"
+          setaffector="InvoiceDetailGuid"
+          dataupdate="UpdateSATInvoiceDetails"
+          appendupdate="InvoiceDetailGuid=[CreditDetailGuid]"
+          provoke="NSC_SATDetails"/>
+        <control type="modalbutton" name="btnRemoveNewSATCreditDetail"
+          icon="remove" label="Eliminar" color="red"
+          reveal="[CreditDetailGuid]!"
+          action="save|close|new"
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdateSATInvoiceDetails"
+          appendupdate="InvoiceDetailGuid=[CreditDetailGuid],Active=false"
+          provoke="NSC_SATDetails"/>
+      </row>
+    </group>
+  </section>  
+</partial>

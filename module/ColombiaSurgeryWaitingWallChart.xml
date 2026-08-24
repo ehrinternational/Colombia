@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Pantalla Cirugía" type="onload" trigger="PatientList">
+  <section type="tab" name="tabAdmittedSurgeryPatients" title="Cirugía" trigger="PatientList">
+  	<group>
+      <row> 
+        <control type="select" span="4"
+          name="DepartmentGuidLookup"
+          acctsvc="true"
+          explicit="true"
+          filter="AdmissionType=true"
+          default="Cirugía"
+          datasource="GetDepartmentsActive" 
+          source="DepartmentName,DepartmentGuid"
+          provoke="PatientList"/>
+      </row>
+      <row>
+          <control type="datagrid" label="Pacientes en Cirugía" name="PatientList"
+            searchable="true" rows="25"
+            refresh="60"
+            idle="[DepartmentGuidLookup]="
+            acctsvcreq="true"
+            datarequest="GetPatientVisitsWallChart"
+            appendrequest="DepartmentGuid=[DepartmentGuidLookup]"
+            source="HospitalService,OpenRoom,DateTimeInDepartment,PatientFullName,PatientSex,PatientDOB,PrimaryProcedure,SurgeonName"
+            sourcelabels="Estatus,Ubicación,Admisión,Nombre,Género,Nacimiento,Procedimiento,Médico"
+            translate="PatientSex"
+            align="left|left|left|left|left|left|left|left"
+            format="||datetime|||date"
+            sort="HospitalService=asc"
+            key="key"/>
+        </row>
+    </group>
+  </section>
+</module>

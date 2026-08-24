@@ -1,0 +1,166 @@
+<partial>
+  <row showif="never">
+    <control type="select" name="CRMFirst_GetFirstStatus" span="6" 
+      acctsvc="true" sort="Ordinal" default="true" explicit="true"
+      filter="Active=true"
+      namefield="CRMFirst_NewStatusName"
+      datasource="GetCRMStatusTypes"
+      source="StatusName,StatusGuid"/>
+    <control type="button" name="btnInsertInitialCRMStatusChange"
+      action="save"
+      affector="none" 
+      acctsvc="true"
+      datainsert="InsertCRMStatusChanges"
+      appendinsert="PatientId=[PatientId],NewStatus=[CRMFirst_GetFirstStatus],
+      NewStatusName=[CRMFirst_NewStatusName],ReasonForChange=Paciente Nuevo"/>
+  </row>
+  <row name="rowOutpatientPatientUpdate" reveal="[PatientId]!">
+    <!--Save patient information-->
+    <control type="button" 
+      name="btnPatientUpdate"
+      span="12" label="Actualizar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[HasOpenVisit]=true+[PatientVisitGuid]!;btnUpdatePatientVisit"/>
+  </row>
+  <row showif="never">
+    <!-- Button to update patient visit info -->
+    <control type="button" name="btnUpdatePatientVisit"
+      action="save|close|new"
+      affector="none"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row showif="never">
+    <!--Save patient information-->
+    <control type="button" 
+      name="btnPatientAdmitUpdate"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      action="save"
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="PatientList"/>
+  </row>
+  <row name="rowReadyForDischargeButtons" reveal="HasOpenVisit=true+[PatientVisitGuid]!">
+    <control type="button" name="btnAltaMedica"
+      reveal="ReadyForDischarge=true"
+      span="12" icon="home" label="Alta Médica"
+      color="green" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+    <control type="button" name="btnNoAltaMedica"
+      reveal="ReadyForDischarge=false"
+      span="12" icon="home" label="Alta Médica"
+      color="grey" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+  </row>
+  <row name="rowPatientHistoryECD" reveal="HasOpenVisit=true+[PatientVisitGuid]!">
+    <control type="button" name="btnPatientHistoryECD"
+      reveal="[PatientId]!"
+      icon="cloud-upload" color="green"
+      label="Primera vez" span="12"
+      onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+      action="redirect|url" 
+      target="ecd/index.html" 
+      usesource="login"
+      append="ecdGuid=97B74D40-D744-4932-94F8-5FF0EA84869A,patientid=[PatientId],patientvisit=[PatientVisitGuid]"
+      provoke="EREcdForms"/>
+  </row>
+  <row>
+      <control type="hidden" name="AllowDischarge"/>
+      <control type="button" name="btnDischargePatient"
+        icon="home" label="Dar de alta" color="green" span="12"
+        reveal="[PatientVisitGuid]!+[AllowDischarge]=true"
+        confirm="Confirme que desea cerrar esta visita del paciente."
+        action="save|close|new"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid],DischargeDateTime=(now),DischargedBy=(userName)"/>
+    </row>
+  <row>
+    <control type="button" name="btnEsperando"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      span="12" icon="move" label="Esperando"
+      color="orange" 
+      action="save|close|new"
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[mdlAdmit_CurrentDepartment],hospitalService=Esperando"
+      provoke="ClosePatientTabModal"/>
+  </row>
+  <row>
+    <control type="button" name="btnAttention"
+      reveal="[PatientId]!+[PatientVisitGuid]!+[mdlAdmit_CurrentService]!Atención"
+      span="12" icon="move" label="Atención"
+      color="orange" 
+      action="save|close|new"
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[mdlAdmit_CurrentDepartment],hospitalService=Atención"
+      provoke="ClosePatientTabModal"/>
+  </row>
+  <row>
+    <control type="button" name="btnComplete"
+      span="12" icon="move" label="Completo"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      color="orange" 
+      action="save"
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[mdlAdmit_CurrentDepartment],hospitalService=Completo"
+      set="mdlAdmit_CurrentService=Completo"
+      provoke="OutPatientList"/>
+  </row>
+  <row>
+    <control type="button" name="btnNoAttention"
+      span="12" icon="move" label="No Atendió"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      color="orange" 
+      action="save|close|new"
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[mdlAdmit_CurrentDepartment],hospitalService=No Atendió"
+      provoke="ClosePatientTabModal"/>
+  </row>
+  <row>
+    <control type="button" name="btnNewSurgeryRequest" span="12" label="Solicitud Cirugía"
+      reveal="[PatientId]!"
+      action="redirect"
+      target="NewSurgeryRequestModal"
+      preset="SurgeryRequest_PatientId=[PatientId]"
+      trigger="SurgeryRequest_PatientId"/>
+  </row>
+  <row>
+    <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
+      span="12" icon="envelope" label="Email"
+      preset="bmd_PatientId=[PatientId],
+      bmd_PatientFirstName=[Consult_PatientFirstName],
+      bmd_PatientMiddleName=[Consult_PatientMiddleName],
+      bmd_PatientLastName=[Consult_PatientLastName],
+      bmd_EmailAddress=[Consult_PatientEmail]"
+      trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+      action="redirect" target="mdlSendWYSIWYGEmail"/>
+  </row>
+  <row>
+    <control type="button" name="btnInitiateTextMessage" 
+      reveal="[PatientId]!"
+      span="12" icon="envelope" label="Enviar Texto"
+      trigger="grdPhysicianMessages2"
+      preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
+      action="redirect" target="mdlSendTextMessage"/>
+  </row>
+  <!-- Call the patient in the waiting room -->
+  <partial link="Partials/ColombiaPartialCallPatientButton.xml"/>
+  <!-- AI buttons -->
+  <partial link="Partials/ColombiaPartialCLARAPhysicianButtons.xml"/>
+</partial>

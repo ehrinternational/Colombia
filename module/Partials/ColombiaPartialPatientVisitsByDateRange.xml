@@ -1,0 +1,65 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabAllAdmittedPatients" type="tab" title="Visitas de Pacientes" trigger="PatientVisitList">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="QRScannedResult" mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+        <control type="button" name="GetScannedPatientByQR"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRScannedResult]"
+          provoke="[[RecordUniqueId]]!;btnOpenPatientChart^btnNoPatientFound"/>
+        <control type="button" name="btnOpenPatientChart"
+          preset="PatientId=[QRScannedResult]"
+          trigger="PatientId"
+          set="QRScannedResult="
+          action="redirect" target="PatientTabModal"/>
+        <control type="button" name="btnNoPatientFound"
+          action="trigger"
+          set="QRScannedResult="
+          confirm="No se ha encontrado ninguna paciente.|nocancel"/>
+        <!-- Get a patient from the search modal and open the patient chart -->
+        <control type="button" name="NewDocumentPatient"
+          action="redirect" preset="PatientId=[PatientSearchResults]"
+          trigger="PatientId" target="PatientTabModal"/>
+      </row>
+      <row>
+        <control type="date" name="VisitList_StartDate" default="now-1" span="3" trigger="PatientVisitList"/>
+        <control type="date" name="VisitList_EndDate" default="now-1" span="3" trigger="PatientVisitList"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the department -->
+        <control type="datagrid" label="Visitas de Pacientes" name="PatientVisitList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          span="12" rows="15"
+          fitrows="true"
+          rowcolor="ReviewStatus|Completed=green;Started=yellow;FollowUp=orange"
+          datarequest="GetPatientVisitsByFacilityAndDateRange"
+          appendrequest="StartDate=[VisitList_StartDate],EndDate=[VisitList_EndDate]"
+          source="ReviewStatus,AdmitDateTime,DischargeDateTime,VisitNumber,MRNNumber,FirstMiddleLastName,PatientAge,PatientSex,ReviewedByName,ReviewCompleted"
+          sourcelabels="Estatus,Admitido,Alta,Visita,Expediente,Nombre,Edad,Sexo,Revisado por,Completo"
+          align="left|left|left|left|left|left|left|left|left|lef"
+          format="|datetime|datetime|||||||datetime"
+          translate="PatientSex,ReviewStatus"
+          sort="AdmitDateTime=asc"
+          key="PatientVisitUniqueId"
+          onselectset="PatientId=[[PatientId]]"
+          onselect="PatientId"> 
+           <control type="button" name="btnScanPatientQR" 
+            action="scan" color="green"
+            icon="qrcode"
+            label="Escanear Paciente"
+            inject="value=[QRScannedResult]"
+            provoke="[QRScannedResult]!;GetScannedPatientByQR"/>
+          <control type="button" name="btnSearchNewProspectPatient"
+            icon="plus" label="Buscar Paciente"
+            preset="PatientSearchSource=49"
+            action="redirect" target="mdlFindPatients"/>
+					<control type="button" name="btnRefreshPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="PatientVisitList"/>
+        </control>
+        </row>
+      </group>
+  </section>
+</partial>

@@ -1,0 +1,114 @@
+<partial>
+  <!-- GoPartialSurgeryInformation -->
+  <row name="rowSurgeryPatient" showif="never">
+    <control type="hidden" name="Surgery_PatientId"/>
+    <control type="hidden" name="Surgery_ScheduledBy" default="(userName)"/>
+    <control type="hidden" name="Surgery_TemplateGuid"/>
+    <control type="hidden" name="Surgery_QuoteTemplateGuid"/>
+  </row>
+  <row name="rowTemplateName" reveal="[Surgery_TemplateGuid]!">
+    <control type="label" label="de la Plantilla" span="3"/>
+    <control type="text" name="Surgery_TemplateName" span="9" readonly="true"/>
+  </row>
+  <row name="rowQuoteTemplateName" reveal="[Surgery_QuoteTemplateGuid]!">
+    <control type="label" label="Plantilla de Cotización" span="3"/>
+    <control type="text" name="Surgery_QuoteTemplateName" span="9" readonly="true"/>
+  </row>
+  <row>
+    <control type="label" label="Diagnóstico/Hipótesis" span="3"/>
+    <control type="typeahead" name="ConfirmedDiagnosis,ConfirmedDiagnosisCode" span="9" edit="true" 
+      datasource="GetICD10CodesSearchByTerm"
+      term="term"
+      source="ICD10CodeDescription,ICD10Code"/>
+  </row>
+  <row>
+    <control type="label" label="Procedimiento Principal" span="3"/>
+    <control type="typeahead" name="PrimaryProcedureName,PrimaryProcedure" span="9" 
+      edit="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+  </row>
+  <row>
+    <control type="label" label="Procedimiento Secundario" span="3"/>
+    <control type="typeahead" name="SecondaryProcedureName,SecondaryProcedure" span="9"
+      edit="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+  </row>
+  <row>
+    <control type="label" label="Notas de Vinculación" span="3"/>
+    <control type="textarea" name="Surgery_ScheduleNotes" span="9" rows="1" edit="true" required="true"/>
+  </row>      
+  <row>
+    <control type="label" label="Prioridad" span="3"/>
+    <control type="select" name="Surgery_Priority" span="3" edit="true" required="true"
+      source="Normal,Urgente,Emergencia" default="Normal"/>
+    <control type="label" label="Estatus" span="3"/>
+    <control type="select" name="Surgery_Status" span="3" readonly="true" 
+      required="true" explicit="true" 
+      source="Requested,Scheduled,Confirmed,In Progress,Completed,Canceled,Template"
+      sourcelabels="Requerido,Programada,Confirmado,En Progreso,Completado,Cancelado,Plantilla" default="Requested"/>
+  </row>
+  <row>
+    <control type="label" label="Calendario" span="3"/>
+    <control type="select" 
+      name="Surgery_CalendarGuid"
+      span="4"
+      datasource="GetSchedulerAppointmentTypesByFacility" 
+      source="CalendarName,CalendarGuid"
+      required="true"
+      readonly="true"/>
+    <control type="label" label="Sala" span="2"/>
+    <control type="select" name="Surgery_RoomGuid" span="3" 
+      reveal="[EditMode]=Surgery"
+      datasource="GetRoomsAndBedsForThisFacility"
+      source="RoomAndBedNumber,RoomGuid"
+      filter="RoomType%Quirófano"
+      explicit="true" edit="true" required="true"
+      sort="RoomAndBedNumber=asc"/>
+    <control type="select" name="Labor_RoomGuid" span="3" 
+      reveal="[EditMode]=Labor"
+      datasource="GetRoomsAndBedsForThisFacility"
+      source="RoomAndBedNumber,RoomGuid"
+      filter="RoomType%Tococirugía"
+      explicit="true" edit="true" required="true"
+      sort="RoomAndBedNumber=asc"/>
+  </row>
+  <row>
+    <control type="label" label="Fecha Programada" span="3"/>
+    <control type="datetime" name="Surgery_DateTimeScheduled" span="3" edit="true"  
+    required="true" when="«00:01;08:00"/>
+    <control type="label" label="Duración Prevista" badge="min" span="3"/>
+    <control type="integer" name="Surgery_EstimatedLength" span="3" edit="true" required="true" 
+      when="=1440;60"/>
+  </row>
+  <row>
+    <control type="label" label="Tipo de Cirugía" span="3"/>
+    <control type="select" name="Surgery_SurgeryType" span="3" edit="true" required="true"
+      source="Cirugía Ambulatoria,Cirugía de Emergencia,Cirugía Mayor,Limpieza Quirurgica,Otra"/>
+    <control type="label" label="Tipo de Anestesia" span="3"/>
+    <control type="select" name="SurgeryView_AnesthesiaType" span="3" edit="true"
+      source="A. Gral. Inha,A. Gral IV,TIVA,T.E,TE + BPC,TE + BPL,TE + BPB,ML,ML + BPC,
+      ML + BPL,ML + BPB,ML + BPOPLITEO,BPC,BPL.BPDL,BTP,BSA,BPB,SED + LOCAL,
+      V. ANESTÉSICA /TRAQUEOSTOMIA,BLOQUEO PENEANO,BLOQUEO PEDIO"/> 
+  </row>
+  <row>
+    <control type="label" label="Especialidad" span="3"/>
+    <control type="select" name="Surgery_MedicalSpecialty" span="3" 
+      acctsvc="true" required="true"
+      datasource="GetMedicalSpecialties" 
+      source="Specialty,MedicalSpecialtyGuid"
+      default="Cirugía General"
+      explicit="true" edit="true"/>
+    <control type="label" label="Cirujano" span="2"/>
+    <control type="select" name="Surgery_SurgeonId"
+      searchable="true" required="true"
+      acctsvc="true" 
+      datasource="GetUsersByAttributes" 
+      append="LocationId=(facilityData.LocationId),role=Physician"
+      source="UserFirstMiddleLast,UserId"
+      span="4" explicit="true" edit="true"/>
+  </row>
+</partial>

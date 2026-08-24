@@ -1,0 +1,414 @@
+<partial>
+  <!-- Billing payer claims modal -->
+  <section type="tabmodal" title="Beneficios de la Atención" name="mdlNewClaims" trigger="Clm_PayerGuid" badge="none" >
+    <group showif="never">
+      <row>
+        <!-- get a payer claim and display -->
+        <control type="hidden" name="ClaimGuid"
+          acctsvcreq="true"
+          datarequest="GetPayerClaimByClaimGuid"
+          appendrequest="ClaimGuid=[ClaimGuid]"
+          inject="NewClaimsInfo"/>
+        <control type="button" name="btnEnableButtons" action="trigger" 
+          enable="btnInsertPayerDIANInvoiceColombia"/>
+        <!-- store recalculated -->
+        <control type="hidden" name="Clm_Recalculated" default="false"/>
+        <control type="hidden" name="Clm_DateTimeProcessed"/>
+      </row>
+    </group>
+    <group name="NewClaimsInfo">
+      <columns>
+        <column span="10">
+          <subset>
+            <row>
+              <control type="hidden" name="Clm_PlanGuid"/>
+              <control type="hidden" name="Clm_PatientVisit"/>
+              <control type="hidden" name="Clm_PatientId"/>
+            </row>
+            <row>
+              <control type="label" label="Folio" span="2"/>
+              <control type="text" name="Clm_ClaimNumber" readonly="true" span="2" />
+              <control type="label" label="Fecha" span="1"/>
+              <control type="date" name="Clm_ClaimDate" span="3" default="now" 
+                edit="[Clm_Status]=Pending+[Clm_Recalculated]=false"/>
+              <control type="label" label="Estatus" span="1"/>
+              <control type="select" name="Clm_Status" required="true" 
+                sourcelabels="Pendiente,Facturada,Establecido,Cancelado" 
+                source="Pending,Submitted,Settled,Canceled" 
+                readonly="true" span="3" default="Pending" />
+            </row>
+            <row>
+              <control type="label" label="Plan de Beneficios" span="3"/>
+              <control type="select" name="Clm_PayerGuid" span="9" edit="[Clm_Status]=Pending"
+                filter="[ClaimGuid]=;Active=true" required="true"
+                acctsvcreq="true" 
+                datarequest="GetPatientPayers"
+                appendrequest="PatientId=[PatientId]"
+                source="PlanName,PatientPayerGuid"/>
+            </row>
+            <row> 
+              <control type="label" span="3" label="Pago Restante"/>
+              <control name="Pl3_RemainingOutOfPocket" type="text" span="3" edit="true" format="0.00"
+                required="[Pld_MaxOutOfPocket]»0"/>
+              <control type="label" span="3" label="Deducible Restante"/>
+              <control name="Pl3_RemainingDeductible" type="text" span="3" edit="true" format="0.00" 
+                required="[Pld_DeductibleAnnual]»0"/>
+            </row>
+            <row> 
+              <control type="label" span="3" label="Autorización"/>
+              <control name="Clm_ClaimAuthorization" type="text" span="3" edit="true" 
+                required="[Pld_RequiresAuthorization]=True"/>
+              <control type="label" span="3" label="Fecha de Autorización"/>
+              <control name="Pl3_AthorizationDate" type="date" span="3" edit="true" 
+                required="[Pld_RequiresAuthorization]=True"/>
+            </row>
+          </subset>
+          <subset name="subClaimTotals" bgcolor="white" reveal="[FileName]=PatientBilling">
+            <row>
+              <control type="label" label="Cargos" span="2"/>
+              <control type="text" name="Clm_ChargeTotal" format="0,000.00" default="0.00" span="3"/>
+              <control type="label" label="Descuento" span="2"/>
+              <control type="text" name="Clm_DiscountTotal" format="0,000.00" default="0.00" span="3"/>
+            </row>
+            <row>
+              <control type="label" label="Impuesto" span="2"/>
+              <control type="text" name="Clm_TaxTotal" format="0,000.00" default="0.00" span="3"/>
+              <control type="label" label="Neto" span="2"/>
+              <control type="text" name="Clm_NetTotal" format="0,000.00" default="0.00" span="3"/>
+            </row>
+            <row> 
+              <control type="label" label="Copago" span="2"/>
+              <control type="text" name="Clm_Copay" format="0,000.00" span="3"/>
+              <control type="label" label="Deducible" span="2"/>
+              <control type="text" name="Clm_Deductible" format="0,000.00" default="0.00" span="3"/>
+            </row>
+            <row>
+              <control type="label" label="Coaseguro Cirugía" span="2"/>
+              <control type="text" name="Clm_MedicalCoinsurance" format="0,000.00" span="3"/>
+              <control type="label" label="Coaseguro Comercial" span="2"/>
+              <control type="text" name="Clm_MedicalCoinsurance" format="0,000.00" span="3"/>
+            </row>
+            <row>
+              <control type="label" label="Reducciones" span="2"/>
+              <control type="text" name="Clm_TotalReductions" span="3" format="0,000.00"/>
+              <control type="label" label="Total a Pagar" span="2"/>
+              <control type="text" name="Clm_PayerNetAmount" format="0,000.00" span="3"/>
+            </row>
+          </subset>
+        </column>
+        <column span="2">
+          
+          <row>
+            <control type="button" span="12" name="btnOpenClaimStatus"
+              icon="cloud-upload" label="Abierta Especial"
+              reveal="{[Clm_Status]=Submitted|Settled|Canceled+(userName)%medwave.mx|sonic.net}"
+              action="save" acctsvc="true"
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid],Status=Pending"
+              confirm="Confirme que desea volver a abrir esta factura."
+              provoke="ClaimGuid"/>
+          </row>
+          <row>
+            <control type="button" name="btnInsertNewPayerClaim" span="12" label="Continuar" 
+              icon="cloud-upload" action="save" color="green"
+              reveal="[ClaimGuid]="
+              acctsvc="true"
+              affector="ClaimGuid"
+              setaffector="ClaimGuid"
+              capture="NewClaimsInfo"
+              datainsert="InsertPayerClaim"/>
+          </row>
+          <!-- Update a payer claim -->
+          <row>
+            <control type="button" name="btnUpdatePayerClaim" span="12" label="Actualizar" icon="cloud-upload" 
+              reveal="[ClaimGuid]!+[Clm_Status]=Pending"
+              action="save"
+              acctsvc="true"
+              capture="NewClaimsInfo"
+              affector="ClaimGuid"
+              setaffector="ClaimGuid"
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid]"/>
+          </row>
+          <row>
+            <!-- Recalculate patient invoice-->
+            <control type="button" name="btnReCalculateOtherPayerInvoice" span="12"
+              label="Recalcular" icon="refresh" action="save"
+              reveal="{[ClaimGuid]!+[Clm_Recalculated]=false+[Clm_Status]=Pending+FileName=PatientBilling}"
+              acctsvc="true"
+              capture="NewClaimsInfo"
+              affector="ClaimGuid"
+              setaffector="ClaimGuid"
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid],InvoicedBy=(userName)"
+              provoke="btnFinishRecalculateClaim"/>
+          </row>
+          <row showif="never">
+            <!-- Recalculate this payer claim with price updating-->
+            <control type="button" name="btnFinishRecalculateClaim"
+              action="save"
+              acctsvc="true" 
+              dataupdate="RecalculatePatientInvoice"
+              appendupdate="patientVisit=[Clm_PatientVisit],ClaimGuid=[ClaimGuid]"
+              set="Clm_Recalculated=true"
+              provoke="grdPayerCharges_Charges|active"
+              success="Esta factura se ha recalculado."/>
+          </row> 
+          <row>
+            <!-- Edit an invoice after recalculating -->
+            <control type="button" span="12" name="btnOpenClaimAfterRecalculating"
+              icon="cloud-upload" label="Editar"
+              reveal="[Clm_Recalculated]=true"
+              confirm="Confirme que desea editar este Convenio de la Atención antes de procesarla."
+              set="Clm_Recalculated=false"
+              action="trigger"/>
+          </row>
+          <!-- Insert a DIAN invoice for Colombia facilities -->
+          <row>
+            <control type="button" span="12" name="btnInsertPayerDIANInvoice"
+              icon="cloud-upload" label="Procesar" color="yellowgreen"
+              reveal="{[Clm_Status]=Pending+[Clm_Recalculated]=true+[ClaimGuid]!+[Clm_PayerNetAmount]»0}"
+              action="trigger"
+              provoke="btnCompleteDIANInvoice"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCompleteDIANInvoice"
+              disable="btnInsertPayerDIANInvoiceColombia"
+              action="save"
+              affector="none"
+              acctsvc="true"
+              datainsert="InsertDIANInvoice"
+              appendinsert="ProcessCharges=true,
+              DIANInvoiceVersion=(facilityData.DIANInvoiceVersion),
+              GlobalInvoice=False,
+              InvoiceNotes=[Clm_Notes],
+              LocationId=(facilityData.LocationId),
+              ClaimGuid=[ClaimGuid],
+              PatientId=[PatientId],
+              PatientName=[PatientFullName],
+              PatientVisit=[PatientVisitGuid],
+              Series=[PVI_Series],
+              PayerType=[Clm_PayerCategory],
+              PayerCellPhone=[Clm_Cell],
+              PayerAddress=[Clm_PayerAddress],
+              Folio=[Clm_ClaimNumber],
+              Status=Pending,
+              PaymentMethod=[Clm_PaymentMethod],
+              DateTimeIssued=(dateTimeNow),
+              DocumentType=I,
+              PayerRFC=[Clm_PayerRFC],
+              PayerName=[Clm_PayerName],
+              PayerPostalCode=[Clm_PayerPostalCode],
+              PlaceIssued=(facilityData.HospitalCity),
+              PayerGuid=[Clm_PayerGuid],
+              ProviderId=[Consult_AttendingPhysician],
+              ValuesStored=True,
+              TaxableCopay=[Clm_TaxableCopay],
+              TaxableDeductible=[Clm_TaxableDeductible],
+              TaxableCoinsurance=[Clm_TaxableCoinsurance],
+              TaxableMedicalCoinsurance=[Clm_TaxableMedicalCoinsurance],
+              NonTaxCopay=[Clm_NonTaxCopay],
+              NonTaxDeductible=[Clm_NonTaxDeductible],
+              NonTaxCoinsurance=[Clm_NonTaxCoinsurance],
+              NonTaxMedicalCoinsurance=[Clm_NonTaxMedicalCoinsurance],
+              TaxablePayerDiscountAmount=[Clm_TaxablePayerDiscountAmount],
+              NonTaxablePayerDiscountAmount=[Clm_NonTaxablePayerDiscountAmount],
+              GrossCharges=[Clm_ChargeTotal],
+              DiscountTotal=[Clm_DiscountTotal],
+              TaxTotal=[Clm_TaxTotal],
+              RetentionTotal=0,
+              TaxableCharges=[Clm_TaxableCharges],
+              NonTaxableCharges=[Clm_NonTaxableCharges],
+              TaxableGrossCharges=[Clm_TaxableCharges],
+              NonTaxableGrossCharges=[Clm_NonTaxableCharges],
+              TaxableDiscounts=0,NonTaxableDiscounts=0,
+              FiscalType=[Clm_FiscalType],
+              [Clm_FiscalType]=Física;FiscalRegimen=[Clm_FiscalRegimen],
+              [Clm_FiscalType]=Moral;FiscalRegimen=[newclaims2_FiscalRegimen],
+              [Clm_FiscalType]=Física;FiscalRegimenName=[Clm_FiscalRegimenName],
+              [Clm_FiscalType]=Moral;FiscalRegimenName=[newclaims2_FiscalRegimenName]"
+              set="Clm_Status=Submitted"/>
+            <!-- Post Claim to General Ledger -->
+            <control type="button" name="btnPostClaimToGeneralLedger"
+              acctsvc="true"
+              affector="none"
+              action="save"
+              datainsert="PostPatientInvoice"
+              appendinsert="PatientVisitUniqueId=[PatientVisitGuid],PatientId=[PatientId],ClaimGuid=[ClaimGuid],ReferenceNumber=[PVI_InvoiceNumber],TransactionDate=(dateTimeNow),PostedBy=(userName),Description=[PatientFullName],DepartmentGuid=[PVI_CostCenter]"/>
+          </row>
+          <!-- Set the status on a claim to settled -->
+          <row>
+            <control type="button" name="btnSettleClaim" span="12"
+              label="Establecido" icon="cloud-upload" action="save|close|new"
+              reveal="[ClaimGuid]!+[Clm_Status]=Submitted"
+              acctsvc="true" 
+              confirm="Confirme que desea resolver este Convenio de la Atención."
+              compare="[Clm_ClaimBalance]=0|El saldo de la factura debe ser cero para marcar el pago."
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid],Status=Settled"
+              provoke="gridPayerclaims"/>
+          </row>
+          <!-- cancel a payer claim with no charges -->
+          <row>
+            <control type="button" name="btnCancelClaim" span="12"
+              label="Cancelar" icon="remove" action="save|close|new" color="red"
+              reveal="[ClaimGuid]!+[Clm_Status]=Pending+[grdPayerCharges_NetAmountTotal]=0"
+              acctsvc="true" 
+              confirm="Confirme que desea cancelar este Convenio de la Atención."
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid],Status=Canceled"
+              provoke="gridPayerclaims"/>
+          </row>
+          <row showif="never">
+            <!-- Set the invoice status to pending and update the CanceledFolio field-->
+            <control type="button" name="btnSetClaimInvoiceToPending"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              preset="Clm_Status=Pending,
+                [Clm_CanceledFolio]=;Clm_CanceledFolio=[Clm_FolioNumber],
+                [Clm_CanceledFolio]!;[Clm_CanceledFolio]=append|(,)[Clm_FolioNumber]
+                Clm_FolioNumber="
+              dataupdate="UpdatePayerClaim"
+              appendupdate="ClaimGuid=[ClaimGuid],
+                Status=Pending,
+                FolioNumber=,
+                CanceledDateTime=(now),
+                CanceledBy=(userName),
+                CanceledFolio=[Clm_CanceledFolio]"/>
+          </row>
+          <row>
+            <!--  Button to print claim invoice summary-->
+            <control type="button" name="btnPrintClaimInvoice" 
+              label="Cuenta Solicitud" icon="print" span="12" 
+              reveal="[ClaimGuid]!"
+              action="print" mode="report" 
+              append="id=be61e526b62,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),ClaimGuid=[ClaimGuid],UserName=(userName),CurrentDateTime=(dateTimeNow)"/>            
+          </row>
+          <row>
+            <control type="button" name="mbtDisplayPlanDetails2" label="Detalles del Plan" icon="search" span="12"
+              action="redirect"
+              target="mdlDisplayPlan"
+              preset="PlanGuid=[Clm_PlanGuid]"
+              trigger="PlanGuid"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+    <!-- Display list of charges, payments and SAT Invoices -->
+    <group name="grpPayerCharges" reveal="[ClaimGuid]!">
+       <row>
+        <control type="buttongroup" name="ClaimButtonGroupSelect"
+          edit="true" mode="auto" 
+          source="Charges,Payments,SATInvoices" 
+          sourcelabels="Cargos,Pagos,Facturas de DIAN" 
+          span="6" 
+          default="Charges"  
+          provoke="ClaimGridOptions|options"/>
+      </row>
+      <row>
+        <!-- Claim charges -->
+        <control type="options" name="ClaimGridOptions" affector="ClaimButtonGroupSelect" span="12">
+          <control type="datagrid" label="Cargos del Pagador" name="grdPayerCharges_Charges"       
+          searchable="true"                         
+          option="Charges" rows="5"
+          action="redirect"
+          target="[Clm_Status]=Pending;mdlEditClaimCharge"
+          acctsvcreq="true" 
+          mode="sequence"
+          idle="[ClaimGuid]="
+          datarequest="GetChargesByPatientVisit"       
+          appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId],claimGuid=[ClaimGuid]"           
+          source="TransactionDateTime,OrderNumber,ItemName,TransactionQuantity,PerItemChargeAmount,TotalChargeAmount,DiscountAmount,TaxableAmount,TaxAmount,Retention,NetAmount,CopayBasis"
+          sourcelabels="Fecha,Folio,Artículo,Cantidad,Precio,Subtotal,Descuento,Gravable,Impuesto,Retención,Total,Base Copago"
+          format="datetime_short|||0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00"
+          align="left|left|left|right|right|right|right|right|right|right|right|right"
+          total="|||||+|+|+|+|+|+|+"
+          sort="TransactionDateTime=desc"
+          key="TransactionGuid"
+          onselectset="[Clm_Status]=Pending;EditClaimCharge_ClaimTransaction=[[TransactionGuid]]"
+          onselect="[Clm_Status]=Pending;EditClaimCharge_ClaimTransaction">  
+          <control type="button" name="btnAnahiMagic" reveal="(userName)%Anahi"
+            icon="remove" color="red" label="Cancelar Cargo" action="save"
+            showif="feature"
+            confirm="Confirme que desea cancelar este cargo."
+            acctsvc="true"
+            dataupdate="UpdatePatientCharge"
+            appendupdate="TransactionGuid=[[TransactionGuid]],Status=Canceled"
+            provoke="grdPayerCharges_Charges"/>
+          <control type="button" name="btnRemoveChargeFromClaim"
+            icon="refresh" label="Revertir a Paciente"
+            showif="feature" reveal="[InvoiceStatus]=Open|Closed+[Clm_Status]=Pending"
+            action="save"
+            acctsvc="true"
+            confirm="Confirme que desea devolver este cargo a la factura del paciente."
+            dataupdate="UpdatePatientCharge"
+            appendupdate="TransactionGuid=[[TransactionGuid]],ClaimGuid=null"
+            provoke="grdPayerCharges_Charges"/>
+          <control type="button" name="ClaimAllocatePatientCharges" action="redirect" 
+            reveal="[InvoiceStatus]=Open|Closed"
+            preset="InvoiceCalculated=false,Clm_Recalculated=false,selPayerClaims=ClaimGuid"
+            trigger="selPayerClaims,grdPatientCharges" 
+            label="Asignar Cargos" 
+            icon="refresh" target="mdlAllocatePatientCharges"/>
+          <control type="button" name="btnNewClaimCharge"
+            icon="plus" label="Añadir Nuevo" 
+            reveal="[Clm_Status]=Pending"
+            action="redirect"
+            target="mdlNewClaimCharge"
+            preset="NewClaimCharge_ClaimGuid=[ClaimGuid],NewClaimCharge_ClaimNumber=[Clm_ClaimNumber]"/>
+          </control>
+          <!-- Claim receipts -->
+          <control type="datagrid" label="Pagos del Pagador" name="grdPayerReceipts_Receipts"
+            searchable="true"
+            rows="5" option="Payments"
+            modalname="newpayerreceipts"
+            acctsvcreq="true"
+            acctsvc="true"
+            idle="[ClaimGuid]="
+            datarequest="GetPayerReceiptsByPatientVisit"
+            appendrequest="patientVisit=[PatientVisitGuid],claimGuid=[ClaimGuid]"
+            datainsert="InsertPayorReceiptAgainstInvoice"
+            appendinsert="ClaimGuid=[ClaimGuid],
+              patientId=[PatientId],patientVisit=[PatientVisitGuid],
+              invoiceNumber=[PatientVisitInfo_InvoiceNumber],
+              location=[POSSessionLocation],
+              cashierGuid=[POSSessionGuid],
+              type=Payment,
+              payorGuid=[Clm_PayerGuid]"
+            dataupdate="UpdatePayorReceiptAgainstInvoice"
+            source="ReceiptDate,ReceiptNumber,ReceiptTypeDescription,ReferenceNumber,ClaimNumber,PayorName,ReceiptNotes,AmountPaid,FinalPaymentForClaim"
+            sourcelabels="Fecha,Número,Tipo,Referencia,Número de Solicitud,Pagador,Notas,Importe,Final"
+            align="|left|left|left|left|left|left|right||"
+            total="|||||||+||"
+            format="datetime|||||||0,000.00|boolean|"
+            key="ReceiptGuid"
+            sort="ReceiptDate=desc"
+            provoke="newpayerreceipts_PayorGuid,patientinvoiceclaims,newpayerreceiptsinfo_CardTypeOptions,newpayerreceiptsinfo_CardLabelOptions">          
+          </control> 
+          <!-- Claim SAT Invoices -->
+          <control type="datagrid" label="Facturas de DIAN" name="PayerSATInvoiceList"
+            option="SATInvoices"
+            rows="5"
+            idle="[ClaimGuid]="
+            acctsvcreq="true"
+            action="redirect"
+            target="[[DocumentType]]=I;mdlSATInvoiceModal,[[DocumentType]]=P;mdlNewSATPaymentModal,[[DocumentType]]=E;mdlNewSATCredit"
+            searchable="true"
+            datarequest="GetSATInvoice"
+            appendrequest="ClaimGuid=[ClaimGuid]"
+            source="DateTimeIssued,SATInvoiceNumber,DocumentTypeName,PaymentMethod,PayerType,Status,Folio,PayerRFC,PayerName,InvoiceTotal"
+            sourcelabels="Fecha,Número,Comprobante,Medio,Tipo,Estatus,Folio,RFC,Pagador,Total"
+            align="|Left|left|left|left|left|left|left|left|right"
+            format="datetime_short|||||||||0,0.00"
+            translate="Status,PayerType"
+            sort="DateTimeIssued=desc"
+            key="InvoiceGuid" 
+            onselectset="[[DocumentType]]=I;SATInvoiceGuid=[[InvoiceGuid]],[[DocumentType]]=P;SATPaymentGuid=[[InvoiceGuid]],[[DocumentType]]=E;SATCreditGuid=[[InvoiceGuid]]"
+            onselect="[[DocumentType]]=I;SATInvoiceGuid,[[DocumentType]]=P;SATPaymentGuid,[[DocumentType]]=E;SATCreditGuid">
+          </control>
+        </control>
+      </row> 
+    </group>
+  </section>
+</partial>

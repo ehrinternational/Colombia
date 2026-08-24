@@ -1,0 +1,62 @@
+<partial>
+  <!-- Partial Hospital Nursing Patient Buttons -->
+    <row>
+      <control type="button" name="addNursingNotes" span="12"
+        color="yellowgreen"
+        action="redirect|view"
+        target="patient-notes"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],notetype=Interdisciplinary"
+        label="Notas"
+        icon="user-md"/>
+    </row>
+    <row>
+    <control type="button" 
+      name="LoadECDForm"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      color="green" span="12"
+      onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+      action="redirect|url" 
+      target="ecd/index.html" 
+      usesource="login"
+      append="ecdGuid=D3FDCE7D-C7EA-42D7-819B-F034A0B6D480,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+      label="Perfil Farmacoterapéutico"
+      icon="user-md"
+      provoke="EREcdForms"/>
+  </row>
+  <row>
+    <control type="button"
+      reveal="[PatientId]!+[PatientVisitGuid]!" 
+      span="12"
+      name="btnPrintMedicationReview"
+      action="print" 
+      mode="report" 
+      label="Farmacovigilancia" 
+      icon="print" 
+      append="id=0951db197f8,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),UserName=(userName),CurrentDateTime=(now),PatientId=[PatientId],PatientVisit=[PatientVisitGuid]" />
+  </row>
+  <row>
+      <!-- Display the patient timeline -->
+      <control type="button" name="btnTimeline"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+    </row>
+    <row>
+      <control type="button"  name="btnLoadAdverseReactionECD" label="Reacción Adversa"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        color="red" span="12"
+        onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+        action="redirect|url" 
+        target="ecd/index.html" 
+        usesource="login"
+        mode="window"
+        append="ecdGuid=03098ec0-ad84-43bb-b607-af6662654988,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+        provoke="EREcdForms"/>
+    </row>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+</partial>

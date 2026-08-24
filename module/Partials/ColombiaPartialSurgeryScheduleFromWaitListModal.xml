@@ -1,0 +1,98 @@
+<partial>
+  <!-- Tabmodal to enter/edit surgeries -->
+  <section type="tabmodal" badge="none" name="mdlSurgeryModal" title="Información de la Cirugía" provoke="SurgeryRequestList">
+    <group name="SurgeryGuidGroup" showif="never">
+      <row>
+        <control type="hidden" name="SurgeryGuid"
+          datarequest="GetScheduledSurgeryBySurgeryGuid"
+          appendrequest="SurgeryGuid=[SurgeryGuid]"
+          inject="SurgeryInfo"
+          set="mdlSurgery_PatientId=[[PatientId]]"
+          provoke="mdlSurgery_PatientId,SurgeryGridList,SurgeryTeam"/>
+        <control type="hidden" name="mdlSurgery_PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[mdlSurgery_PatientId]"
+          inject="SurgerySchedulePatientInfo"/>
+        <control type="hidden" name="GetSurgeryWaitListRecord"
+          acctsvcreq="true"
+          datarequest="GetConsultRequestsByConsultRequestGuid"
+          appendrequest="consultRequestGuid=[DefaultSurgeryRequestGuid]"
+          set="mdlSurgery_PatientId=[[PatientId]],
+          Surgery_WaitListGuid=[DefaultSurgeryRequestGuid],
+          Surgery_PatientId=[[PatientId]],
+          Surgery_Priority=[[ConsultRequestPriority]],
+          Surgery_SurgeryType=[[SurgeryType]],
+          ConfirmedDiagnosisCode=[[ConfirmedDiagnosis]],
+          Surgery_AnesthesiaType=[[AnesthesiaType]],
+          PrimaryProcedure=[[ProcedureGuid]],
+          PrimaryProcedureName=[[ProcedureName]],
+          Surgery_EstimatedLength=[[Duration]],
+          Surgery_PreOpNotes=[[ConsultNote]],
+          Surgery_SurgeonId=[[ConsultRequestAssignedToId]]"
+          provoke="mdlSurgery_PatientId,SurgeryGridList,SurgeryTeam"/>
+      </row>
+      <row>
+        <control type="button" name="btnCloseSurgeryTabModal" action="close|new" provoke="SurgeryTimes"/>
+      </row>
+    </group>
+    <!--Patient information-->
+    <group name="SurgerySchedulePatientInfo" reveal="[EditMode]=Surgery">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialSurgeryWaitListButtons.xml"/>
+        </column>
+      </columns>
+    </group> 
+    <!-- Surgery information -->
+    <group name="SurgeryInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialSurgeryInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialSurgeryInfoButtons.xml"/>
+        </column>
+      </columns>
+    </group>
+    <!-- Surgery grids -->
+    <group name="SurgeryGridGroup" reveal="SurgeryGuid!">
+      <!-- Show this buttongroup when entereing/editing a surgery -->
+      <row>
+        <control type="buttongroup" 
+          name="SurgeryButtonGroupSelect" 
+          edit="true" mode="auto"          
+          source="Team,Equipment,SurgeryKits,StockRequests,Purchases,Appointments"
+          sourcelabels="Personal,Equipo,Kits,Stock,Compras,Citas"
+          span="12" 
+          default="Team"  
+          provoke="SurgeryGridList|options"/>
+      </row>
+      <row>
+        <control name="SurgeryGridList" affector="SurgeryButtonGroupSelect" type="options" span="12">
+          <partial link="./Partial/Grids/PartialSurgeryTeam.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryScheduledEquipment.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryScheduledKits.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryStockRequests.xml"/>
+          <partial link="./Partial/Grids/PartialSurgeryScheduledPurchases.xml"/>
+          <partial link="./Partial/Grids/PartialAppointmentListForPatientAddEditConsulting.xml"/>
+        </control>
+      </row>
+    </group>
+  </section>
+    <!-- General Modals -->
+    <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
+    <partial link="./Partial/Calendars/PartialCalendarConsultVisitAppointmentModal.xml"/>
+    <partial target="mdlConsultVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarConsultAppointmentsAsModal.xml"/>
+    <!-- Surgery Modals -->
+    <partial link="./Partial/Modals/PartialSurgeryTeamModal.xml"/>
+    <partial link="./Partial/Modals/PartialScheduledSurgeryKitsModal.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryEquipmentModal.xml"/>
+    <partial link="./Partial/Modals/PartialSurgeryStockRequestModal.xml"/>
+    <partial target="mdlPatientPurchaseOrderRequest" link="./Partial/Modals/PartialPatientPurchaseOrderRequestsModal.xml"/>
+    <!-- Messaging -->
+    <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
+    <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>
+</partial>

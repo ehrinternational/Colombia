@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Programar Laboratorio" type="onload" trigger="AppointmentTimes">
+  <facet name="CalendarOption" value="Laboratory"/>
+  <facet name="FileName" value="OutpatientLabCalendar"/>
+  <!-- Display a simple calendar for the outpatient clinic  -->
+  <partial link="./Partial/Calendars/PartialCalendarLab.xml"/>
+  <partial target="mdlLabAppointment" link="Partials/ColombiaPartialCalendarLabAppointmentModal.xml"/>
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+</module>

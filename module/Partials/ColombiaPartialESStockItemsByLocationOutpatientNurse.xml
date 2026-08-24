@@ -1,0 +1,63 @@
+<partial>
+<!-- Inventory stock by location -->
+  <section type="tab" name="InventoryLocationStock" title="Inventario por Ubicación" trigger="dgrItemList">
+    <group>
+      <row>
+        <!-- Select location to display -->
+        <control type="label" label="Ubicación" span="2"/>
+        <control type="select" name="selLocationGuid"
+          span="4"
+          filter="Active=true,LocationName%Consulta Externa"
+          acctsvc="true"
+          explicit="true"
+          edit="true"
+          default="true"
+          datasource="GetInventoryLocationsForThisFacility" 
+          append="LocationId=(facilityData.LocationId)"
+          source="LocationName,LocationGuid"
+          set="DefaultLocation=[selLocationGuid]"
+          provoke="dgrItemList"/>
+      </row>
+      <row>
+        <!-- Display a list of stocked items in this location -->
+        <control type="datagrid" name="dgrItemList"
+          label="Inventario por Ubicación (Haga clic para editar)"
+          span="12" rows="15"
+          searchable="true"
+          acctsvcreq="true"
+          action="redirect"
+          target="mdlStockItemsByLocation"
+          rowcolor="RowColor|red=red;yellow=yellow"
+          idle="selLocationGuid=|reset"
+          datarequest="GetInventoryStockItemsForLocationByLocationGuid"
+          appendrequest="locationGuid=[selLocationGuid]"
+          source="Active,Bin,DateTimeLastCounted,ItemName,ItemDescription,SupplyFromName,MinimumStock,MaximumStock,QuantityOnHand"
+          sourcelabels="Activo,Bin,Último Conteo,Artículo,Descripción,Abastecido desde,Mínimo,Máximo,Existencia"
+          format="boolean||date||||0|0|0"
+          total="||||||+|+|+"
+          align="||left|left|left|left|right|right|right"
+          key="InventoryGuid"
+          onselectset="InventoryGuid=[[InventoryGuid]]"
+          onselect="InventoryGuid">
+        <control type="button" name="btnLocationHistory"
+          icon="search" label="Historial"
+          trigger="grdLocationHistory" 
+          action="redirect" target="mdlLocationHistory"/>
+          <!-- Print labels for all items in the location -->
+        <control type="button" name="btnPrintLabelsfor"
+          reveal="selLocationGuid!"
+          icon="print"
+          label="Etiquetas"
+          action="print"
+          mode="report" 
+          append="(facilityData.HospitalName)=Hospital BC;id=1f0bdfdf864^id=9f4e07e526a,LocationGuid=[selLocationGuid],FacilityId=(facility)"/>
+          <!-- Add a new stock item to this location -->
+          <control type="button" name="btnNewStockItemByLocation"
+            label="Añadir Nuevo" icon="plus"
+            action="redirect" 
+            target="mdlStockItemsByLocation"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

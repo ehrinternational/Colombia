@@ -1,0 +1,36 @@
+﻿ <partial>
+  <!-- Patient meal orders -->
+  <control type="datagrid" label="Órdenes de Comida" name="ERNutritionMeals"
+    option="Diets"
+    rows="5"
+    fitrows="true"
+    action="redirect"
+    target="mdlNewMealOrder"
+    acctsvcreq="true"
+    idle="[PatientVisitGuid]=|reset"
+    datarequest="GetNutritionMealOrders"
+    appendrequest="patientId=[PatientId],PatientVisit=[PatientVisitGuid]"
+    source="DateTimeEntered,DateTimeScheduled,MealStatus,MealName,MealNote,EnteredByFullName"
+    sourcelabels="Fecha y Hora,Programada,Estatus,Comida,Notas,Ordenado por"
+    align="left|left|left|left|left|left"
+    format="datetime|datetime"
+    translate="MealStatus"
+    sort="DateTimeEntered=desc"
+    key="MealGuid"
+    onselectset="MealOrderGuid=[[MealGuid]]"
+    onselect="MealOrderGuid">
+    <!--Print patient label-->
+    <control type="button" 
+      showif="feature"
+      name="btnPrintMealOrderLabel"
+      action="print" 
+      mode="report" 
+      label="Etiqueta de Comida" 
+      icon="print" 
+      append="(facilityData.HospitalName)%FUCAM;id=df9257fd8e3^id=dc94a0c8ada,FacilityId=(facility),MealGuid=[[MealGuid]]"/> 
+    <control type="button" name="btnNewMealOrder"
+      reveal="[HasOpenVisit]=true+(user.UserRoles)%Admitting Nurse"
+      icon="plus" label="Añadir Nuevo"
+      action="redirect" target="mdlNewMealOrder"/>
+    </control>
+</partial>

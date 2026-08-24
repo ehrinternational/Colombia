@@ -1,0 +1,94 @@
+﻿<partial>
+<section type="tab" name="tabSurgeryPatientList" title="Pacientes en Cirugía" trigger="PatientList">
+<group name="SetDepartmentGroup">
+  <row> 
+    <control type="select" span="3"
+      name="DepartmentGuidLookup"
+      acctsvc="true"
+      explicit="true"
+      default="[DefaultDepartment]"
+      filter="AdmissionType=true"
+      datasource="GetDepartmentsActive" 
+      append="LocationId=(facilityData.LocationId)" 
+      source="DepartmentName,DepartmentGuid"
+      provoke="[[DepartmentGuid]]!(user.Department);SaveLastDepartment,PatientList"/>
+    <control type="buttongroup" name="ListFilter" span="5" mode="auto" 
+      source="Esperando,Preoperatorio,Cirugía,Recuperación"
+      default="Esperando"
+      action="trigger"
+      trigger="PatientList"/>
+    <!-- Subpartial to scan patient with button or gun -->
+    <partial link="./Partial/SubPartials/SubPartialScanPatientWithGunOpenVisits.xml"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnOpenPatientChartFromScan"
+      preset="PatientId=[ScannedPatientId],PatientVisitGuid=[ScannedPatientVisit]"
+      trigger="PatientId,PatientVisitGuid"
+      set="QRScannedResult=,ScannedPatientId=,ScannedOpenVisit=,ScannedPatientVisit="
+      action="redirect" target="PatientTabModal"/>
+  </row>
+  <!-- Display a list of patients in surgery department -->
+  <row>
+      <control type="datagrid" label="Pacientes de Cirugía" name="PatientList"
+        action="redirect" 
+        target="PatientTabModal"
+        searchable="true"
+        rows="25"
+        fitrows="true"
+        gridfilter="ListFilter|HospitalService"
+        rowcolor="TriageLevel|1=green;2=yellow;3=red"
+        acctsvcreq="true"
+        datarequest="GetAdmittedSurgeryPatients"
+        appendrequest="DepartmentGuid=[DepartmentGuidLookup],excludePhoto=true"
+        source="ReadyForDischarge,DepartmentDateTime,AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,OpenRoom,AdmitDays,SurgeonFullName,AnesthesiologistName,PrimaryProcedureName"
+        sourcelabels="Alta,Transferido,Admitada,Expediente,Nombre,Nacimiento,Edad,Sexo,Cama,Días,Cirujano,Anestesiologo,Procedimiento"
+        translate="PatientSex"
+        align="||||left|left|left|left|left|left||left|left|left"
+        format="boolean|datetime|datetime|||date"
+        sort="AdmitDateTime=asc"
+        key="RecordUniqueId"
+        onselectset="PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisitId]]"
+        onselect="PatientId,PatientVisitGuid,ButtonGroupSelect">
+      <control type="button" name="btnSearchAdmittedPatients" 
+        label="Buscar Pacientes" icon="search"
+        trigger="SurgerySearchPatientList"
+        action="redirect" target="mdlSurgerySearch"/>
+      <control type="button" name="RefreshPatientList"
+          label="Actualizar" icon="refresh" 
+          action="trigger" trigger="PatientList"/>
+      </control>
+    </row>
+  </group>
+</section>
+<!-- Tabmodal to search for patient in admitted patient list -->
+<section type="tabmodal" name="mdlSurgerySearch" title="Pacientes Ingresados" badge="none" size="medium">
+    <group>
+      <row>
+          <control type="datagrid" label="Pacientes Ingresados" name="SurgerySearchPatientList"
+            action="redirect" 
+            target="PatientTabModal"
+            searchable="true"
+            span="12" rows="25"
+            acctsvcreq="true"
+            datarequest="GetAdmittedPatientsByDepartment"
+            appendrequest="excludePhoto=true,LocationId=(facilityData.LocationId)"
+            source="ReadyForDischarge,AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientSex,PatientDOB,PatientAge,DepartmentName,WardName,OpenRoom"
+            sourcelabels="Alta,Admisión,Expediente,Nombre,Sexo,Nacimiento,Edad,Departamento,Sala,Habitación"
+            translate="PatientSex"
+            align="||left|left|left|left|left|left|left"
+            format="boolean|datetime||||date"
+            sort="AdmitDateTime=asc"
+            key="RecordUniqueId"
+            onselectset="PatientId=[[RecordUniqueId]]"
+            onselect="PatientId,btnCloseSurgerySearch">
+          <control type="button" name="RefreshSearchPatientList"
+              label="Actualizar" icon="refresh" 
+              action="trigger" trigger="SurgerySearchPatientList"/>
+          </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="btnCloseSurgerySearch" action="close|new"/>
+        </row>
+      </group>
+    </section>
+</partial>

@@ -1,0 +1,165 @@
+<partial>
+  <!-- New contacts modal-->
+  <section type="modal" title="Contacto del Paciente" name="mdlNewContacts" badge="none" size="small">
+    <group>
+      <row>
+       <control type="label" label="Activo" span ="4"/>
+        <control type="buttongroup" name="Contact_Active" span="3" 
+          required="true" source="True,False" sourcelabels="Sí,No" default="True" edit="true" />
+      </row>
+      <row>
+        <control type="label" span="4" label="Relación"/>        
+        <control type="select" name="Contact_ContactRelationship" span="3" required="true" 
+          source="Abuelo/a,Amigo/a,Cónyuge,Hijo/a,Hermano/a,Madre,Padre,Primo/a,Tío/a,Tutor" edit="true" default="Madre"/>
+      </row>
+      <row>
+        <control type="label" label="Responsable del Paciente" span="4"/>
+        <control type="buttongroup" name="Contact_PatientGuarantor" span="3" required="true" 
+          source="True,False" sourcelabels="Sí,No" edit="true" />
+      </row>
+       <row>
+        <control type="label" label="Teléfono de Casa" span ="4"/>
+        <control type="text" name="Contact_HomeTelephone" span="3" edit="true"
+          regex="^\+?[1-9]\d{0,14}$"/>
+      </row>
+       <row>
+        <control type="label" label="Teléfono Celular" span ="4"/>
+        <control type="text" name="Contact_MobileTelephone" span="3" edit="true"
+          regex="^\+?[1-9]\d{1,14}$"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo Documento" span="4"/>
+        <control type="select" name="Contact_ContactTypeCode" span="5" required="[Contact_PatientGuarantor]=True" edit="true"
+          source="SI,RC,TI,CC,CE,NI,MS,PA,AS,NU,CD,SC,PE,CN,DE,PT"
+          sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
+      </row>
+      <row>
+        <control type="label" label="Numero Documento" span="4"/>
+        <control type="text" name="Contact0_NationalID" span="3" readonly="true"
+          reveal="[Contact_ContactTypeCode]=SI|" when="[Contact_ContactTypeCode]=;"/>
+        <control type="text" name="Contact1_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="11 caracteres alfanuméricos"
+          reveal="[Contact_ContactTypeCode]=RC" edit="true"
+          regex="^[a-zA-Z0-9]{11}$"/>
+        <control type="text" name="Contact2_NationalID" span="3" required="[Contact_PatientGuarantor]=True"  tooltip="11 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=TI" edit="true"
+          regex="^[0-9]{11}$"/>
+        <control type="text" name="Contact3_NationalID" span="3" required="[Contact_PatientGuarantor]=True"  tooltip="10 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=CC"  edit="true"
+          regex="^[0-9]{10}$"/>
+        <control type="text" name="Contact4_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="7 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=CE"  edit="true"
+          regex="^[0-9]{7}$"/>
+        <control type="text" name="Contact5_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="13 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=NI"  edit="true"
+          regex="^[0-9]{13}$"/>
+        <control type="text" name="Contact6_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="12 caracteres alfanuméricos"
+          reveal="[Contact_ContactTypeCode]=MS"  edit="true"
+          regex="^[a-zA-Z0-9]{12}$"/>
+        <control type="text" name="Contact7_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="16 caracteres alfanuméricos"
+          reveal="[Contact_ContactTypeCode]=PA"  edit="true"
+          regex="^[a-zA-Z0-9]{16}$"/>
+        <control type="text" name="Contact8_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="10 caracteres alfanuméricos"
+          reveal="[Contact_ContactTypeCode]=AS"  edit="true"
+          regex="^[a-zA-Z0-9]{10}$"/>
+        <control type="text" name="Contact9_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="12 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=NU"  edit="true"
+          regex="^[0-9]{12}$"/>
+        <control type="text" name="Contact10_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="11 caracteres alfanuméricos"
+          reveal="[Contact_ContactTypeCode]=CD"  edit="true"
+          regex="^[a-zA-Z0-9]{11}$"/>
+        <control type="text" name="Contact11_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="12 caracteres alfanuméricos"
+          reveal="[Contact_ContactTypeCode]=SC"  edit="true"
+          regex="^[a-zA-Z0-9]{12}$"/>
+        <control type="text" name="Contact12_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="15 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=PE"  edit="true"
+          regex="^[0-9]{15}$"/>
+        <control type="text" name="Contact13_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="14 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=CN"  edit="true"
+          regex="^[0-9]{14}$"/>
+        <control type="text" name="Contact14_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="16 caracteres alfanuméricos"
+          reveal="[Contact_ContactTypeCode]=DE"  edit="true"
+          regex="^[a-zA-Z0-9]{16}$"/>
+        <control type="text" name="Contact15_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="15 caracteres numéricos"
+          reveal="[Contact_ContactTypeCode]=PT"  edit="true"
+          regex="^[0-9]{15}$"/>
+      </row>
+      <row>
+        <control type="label" label="Nombre(s)" span="4"/>
+        <control type="text" name="Contact_FirstName" span="5" required="true" edit="true"
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+      </row>
+      <row>
+        <control type="label" label="Primir Apellido" span="4"/>
+        <control type="text" name="Contact_MiddleName" span="5" required="true" edit="true"
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"  />
+      </row>
+      <row>
+        <control type="label" label="Segundo Apellido" span="4"/>
+        <control type="text" name="Contact_LastName" span="5" edit="true"
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$" />
+      </row>
+      <row>
+        <control type="label" label="Correo Electrónico" span="4"/>
+        <control type="text" name="Contact_EmailAddress" verify="email" span="6" edit="true"
+         regex="^[^@\s]+@[^@\s]+\.[^@\s]+$" />
+      </row>
+       <row>        
+        <control type="label" label="Dirección" span ="4"/>
+        <control type="text" name="Contact_StreetAddress1" span="6" edit="true"
+        regex="^[a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ\s.,#°ªº\-\/]{0,100}$"/> 
+      </row>
+      <row>
+       <control type="label" label="País" span ="4"/>
+       <control type="select" name="Contact_Country" span="6" edit="true" 
+          default="(facilityData.HospitalCountry)" explicit="true"
+          namefield="Contact_CountryText"
+          searchable="true"
+          required="true"
+          sort="CountrySpanish=asc"
+          datasource="GetCountries" 
+          source="CountrySpanish,Code"
+          provoke="Contact_State"/>  
+      </row>
+      <row>
+       <control type="label" label="Departamento" span="4"/>
+       <control type="select" name="Contact_State" span="6" 
+          namefield="Contact_StateText"
+          explicit="true" required="true" edit="true" searchable="true"           
+          idle="[Contact_Country]="
+          datarequest="GetStatesProvincesByCountryCode"
+          appendrequest="CountryCode=[Contact_Country]"
+          source="Name,Code"
+          provoke="Contact_Province"/>
+      </row>
+      <row>
+        <control type="label" label="Municipio" span="4"/>
+         <control type="select" name="Contact_Province" span="6" 
+          namefield="Contact_ProvinceText"      
+          edit="true" sort="Name" explicit="true"
+          searchable="true"    
+          acctsvcreq="true"    
+          datarequest="GetColombiaMunicipalities"         
+          appendrequest="StateCode=[Contact_State]"
+          source="Municipality,MunicipalCode"
+          provoke="Contact_City" />  
+      </row>  
+      <row>
+        <control type="label" label="Localidad" span="4"/>
+         <control type="select" name="Contact_City" span="6" 
+          namefield="Contact_CityOther"      
+          edit="true" sort="Name" explicit="true"
+          searchable="true"  
+          idle="[Contact_Province]="   
+          acctsvcreq="true"    
+          datarequest="GetColombiaCommunes"         
+          appendrequest="MunicipalCode=[Contact_Province]"
+          source="Commune,CommuneCode" />  
+      </row>  
+      <row>
+        <control type="label" label="Código Postal" span="4"/>
+        <control type="text" name="Contact_PostalCode" span="3" edit="true"
+          regex="^(\d{0,10})?$"/> 
+      </row>
+    </group>
+  </section>  
+</partial>

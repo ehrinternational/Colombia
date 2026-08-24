@@ -1,0 +1,131 @@
+<partial>
+  <!-- Tabmodal for biomedical work orders -->
+	<section type="tabmodal" badge="none" name="mdlMedicalDeviceWorkOrderRequest" title="Orden de Trabajo Biomedico">
+		<group>
+			<row>
+			<control type="hidden" name="ReviewWorkOrderGuid"
+				acctsvcreq="true"
+				datarequest="GetMedicalDeviceWorkOrdersByCompletedMaintenanceGuid"
+				appendrequest="CompletedMaintenanceGuid=[ReviewWorkOrderGuid]"
+				inject="grpWorkOrderRequestInfo"/>
+			</row>
+		</group>
+		<group name="grpWorkOrderRequestInfo">
+			<row name="rowRequestOrderNumber" reveal="ReviewWorkOrderGuid!">
+				<control type="label" label="Orden" span="2"/>
+				<control type="text" name="WrkReq_OrderNumber" span="1" readonly="true"/>
+				<control type="label" label="Estatus" span="2"/>
+				<control type="select" name="WrkReq_Status" span="2"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completado,Cancelado"
+					default="Requested" readonly="true"/>
+				<control type="buttongroup" name="WrkReq_ByVendor" span="3"
+					source="True,False" sourcelabels="Proveedor,Interno" default="False" readonly="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Tipo" span="2"/>
+				<control type="select" name="WrkReq_OrderType" span="3"
+					source="Maintenance,Repair,Inspection,Certification,Replacement"
+					sourcelabels="Mantenimiento,Reparar,Inspección,Certificación,Reemplazo" 
+					edit="[ReviewWorkOrderGuid]=" required="true" default="Maintenance"/>
+      </row>
+      <row>
+				<control type="label" label="Prioridad" span="2"/>
+				<control type="select" name="WrkReq_Priority" span="3"
+					source="Normal,High,Emergency" default="Normal"
+					sourcelabels="Normal,Alta,Urgente" edit="[ReviewWorkOrderGuid]=" required="true"/>
+				<control type="label" label="Requerida" span="2"/>
+				<control type="datetime" name="WrkReq_ScheduledDateTime" default="(now)" span="3" 
+					edit="[ReviewWorkOrderGuid]=" required="true"/>
+			</row>
+      <row>
+				<control type="label" label="Departamento" span="2"/>
+				<control type="select" span="3" name="WrkReq_DepartmentGuid"
+          acctsvc="true"
+          explicit="true" edit="[ReviewWorkOrderGuid]=" required="true"
+          datasource="GetDepartmentsActive" 
+          source="DepartmentName,DepartmentGuid"
+					append="LocationId=(facilityData.LocationId)"
+					provoke="WrkReq_RoomGuid,WrkReq_DepartmentService,WrkReq_DeviceGuid"/>
+				<control type="label" label="Servicio" span="2"/>
+				<control type="select" name="WrkReq_DepartmentService"
+            span="3" explicit="true" edit="[ReviewWorkOrderGuid]="
+            filter="Active=true,DepartmentGuid=[WrkReq_DepartmentGuid]"
+            acctsvcreq="true"
+            datarequest="GetDepartmentServices" 
+            source="ServiceName,DepartmentServicesGuid"/>
+			</row>
+			<row>
+				<control type="label" label="Habitación" span="2"/>
+				<control type="select" name="WrkReq_RoomGuid" span="3" edit="[ReviewWorkOrderGuid]="
+					acctsvcreq="true"
+					explicit="true"
+					datarequest="GetFacilityPatientRoomsAndBedsByDepartmentGuid"
+					appendrequest="departmentGuid=[WrkReq_DepartmentGuid]"
+					source="RoomAndBedNumber,RoomGuid"/>
+				 <control type="button" name="btnScanMedicalDevice"
+					reveal="[ReviewWorkOrderGuid]="
+          action="scan" color="green" span="3" offset="2"
+          icon="qrcode" label="Escanear Equipo"
+          inject="value=[GetScannedEquipment]"
+          provoke="[GetScannedEquipment]!;GetScannedEquipment"/>
+      </row>
+      <row showif="never">
+        <control type="hidden" name="GetScannedEquipment"
+          datarequest="GetMedicalDeviceItemsByDeviceGuid"
+          appendrequest="DeviceGuid=[GetScannedEquipment]"
+          set="WrkReq_DepartmentGuid=[[LocationDepartment]],WrkReq_RoomGuid=[[LocationRoom]],WrkReq_DeviceGuid=[[DeviceGuid]]"
+					provoke="WrkReq_DeviceGuid"/>
+      </row>
+			<row>
+				<control type="label" label="Equipo" span="2"/>
+				<control type="select" name="WrkReq_DeviceGuid" span="8"
+					searchable="true" 
+					filter="Active=true"
+					datarequest="GetMedicalDeviceItems"
+					appendrequest="LocationId=(facilityData.LocationId),Category=Medical,DepartmentGuid=[WrkReq_DepartmentGuid]"
+					source="DeviceCode|SerialNumber|DeviceDescription,DeviceGuid" 
+					edit="[ReviewWorkOrderGuid]=" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Subsistema" span="2"/>
+				<control type="text" name="WrkReq_Subsystem" span="8" edit="[ReviewWorkOrderGuid]=" />
+			</row>
+			<row>
+				<control type="label" label="Descripción" span="2"/>
+				<control type="text" name="WrkReq_Description" span="8" edit="[ReviewWorkOrderGuid]=" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Instrucciones" span="2"/>
+				<control type="textarea" name="WrkReq_Notes" span="8" rows="1" edit="[ReviewWorkOrderGuid]=" />
+			</row>
+			<row name="rowWorkOrderEvaluation" reveal="[ReviewWorkOrderGuid]!">
+				<control type="label" label="Evaluación" span="2"/>
+				<control type="textarea" name="WrkReq_Evaluation" span="8" rows="1" edit="true"/>
+			</row>
+		</group>
+		<group>
+			<row>
+				<control type="modalbutton" name="btnSaveWorkOrderRequest"
+					reveal="[ReviewWorkOrderGuid]="
+					color="green" label="Guardar" icon="cloud-upload" 
+          action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderRequestInfo"
+					datainsert="InsertMedicalDeviceWorkOrders"
+					appendinsert="status=Requested,Category=Medical"
+					provoke="grdMyMedicalDeviceWorkOrders"/>
+				<control type="modalbutton" name="btnUpdateWorkOrderRequest"
+					reveal="[ReviewWorkOrderGuid]!"
+					color="green" label="Actualizar" icon="cloud-upload" 
+          action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderRequestInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[ReviewWorkOrderGuid]"/>
+			</row>
+		</group>
+	</section>
+</partial>

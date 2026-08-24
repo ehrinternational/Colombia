@@ -1,0 +1,122 @@
+<partial>
+  <!-- Partial Hospital Patient Visit information -->
+    <row>
+      <control type="hidden" name="PatientVisitUniqueId"/>
+      <control type="hidden" name="ReadyForDischarge"/>
+      <control type="hidden" name="PriorDepartmentGuid"/>
+      <control type="hidden" name="PriorDepartmentService"/>
+    </row>
+    <row>
+        <control type="label" label="Tipo de Atención" span="2"/>
+        <control type="select" name="mdlAdmit_AdmitType" span="4" 
+          namefield="mdlAdmit_AdmissionType"
+          sort="AdmissionType=asc"
+          datasource="GetLookupAdmissionTypesActive" 
+          source="AdmissionType,AdmissionTypeGuid" 
+          default="Policlínica"
+          explicit="true" readonly="true"/>
+        <control type="label" label="Tipo de llegada" span="2"/>
+        <control type="select" name="mdlAdmit_AdmitSource" span="4" 
+          datasource="GetLookupAdmitSourcesByFacility" 
+          source="AdmitSource,AdmitSource"
+          sort="AdmitSource=asc"
+          explicit="true" readonly="true"
+          filter="Active=true"/>
+      </row>
+      <row>
+        <control type="label" label="Servicio" span="2"/>
+        <control type="select" name="mdlAdmit_CaseType" span="4" 
+          acctsvc="true" readonly="true"
+          datasource="GetCaseTypesActive" 
+          source="CaseTypeName,CaseTypeGuid" 
+          sort="CaseTypeName=asc" 
+          explicit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Departamento" span="2"/>
+        <control type="select" name="mdlAdmit_CurrentDepartment" span="4"
+          reveal="[HasOpenVisit]=true" readonly="true"
+          acctsvc="true"
+          explicit="true"
+          datasource="GetDepartmentsActive" 
+          append="LocationId=(facilityData.LocationId)"
+          source="DepartmentName,DepartmentGuid"/>
+        <control type="select" name="AdmitSelect_DepartmentGuid" span="4"
+          reveal="[HasOpenVisit]=false" edit="true" required="true"
+          acctsvc="true"
+          datasource="GetDepartmentsActive" 
+          append="LocationId=(facilityData.LocationId)"
+          source="DepartmentName,DepartmentGuid"
+          provoke="[HasOpenVisit]=false;AdmitSelect_DepartmentService^mdlAdmit_DepartmentService"/>
+        <control type="label" label="Servicio" span="2"/>
+        <control type="select" name="mdlAdmit_DepartmentService" span="4"
+          reveal="[HasOpenVisit]=true"
+          filter="DepartmentGuid=[AdmitSelect_DepartmentGuid]"
+          explicit="true"
+          acctsvcreq="true"
+          datarequest="GetDepartmentServices" 
+          source="ServiceName,DepartmentServicesGuid"/>
+        <control type="select" name="AdmitSelect_DepartmentService" span="4"
+          reveal="[HasOpenVisit]=false+Length(AdmitSelect_DepartmentService)»0" required="true" edit="true"
+          explicit="true"
+          acctsvcreq="true"
+          filter="DepartmentGuid=[AdmitSelect_DepartmentGuid]"
+          datarequest="GetDepartmentServices" 
+          source="ServiceName,DepartmentServicesGuid"/>
+      </row>
+      <row>
+        <control type="label" label="Revisar" span="2"/>
+        <control type="select" name="mdlAdmit_ReviewStatus" span="4" readonly="true"
+          source="Started,FollowUp,Completed" sourcelabels="Comezar,Seguimiento,Completo"/>
+        <control type="label" label="Completo" span="2"/>
+        <control type="datetime" name="mdlAdmit_ReviewCompleted" span="4" readonly="true"/>
+      </row>
+      <row>
+          <control type="label" label="" span="2"/>
+          <control type="label" label="Aprobado" align="left" span="3"/>
+          <control type="label" label="Aprobado por" align="left" span="4"/>
+          <control type="label" label="Fecha Aprobado" align="left" span="3"/>
+        </row>
+        <row>
+          <control type="label" label="Ortopedia" span="2"/>
+          <control type="buttongroup" name="ApprovedByOrtho" span="3"
+            source="True,False" sourcelabels="Sí,No" readonly="true"
+            set="[OrthoApprover]=;OrthoApprover=(userName),[OrthoApprover]=;OrthoApprovedDateTime=(now)"
+            provoke="btnUpdatePatientVisit"/>
+          <control type="select" name="OrthoApprover" span="4"
+            searchable="true" readonly="true" 
+            source="UserFirstMiddleLast,UserId" 
+            acctsvc="true" 
+            datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician"/>
+          <control type="datetime" name="OrthoApprovedDateTime" span="3" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Anestesia" span="2"/>
+          <control type="buttongroup" name="ApprovedByAnesthesia" span="3"
+            source="True,False" sourcelabels="Sí,No" readonly="true"
+            set="[AnesthesiaApprover]=;AnesthesiaApprover=(userName),[AnesthesiaApprover]=;AnesthesiaApprovedDateTime=(now)"
+            provoke="btnUpdatePatientVisit"/>
+          <control type="select" name="AnesthesiaApprover" span="4"
+            searchable="true" readonly="true" 
+            source="UserFirstMiddleLast,UserId" 
+            acctsvc="true" 
+            datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician"/>
+          <control type="datetime" name="AnesthesiaApprovedDateTime" span="3" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Pediatria" span="2"/>
+          <control type="buttongroup" name="ApprovedByPediatrics" span="3"
+            source="True,False" sourcelabels="Sí,No" readonly="true"
+            set="[PediatricsApprover]=;PediatricsApprover=(userName),[PediatricsApprover]=;PediatricsApprovedDateTime=(now)"
+            provoke="btnUpdatePatientVisit"/>
+          <control type="select" name="PediatricsApprover" span="4"
+            searchable="true" readonly="true" 
+            source="UserFirstMiddleLast,UserId" 
+            acctsvc="true" 
+            datasource="GetUsersByAttributes" 
+            append="LocationId=(facilityData.LocationId),role=Physician"/>
+          <control type="datetime" name="PediatricsApprovedDateTime" span="3" readonly="true"/>
+        </row>
+</partial>

@@ -1,0 +1,109 @@
+<partial>
+  <!-- Partial display prospect list selected by status-->
+  <section name="tabProspectivePatients" type="tab" title="Pacientes por Estatus">
+    <group>
+      <row showif="never"> 
+        <control type="button" name="SetAdmitRequestPatientId"
+          action="redirect" target="PatientTabModal"
+          preset="PatientId=[PatientSearchResults]"
+          provoke="PatientId"/>
+        <control type="select" name="GetMedicalDirectorStatus"
+          filter="StatusName%Aprobación Dirección Medica|Aprobación Dirección Médica"
+          default="true"
+          datasource="GetCRMStatusTypes"
+          source="StatusName,StatusGuid"/>
+        <control type="select" name="GetAdministrationStatus"
+          filter="StatusName%Aprobación Administración"
+          default="true"
+          datasource="GetCRMStatusTypes"
+          source="StatusName,StatusGuid"/>
+        <control type="text" name="StatusChangePatientId"/>
+        <control type="button" name="btnMedicalDirectorUpdatePatientCRMStatus" 
+          action="save"
+          dataupdate="UpdatePatient"
+          appendupdate="PatientId=[StatusChangePatientId],[GetMedicalDirectorStatus]!;CRMStatus=[GetMedicalDirectorStatus],CRMStatusDate=(now)"
+          provoke="CRMPatientList"/>
+        <control type="button" name="btnAdministrationUpdatePatientCRMStatus" 
+          action="save"
+          dataupdate="UpdatePatient"
+          appendupdate="PatientId=[StatusChangePatientId],[GetAdministrationStatus]!;CRMStatus=[GetAdministrationStatus],CRMStatusDate=(now)"
+          provoke="CRMPatientList"/>
+      </row>
+      <row>
+          <control type="select" span="3" name="ProspectStatusSelect"
+            acctsvc="true" default="true"
+            filter="Active=true"
+            datasource="GetCRMStatusTypes"
+            source="StatusName,StatusGuid"
+            namefield="StatusName"
+            provoke="CRMPatientList"/>
+          <control type="label" label="Establecimiento" span="2"/>
+          <control type="select" name="SelectSector" span="3" default="(facilityData.HospitalGuid)"
+            acctsvc="true"
+            datasource="GetHospitalByGroupId"
+            append="GroupId=(facilityData.GroupId)"
+            source="HospitalName,HospitalGuid" edit="true"
+            provoke="CRMPatientList"/>
+          <control type="date" name="pplStartDate" span="2" default="now-30" action="trigger"
+            trigger="CRMPatientList"/>
+          <control type="date" name="pplEndDate" span="2" default="now" action="trigger"
+            trigger="CRMPatientList"/>
+      </row>
+      <row>
+        <control type="datagrid" label="Pacientes por Estatus" name="CRMPatientList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          span="12" rows="20"
+          idle="[ProspectStatusSelect]=|reset,pplStartDate=|reset,pplEndDate=|reset"
+          datarequest="GetPatientListByFacilityIdAndSearchCriteria"
+          appendrequest="excludephoto=true,CRMStatus=[ProspectStatusSelect],Sector=[SelectSector],StartDate=[pplStartDate],EndDate=[pplEndDate]" 
+          source="CRMStatusDate,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex"
+          sourcelabels="Fecha,Expediente,Nombre,Nacimiento,Edad,Sexo"
+          translate="PatientSex"
+          align="left|left|left|left"
+          format="datetime|||date"
+          sort="PatientFullName=asc"
+          key="RecordUniqueId"
+          onselectset="PatientId=[[RecordUniqueId]]"
+          onselect="PatientId"> 
+        <control type="button" name="btnMedicalDirectorApproval"
+            showif="feature" icon="check" label="Aprobar Director Médico" color="green"
+            reveal="(user.UserRoles)%Medical Director+[GetAdministrationStatus]!+[StatusName]%Aceptación Clínica|Aceptación Clinica"
+            action="save"
+            preset="StatusChangePatientId=[[RecordUniqueId]]" 
+            affector="none" 
+            acctsvc="true"
+            datainsert="InsertCRMStatusChanges"
+            appendinsert="PatientId=[[RecordUniqueId]],
+              PriorStatus=[ProspectStatusSelect],
+              NewStatus=[GetMedicalDirectorStatus],
+              ReasonForChange=Aprobación del director médico,
+              PriorStatusName=Aprobación Clinica,NewStatusName=Aprobación Dirección Médica"
+            provoke="btnMedicalDirectorUpdatePatientCRMStatus"/>
+          <control type="button" name="btnAdministrationApproval"
+            showif="feature" icon="check" label="Aprobar Administración" color="green"
+            reveal="(user.UserRoles)%Director+(user.UserRoles)¡Medical Director|Surgery Director+[GetAdministrationStatus]!+[StatusName]%Aprobación Dirección Medica|Aprobación Dirección Médica"
+            action="save"
+            preset="StatusChangePatientId=[[RecordUniqueId]]" 
+            affector="none" 
+            acctsvc="true"
+            datainsert="InsertCRMStatusChanges"
+            appendinsert="PatientId=[[RecordUniqueId]],
+              PriorStatus=[ProspectStatusSelect],
+              NewStatus=[GetAdministrationStatus],
+              ReasonForChange=Aprobación del Administración,
+              PriorStatusName=Aprobación Dirección Médica,
+              NewStatusName=Aprobación Administración"
+            provoke="btnAdministrationUpdatePatientCRMStatus"/>
+          <control type="button" name="btnNewProspectPatient"
+            icon="plus" label="Buscar/Ingresar"
+            preset="PatientSearched=False"
+            action="redirect" target="PatientTabModal"/>
+					<control type="button" name="btnRefreshCRMPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="CRMPatientList"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

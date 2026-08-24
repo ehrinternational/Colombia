@@ -1,0 +1,26 @@
+<partial>
+  <section type="tabmodal" name="mdlPatientCoverageModal" title="Convenio del Paciente" badge="none">
+    <group>
+      <row>
+        <control type="hidden"  name="CoveragePatientId"/>
+      </row>
+      <row>
+        <!-- Patient insurance plan coverage -->
+        <control type="datagrid" label="Convenio del Paciente" name="dgrPatientCoverageModalList" 
+          cols="12" rows="5"
+          fitrows="true" 
+          idle="[CoveragePatientId]=|reset"
+          acctsvcreq="true"
+          datarequest="GetPatientCoverage"
+          appendrequest="PatientId=[CoveragePatientId],Active=true"
+          source="Active,DateTimeEntered,CoverageNumber,PlanName,PolicyNumber,GroupNumber"
+          sourcelabels="Activo,Fecha,Folio,Plan,Póliza,Grupo"
+          align="|left||left|left|left|left"
+          format="boolean|datetime"
+          sort="DateTimeEntered=desc"
+          key="CoverageGuid">
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

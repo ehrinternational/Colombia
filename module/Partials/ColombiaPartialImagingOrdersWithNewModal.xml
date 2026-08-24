@@ -1,0 +1,52 @@
+﻿<partial>
+  <control type="datagrid" label="Órdenes de Imagenología" name="ERRadiologyOrders"
+    option="Studies"
+    span="12" rows="5"
+    action="redirect"
+    target="NewRadiologyModal"
+    provoke="ERRadiologyOrders"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientImagingOrdersByPatientId"
+    appendrequest="patientId=[PatientId]"
+    source="DateTimeEntered,HasScans,OrderNumber,OrderPriority,ImagingOrderDescription,OrderStatus,OrderedByFullName,ExternalProviderName"
+    sourcelabels="Fecha,Escaneos,Número,Prioridad,Orden,Estatus,Médico,Médico Externo"
+    align="left||left|left|left|left|left"
+    translate="OrderPriority,OrderStatus"
+    format="datetime|boolean"
+    sort="DateTimeEntered=desc"
+    key="ImagingOrderGuid"
+    onselectset="ImagingOrderGuid=[[ImagingOrderGuid]]"
+    onselect="ImagingOrderGuid">
+  <!-- Insert new imaging orders -->
+  <control type="button"  name="btnImagingOrders" label="Añadir Nuevo" icon="plus"
+    reveal="[PatientVisitGuid]!+(user.NPI)!"
+    action="redirect"
+    trigger="RadInfo_IndicationGuid"
+    target="NewRadiologyModal"/>
+  <control type="button" name="btnImagingOrderNoNPI" icon="plus" label="Añadir Nuevo"
+    reveal="[PatientVisitGuid]!+(user.NPI)="
+    action="trigger"
+    confirm="Su cuenta de usuario no tiene una CMP. Póngase en contacto con el departamento de TI.|nocancel"/>
+  <control type="button" name="PrintAllImagingOrders" 
+    reveal="[PatientVisitGuid]!"
+    action="print"
+    mode="report" 
+    label="Receta Múltiple" 
+    icon="print"
+    confirm="Recordatorio: Solo se imprimirán los órdenes para la visita actual."
+    append="id=7b2bd9cf0f9,UserId=(userName),UserName=(userName),CurrentDateTime=(dateTimeNow),FacilityId=(facilityData.HospitalGuid),PatientId=[PatientId],PatientVisitId=[PatientVisitGuid]"/>
+  <control type="button" name="PrintImagingOrder" 
+    action="print" 
+    showif="feature" 
+    mode="report" 
+    label="Receta Sola" 
+    icon="print"                 
+    append="id=87c90a5570f,UserName=(userName),CurrentDateTime=(dateTimeNow),FacilityId=(facilityData.HospitalGuid),PatientId=[PatientId],PatientVisitId=[PatientVisitGuid],OrderGuid=[[ImagingOrderGuid]]" />
+  <control type="button" name="PrintImagingOrdersByLaboratory"
+    label="Receta por Laboratorio" icon="print"
+    reveal="[PatientId]!+[PatientVisitGuid]!+(facilityData.HospitalShortName)%COI"
+    trigger="SelectImagingLabToPrint"
+    action="redirect"
+    target="mdlSelectImagingLabsToPrint"/>
+  </control>
+</partial>

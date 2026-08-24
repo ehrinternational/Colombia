@@ -1,0 +1,55 @@
+<partial>
+  <!-- Display the Work Order list -->
+	<section type="tab" name="tabOrthoticsWorkOrders" title="Órdenes de Ortesis y Prótesis" trigger="grdOrthoticsWorkOrders">
+		<group>
+			<row>
+				<!-- Select status -->
+				<control type="buttongroup" name="btngrpStatus"
+					span="6" default="Requested"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completo,Cancelado"
+					provoke="grdOrthoticsWorkOrders"/>
+				<control type="select" name="selOrthoticAssignedTo" span="3"
+					acctsvc="true"
+					filter="Active=true"
+					default="(userName)"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId),
+						role=Orthotics Engineer|Orthotics Manager"
+					source="FullName,UserId"/>
+			</row>
+			<row>
+				<!-- Display a list of work orders -->
+				<control type="datagrid" name="grdOrthoticsWorkOrders"
+					label="Órdenes de Trabajo Ortesis y Prótesis" 
+					searchable="true"
+					action="redirect"
+					target="mdlOrthoticsWorkOrder"
+					span="12"
+					rows="20"
+					rowcolor="Priority|Normal=white;High=orange;Emergency=red"
+					acctsvcreq="true"
+					datarequest="GetOrthoticWorkOrders"
+					appendrequest="Status=[btngrpStatus],AssignedTo=[selOrthoticAssignedTo]"
+					source="DateTimeEntered,ScheduledDateTime,DateTimeCompleted,OrderNumber,OrthoticType,Description,MedicalRecordNumber,PatientName,Status,AssignedToName"
+					sourcelabels="Ordenado,Programado,Completo,Orden,Tipo,Descripción,Expediente,Paciente,Estatus,Asignado a"
+					align="|left|left|left|left|left|left|left|left|left"
+					translate="Status"
+					format="datetime|datetime|datetime"
+					sort="DateTimeEntered=asc"
+					key="OrderGuid"
+					onselectset="OrthoticsWorkOrderGuid=[[OrderGuid]]"
+					onselect="OrthoticsWorkOrderGuid">
+					<!-- refresh thislist -->
+					<control type="button" name="btnRefreshOrthoticsWorkOrders"
+						icon="refresh" label="Actualizar" action="trigger" trigger="grdOrthoticsWorkOrders"/>
+					<control type="button" name="btnNewOrthoticsWorkOrderFromList"
+						reveal="[btngrpStatus]=Requested|Scheduled"
+						label="Añadir Nuevo" icon="plus"
+						action="redirect" 
+						target="mdlOrthoticsWorkOrder"/>
+				</control>
+			</row>
+		</group>
+	</section>
+</partial>

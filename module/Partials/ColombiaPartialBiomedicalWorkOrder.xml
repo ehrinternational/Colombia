@@ -1,0 +1,402 @@
+<partial>
+  <!-- Tabmodal for biomedical and maintenance work orders -->
+	<section type="tabmodal" badge="none" name="mdlMedicalDeviceWorkOrder" title="Orden de Trabajo">
+		<group showif="never">
+			<row>
+				<control type="hidden" name="NewStatus"/>
+				<control type="hidden" name="WorkOrderGuid"
+					acctsvcreq="true"
+					datarequest="GetMedicalDeviceWorkOrdersByCompletedMaintenanceGuid"
+					appendrequest="CompletedMaintenanceGuid=[WorkOrderGuid]"
+					inject="grpWorkOrderInfo"
+					set="GetEquipmentName=[[DeviceGuid]]"
+					provoke="GetEquipmentName,grdWorkOrderItems,grdWorkOrderDocuments"/>
+				<control type="hidden" name="GetEquipmentName" 
+					datarequest="GetMedicalDeviceItemsByDeviceGuid"
+					appendrequest="DeviceGuid=[GetEquipmentName]"
+					set="txtEquipmentName=[[DeviceDescription]]"/>
+				<control type="button" name="btnUpdateOrderForPrint"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[WorkOrderGuid]"
+					provoke="grdMedicalDeviceWorkOrders,btnPrintWorkOrder"/>
+				<control type="button" name="btnPrintWorkOrder"
+					action="print" 
+					mode="report" 
+					append="id=669366903f2,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),UserName=(userName),Parameter1=[WorkOrderGuid],CurrentDateTime=(dateTimeNow)"/>
+				<control type="button" name="btnSaveNewStatus"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[WorkOrderGuid]"
+					provoke="btnUpdateNewStatus"/>
+				<control type="button" name="btnUpdateNewStatus"
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[WorkOrderGuid],Status=[NewStatus]"
+					provoke="grdMedicalDeviceWorkOrders"/>
+			</row>
+		</group>
+		<group name="grpWorkOrderInfo">
+			<row>
+				<control type="label" label="Orden" span="2"/>
+				<control type="text" name="Wrk_OrderNumber" span="1" readonly="true"/>
+				<control type="label" label="Estatus" span="2"/>
+				<control type="select" name="Wrk_Status" span="2"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completado,Cancelado"
+					default="Requested" edit="true"/>
+				<control type="buttongroup" name="Wrk_ByVendor" span="3"
+					source="True,False" sourcelabels="Proveedor,Interno" default="False" edit="true" required="true"/>
+				<control type="button" name="btnSaveWorkOrder"
+					span="2" color="green" label="Guardar"
+					reveal="[WorkOrderGuid]="
+					icon="cloud-upload" action="save"
+					acctsvc="true"
+					affector="WorkOrderGuid"
+					setaffector="CompletedMaintenanceGuid"
+					capture="grpWorkOrderInfo"
+					datainsert="InsertMedicalDeviceWorkOrders"
+					appendinsert="Category=Medical"
+					provoke="grdWorkOrderItems,grdWorkOrderDocuments,grdDeviceWorkOrders,grdMedicalDeviceWorkOrders,grdProgramMaintenance"/>
+				<control type="button" name="btnUpdateWorkOrder"
+					reveal="[WorkOrderGuid]!"
+					span="2" label="Actualizar"
+					icon="cloud-upload" 
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpWorkOrderInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[WorkOrderGuid],Category=Medical"
+					provoke="grdDeviceWorkOrders,grdMedicalDeviceWorkOrders,grdProgramMaintenance"/>
+			</row>
+			<row>
+				<control type="label" label="Tipo" span="2"/>
+				<control type="select" name="Wrk_OrderType" span="3"
+					source="Maintenance,Repair,Inspection,Certification,Replacement"
+					sourcelabels="Mantenimiento,Reparar,Inspección,Certificación,Reemplazo" 
+					edit="true" required="true" default="Maintenance"/>
+				<control type="label" label="Prioridad" span="2"/>
+				<control type="select" name="Wrk_Priority" span="3"
+					source="Normal,High,Emergency" default="Normal"
+					sourcelabels="Baja,Media,Alta" edit="true" required="true"/>
+				<control type="button"
+					reveal="[WorkOrderGuid]!"
+					name="btnTriggerPrintWorkOrder"
+					span="2" label="Imprimir" icon="print"
+					action="trigger"
+					trigger="btnUpdateOrderForPrint"/>
+			</row>
+			<row>
+				<control type="label" label="Departamento" span="2"/>
+				<control type="select" span="3" name="Wrk_DepartmentGuid"
+					acctsvc="true"
+					explicit="true" edit="true" required="true"
+					datasource="GetDepartmentsActive" 
+					source="DepartmentName,DepartmentGuid"
+					append="LocationId=(facilityData.LocationId)"
+					provoke="Wrk_RoomGuid,Wrk_DepartmentService,Wrk_DeviceGuid"/>
+				<control type="label" label="Servicio" span="2"/>
+				<control type="select" name="Wrk_DepartmentService"
+            span="3" acctsvc="true" explicit="true" edit="true"
+            filter="Active=true,DepartmentGuid=[Wrk_DepartmentGuid]"
+            acctsvcreq="true"
+            datarequest="GetDepartmentServices" 
+            source="ServiceName,DepartmentServicesGuid"/>
+			</row>
+			<!-- Select the medical device to be worked on -->
+			<row>
+				<control type="label" label="Equipo" span="2"/>
+				<control type="select" name="Wrk_DeviceGuid" span="8"
+					searchable="true" explicit="true" 
+					filter="Active=true" 
+					sort="DeviceDescription=asc"
+					datarequest="GetMedicalDeviceItems"
+					appendrequest="LocationId=(facilityData.LocationId),Category=Medical,DepartmentGuid=[Wrk_DepartmentGuid]"
+					source="DeviceCode|SerialNumber|DeviceDescription,DeviceGuid" 
+					edit="true" required="true"/>
+				<control type="button" name="btnCompleteWorkOrder"
+					reveal="[WorkOrderGuid]!+[Wrk_Status]!Completed"
+					label="Completar" icon="cloud-upload" span="2" color="orange"
+					preset="NewStatus=Completed"
+					action="trigger" trigger="btnSaveNewStatus"/>
+			</row>
+			<row>
+				<control type="label" label="Subsistema" span="2"/>
+				<control type="text" name="Wrk_Subsystem" span="8" edit="true" />
+				<control type="button" name="btnCancelWorkOrder"
+					reveal="[WorkOrderGuid]!"
+					label="Cancelar" icon="remove" span="2" color="red"
+					preset="NewStatus=Canceled"
+					action="trigger" trigger="btnSaveNewStatus"/>
+			</row>
+			
+			<row>
+				<control type="label" label="Habitación" span="2"/>
+				<control type="select" name="Wrk_RoomGuid" span="3" edit="true"
+					acctsvcreq="true"
+					explicit="true"
+					filter="Active=true"
+					datarequest="GetFacilityPatientRoomsAndBedsByDepartmentGuid"
+					appendrequest="departmentGuid=[Wrk_DepartmentGuid]"
+					source="RoomAndBedNumber,RoomGuid"/>
+			</row>
+			<row>
+				<control type="label" label="Descripción" span="2"/>
+				<control type="text" name="Wrk_Description" span="8" edit="true" required="true"/>
+				<control type="button" name="btnRepeatWorkOrder"
+					reveal="[WorkOrderGuid]!"
+					label="Repetir" icon="calendar" span="2"
+					action="redirect" target="mdlRepeatWorkOrder"/>
+			</row>
+			<row>
+				<control type="label" label="Programada" span="2"/>
+				<control type="datetime" name="Wrk_ScheduledDateTime" span="3" edit="true" required="true"/>
+				<control type="label" label="Completado" span="2"/>
+				<control type="datetime" name="Wrk_DateTimeCompleted" span="3" edit="true"/>
+			</row>
+
+			<row>
+				<control type="label" label=" " span="2"/>
+				<control type="label" label="Horas" span="2" align="left"/>
+				<control type="label" label="Trabajo" span="2" align="left"/>
+				<control type="label" label="Materiales" span="2" align="left"/>
+				<control type="label" label="Contrato" span="2" align="left"/>
+			</row>
+			<row>
+				<control type="label" label="Presupuesto" span="2"/>
+				<control type="text" name="Wrk_BudgetHours" span="2" edit="true" format="0.00"/>
+				<control type="text" name="Wrk_BudgetLabor" span="2" edit="true" format="0.00"/>
+				<control type="text" name="Wrk_BudgetMaterial" span="2" edit="true" format="0.00"/>
+				<control type="text" name="Wrk_BudgetContract" span="2" edit="true" format="0.00"/>
+			</row>
+			<row>
+				<control type="label" label="Actual" span="2"/>
+				<control type="text" name="Wrk_LaborHours" span="2" edit="true" format="0.00"/>
+				<control type="text" name="Wrk_LaborCost" span="2" edit="true" format="0.00"/>
+				<control type="text" name="Wrk_MaterialCost" span="2" edit="true" format="0.00"/>
+				<control type="text" name="Wrk_ContractCost" span="2" edit="true" format="0.00"/>
+			</row>
+			<row>
+				<control type="label" label="Asignado a" span="2"/>
+				<control type="select" name="Wrk_AssignedTo"
+					span="3" edit="true"
+					acctsvc="true"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId),
+						role=Biomedical Engineer|Biomedical Manager"
+					source="FullName,UserId"/>
+				<control type="label" label="Proveedor" span="2"/>
+				<control type="select" span="3" name="Wrk_Provider"
+          searchable="true"
+					acctsvc="true"
+          source="VendorName,VendorGuid"
+          datasource="GetVendors" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Instrucciones" span="2"/>
+				<control type="textarea" name="Wrk_Notes" span="8" rows="1" edit="true" />
+			</row>
+			<row>
+				<control type="label" label="Notas Completadas" span="2"/>
+				<control type="textarea" name="Wrk_CompletedNotes" span="8" rows="1" edit="true" />
+			</row>
+			<row name="rowSignWorkOrder" reveal="[Wrk_Status]=Completed+[Wrk_SignedDateTime]=" bgcolor="green">
+				<control type="label" label="Firmar por" span="2"/>
+				<control type="select" name="Wrk_SignedBy" span="3" edit="true"
+					acctsvc="true" searchable="true"
+					source="UserFirstMiddleLast,UserId"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId)"/>
+				<control type="label" label="NIP" span="1"/>
+				<control type="password" name="Wrk_SignedByPIN" span="1" edit="true" required="true"/>
+				<control type="button" name="btnSignWorkOrder" label="Firmar" icon="ok" span="2"
+					confirmrequest="VerifyThisUsersPin"
+          appendconfirm="pin=[Wrk_SignedByPIN],userIdToVerify=[Wrk_SignedBy]"
+          confirmresponse="value=Correct Pin|Este NIP no es válido!"
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[WorkOrderGuid],SignedBy=[Wrk_SignedBy],SignedDateTime=(now)"/>
+      </row>
+			<row name="rowSignedBy" reveal="[Wrk_SignedDateTime]!">
+				<control type="label" label="Firmado por" span="2"/>
+				<control type="text" name="Wrk_SignedByName" span="4" readonly="true"/>
+				<control type="label" label="Fecha Firmado" span="2"/>
+				<control type="datetime" name="Wrk_SignedDateTime" span="3" readonly="true"/>
+			</row>
+		</group>
+
+		<!-- Scanned documents attached to maintenance record -->
+		<group name="grpWorkOrderDocuments" reveal="[WorkOrderGuid]!">
+			 <row>
+        <control type="buttongroup" name="ButtonGroupSelect" 
+          edit="true" mode="auto" span="12"
+          source="Materials,Documents,Purchases,Stock" 
+          sourcelabels="Materiales,Documentos,Compras,Requisicións de Stock" 
+          default="Materials"  
+          provoke="GridOptions,grdWorkOrderItems,grdWorkOrderDocuments,BiomedicalPurchaseOrders,BiomedicalStockRequests"/>
+      </row>
+      <row>
+        <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
+					<control type="datagrid" label="Materiales de la Orden de Trabajo" name="grdWorkOrderItems"
+							option="Materials"
+							rows="5"
+							action="redirect" 
+							target="mdlWorkOrderItems"
+							acctsvcreq="true"
+							searchable="true"
+							datarequest="GetMedicalDeviceMaintenanceItems"
+							appendrequest="maintenanceGuid=[WorkOrderGuid]"
+							source="Active,ItemName,ItemDescription,Notes,Quantity"
+							sourcelabels="Activo,Artículo,Descripción,Notas,Cantidad" 
+							align="|left|left|right|left"
+							format="boolean||||0.00"
+							key="MaintenanceItemGuid"
+							onselectset="WorkOrderItemGuid=[[MaintenanceItemGuid]]"
+							onselect="WorkOrderItemGuid">
+						<!-- Add a new POItem -->
+						<control type="button"
+							name="btnNewWorkOrderItem"
+							label="Añadir Nuevo"
+							icon="plus"
+							action="redirect"
+							preset=""
+							target="mdlWorkOrderItems"/>
+					</control>
+					<control type="datagrid" label="Documentos de la Orden de Trabajo" name="grdWorkOrderDocuments"
+							option="Documents"
+							rows="5"
+							acctsvcreq="true"
+							filter="Status=Active"
+							datarequest="GetImagingOrderFilesByImagingOrderGuid"
+							appendrequest="ImagingOrderGuid=[WorkOrderGuid]"
+							source="DateEntered,Category,Type,FileName,EnteredByFullName,"
+							sourcelabels="Fecha y Hora,Categoría,Tipo,Documento,Entregado"
+							translate="FileType"
+							align="left|left|left|left|left"
+							format="datetime"
+							sort="DateTimeEntered=desc"
+							key="PhotoGuid"
+							action="redirect|url"
+							target="printables/uploadviewer.html"
+							usesource="login"
+							append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+						<!-- Feature button to remove scanned document -->
+							<control type="button" name="btnRemoveScannedDocument"
+								showif="feature" icon="remove" label="Eliminar" color="red"
+								confirm="confirme que desea eliminar este documento."
+								action="save"
+								acctsvc="true"
+								dataupdate="UpdatePatientImages"
+								appendupdate="photoGuid=[[PhotoGuid]],status=Canceled"
+								provoke="grdWorkOrderDocuments"/>
+						<!-- Upload scanned documents -->
+							<control type="button"
+								name="btnWorkOrderScanDocuments"
+								label="Subir Documentos"
+								icon="folder-open"
+								append="LabOrderId=[WorkOrderGuid]"
+								action="upload"
+								filter="pdf,jpg,jpeg,png"
+								provoke="grdWorkOrderDocuments"/>
+					</control>
+					<control type="datagrid" label="Requisicións de Stock de la Orden de Trabajo" name="BiomedicalStockRequests"
+						option="Stock"
+						rows="5"
+						acctsvcreq="true"
+						action="redirect"
+						target="mdlGenericStockRequest"
+						searchable="true"
+						datarequest="GetInventoryTransferListBySurgeryGuid"
+						appendrequest="SurgeryGuid=[WorkOrderGuid]"
+						source="DateTimeEntered,TransferNumber,FromLocationName,Description,Notes,Status"
+						sourcelabels="Creado,Folio,Desde Ubicación,Descripción,Notas,Estatus"
+						align="|Left|Left|left|left|left"
+						format="datetime"
+						translate="Status"
+						sort="DateTimeEntered=desc"
+						key="TransferGuid" 
+						onselectset="StockRequestGuid=[[TransferGuid]],FromLocationDisplayName=[[FromLocationName]],ToLocationDisplayName=[[ToLocationName]]"
+						onselect="StockRequestGuid">
+						<!-- Refresh the transfer list -->
+						<control type="button" name="btnRefreshStockRequests"
+							icon="refresh" label="Actualizar"
+							action="trigger" trigger="BiomedicalStockRequests"/>
+						<!-- Display the transfer modal -->
+						<control type="button" name="btnNewStockRequest" 
+							reveal="[WorkOrderGuid]!"
+							label="Añadir Nuevo"
+							icon="plus"
+							action="redirect"
+							preset="StkReq_SurgeryGuid=[WorkOrderGuid],StkReq_Status=Requested"
+							target="mdlGenericStockRequest"/>
+					</control>
+					<control type="datagrid" label="Compras de la Orden de Trabajo" name="BiomedicalPurchaseOrders"
+						option="Purchases"
+						rows="5"
+						action="redirect"
+						target="mdlGenericPurchaseOrderRequest"
+						acctsvcreq="true"
+						datarequest="GetPurchaseOrderByStatus"
+						appendrequest="surgeryGuid=[WorkOrderGuid]"
+						source="Status,PODate,DeliveryDate,PONumber,DepartmentName,VendorName,Description"
+						sourcelabels="Estatus,Fecha,Entrega,Número,Departamento,Proveedor,Descripción"
+						align="|left|left|left|left|left|left"
+						format="|date|date"
+						translate="Status"
+						key="POGuid"
+						onselectset="PurchaseOrderGuid=[[POGuid]]"
+						onselect="PurchaseOrderGuid">
+					<control type="button" name="btnBiomedicalPO"
+						icon="plus" label="Añadir Nuevo"
+						preset="POInfo_SurgeryGuid=[WorkOrderGuid],POInfo_Status=Draft"
+						action="redirect" target="mdlGenericPurchaseOrderRequest"/>
+					</control>
+				</control>
+			</row>
+		</group>
+	</section>
+
+	<!-- Tabmodal to repeat work orders -->
+	<section type="tabmodal" name="mdlRepeatWorkOrder" title="Repetir Orden de Trabajo" badge="none" size="small">
+		<group name="grpRepeatOrderInfo">
+			<row>
+				<control type="label" label="Repetir" span="4"/>
+				<control type="integer" name="Wrk_CycleCount" span="1" min="0" max="365" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Ciclo" span="4"/>
+				<control type="select" name="Wrk_CycleType" span="3" edit="true"
+				source="Weeks,Days" sourcelabels="Semanas,Días" default="Weeks" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Hasta" span="4"/>
+				<control type="date" name="Wrk_CycleUntil" span="3" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" name="btnSaveWorkOrderRepeat"
+					icon="cloud-upload" label="Guardar" color="green"
+					action="save|close|new"
+					capture="grpRepeatOrderInfo"
+					affector="none"
+					confirm="Confirme que desea repetir esta orden de trabajo hasta la fecha seleccionada."
+					acctsvc="true"
+					dataupdate="RepeatMedicalDeviceWorkOrders"
+					appendupdate="WorkOrderGuid=[WorkOrderGuid]"
+					provoke="grdMedicalDeviceWorkOrders"/>
+			</row>
+		</group>
+	</section>
+	<partial link="./Partial/Modals/PartialGenericStockRequestModal.xml"/>
+  <partial link="./Partial/Modals/PartialGenericPurchaseOrderRequestsModal.xml"/>
+</partial>

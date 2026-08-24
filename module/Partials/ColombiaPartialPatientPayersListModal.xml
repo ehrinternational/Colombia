@@ -1,0 +1,20 @@
+<partial>
+ <!-- Insurance payers with new and update -->
+ <section type="tabmodal" name="mdlPayerList" title="Beneficios del Paciente" badge="none">
+    <group>
+      <row>
+        <control type="datagrid" label="Beneficios del Paciente" name="PatientPayers"
+          span="12" rows="5" 
+          fitrows="true"
+          datarequest="GetPatientPayers"
+          appendrequest="patientId=[PatientId]"
+          format="boolean"
+          source="Active,Ordinal,PayerName,PlanName"
+          sourcelabels="Activo,Ordinal,Nombre del Pagador,Plan"
+          sort="Ordinal=asc"
+          align="|left|left|left"
+          key="PatientPayerGuid"/>
+      </row>
+    </group>
+  </section>
+</partial>

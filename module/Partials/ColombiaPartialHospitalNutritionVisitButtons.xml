@@ -1,0 +1,35 @@
+<partial>
+    <row>
+      <!-- Transfer patient to another department -->
+      <control type="button" name="btnTransferPatient"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      span="12" icon="hospital" label="Transferir"
+      color="orange" action="redirect"
+      preset="Transfer2_DepartmentGuid=[DepartmentGuidLookup]"
+      target="mdlTransferPatient"/>
+    </row>
+    <row>
+      <control type="button" name="btnMove"
+        reveal="[HasOpenVisit]=true"
+        span="12" icon="move" label="Mover"
+        color="orange"
+        action="redirect"
+        target="mdlMovePatient"/>
+    </row>
+    <row name="rowReadyForDischargeButtons" reveal="HasOpenVisit=true">
+      <control type="button" name="btnAltaMedica"
+        reveal="ReadyForDischarge=true"
+        span="12" icon="home" label="Alta Médica"
+        color="green" action="redirect"
+        trigger="GetReadyForDischarge"
+        preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+        target="mdlReadyForDischarge"/>
+      <control type="button" name="btnNoAltaMedica"
+        reveal="ReadyForDischarge=false"
+        span="12" icon="home" label="Alta Médica"
+        color="grey" action="redirect"
+        trigger="GetReadyForDischarge"
+        preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+        target="mdlReadyForDischarge"/>
+    </row>
+</partial>

@@ -1,0 +1,50 @@
+<partial>
+  <!-- Move clinic patients within queus -->
+  <!-- Uses Esperando,Enfermería,Pre-Consulta,Consulta,Completo,Ausente queues -->
+  <section type="tabmodal" badge="none" name="mdlMovePatient" title="Mover" size="small">
+    <group>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnEsperando"
+          span="4" icon="move" label="Esperando" color="orange" action="trigger"
+          set="hidNewPatientService=Esperando"
+          provoke="GetExistingPatientDepartment"/>
+      </row>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnAttention"
+          span="4" icon="move" label="Atención" color="orange" action="trigger" 
+          set="hidNewPatientService=Atención"
+          provoke="GetExistingPatientDepartment"/>
+      </row>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnComplete"
+          span="4" icon="move" label="Completo" color="orange" action="trigger"
+          set="hidNewPatientService=Completo"
+          provoke="GetExistingPatientDepartment"/>
+      </row>
+      <row>
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnNoAttention"
+          span="4" icon="move" label="No Atendió" color="orange" action="trigger"
+          set="hidNewPatientService=No Atendió"
+          provoke="GetExistingPatientDepartment"/>
+      </row>
+      <row showif="never">
+        <control type="hidden" name="hidCurrentPatientDepartment"/>
+        <control type="hidden" name="hidNewPatientService"/>
+        <control type="hidden" name="GetExistingPatientDepartment"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[PatientVisitGuid]"
+          set="hidCurrentPatientDepartment=[[CurrentDepartment]]"
+          provoke="btnCompleteMovePatient"/>
+        <control type="button" name="btnCompleteMovePatient"
+          action="save|close|new"
+          dataupdate="UpdatePatientVisitAllFields"
+          appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[hidCurrentPatientDepartment],hospitalService=[hidNewPatientService]"
+          provoke="PatientList,OutPatientList,ClosePatientTabModal"/>
+      </row>
+    </group>
+  </section>
+  </partial>

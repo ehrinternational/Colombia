@@ -1,0 +1,555 @@
+<partial>
+  <!-- Tabmodal for biomedical and maintenance work orders -->
+	<section type="tabmodal" badge="none" name="mdlOrthoticsWorkOrder" title="Orden de Trabajo Ortesis y Prótesis" provoke="ERPatientOrthotics">
+		<group showif="never">
+			<row>
+				<control type="hidden" name="OrthoticsNewStatus"/>
+				<control type="hidden" name="OrthoticsWorkOrderGuid"
+					acctsvcreq="true"
+					datarequest="GetOrthoticWorkOrders"
+					appendrequest="OrderGuid=[OrthoticsWorkOrderGuid]"
+					inject="grpOrthoticsWorkOrderInfo"
+					provoke="GetOrthoticsPatient,grdOrthoticsWorkOrderDocuments"/>
+				<control type="hidden" name="GetOrthoticsPatient"
+					datarequest="GetPatientAllFields"
+					appendrequest="PatientId=[OrthoticsOrder_PatientId]"
+					inject="Orthotics_PatientInfo"
+					set="[OrthoticsWorkOrderGuid]=;OrthoticsOrder_PatientVisit=[[PatientVisit]]"/>
+				<control type="button" name="btnOrthoticsUpdateOrderForPrint"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpOrthoticsWorkOrderInfo"
+					dataupdate="UpdateOrthoticWorkOrders"
+					appendupdate="OrderGuid=[OrthoticsWorkOrderGuid]"
+					provoke="grdOrthoticsWorkOrders,btnOrthoticsPrintWorkOrder"/>
+				<control type="button" name="btnOrthoticsPrintWorkOrder" action="print" mode="report" 
+					append="id=e067f151328,FacilityId=(facility),UserName=(userName),Parameter1=[OrthoticsWorkOrderGuid],CurrentDateTime=(dateTimeNow),HospitalGuid=(facilityData.HospitalGuid)"/>
+				<control type="button" name="btnOrthoticsSaveNewStatus"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpOrthoticsWorkOrderInfo"
+					dataupdate="UpdateOrthoticWorkOrders"
+					appendupdate="OrderGuid=[OrthoticsWorkOrderGuid]"
+					provoke="btnOrthoticsUpdateNewStatus"/>
+				<control type="button" name="btnOrthoticsUpdateNewStatus"
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					dataupdate="UpdateOrthoticWorkOrders"
+					appendupdate="OrderGuid=[OrthoticsWorkOrderGuid],Status=[OrthoticsNewStatus],[OrthoticsNewStatus]=Completed;DateTimeCompleted=(now),[OrthoticsNewStatus]=Completed;CompletedBy=(userName)"
+					provoke="grdOrthoticsWorkOrders,calOrthoticsWorkOrders"/>
+			</row>
+		</group>
+		<group name="Orthotics_PatientInfo">	
+			<columns>
+				<column span="10">
+					<row>
+						<control type="label" label="Nombre/Expediente" span="4" align="left"/>
+						<control type="label" label="Apellido Paterno" span="4" align="left"/>
+						<control type="label" label="Apellido Materno" span="4" align="left"/>
+					</row>
+					<row>
+						<control type="text" name="Orthotics_PatientFirstName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/>
+						<control type="text" name="Orthotics_PatientMiddleName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/>
+						<control type="text" name="Orthotics_PatientLastName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/> 
+					</row>
+					<row>
+						<control type="label" label="Expediente" span="2"/>
+						<control type="text" name="Orthotics_MedicalRecordNumber" span="2" readonly="true"/>
+						<control type="label" label="Nacimiento" span="2"/>
+						<control type="date" name="Orthotics_PatientDOB" span="3" readonly="true"/>
+						<control type="label" label="Edad" span="1"/>
+						<control type="text" name="Orthotics_PatientAge" span="2" readonly="true"/>
+					</row>
+					<row>
+						<control type="label" label="Sexo" span="2"/>
+						<control type="select" name="Orthotics_PatientSex" span="3" readonly="true"
+							required="true" 
+							source="Male,Female,Indeterminate"
+							sourcelabels="Masculino,Femenino,Indeterminado"/>
+						<control type="label" label="Telefono" span="2"/>
+						<control type="text" name="Orthotics_PtPhoneNumber" span="3" readonly="true"/>
+					</row>
+					<row>
+						<control type="label" label="Celular" span="2"/>
+						<control type="text" name="Orthotics_PatientCellPhone" span="3" readonly="true"/>
+						<control type="label" label="Email" span="2"/>
+						<control type="text" name="Orthotics_PatientEmail" span="5" readonly="true"/>
+					</row>
+				</column>
+				<column span="2">
+					<row>
+					  <control type="button" name="btnSearchOrthoticsPatients"
+							reveal="[OrthoticsOrder_PatientId]="
+							label="Buscar Pacientes" span="12" icon="search"
+							preset="PatientSearchSource=53"
+							action="redirect" target="mdlFindPatients"/>
+					</row>
+					<row showif="never">
+						<control type="hidden" name="SetOrthoticOrderPatientId"
+							set="OrthoticsOrder_PatientId=[PatientSearchResults]"
+							provoke="GetOrthoticsPatient"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsSaveWorkOrder"
+						span="12" color="green" label="Guardar"
+						reveal="[OrthoticsWorkOrderGuid]="
+						icon="cloud-upload" action="save"
+						acctsvc="true"
+						compare="[OrthoticsOrder_PatientId]!|Paciente requerido!"
+						affector="OrthoticsWorkOrderGuid"
+						setaffector="OrderGuid"
+						capture="grpOrthoticsWorkOrderInfo"
+						datainsert="InsertOrthoticWorkOrders"
+						appendinsert="Category=Orthotics"
+						provoke="grdOrthoticsWorkOrderDocuments,grdOrthoticsWorkOrders,grdOrthoticsProgramMaintenance"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsUpdateWorkOrder"
+							reveal="[OrthoticsWorkOrderGuid]!+[FileName]¡Physician|Doctor+[Orthotics_Status]!Requested"
+							span="12" label="Actualizar"
+							icon="cloud-upload" 
+							action="save|close|new"
+							acctsvc="true"
+							affector="none"
+							capture="grpOrthoticsWorkOrderInfo"
+							dataupdate="UpdateOrthoticWorkOrders"
+							appendupdate="OrderGuid=[OrthoticsWorkOrderGuid]"
+							provoke="grdOrthoticsWorkOrders,ERPatientOrthotics,grdOrthoticsProgramMaintenance"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsTriggerPrintWorkOrder"
+							reveal="[OrthoticsWorkOrderGuid]!"
+							span="12" label="Imprimir" icon="print"
+							action="trigger"
+							trigger="btnOrthoticsUpdateOrderForPrint"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsScheduleWorkOrder"
+							reveal="[OrthoticsWorkOrderGuid]!+[Orthotics_Status]=Requested+[FileName]¡Physician|Doctor"
+							label="Programar" icon="calendar" span="12" color="green"
+							preset="OrthoticsNewStatus=Scheduled"
+							action="trigger" trigger="btnOrthoticsSaveNewStatus"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsCompleteWorkOrder"
+							reveal="[OrthoticsWorkOrderGuid]!+[Orthotics_Status]=Scheduled+[FileName]=Orthotics"
+							label="Completar" icon="calendar" span="12" color="orange"
+							preset="OrthoticsNewStatus=Completed"
+							action="trigger" trigger="btnOrthoticsSaveNewStatus"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsReopenWorkOrder"
+							reveal="[OrthoticsWorkOrderGuid]!+[Orthotics_Status]=Completed|Canceled+[FileName]¡Physician|Doctor"
+							label="Reabrir" icon="calendar" span="12"
+							preset="OrthoticsNewStatus=Requested"
+							action="trigger" trigger="btnOrthoticsSaveNewStatus"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsCancelWorkOrder"
+						reveal="[OrthoticsWorkOrderGuid]!+[FileName]%Doctor|Physician+[Orthotics_Status]=Requested"
+						label="Cancelar" icon="remove" span="12" color="red"
+						preset="OrthoticsNewStatus=Canceled"
+						action="trigger" trigger="btnOrthoticsSaveNewStatus"/>
+					</row>
+					<row>
+						<control type="button" name="btnOrthoticsCancelWorkOrder2"
+						reveal="[OrthoticsWorkOrderGuid]!+[FileName]¡Doctor|Physician+[Orthotics_Status]=Requested|Scheduled"
+						label="Cancelar" icon="remove" span="12" color="red"
+						preset="OrthoticsNewStatus=Canceled"
+						action="trigger" trigger="btnOrthoticsSaveNewStatus"/>
+					</row>
+				</column>
+			</columns>
+		</group>
+		<group name="grpOrthoticsWorkOrderInfo">
+			<row>
+				<control type="hidden" name="OrthoticsOrder_PatientId"/>
+				<control type="hidden" name="OrthoticsOrder_PatientVisit"/>
+			</row>
+			<row>
+				<control type="label" label="Orden" span="2"/>
+				<control type="text" name="Orthotics_OrderNumber" span="3" readonly="true"/>
+				<control type="label" label="Estatus" span="2"/>
+				<control type="select" name="Orthotics_Status" span="3"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completo,Cancelado"
+					default="Requested" readonly="true"/>
+			</row>
+			<row>
+				<control type="label" label="Tipo de Trabajo" span="2"/>
+				<control type="select" name="Orthotics_OrderType" span="3"
+					source="New,Maintenance"
+					sourcelabels="Nueva,Reparación" 
+					edit="[OrthoticsWorkOrderGuid]=" required="true" default="New"/>
+				<control type="label" label="Prioridad" span="2"/>
+				<control type="select" name="Orthotics_Priority" span="3"
+					source="Normal,High,Emergency" default="Normal"
+					sourcelabels="Normal,Alta,Urgente" edit="[OrthoticsWorkOrderGuid]=" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Departamento" span="2"/>
+				<control type="select" name="Orthotics_DepartmentGuid" span="3" 
+					acctsvc="true" required="true"  edit="[OrthoticsWorkOrderGuid]="
+					source="DepartmentNumber|DepartmentName,DepartmentGuid"
+					datasource="GetDepartmentsActive"
+					append="LocationId=(facilityData.LocationId)"/>
+				<control type="label" label="Tipo de Paciente" span="2"/>
+				<control type="select" name="Orthotics_PatientType" span="3" 
+					required="true"  edit="[OrthoticsWorkOrderGuid]="
+					source="Interno,Externo"/>
+			</row>
+			<row>
+				<control type="label" label="Programada" span="2"/>
+				<control type="datetime" name="Orthotics_ScheduledDateTime" span="3" edit="[FileName]=Orthotics"/>
+				<control type="label" label="Completado" span="2"/>
+				<control type="datetime" name="Orthotics_DateTimeCompleted" span="3" edit="[FileName]=Orthotics"/>
+			</row>
+			<row>
+				<control type="label" label="Tipo de Orden" span="2"/>
+				<control type="buttongroup" name="Orthotics_OrthoticType" span="4"  edit="[OrthoticsWorkOrderGuid]="
+					source="Ortesis,Prótesis,Sillas" required="true"/>
+			</row>
+			<row name="rowWheelchair1" reveal="[Orthotics_OrthoticType]=Sillas">
+				<control type="label" label="Número" span="2"/>
+				<control type="buttongroup" name="Degrees" span="4" mode="auto"
+					source="14º,16º,18º,20º,Otro" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Silla adaptada" span="3"/>
+				<control type="buttongroup" name="ChairAdapted" span="2"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowWheelchair2" reveal="[Orthotics_OrthoticType]=Sillas">
+				<control type="label" label="Silla ensamblada" span="2"/>
+				<control type="buttongroup" name="ChairAssembled" span="2" mode="auto"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Peto" span="1"/>
+				<control type="buttongroup" name="Overall" span="2"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Cinturón" span="2"/>
+				<control type="buttongroup" name="Belt" span="2"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowWheelchair3" reveal="[Orthotics_OrthoticType]=Sillas">
+				<control type="label" label="Inserto" span="2"/>
+				<control type="buttongroup" name="Insert" span="2" mode="auto"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Wafle en" span="1"/>
+				<control type="buttongroup" name="Waffles" span="2"
+					source="Silla,Inserto" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Cabezal" span="2"/>
+				<control type="buttongroup" name="Head" span="2"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowWheelchair4" reveal="[Orthotics_OrthoticType]=Sillas">
+				<control type="label" label="Apoyo Trocanterico" span="2"/>
+				<control type="buttongroup" name="TrochantericSupport" span="3" mode="auto"
+					source="Izquierdo,Derecho" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Apoyo Costal" span="3"/>
+				<control type="buttongroup" name="CostalSupport" span="3"
+					source="Izquierdo,Derecho" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowWheelchair5" reveal="[Orthotics_OrthoticType]=Sillas">
+				<control type="label" label="Apoya Pies a la Altura" span="3"/>
+				<control type="buttongroup" name="SupportFootHeight" span="2" mode="auto"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Conserva Tablero de Actividades" span="4"/>
+				<control type="buttongroup" name="KeepActivityBoard" span="2"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowWheelchair6" reveal="[Orthotics_OrthoticType]=Sillas">
+				<control type="label" label="Nuevo Tablero de Actividades" span="3"/>
+				<control type="buttongroup" name="NewActivityBoard" span="2"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowWheelchair7" reveal="[Orthotics_OrthoticType]=Sillas">
+				<control type="label" label="Primera evaluación" span="3"/>
+				<control type="buttongroup" name="PrimaryEvaluation" span="2" mode="auto"
+					source="True,False" sourcelabels="Sí,No" edit="[OrthoticsWorkOrderGuid]="/>
+				<control type="label" label="Cojin ABD" span="2"/>
+				<control type="buttongroup" name="ABDCushion" span="4"
+					source="2x2x2x,3x3x3x,4x4x4x,5x5x5x" edit="true"/>
+			</row>
+			<row name="rowProthesisType" reveal="[Orthotics_OrthoticType]=Prótesis">
+				<control type="label" label="Tipo de Prótesis" span="2"/>
+				<control type="select" name="Orthotics2_ProthesisType" span="3"  edit="[OrthoticsWorkOrderGuid]=" required="true"
+					sort="true"
+					source="PDH,PEDESTAL,PTT,PTF,PTT BILA,SANDALIA,SYME,PTR,SYME BILA,ORTOPROTESIS,PDDC,
+					PTF BILA,PTH,Ortoprótesis bilateral,PDDC bilateral,PDH bilateral,Pedestal bilateral,
+					PTH bilateral,PTR bilateral,Sandalia bilateral Vanes,Vanes bilateral"/>
+			</row>
+			<row name="rowProthesisMembers" reveal="[Orthotics_OrthoticType]=Prótesis">
+				<control type="label" label="Extremidad Inferior" span="2"/>
+				<control type="select" name="Orthotics2_LowerMemberProthesis" span="3"  edit="[OrthoticsWorkOrderGuid]=" sort="true"
+					source="Sandalia,Syme,Pedestal,Prótesis Transfemoral,Prótesis Transtibial,Prótesis Desarticulada de cadera,
+					Prótesis Desarticulada de rodilla,Van Nes,Pedestal Bilateral,Syme Bilateral,Sandalia Bilateral,
+					Prótesis Transfemoral Bilateral,Prótesis Transtibial Bilateral,Prótesis desarticulado de cadera bilateral,
+					Vanes Bilateral,Ortoprótesis,Ortoprótesis Bilateral"/>
+				<control type="label" label="Extremidad Superior" span="2"/>
+				<control type="select" name="Orthotics2_UpperMemberProthesis" span="3"  edit="[OrthoticsWorkOrderGuid]="
+					sort="true"
+					source="Desarticulada de hombro,Transhumeral,Desarticulada de codo,Transhumeral bilateral,
+					P. Desarticulado de hombro bilateral,P. Transradial,P. Transradial bilateral,
+					P. Desarticulado de codo bilateral"/>
+			</row>
+			<row name="rowProthesisPelvic" reveal="[Orthotics_OrthoticType]=Ortesis">
+				<control type="label" label="Pelvipodalico Bilateral" span="3"/>
+				<control type="text" name="Orthotics_PelvicBilateral" span="7" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowProthesisMuscular" reveal="[Orthotics_OrthoticType]=Ortesis">
+				<control type="label" label="Musculopodalico Bilateral " span="3"/>
+				<control type="text" name="Orthotics_MuscularBilateral" span="7" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowProthesisPelvicUnilateral" reveal="[Orthotics_OrthoticType]=Ortesis">
+				<control type="label" label="Pelividopodalico Unilateral" span="3"/>
+				<control type="text" name="Orthotics_PelvicUnilateral" span="7" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowProthesisMuscularUnilateral" reveal="[Orthotics_OrthoticType]=Ortesis">
+				<control type="label" label="Muslopodálico unilateral" span="3"/>
+				<control type="text" name="Orthotics_MuscularUnilateral" span="7" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowProthesisSplintType" reveal="[Orthotics_OrthoticType]=Ortesis">
+				<control type="label" label="Tipo de Férula" span="3"/>
+				<control type="text" name="Orthotics_SplintType" span="7" edit="[OrthoticsWorkOrderGuid]="/>
+			</row>
+			<row name="rowOrthoticMembers" reveal="[Orthotics_OrthoticType]=Ortesis">
+				<control type="label" label="Extremidad Inferior" span="2"/>
+				<control type="select" name="Orthotics_LowerMemberOrtesis" span="3"  edit="[OrthoticsWorkOrderGuid]=" sort="true"
+					source="Talonera,Aumento a zapato,Plantilla,Pelvipodalico,Muslopodálico,
+					Reacción a piso,Antitalo,OTP (ortesis tobillo pie),OTP articulada,
+					Barra Denis Brown,Barra Ponseti,Insert foot,Herradura para Ilizarov,
+					Plantilla bilateral,Pelvipodalico bila,Ferula muslopodálico unilateral,
+					Ferula muslopodálico bilateral,Aparato Muslopodálico Bilateral,Reacción a piso bilateral,
+					Sarmiento,Sarmiento supramaleolar,Sarmiento supramaleolar bilateral,
+					Sarmiento inframaleolar,Sarmiento inframaleolar bila,Antitalo bilateral,Otp bilateral,
+					Otp articulada bilateral,Iowa brace,Zapato ponseti,Aparato muslopodálico unilateral,
+					Aparato pelvipodálico,Aparato pelvipodálico bilateral,
+					Sarmiento de tibia unilateral,Sarmiento de tibia bilateral"/>
+				<control type="label" label="Extremidad Torácica" span="2"/>
+				<control type="select" name="Orthotics_UpperMemberOrtesis" span="3"  edit="[OrthoticsWorkOrderGuid]=" sort="true"
+					source="Corsé,Férula de avión,Sarmiento de humero,Ferula de avión bilateral,Sarmiento de humero bilateral"/>
+			</row>
+			<row>
+				<control type="label" label="Descripción" span="2"/>
+				<control type="text" name="Orthotics_Description" span="8" edit="[OrthoticsWorkOrderGuid]=" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Responsable" span="2"/>
+				<control type="select" name="Orthotics_AssignedTo"
+					span="3" edit="[FileName]=Orthotics"
+					acctsvc="true" filter="Active=true"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId),role=Orthotics|Prothesis|Wheelchair|orthotics and prosthetics"
+					source="FullName,UserId"/>
+				<control type="label" label="Recibe" span="2"/>
+				<control type="select" name="Orthotics_ReceivedBy"
+					span="3" edit="[FileName]=Orthotics"
+					acctsvc="true" filter="Active=true"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId),role=Prothesis|Orthotics|WheelChair|Nurse|Outpatient Physician"
+					source="FullName,UserId"/>
+			</row>
+			<row>
+				<control type="label" label="Instrucciones" span="2"/>
+				<control type="textarea" name="Orthotics_Notes" span="8" rows="1" edit="[FileName]=Orthotics" />
+			</row>
+			<row>
+				<control type="label" label="Notas Completadas" span="2"/>
+				<control type="textarea" name="Orthotics_CompletedNotes" span="8" rows="1" edit="[FileName]=Orthotics" />
+			</row>
+		</group>
+		<!-- Scanned documents attached to maintenance record -->
+		<group name="grpOrthoticsWorkOrderDocuments" reveal="[OrthoticsWorkOrderGuid]!">
+			<row>
+				<control type="datagrid" label="Materiales de la Orden" 
+						name="grdWorkOrderItems"
+						span="12"
+						rows="5"
+						action="redirect" 
+						target="mdlOrthoticWorkOrderitems"
+						acctsvcreq="true"
+						searchable="true"
+						datarequest="GetMedicalDeviceMaintenanceItems"
+						appendrequest="maintenanceGuid=[OrthoticsWorkOrderGuid]"
+						source="Active,ItemName,ItemDescription,Notes,Quantity"
+						sourcelabels="Activo,Artículo,Descripción,Notas,Cantidad" 
+						align="|left|left|right|left"
+						format="boolean||||0.00"
+						key="MaintenanceItemGuid"
+						onselectset="OrthoticWorkOrderItemGuid=[[MaintenanceItemGuid]]"
+						onselect="OrthoticWorkOrderItemGuid">
+					<!-- Add a new POItem -->
+          <control type="button"
+            name="btnNewWorkOrderItem"
+            label="Añadir Nuevo"
+            icon="plus"
+            action="redirect"
+						preset=""
+            target="mdlOrthoticWorkOrderitems"/>
+          </control>
+			</row>
+			<row>
+				<control type="datagrid" name="ProthesisPurchaseOrders" label="Requisiciónes de Compras" 
+					span="12" rows="5"
+					action="redirect"
+					target="mdlPatientPurchaseOrderRequest"
+					acctsvcreq="true"
+					datarequest="GetPurchaseOrderByStatus"
+					appendrequest="surgeryGuid=[OrthoticsWorkOrderGuid]"
+					source="Status,PODate,DeliveryDate,PONumber,DepartmentName,VendorName,Description"
+					sourcelabels="Estatus,Fecha,Fecha de Entrega,Número,Departamento,Proveedor,Description"
+					align="|left|left|left|left|left|left"
+					format="|date|date"
+					translate="Status"
+					key="POGuid"
+					onselectset="PurchaseOrderGuid=[[POGuid]]"
+					onselect="PurchaseOrderGuid">
+				<control type="button" name="btnNewSurgeryPO"
+					reveal="[EditMode]=Surgery"
+					icon="plus" label="Add New"
+					preset="POInfo_SurgeryGuid=[OrthoticsWorkOrderGuid],POInfo_PatientId=[PatientId],POInfo_Status=Draft"
+					action="redirect" target="mdlPatientPurchaseOrderRequest"/>
+				</control>
+			</row>
+			<row>
+				<control type="datagrid" label="Documentos de la Orden" name="grdOrthoticsWorkOrderDocuments"
+					span="12" rows="5"
+					acctsvcreq="true"
+					filter="Status=Active,Category=Ortesis y prótesis"
+					datarequest="GetImagingOrderFilesByImagingOrderGuid"
+					appendrequest="ImagingOrderGuid=[OrthoticsWorkOrderGuid]"
+					source="DateEntered,Category,Type,FileName,EnteredByFullName"
+					sourcelabels="Fecha y Hora,Categoría,Tipo,Documento,Entregado"
+					translate="FileType"
+					align="left|left|left|left|left"
+					format="datetime"
+					sort="DateTimeEntered=desc"
+					key="PhotoGuid"
+					action="redirect|url"
+					target="printables/uploadviewer.html"
+					usesource="login"
+					append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+				<!-- Feature button to remove scanned document -->
+					<control type="button" name="btnOrthoticsRemoveScannedDocument"
+						showif="feature" icon="remove" label="Eliminar" color="red"
+						confirm="confirme que desea eliminar este documento."
+						action="save"
+						acctsvc="true"
+						dataupdate="UpdatePatientImages"
+						appendupdate="photoGuid=[[PhotoGuid]],status=Canceled"
+						provoke="grdOrthoticsWorkOrderDocuments"/>
+				<!-- Upload scanned documents -->
+					<control type="button"
+						name="btnOrthoticsWorkOrderScanDocuments"
+						label="Subir Documentos"
+						icon="folder-open"
+						append="LabOrderId=[OrthoticsWorkOrderGuid]"
+						action="upload"
+						filter="pdf,jpg,jpeg,png"
+						provoke="grdOrthoticsWorkOrderDocuments"/>
+				</control>
+			</row>
+		</group>
+	</section>
+	 <!--  Modal for entering/editing Maintenance Items -->
+  <section  type="tabmodal" badge="none" name="mdlOrthoticWorkOrderitems" title="Artículo de la Orden de Trabajo" size="small">
+    <group showif="never">
+      <row>
+        <!-- Read the purchase order item and inject -->
+        <control type="hidden" 
+          name="OrthoticWorkOrderItemGuid" 
+          acctsvcreq="true"
+          datarequest="GetMedicalDeviceMaintenanceItemsByMaintenanceItemGuid"
+          appendrequest="MaintenanceItemGuid=[OrthoticWorkOrderItemGuid]"
+          inject="grpOrthoticWorkOrderItemInfo"/>
+				<!-- Read an Item Master Item and inject its values -->
+        <control type="hidden"
+          name="GetOrthoticWorkOrderItemDetails"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="ItemMasterGuid=[OrthoticWorkOrderItemMasterGuidLookup]"
+          inject="grpOrthoticWorkOrderItemInfo"/>
+			</row>
+		</group>
+		<group name="grpOrthoticWorkItemSearch">
+			<row>
+				<!-- From location for transfer -->
+				<control type="label" span="3" label="Desde Ubicación"/>
+				<control type="select" span="5" name="OrthoticWork_FromLocationGuid"
+					namefield="FromLocationName"
+					source="LocationName,LocationGuid"
+					acctsvc="true"
+					datasource="GetInventoryLocationsForThisFacility"
+					provoke="OrthoticWorkItemMasterGuidLookup"/>
+      </row>
+ 			<row>
+			 	<control type="label" label="Buscar" span="3"/>
+				<control type="select" name="OrthoticWorkItemMasterGuidLookup"
+          span="8" 
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetInventoryStockItemsForLocationByLocationGuid"
+          appendrequest="LocationGuid=[OrthoticWork_FromLocationGuid]"
+          source="ItemName,ItemGuid"
+          set="OrthoticWork_ItemMasterGuid=[OrthoticWorkItemMasterGuidLookup]"
+          provoke="GetOrthoticWorkOrderItemDetails"/>
+      </row>
+		</group>
+		<group name="grpOrthoticWorkOrderItemInfo">
+			<row>
+				<!-- Store ItemGuid and Active values -->
+				<control type="label" label="Activo" span="2"/>
+				<control type="buttongroup" name="OrthoticWork_Active" source="True,False"
+					sourcelabels="Sí,No" default="True" edit="true" span="3"/>
+				<control type="hidden" name="OrthoticWork_ItemMasterGuid"/>
+			</row>
+			<row>
+				<!-- Display the item name (readonly) -->
+				<control type="label" label="Material" span="2"/>
+				<control type="textarea" span="9" name="OrthoticWork_ItemName" 
+					rows="1" required="true" edit="true"/>
+			</row>
+			<row>
+				<!-- Display the item description (editable) -->
+				<control type="label" label="Descripción" span="2"/>
+				<control type="textarea" span="9" rows="1"
+					name="OrthoticWork_ItemDescription" edit="true" />
+			</row>
+			<row>
+        <!-- Enter the quantity to order -->
+        <control type="label" label="Notas" span="2"/>
+        <control type="textarea" name="OrthoticWork_Notes" edit="true" span="9" rows="2"/>
+			</row>
+			 <row>
+        <!-- Enter the quantity to order -->
+        <control type="label" label="Cantidad" span="2"/>
+        <control type="text" name="OrthoticWork_Quantity" format="0.00" span="2" edit="true" required="true"/>
+			</row>
+		</group>
+		<group>
+			<row>
+				<control type="modalbutton" name="btnSaveOrthoticWorkOrderItem"
+					reveal="[OrthoticWorkOrderItemGuid]="
+					icon="cloud-upload" color="green"
+					label="Guardar" action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpOrthoticWorkOrderItemInfo"
+					datainsert="InsertMedicalDeviceMaintenanceItems"
+					appendinsert="MaintenanceGuid=[OrthoticsWorkOrderGuid]"
+					provoke="grdWorkOrderItems"/>
+				<control type="modalbutton" name="btnUpdateOrthoticWorkOrderItem"
+					reveal="[OrthoticWorkOrderItemGuid]!"
+					icon="cloud-upload" span="3"
+					label="Actualizar" action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpOrthoticWorkOrderItemInfo"
+					dataupdate="UpdateMedicalDeviceMaintenanceItems"
+					appendupdate="MaintenanceItemGuid=[OrthoticWorkOrderItemGuid]"
+					provoke="grdWorkOrderItems"/>
+			</row>
+		</group>
+	</section>
+</partial>

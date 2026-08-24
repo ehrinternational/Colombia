@@ -1,0 +1,100 @@
+<partial>
+  <!-- Tabmodal for entering/editing bed requests -->
+  <!-- Don't use with bed request management -->
+  <section type="tabmodal" badge="none" name="mdlBedRequest" title="Solicitud de Hospitalización" size="small">
+    <group showif="never">
+        <row>
+          <control type="hidden" name="bedRequest_PatientId"/>
+          <control type="hidden" name="GetPatientForBed"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[bedRequest_PatientId]"
+          inject="grpPatientInfo,rowPatientFullName"/>
+        </row>
+    </group>
+    <group name="grpPatientInfo">
+      <row>
+          <control type="label" label="Expediente" span="3" align="left"/>
+          <control type="label" label="Nombre" align="left" span="3"/>
+          <control type="label" label="Paterno" align="left" span="3"/>
+          <control type="label" label="Materno" align="left" span="3"/>
+        </row>
+        <row>
+          <control type="text" name="Bed_AccountNumber" span="3"/>
+          <control type="text" name="Bed_PatientFirstName" regex="^[A-ZÑ\s]+$" format="ucase" span="3"/>
+          <control type="text" name="Bed_PatientMiddleName" regex="^[A-ZÑ\s]+$" format="ucase" span="3"/>
+          <control type="text" name="Bed_PatientLastName" regex="^[A-ZÑ\s]+$" format="ucase" span="3"/>
+        </row>
+        <row>
+          <control type="label" label="Nacimiento" span="3" />
+          <control type="date" name="Bed_PatientDOB" span="2"/>
+          <control type="text" name="Bed_PatientAge" span="2"/>
+          <control type="label" label="Sexo" span="1" />
+          <control type="select" name="Bed_PatientSex" span="3"  
+            source="Male,Female,Indeterminate,Unknown"   
+            sourcelabels="1 Hombre,2 Mujer,3 Intersex(Indeterminado),4 Desconocido"/>
+        </row>
+      </group>
+      <group name="grpBedRequestInfo">
+        <row name="rowPatientFullName">
+          <control type="hidden" name="Bed_PatientFullName"/>
+        </row>
+       <row>
+          <control type="label" span="3" label="Fecha de Solicitud"/>
+          <control type="datetime" name="Bed_DateTimeRequestedFor" span="3"
+            required="true" default="(dateTimeNow)" edit="true"/>
+        </row>
+        <row>
+          <control type="label" span="2" label="Diagnóstico"/>
+          <control type="typeahead" name="Bed_PrimaryDiagnosis" span="9" edit="true" 
+            datasource="GetICD10CodesSearchByTerm"
+            namefield="Discharge_DiagnosisDescription"
+            term="term"
+            source="ICD10CodeDescription,ICD10Code"/>
+        </row>
+        <row>
+          <control type="label" span="2" label="Prioridad"/>
+          <control type="select" name="Bed_Priority" span="2" required="true" edit="true" default="1" source="1,2,3" sourcelabels="Normal,Medio,Crítico"/>
+          <control type="label" span="2" label="DRG Groupo"/>
+          <control type="text" name="Bed_DRG" span="5" edit="true"/>
+        </row>
+         <row>
+          <control type="label" span="2" label="Sala"/>
+          <control type="select" name="Bed_Ward" 
+            namefield="WardName"
+            span="4"  
+            required="true" 
+            acctsvc="true"
+            edit="true"
+            datasource="GetHospitalWardsForThisFacilityActive" 
+            source="Ward,WardGuid"  />
+          <control type="label" span="4" label="Duración Estimada" badge="días"/>
+          <control type="text" name="Bed_ExpectedLengthOfStay" span="1"
+            required="true" edit="true" format="0" min="0" max="365"/>
+        </row>
+        <row>
+          <control type="label" span="2" label="Equipo Obligatorio"/>
+          <control type="textarea" name="Bed_RequiredEquipment" rows="2" span="9" edit="true"/>
+        </row>
+        <row>
+          <control type="label" span="2" label="Notas de Solicitud"/>
+          <control type="textarea" name="Bed_RequestNotes" rows="2" span="9"
+              edit="true"/>
+        </row>
+        <row>
+          <control
+              type="modalbutton"
+              name="btnSaveNewBedRequest"
+              label="Generar"
+              icon="cloud-upload"
+              color="grey"
+              action="save|close|new"
+              acctsvc="true"
+              affector="none"
+              capture="grpBedRequestInfo"
+              confirm="Por favor, confirme que desea generar esta nueva solicitud de cama."
+              datainsert="InsertFacilityBedRequests"
+              appendinsert="requestingFromFacilityName=(facilityData.HospitalName),requestingFacilityName=(facilityData.HospitalName),requestsource=[],patientId=[bedRequest_PatientId],status=Active,requestingFromFacility=[LookupTransferFacility],requestingFacility=[LookupTransferFacility],requestingUser=(userName),requestingUserName=(fullname)"/>
+        </row>
+    </group>
+</section>
+</partial>

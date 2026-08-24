@@ -1,0 +1,86 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabDepartmentAdmittedPatients" type="tab" title="Pacientes por Departamento" trigger="GetLastDepartment">
+    <group showif="never">
+      <row> 
+        <!-- Get the last department the user was in and set this department-->
+        <control type="button" name="GetLastDepartment" action="trigger"
+          set="DepartmentGuidLookup=(user.Department)"/>
+        <!-- Save the department the user selects to the user profile -->
+        <control type="button" 
+          name="SaveLastDepartment"
+          action="save"
+      		affector="none"
+      		datainsert="UpdateUserProfileSetDepartment"
+          appendinsert="UserId=(userName),departmentGuid=[DepartmentGuidLookup]"/>
+      </row>
+    </group>
+    <group>
+      <row>
+          <control type="select" name="DepartmentGuidLookup"
+            span="3" acctsvc="true" explicit="true" edit="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentNumber|DepartmentName,DepartmentGuid"
+            provoke="PatientList,(user.Department)![DepartmentGuidLookup];SaveLastDepartment,PatientList,DepartmentRoomLookup"/>
+            <!-- Select the hospital service (queue) to display -->
+         <control type="buttongroup" name="ListFilter" span="5" 
+            source="Esperando,Atención,Completo,No Atendió"
+            value="Esperando"
+            action="trigger"
+            trigger="PatientList"/>
+          <control type="hidden" name="QRScannedResult"
+            mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+          <control type="button" name="btnScanPatientQR" 
+            action="scan" color="green" span="3"
+            icon="qrcode"
+            label="Escanear Paciente"
+            inject="value=[QRScannedResult]"
+            provoke="[QRScannedResult]!;GetScannedPatientByQR"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="GetScannedPatientByQR"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRScannedResult]"
+          provoke="[[RecordUniqueId]]!;btnOpenPatientChart^btnNoPatientFound"/>
+        <control type="button" name="btnOpenPatientChart"
+          preset="PatientId=[QRScannedResult]"
+          trigger="PatientId"
+          set="QRScannedResult="
+          action="redirect" target="PatientTabModal"/>
+        <control type="button" name="btnNoPatientFound"
+          action="trigger"
+          set="QRScannedResult="
+          confirm="No se ha encontrado ninguna paciente.|nocancel"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the department -->
+        <control type="datagrid" label="Pacientes por Departamento" name="PatientList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          span="12" rows="25"
+          fitrows="true"
+          gridfilter="ListFilter|HospitalService"
+          acctsvcreq="true"
+          datarequest="GetAdmittedPatientsByDepartment"
+					rowcolor="ReadyForDischarge|True=green"
+          idle="[DepartmentGuidLookup]=|reset"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup],excludePhoto=true" 
+          source="ReadyForDischarge,DepartmentDateTime,AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,CurrentDayAppointmentCalendar,CurrentDayAppointmentTime,AdmissionType,DepartmentServiceName"
+          sourcelabels="Alta,Transferido,Admitido,Expediente,Nombre,Nacimiento,Edad,Sexo,Calendario,Hora,Atención,Servicio"
+          align="||left|left|left|left|left|left|left|left|left"
+          format="boolean|datetime|datetime|||date"
+          translate="PatientSex"
+          sort="AdmitDateTime=asc"
+          key="RecordUniqueId"
+          onselectset="PatientId=[[RecordUniqueId]]"
+          onselect="PatientId"> 
+					<control type="button" name="btnRefreshPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="PatientList"/>
+        </control>
+        </row>
+      </group>
+  </section>
+</partial>

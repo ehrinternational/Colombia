@@ -1,0 +1,42 @@
+<partial>
+  <!-- Patient Appointment List with new and edit for outpatient, imaging and lab calendars -->
+  <control type="hidden" name="FromCalendar" default="false"/>
+  <control type="datagrid" label="Citas del Paciente" name="Appointments" 
+    option="Appointments"
+    rows="5" span="12"
+    action="redirect"
+    idle="[PatientId]=|reset"
+    target="[[CalendarType]]=ConsultVisit;mdlConsultVisitAppointmentModal,
+      [[CalendarType]]=FirstVisit;mdlFirstVisitAppointmentModal"
+    datarequest="GetPatientAppointmentsByDateRange"
+    appendrequest="patientId=[PatientId],status=AllCanceled,startDateTime=(dateTimeNow),endDateTime=(dateTimeNow)"
+    source="Start,CalendarType,CalendarName,Subject,ProviderFullName,Status"
+    sourcelabels="Fecha y Hora,Tipo,Calendario,Asunto,Médico,Estatus"
+    translate="CalendarType,Status"
+    sort="Start=desc"
+    align="|left|left|left|left|left"
+    format="datetime"
+    key="AppointmentGuid"
+    onselectset="[[CalendarType]]=ConsultVisit;ConsultVisit_AppointmentGuid=[[AppointmentGuid]],
+      [[CalendarType]]=FirstVisit;FirstVisit_AppointmentGuid=[[AppointmentGuid]]"
+    onselect="[[CalendarType]]=ConsultVisit;ConsultVisit_AppointmentGuid,
+      [[CalendarType]]=FirstVisit;FirstVisit_AppointmentGuid">
+    <control type="button" name="btnPrintPatientAppointmentList"
+      label="Agenda" icon="print"  
+      action="print" mode="report" 
+      append="id=a835faef16d,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),PatientId=[PatientId],UserName=(fullname),CurrentDateTime=(dateTimeNow)"/>  
+    <control type="button" name="btnPrintPatientAppointment"
+      showif="feature"
+      label="Cita" icon="print"  
+      action="print" mode="report" 
+      append="id=e111f95c2bf,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),AppointmentId=[[AppointmentGuid]],UserName=(fullname),CurrentDateTime=(dateTimeNow)"/>
+    <!-- Button to enter new outpatient appointments -->
+    <control type="button" name="btnNewConsultAppointmentFromNursing"
+      reveal="[Patient_Active]=true+[FromCalendar]=false"
+      preset="DefaultPatientId=[PatientId],ConsultCalendarType=ConsultVisit"
+      icon="plus" label="Añadir Consulta"
+      trigger="grdConsultVisitAppointmentTimes" 
+      action="redirect" 
+      target="mdlConsultVisitCalendarAppointments"/>
+  </control>
+</partial>

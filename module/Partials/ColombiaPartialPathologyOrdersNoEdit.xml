@@ -1,0 +1,400 @@
+<partial>
+  <!-- Enter/edit pathology orders -->
+  <section type="tabmodal" name="mdlPathologyOrders" title="Anatomía Patológica" badge="none">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="Path_OrderGuid"
+          acctsvcreq="true"
+          datarequest="GetPathologyOrderByOrderGuid"
+          appendrequest="orderGuid=[Path_OrderGuid]"
+          inject="PathologyOrderInfo"
+          provoke="GetPathologyPatient"/>
+        <control type="hidden" name="GetPathologyPatient"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[Path_PatientId]"
+          inject="Path_PatientInfo"
+          provoke="grdPathologySpecimens,grdPathologyImages"/>
+        <control type="button" name="ClosePathologyOrder" action="close"/>
+      </row>
+    </group>
+    <group name="Path_PatientInfo">
+      <columns>
+        <column span="10">
+          <row>
+            <control type="hidden" name="Path_HasOpenVisit"/>
+            <control type="hidden" name="Path_DateTimeOfDeath"/>
+            <control type="hidden" name="Path_PatientVisit"/>
+            <control type="hidden" name="Path_DisplayCorrectedAge"/>
+          </row>
+          <row>
+            <control type="label" label="Nombres/Expediente" align="left" span="4"/>
+            <control type="label" label="Paterno" align="left" span="4"/>
+            <control type="label" label="Materno" align="left" span="4"/>
+          </row>
+          <row>
+            <control type="text" name="Path_PatientFirstName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/>
+            <control type="text" name="Path_PatientMiddleName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/>
+            <control type="text" name="Path_PatientLastName" regex="^[A-ZÑ\s]+$" format="ucase" span="4" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Nacimiento" span="2"/>
+            <control type="date" name="Path_PatientDOB" span="3" readonly="true"/>
+            <control type="text" name="Path_PatientAge" span="3" readonly="true"/>
+            <control type="label" label="Sexo(*)" span="1"/>
+            <control type="select" name="Path_PatientSex" span="3" readonly="true" 
+              source="Male,Female,Indeterminate,Unknown"  
+              sourcelabels="Hombre,Mujer,Indeterminado,Desconocido"/>
+          </row>
+          <row name="rowGestationAge" reveal="[DisplayCorrectedAge]=true">
+            <control type="label" label="Semanas Gestación" span="3"/>
+            <control type="text" format="0,0" name="Path_GestationAge" span="2" readonly="true"/>
+            <control type="label" label="Edad Corregida" span="4"/>
+            <control type="text" name="Path_CorrectedAge" span="2" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Expediente" span="2"/>
+            <control type="text" name="Path_MedicalRecordNumber" span="2" readonly="true"/> 
+            <control type="label" label="Cuenta" span="1"/>
+            <control type="text" name="Path_AccountNumber" span="2" readonly="true"/>
+            <control type="label" label="Estado Civil" span="2"/>
+            <control type="select" name="Path_PtMaritalStatus" span="3" readonly="true"
+              datasource="GetLookupMaritalStatus"
+              source="MaritalStatus,MaritalStatus"
+              explicit="true"/>
+          </row>
+          <row>
+            <control type="label" label="Celular" span="2"/>
+            <control type="text" name="Path_PatientCellPhone" span="2" readonly="true"/>
+            <control type="label" label="email" span="2"/>
+            <control type="text" name="Path_PatientEmail" span="6" readonly="true"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+    <group name="PathologyOrderInfo" reveal="[Path_PatientId]!">
+      <columns>
+        <column span="10">
+          <row showif="never">
+            <control type="hidden" name="Path_PatientId"/>
+          </row>
+          <row divider="true">
+            <control type="label" span="2" label="Orden"/>
+            <control type="text" name="Path_OrderNumber" span="4" readonly="true"/>
+            <control type="label" span="2" label="Estatus"/>
+            <control type="select" name="Path_Status" span="4" readonly="true"
+              source="Pending,Custody,Macroscopy,Analysis,Completed,Rejected,Canceled"
+              sourcelabels="Pendiente,Custodia,Macroscopia,Análisis,Completado,Rechazado,Cancelado"
+              default="Pending"/>
+          </row>
+          <row name="rowReasonToCancel" reveal="[Path_Status]=Canceled">
+            <control type="label" label="Rázon para Cancelar" span="3"/>
+            <control type="textarea" name="Path_ReasonToCancel" span="8" rows="1" readonly="true"/>
+          </row>
+          <row name="rowReasonToReject" reveal="[Path_Status]=Rejected">
+            <control type="label" label="Rázon para Rechazar" span="3"/>
+            <control type="textarea" name="Path_ReasonToReject" span="8" rows="1" readonly="true"/>
+          </row>
+          <row>
+          <control type="label" span="2" label="Tipo de Orden"/>
+            <control type="select" name="Path_ExamType" span="6" 
+              required="true"
+              readonly="true"
+              source="Biopsy,Citology"
+              sourcelabels="Biopsia/Estudio de células neoplasicas,Citología"/>
+          </row>
+          <row>
+            <control type="label" label="Departamento" span="2"/>
+              <control type="select" name="Path_Department" persist="true" span="4"
+              acctsvc="true" required="true" readonly="true"
+              source="DepartmentName,DepartmentGuid"
+              datasource="GetDepartmentsActive"
+              append="LocationId=(facilityData.LocationId)"/>
+            <control type="label" span="2" label="Prioridad"/>
+            <control type="select" name="Path_Priority" span="4"
+              readonly="true" 
+              source="Normal,Emergency,Interopertive"
+              sourcelabels="Normal,Urgente,Intraoperatorio"
+              default="Normal"/>  
+          </row>
+          <row>
+            <control type="label" label="Estudio" span="2"/>
+            <control type="select" name="Path_LabPanelGuid" span="5"
+              datasource="GetLabPanelsByFacility" required="true"
+              append="LabPanelType=Histology|Cytology|Pathology"
+              sort="LabPanelName=asc" readonly="true"
+              searchable="true"
+              filter="Active=true,LabPanelType=Histology|Cytology|Pathology"
+              namefield="Path_LabPanelName"
+              source="LabPanelName,LabPanelGuid"
+              set="Path_LabPanelType=[[LabPanelType]]"/>
+            <control type="label" label="Tipo" span="2"/>
+            <control type="select" name="Path_LabPanelType" span="3" readonly="true"
+              source="Cytology,Histology,Pathology"
+              sourcelabels="Citología,Histología,Patológica"/>
+          </row>
+          <row>
+            <control type="label" span="3" label="Antecedentes Clínicos"/>
+            <control type="text" name="Path_ClinicalIndications" readonly="true" span="9" required="true"/>
+          </row>
+          <row>
+            <control type="label" span="2" label="Biopsias previas"/>
+            <control type="text" name="Path_PreviousBiopsies" readonly="true" span="10" required="true"/>
+          </row>
+          <row>
+            <control type="label" span="2" label="Observaciones"/>
+            <control type="text" name="Path_OrderNotes" readonly="true" span="10" required="true"/>
+          </row>
+          <row>
+            <control type="label" span="2" label="Organo o Tejido"/>
+            <control type="text" name="Path_Organ" readonly="true" span="4" required="true"/>
+            <control type="label" span="2" label="Órdenado por"/>
+            <control type="text" span="4" name="Path_OrderedByFullName" readonly="true" reveal="[Path_OrderGuid]!"/>
+            <control type="select" name="Path_OrderedBy" span="4" readonly="true" required="true"
+              reveal="[Path_OrderGuid]="
+              datasource="GetPhysiciansForThisFacility" 
+              append="LocationId=(facilityData.LocationId)"
+              source="FullUserName,UserId"
+              explicit="true"/>
+          </row>
+          <row name="rowSignPathologyOrder" reveal="[Path_OrderGuid]=">
+            <control type="label" span="4" label="Mi NIP"/>
+            <control type="password" span="2" name="PathologyOrderPIN" required="true"/>
+          </row>
+          <row name="rowPathologist" reveal="[Path_Status]=Analysis|Completed" divider="true">
+            <control type="label" span="2" label="Patólogo"/>
+            <control type="select" name="Path_Pathologist" readonly="true" span="4"
+              searchable="true" 
+              source="UserFirstMiddleLast,UserId" 
+              acctsvc="true" 
+              datasource="GetUsersByAttributes" 
+              append="LocationId=(facilityData.LocationId),role=Pathologist"/>
+            <control type="label" span="2" label="Fecha Resultado"/>
+            <control type="datetime" span="3" name="Path_ResultDateTime" readonly="true"/>
+            <control type="button" name="btnSetResultTime" label="Ahora" span="1"
+              reveal="[Path_Status]=Analysis"
+              action="trigger" set="Path_ResultDateTime=(now)"/>
+          </row>
+          <row name="rowCIECode" reveal="[Path_Status]=Analysis|Completed">
+            <control type="label" label="Buscar CIE" span="2"/>
+            <control type="select" name="CIECodeSelect" span="10" readonly="true"
+              searchable="true" sort="Codigo"
+              acctsvc="true"
+              datasource="GetLookupCIECodes"
+              source="Codigo|Descriptor,Codigo"
+              set="Path_CIECode=[[Codigo]],Path_CIEDescription=[[Descriptor]]"/>
+          </row>
+          <row name="rowCIEDescription" reveal="[Path_Status]=Analysis|Completed">
+            <control type="label" label="Código CIE" span="2"/>
+            <control type="text" name="Path_CIECode" span="2" readonly="true"/>
+            <control type="label" label="Descripción" span="2"/>
+            <control type="text" name="Path_CIEDescription" span="6" readonly="true"/>
+          </row>
+          <row name="rowPathologyResults" reveal="[Path_Status]=Analysis|Completed">
+            <control type="label" label="Resultados" span="2"/>
+            <control type="textarea" name="Path_ResultNotes" span="10" rows="2" readonly="true"/>
+          </row>
+        </column>
+      </columns>  
+    </group>
+    <group name="grpRelatedPathologyLists" reveal="[Path_OrderGuid]!">
+      <row>
+        <!-- Display the specimen list for a pathology order -->
+        <control type="datagrid" label="Muestras del Anatomía Patológica" name="grdPathologySpecimens"
+          span="12" rows="5" fitrows="true"
+          acctsvcreq="true"
+          action="redirect" 
+          target="mdlPathologySpecimens"
+          searchable="true"
+          idle="[Path_OrderGuid]="
+          datarequest="GetLabTestSpecimensByCriteria"
+          appendrequest="LaboratoryOrderId=[Path_OrderGuid]"
+          source="DateTimeEntered,SpecimentParentId,SpecimenId,SpecimenStatus,ContainerType,NumberofSpecimenContainers,EnteredByFullName"
+          sourcelabels="Fecha,Muestra Primaria,Número,Estatus,Envase,Cantidad,Recogido por"
+          align="|||left|left||left"
+          format="datetime"
+          translate="SpecimenStatus,ContainerType"
+          key="SpecimenGuid"
+          sort="DateTimeEntered=desc"           
+          onselectset="Specimen_SpecimenGuid=[[SpecimenGuid]]"
+          onselect="Specimen_SpecimenGuid,Specimen_SpecimenParentGuid">
+        </control>
+      </row>
+      <row>
+        <!-- Scanned documents attached to a pathology order -->
+          <control type="datagrid" name="grdPathologyImages" label="Documentos del Anatomía Patológica"
+            span="12" rows="5" fitrows="true"
+            acctsvcreq="true"
+            filter="Status=Active"
+            datarequest="GetImagingOrderFilesByImagingOrderGuid"
+            appendrequest="ImagingOrderGuid=[Path_OrderGuid]"
+            source="DateEntered,FileType,FileName,EnteredByFullName"
+            sourcelabels="Fecha y Hora,Tipo,Documento,Entregado por"
+            translate="FileType"
+            align="left|left|left|left"
+            format="datetime"
+            sort="DateTimeEntered=desc"
+            key="PhotoGuid"
+            action="redirect|url"
+            target="printables/uploadviewer.html"
+            usesource="login"
+            append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+            <!-- Upload new scanned documents -->
+            <control type="button" name="btnNewPathologyScanDocuments" label="Subir Documentos"
+              icon="folder-open"
+              append="labOrderId=[Path_OrderGuid]"
+              action="upload"
+              filter="pdf,jpg,jpeg,png"
+              provoke="grdPathologyImages"/>
+          </control>
+      </row>
+    </group>
+  </section>
+  <!--  Tabmodal to enter/edit pathology specimens -->
+  <section type="tabmodal" name="mdlPathologySpecimens" title="Muestras del Anatomía Patológica" badge="none">
+    <group showif="never">
+      <row>
+        <control type="hidden"
+          name="Specimen_SpecimenGuid"
+          acctsvcreq="true"
+          datarequest="GetLabTestSpecimensBySpecimenGuid"
+          appendrequest="specimenGuid=[Specimen_SpecimenGuid]"
+          inject="SpecimenInfo"
+          set="[Specimen_Scanned]=True;Specimen_SpecimenReceivedDateTime=(now),[Specimen_Scanned]=True;Specimen_ContainerCondition=Optimum,[Specimen_Scanned]=True;Specimen_SpecimenCondition=Optimum,[Specimen_Scanned]=True;Specimen_SpecimenReceivedBy=(userName)"/>
+        <control type="hidden" name="Specimen_Scanned"/>
+        <control type="button" name="btnCloseNewSpecimen" action="close|new"/>
+      </row>
+    </group>
+    <group name="SpecimenInfo">
+      <row>
+        <control type="label" span="2" label="Número"/>
+        <control type="text" span="1" name="Specimen_SpecimenId" readonly="true"/>
+        <control type="label" span="1" label="Estatus"/>
+        <control type="select" span="2" name="Specimen_SpecimenStatus" readonly="true"
+          source="Pending,Completed,Rejected"
+          sourcelabels="Pendiente,Completado,Rechazado"
+          default="Pending"/>
+        <control type="label" label="Muestra Primaria" span="2"/>
+          <control type="select" name="Specimen_SpecimenParentGuid" span="3"
+            namefield="Specimen_SpecimenParentId"
+            acctsvcreq="true" readonly="true"
+            source="SpecimenId,SpecimenGuid" persist="true"
+            filter="SpecimenParentGuid="
+            datarequest="GetLabTestSpecimensByCriteria"
+            appendrequest="LaboratoryOrderId=[Path_OrderGuid]"
+            set="[Specimen_SpecimenParentGuid]!;Specimen_ContainerType=[[ContainerType]],[Specimen_SpecimenParentGuid]!;Specimen_CollectionSite=[[CollectionSite]],[Specimen_SpecimenParentGuid]!;Specimen_SpecimenHandelingCode=[[SpecimenHandelingCode]],[Specimen_SpecimenParentGuid]!;Specimen_SpecimenRiskCode=[[SpecimenRiskCode]],[Specimen_SpecimenParentGuid]!;Specimen_SpecimenCollectionMethod=[[SpecimenCollectionMethod]],[Specimen_SpecimenParentGuid]!;Specimen_SpecimenSourceSite=[[SpecimenSourceSite]],
+            [Specimen_SpecimenParentGuid]!;Specimen_SpecimenAdditives=[[Specimen_SpecimenAdditives]],[Specimen_SpecimenParentGuid]!;Specimen_SpecimenDescription"/>
+      </row>
+      <row>
+        <control type="label" label="Envase" span="2"/>
+        <control type="select" name="Specimen_ContainerType" span="2" readonly="true"
+          source="Bottle,Bag,Box,Foil,Tube,Others" persist="true" required="true"
+          sourcelabels="Frasco,Bolsa,Caja,Laminilla,Tubo,Otros"/>
+        <control type="label" label="Cantidad" span="1"/>
+        <control type="select" name="Specimen_NumberofSpecimenContainers" span="1" readonly="true" default="1"
+            source="1,2,3,4,5,6,7,8,9,10" required="true" explicit="true"/>
+        <control type="label" label="Recogido en" span="2"/>
+        <control type="select" name="Specimen_SpecimenCollectionSite" persist="true" span="3"
+          acctsvc="true" readonly="true"
+          source="DepartmentName,DepartmentGuid"
+          required="true" 
+          datasource="GetDepartmentsActive"
+          append="LocationId=(facilityData.LocationId)"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Manejo Especial"/>
+        <control type="text" span="5" name="Specimen_SpecimenHandelingCode" readonly="true" persist="true"/>
+        <control type="label" span="2" label="Riesgo"/>
+        <control type="buttongroup" name="Specimen_SpecimenRiskCode" span="2" readonly="true"
+          source="Yes,No" sourcelabels="Sí,No" default="No"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Método"/>
+        <control type="select" span="3" name="Specimen_SpecimenCollectionMethod" 
+          readonly="true"
+          source="Aspiration,Needle,Scaling,Punch,Incisional,Excisional" required="true" persist="true"
+          sourcelabels="Aspiración,Con aguja,Raspado,En sacabocado,Incisional,Excisional"/>
+        <control type="label" span="2" label="Sitio de Origen"/>
+        <control type="text" span="4" name="Specimen_SpecimenSourceSite" 
+          readonly="true" required="true"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Aditivos"/>
+        <control type="text" span="9" name="Specimen_SpecimenAdditives" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Notas"/>
+        <control type="text" span="9" name="Specimen_SpecimenDescription" readonly="true" persist="true"/>
+      </row>
+      <!-- TransferredBy and ReceivedBy -->
+      <row name="rowTransferredBy" reveal="[Specimen_SpecimenGuid]!" divider="true">
+        <control type="label" label="Translado por" span="2"/>
+        <control type="select" name="Specimen_TransferredBy" span="4"
+          searchable="true" readonly="true"
+          source="FullName,UserId" 
+          datasource="GetUsersForThisFacility" 
+          append="LocationId=(facilityData.LocationId)"/>
+        <control type="label" label="Recibido por" span="2"/>
+        <control type="select" name="Specimen_SpecimenReceivedBy" span="3"
+          searchable="true" readonly="true"
+          source="FullName,UserId" 
+          datasource="GetUsersForThisFacility" 
+          append="LocationId=(facilityData.LocationId)"/>
+      </row>
+      <!-- Received datetime -->
+      <row name="rowReceivedDateTime" reveal="[Specimen_SpecimenGuid]!">
+        <control type="label" span="2" label="Recibido"/>
+        <control type="datetime" span="3" name="Specimen_SpecimenReceivedDateTime" 
+          readonly="true"/>
+        <control type="label" span="2" label="Vencimiento"/>
+        <control type="datetime" span="3" name="Specimen_SpecimenExpirationDateTime" 
+          readonly="true"/>
+      </row>
+      <!-- Specimen condition -->
+      <row name="rowSpecimenCondition" reveal="[Specimen_SpecimenGuid]!">
+        <control type="label" label="Condición de Envase" span="3"/>
+        <control type="select" name="Specimen_ContainerCondition" span="2" 
+          readonly="true"
+          source="Optimum,Good,Poor,Unacceptable"
+          sourcelabels="Óptimo,Bueno,Malo,Inaceptable"/>
+        <control type="label" span="3" label="Condición de Muestra"/>
+        <control type="select" span="2" name="Specimen_SpecimenCondition" 
+          readonly="true"
+          source="Optimum,Good,Poor,Unacceptable"
+          sourcelabels="Óptimo,Bueno,Malo,Inaceptable"/>
+      </row>
+      <row>
+        <control type="label" label="Patólogo" span="2"/>
+        <control type="select" name="Pathologist" span="4"
+          searchable="true"
+          acctsvc="true" datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Pathologist"
+          source="UserFirstMiddleLast,UserId"
+          explicit="true" />
+      </row>
+      <row>
+         <control type="label" label="Descripción macroscópica" span="3"/>
+         <control type="textarea" rows="1" name="Macroscopic" readonly="true" span="8"/>
+      </row>
+      <row>
+         <control type="label" label="Descripción microscópica" span="3"/>
+         <control type="textarea" rows="1" name="Microscopic" readonly="true" span="8"/>
+      </row>
+      <row>
+         <control type="label" label="Interpretación" span="3"/>
+         <control type="textarea" rows="1" name="Interpretation" readonly="true" span="8"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <!-- Reprint a specimen label -->
+        <control type="modalbutton" name="btnReprintSpecimenLabel"
+          reveal="[Specimen_SpecimenGuid]!"
+          icon="print" label="Reimprimir Etiqueta"
+          action="print" 
+          mode="report" 
+          append="id=bfe502c6606,FacilityId=(facility),SpecimenGuid=[Specimen_SpecimenGuid]"
+          reset="SpecimenInfo"/>
+      </row>
+    </group>
+  </section>
+</partial>

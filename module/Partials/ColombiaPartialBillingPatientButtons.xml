@@ -1,0 +1,41 @@
+<partial>
+  <row name="rowPatientPhoto" reveal="[PatientId]!">
+    <!-- Patient photo -->
+    <control type="image" 
+      format="jpg=circle" 
+      default="null"
+      name="Admit_ProfilePhoto" 
+      span="12" />
+  </row>
+  <row>
+    <control type="button" span="12" name="btnUpdatePatientAndVisit"
+      action="save" label="Actualizar" icon="cloud-upload" 
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[VisitSelect]!;btnUpdateVisitInfo"/>
+  </row>
+  <row showif="never">
+    <!--Save patient information-->
+    <control type="button" name="btnUpdateVisitInfo"
+      action="save"
+      capture="PatientVisitInfo"
+      acctsvc="true"
+      affector="VisitSelect"
+      setaffector="PatientVisitUniqueId"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[VisitSelect]"
+      provoke="InvoiceList"/>  
+  </row>
+  <row>
+    <control type="button" name="btnReports"
+       reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Patient,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+</partial>

@@ -1,0 +1,66 @@
+<partial>
+    <row>
+      <!--Print patient label-->
+      <control type="button" 
+        span="12"
+        name="btnPrintMealOrderLabel"
+        action="print" 
+        mode="report" 
+        label="Etiqueta de Comida" 
+        icon="print" 
+        append="id=dc94a0c8ada,FacilityId=(facility),MealGuid=[MealOrderGuid]"/> 
+    </row>   
+     <row>
+      <!--Complete meal order-->
+      <control type="button" name="btnPrepareMealOrder" label="En Preparación"
+        reveal="[MealOrder_MealStatus]=Scheduled|Completed"
+        span="12" color="green"
+        action="save|close|new"  
+        icon="check" 
+        confirm="Por favor, confirme que desea preparación esta orden de comida."
+        acctsvc="true"
+        dataupdate="UpdateNutritionMealOrders"
+        appendupdate="MealGuid=[MealOrderGuid],MealStatus=Prepared"
+        provoke="NutritionMealsList"/> 
+    </row>   
+    <row>
+      <!--Complete meal order-->
+      <control type="button" name="btnCompleteMealOrder" label="Completar"
+        reveal="[MealOrder_MealStatus]=Scheduled|Prepared"
+        span="12" color="green"
+        action="save|close|new"  
+        icon="check" 
+        confirm="Por favor, confirme que desea completar esta orden de comida."
+        acctsvc="true"
+        dataupdate="UpdateNutritionMealOrders"
+        appendupdate="MealGuid=[MealOrderGuid],MealStatus=Completed"
+        provoke="NutritionMealsList"/> 
+    </row>   
+     <row>
+      <!--Complete meal order-->
+      <control type="button" name="btnDeliverMealOrder" label="Entregado" 
+        reveal="[MealOrder_MealStatus]=Scheduled|Prepared|Completed"
+        span="12" color="yellowgreen"
+        action="save|close|new"  
+        icon="cloud-upload" 
+        confirm="Por favor, confirme que desea entregar esta orden de comida."
+        acctsvc="true"
+        dataupdate="UpdateNutritionMealOrders"
+        appendupdate="MealGuid=[MealOrderGuid],MealStatus=Delivered"
+        provoke="NutritionMealsList"/> 
+    </row>   
+    <row>
+      <!--Print patient label-->
+      <control type="button" name="btnCancelMealOrder"
+        reveal="[MealOrder_MealStatus]=Scheduled|Prepared|Completed|Delivered"
+        span="12" color="red"
+        action="save|close|new"  
+        label="Cancelar" 
+        icon="cloud-upload" 
+        confirm="Por favor, confirme que desea cancelar esta orden de comida."
+        acctsvc="true"
+        dataupdate="UpdateNutritionMealOrders"
+        appendupdate="MealGuid=[MealOrderGuid],MealStatus=Canceled"
+        provoke="NutritionMealsList"/> 
+    </row>   
+</partial>

@@ -1,0 +1,626 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="CEYE" type="onload" trigger="SurgeryKitsGrid,Kit_KitType">
+	<facet name="FileName" value="SurgerySterilization"/>
+	<facet name="NewKitStatus"/>
+	<headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Surgery"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Tab to enter/edit Surgery Kits -->
+	<section type="tab" name="SurgeryKitsTab" title="Kits de Cirugía" trigger="SurgeryKitsGrid,Kit_KitType">
+  	<group>
+			<row showif="never">
+				<control type="hidden" name="QRScannedKitResult" 
+					mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA-AAAAAAAAAAAAAA"/>
+				<control type="hidden" name="GetScannedKitQRCode"
+					datarequest="GetSurgeryKitByKitGuid"
+					appendrequest="KitGuid=[QRScannedKitResult]"
+					set="[[KitGuid]]=;QRScannedKitResult=,[[KitGuid]]!;Kit_KitGuid=[[KitGuid]]"
+					provoke="[[KitGuid]]!;btnRedirectToKitFromScan"/>
+				<control type="button" name="btnRedirectToKitFromScan" action="redirect"
+					trigger="Kit_KitGuid"
+					target="KitTabModal"/>
+			</row>
+			<row>
+				<control type="button" name="btnScanSurgeryKitBarCode" 
+					action="scan" color="green" span="2"
+					icon="qrcode" label="Escanear Kit"
+					inject="value=[QRScannedKitResult]"
+					provoke="[QRScannedKitResult]!;GetScannedKitQRCode"/>
+			</row>
+			<row>
+				<control type="datagrid" name="SurgeryKitsGrid" label="Kits de Cirugía"
+					action="redirect" 
+					target="KitTabModal"
+					searchable="true"
+					span="12" rows="20"
+					rowcolor="Status|Incomplete=white;Built=yellow;Sterilized=green;Surgery=blue;Dirty=red"
+					datarequest="GetSurgeryKits"
+					datasource="GetSurgeryKits"
+					source="Active,Status,BinNumber,KitTypeName,KitName,Description,Notes"
+					sourcelabels="Activo,Estatus,Rack,Tipo,Nombre,Descripción,Notas"
+					align="|left|left|left|left|left|left"
+					format="boolean"
+					sort="KitName=asc"
+					key="KitGuid"
+					translate="Status"
+					onselectset="Kit_KitGuid=[[KitGuid]]"
+					onselect="Kit_KitType,Kit_KitGuid">
+					<control type="button"
+            name="btnPrintRequiredKitList"
+            preset="Report_ReportId=abc5f868d91,StartParameter=true,EndParameter=true,Report_ReportFileName=abc5f868d91,Report_ReportName=Kits Requeridos"
+            action="redirect"
+            label="Kits Requeridos" 
+            icon="print" 
+            target="mdlReportCriteria"/>
+					<control type="button" 
+						name="NewKitButton"
+						icon="plus"
+						label="Añadir Nuevo"
+						action="redirect"
+						target="KitTabModal"/>
+				</control>
+			</row>
+		</group>
+	</section>
+	 <!--  Tabmodal to enter/edit surgery kits -->
+	<section type="tabmodal" badge="none" name="KitTabModal" title="Kit de Cirugía">
+		<group showif="never">
+			<row>
+				<control type="button" name="SetNewStatus"
+					action="save"
+					affector="none"
+					acctsvc="true"
+					datainsert="InsertSurgeryKitSterilizationStatusLog"
+					appendinsert="kitGuid=[Kit_KitGuid],status=[NewKitStatus]"
+					provoke="btnSetNewStatus"/>
+				<control type="button" name="btnSetNewStatus"
+					action="save"
+					affector="none"
+					dataupdate="UpdateSurgeryKit"
+					appendupdate="kitGuid=[Kit_KitGuid],status=[NewKitStatus]"
+					set="Kit_Status=[NewKitStatus]"
+					provoke="SurgeryKitsGrid,StatusLog"/>
+			</row>
+		</group>
+		<group name="KitGuidGroup" showif="never">
+			<row>
+				<control type="hidden" name="Kit_KitGuid" 
+					datarequest="GetSurgeryKitByKitGuid"
+					appendrequest="KitGuid=[Kit_KitGuid]"
+					inject="KitInfo"
+					provoke="KitItems"/>
+			</row>
+		</group>
+		<group name="KitInfo">
+			<columns>
+				<column span="10">
+					<row showif="edit">
+						<control type="label" label="Activo" span="3"/>
+						<control type="buttongroup" span="2" name="Kit_Active" 
+						source="True,False" sourcelabels="Sí,No" 
+						default="True" required="true" edit="true"/>
+						<control type="label" label="Estatus Actual" span="4"/>
+						<control type="select" span="3" name="Kit_Status" 
+							source="Incomplete,Built,Sterilized,Surgery,Dirty" 
+							sourcelabels="Incompleto,Armado,Esterilizado,Cirugía,Sucio" 
+							readonly="true" default="Incomplete"/>
+					</row>
+					<row>
+						<control type="label" label="Tipo" span="3"/>
+						<control type="select" span="4" name="Kit_KitType" 
+							required="true"
+							datasource="GetSurgeryKitTypes" 
+							source="TypeName,TypeGuid" edit="true"
+							filter="Active=true" explicit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Nombre" span="3"/>
+						<control type="text" span="7" name="Kit_KitName" required="true" edit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Descripción" span="3"/>
+						<control type="text" span="7" name="Kit_Description" edit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Rack" span="3"/>
+						<control type="text" span="7" name="Kit_BinNumber" edit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Notas" span="3"/>
+						<control type="textarea" span="7" name="Kit_Notes" rows="2" edit="true"/>
+					</row>
+
+				</column>
+				<column span="2">
+					<row>
+						<control type="button" 
+							reveal="[Kit_KitGuid]!"
+							name="UpdateKit" 
+							label="Actualizar" 
+							span="12"
+							icon="cloud-upload" 
+							action="save|close|new" 
+							affector="none"
+							capture="KitInfo"
+							dataupdate="UpdateSurgeryKit"
+							appendupdate="kitGuid=[Kit_KitGuid]"
+							provoke="SurgeryKitsGrid"/>
+						<control type="button" 
+							reveal="[Kit_KitGuid]="
+							name="SaveNewKit" 
+							label="Guardar" 
+							span="12"
+							icon="cloud-upload" 
+							action="save" 
+							affector="Kit_KitGuid"
+							setaffector="KitGuid"
+							capture="KitInfo"
+							datainsert="InsertSurgeryKits"
+							provoke="KitItems"/>
+					</row>
+					<row>
+						<!--Print kit label-->
+						<control type="button"
+							reveal="[Kit_KitGuid]!" 
+							span="12"
+							name="btnPrintLabel"
+							action="print" 
+							mode="report" 
+							label="Etiqueta" 
+							icon="print" 
+							append="id=8d7bf6d0164,FacilityId=(facility),KitGuid=[Kit_KitGuid]"/> 
+					</row>
+					<row name="rowIncomplete" reveal="[Kit_KitGuid]!" >
+						<control type="button" name="btnSetStatusIncomplete"
+							span="12" reveal="[Kit_Status]!Incomplete"
+							icon="thumb-down" color="white" label="Incompleto"
+							action="trigger"
+							set="NewKitStatus=Incomplete"
+							provoke="SetNewStatus"/>
+					</row>
+					<row name="rowBuilt" reveal="[Kit_KitGuid]!">
+						<control type="button" name="btnSetStatusBuilt"
+							span="12" reveal="[Kit_Status]!Built"
+							icon="thumb-down" color="yellow" label="Armado"
+							action="trigger"
+							set="NewKitStatus=Built"
+							provoke="SetNewStatus"/>
+					</row>
+					<row name="rowSterilized" reveal="[Kit_KitGuid]!">
+						<control type="button" name="btnSetStatusSterilized"
+							span="12" reveal="[Kit_Status]!Sterilized"
+							icon="check" color="green" label="Esterilizado"
+							action="trigger"
+							set="NewKitStatus=Sterilized"
+							provoke="SetNewStatus"/>
+					</row>
+					<row name="rowSurgery" reveal="[Kit_KitGuid]!">
+						<control type="button" name="btnSetStatusSurgery"
+							span="12" reveal="[Kit_Status]!Surgery"
+							icon="thumb-down" color="blue" label="Cirugía"
+							action="trigger"
+							set="NewKitStatus=Surgery"
+							provoke="SetNewStatus"/>
+					</row>
+					<row name="rowDirty" reveal="[Kit_KitGuid]!">
+						<control type="button" name="btnSetStatusDirty"
+							span="12" reveal="[Kit_Status]!Dirty"
+							icon="thumb-down" color="red" label="Sucio"
+							action="trigger"
+							set="NewKitStatus=Dirty"
+							provoke="SetNewStatus"/>
+					</row>
+				</column>
+			</columns>
+		</group>
+		<group name="grpKitGrids" reveal="[Kit_KitGuid]!">
+      <row>
+        <control type="buttongroup" name="btnSelectKitGrids"
+          span="12" default="Items"
+          source="Items,Sterilization,Surgeries,Documents,StatusLog"
+          sourcelabels="Equipos,Esterilización,Cirugías,Documentos,Historial"
+          provoke="optKitItems,KitItems,Sterilization,Surgeries,ScannedDocuments,StatusLog"/>
+      </row>
+			<row >
+        <control type="options" name="optKitItems" affector="btnSelectKitGrids" span="12">
+				  <control type="datagrid" 
+            label="Equipo y Material de Cirugía" 
+            name="KitItems"
+            searchable="true"
+            modalname="KitItemModal"
+            option="Items" rows="10"
+            datarequest="GetSurgeryKitItems"
+            appendrequest="kitGuid=[Kit_KitGuid]"
+            datainsert="InsertSurgeryKitItems"
+            appendinsert="kitGuid=[Kit_KitGuid]"
+            dataupdate="UpdateSurgeryKitItem"
+            appendupdate="kitGuid=[Kit_KitGuid]"
+            source="Active,EquipmentName,EquipmentSerialNumber,Quantity,Notes"
+            sourcelabels="Activo,Equipo,Serie,Cantidad,Notas"
+            align="|left|left|center|left"
+            format="boolean"
+            sort="KitItemName=asc"
+            key="KitItemGuid"/>
+				  <control type="datagrid" 
+            label="Esterilización de Kits" 
+            name="Sterilization"
+            searchable="true"
+            modalname="mdlSterilization"
+            option="Sterilization" rows="10"
+						acctsvcreq="true"
+						acctsvc="true"
+            datarequest="GetSurgeryKitSterilizationByKitGuid"
+            appendrequest="kitGuid=[Kit_KitGuid]"
+            datainsert="InsertSurgeryKitSterilization"
+            appendinsert="kitGuid=[Kit_KitGuid]"
+            dataupdate="UpdateSurgeryKitSterilization"
+            appendupdate="kitGuid=[Kit_KitGuid]"
+            source="DateTimeEntered,SterilizationType,KitBuiltByFullName,SterilizedByFullName,Note"
+            sourcelabels="Fecha y Hora,Tipo,Armado por,Esterilizado por,Nota"
+            align="|left|left|left|left"
+            format="datetime"
+            sort="DateTimeEntered=desc"
+            key="SterilizationGuid"/>
+          <control type="datagrid" label="Cirugías" 
+            name="Surgeries"
+            option="Surgeries" rows="10"
+						acctsvcreq="true"
+            datarequest="GetKitSurgeries"
+            appendrequest="kitGuid=[Kit_KitGuid]"
+            source="Status,DateTimeScheduled,DateTimePerformed,PatientName,Description,PrimaryProcedureName,SurgeonName"
+            sourcelabels="Estatus,Programada,Completo,Paciente,Descripción,Procedimiento Primario,Cirujano"
+            align="|left|left|left|left|left|left"
+						sort="DateTimeScheduled=desc"
+            key="SurgeryGuid"
+            translate="Status"
+            format="|datetime|datetime"/>
+          <control type="datagrid"
+            label="Documentos"
+            name="ScannedDocuments"
+            option="Documents" rows="10"
+            acctsvcreq="true"
+            datarequest="GetImagingOrderFilesByImagingOrderGuid"
+            appendrequest="ImagingOrderGuid=[Kit_KitGuid]"
+            source="DateEntered,Type,FileName,EnteredByFullName,"
+            sourcelabels="Fecha y Hora,Tipo,Documento,Entregado"
+            translate="FileType"
+            align="left|left|left|left"
+            format="datetime"
+            sort="DateTimeEntered=desc"
+            key="PhotoGuid"
+            action="redirect|url"
+            target="printables/uploadviewer.html"
+            usesource="login"
+            append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+          <!-- Upload scanned documents -->
+          <control type="button"
+            name="btnScanDocuments"
+            label="Subir Documentos"
+            icon="folder-open"
+            append="labOrderId=[Kit_KitGuid]"
+            action="upload"
+            filter="pdf,jpg,jpeg,png"
+            provoke="ScannedDocuments"/>
+        </control>
+				<control type="datagrid" label="Historial" 
+            name="StatusLog"
+            option="StatusLog" rows="10"
+						acctsvcreq="true"
+						filter="KitGuid=[Kit_KitGuid]"
+            datarequest="GetSurgeryKitSterilizationStatusLog"
+            appendrequest="kitGuid=[Kit_KitGuid]"
+            source="DateTimeEntered,Status,EnteredByFullName"
+            sourcelabels="Fecha y Hora,Estatus,Cambiado por"
+            align="|left|left"
+						sort="DateTimeEntered=desc"
+            key="rowguid"
+            translate="Status"
+            format="datetime"/>
+        </control>
+			</row>
+		</group>
+	</section>
+	<!--  Modal to enter/edit kit items -->
+	<section type="modal" name="KitItemModal" title="Equipo y Material de Cirugía" size="small">
+		<group>
+			<row showif="edit">
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" span="3" name="KitItem_Active" source="True,False" 
+					sourcelabels="Sí,No" default="True" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Equipo de Kit" span="3"/>
+				<control type="select" span="7"
+					namefield="EquipmentName"
+					name="Kit_EquipmentGuid" 
+					datasource="GetSurgeryEquipment" 
+					source="EquipmentName,EquipmentGuid" 
+					searchable="true" 
+					required="true" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Serie" span="3"/>
+				<control type="text" name="KitItem_EquipmentSerialNumber" span="3" edit="true"/>
+				<control type="label" label="Cantidad" span="3"/>
+				<control type="integer" name="KitItem_Quantity" span="1" edit="true" default="1"/>
+			</row>
+			<row>
+				<control type="label" label="Notas" span="3"/>
+				<control type="textarea" name="KitItem_Notes" span="7" rows="2" edit="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" 
+					showif="add"
+					name="InsertResultNext" 
+					label="Siguiente"
+					color="grey"
+					icon="circle-arrow-right"
+					modaltask="insert|add" />
+			</row>
+		</group>
+	</section>
+  <!--  Modal to enter/edit sterilization logs -->
+	<section type="modal" name="mdlSterilization" title="Esterilización de Kits" size="small">
+		<group>
+			<row>
+				<control type="hidden" name="SterilizationGuid"/>
+			</row>
+      <row>
+        <control type="label" label="Armado por" span="4"/>
+        <control type="select" name="Sterile_KitBuiltBy"
+          searchable="true"
+          acctsvc="true" 
+					datasource="GetUsersByAttributes" 
+					append="LocationId=(facilityData.LocationId),role=Nurse|Nurse Supervisor|Sterile Processing"
+          source="UserFirstMiddleLast,UserId"
+          span="7" explicit="true" required="true"/>
+      </row>
+      <row>
+				<control type="label" label="Fecha de Armado" span="4"/>
+				<control type="datetime" name="Sterile_KitBuiltDateTime" span="7" default="(dateTimeNow)" required="true"/>
+			</row>
+			<row name="rowSterilizationType" reveal="[SterilizationGuid]!">
+				<control type="label" label="Tipo de Esterilización" span="4"/>
+				<control type="select" name="Sterile_SterilizationType" span="7"
+          source="Gas,Plasma,Vapor" required="true" edit="true"/>
+			</row>
+			<row name="rowSterilizationEquipment" reveal="[SterilizationGuid]!">
+				<control type="label" label="Equipo de Esterilización" span="4"/>
+				<control type="select" name="Sterile_SterilizationEquipment" span="7"
+          source="Autoclave 1,Autoclave 2,Autoclave 3" 
+					required="true" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Caducidad" span="4"/>
+				<control type="date" name="Sterile_Expiration" span="3" required="true" edit="true"/>
+				<control type="label" label="IB" span="1"/>
+				<control type="buttongroup" name="Sterile_IB" span="3" required="true" edit="true"
+					source="True,False" sourcelabels="Sí,No"/>
+			</row>
+			<row name="rowIBResult" reveal="[Sterile_IB]=True">
+				<control type="label" label="Resultado de incubación" span="4"/>
+				<control type="buttongroup" name="Sterile_IBResult" span="7" required="true" edit="true"
+					source="True,False" sourcelabels="Positivo,Negativo"/>
+			</row>
+      <row name="rowBy" reveal="[SterilizationGuid]!">
+        <control type="label" label="Esterilizado por" span="4"/>
+        <control type="select" name="Sterile_SterilizedBy"
+          searchable="true"
+          acctsvc="true" 
+					datasource="GetUsersByAttributes" 
+					append="LocationId=(facilityData.LocationId),role=Nurse|Nurse Supervisor|Sterile Processing"
+          source="UserFirstMiddleLast,UserId"
+          span="7" explicit="true" required="true"  edit="true"/>
+      </row>
+      <row name="rowDateTime" reveal="[SterilizationGuid]!">
+				<control type="label" label="Fecha de Esterilización" span="4"/>
+				<control type="datetime" name="Sterile_SterilizedDateTime" span="4" default="(dateTimeNow)" required="true" edit="true"/>
+			</row>
+
+			<row name="rowCycle" reveal="[SterilizationGuid]!">
+				<control type="label" label="Ciclo" span="4"/>
+				<control type="select" name="Sterile_Cycle" span="4" required="true" edit="true"
+				 source="Regular,Programa 1,Programa 2,Programa 3,Programa 4"/>
+			</row>
+			<row name="rowCharge" reveal="[SterilizationGuid]!">
+				<control type="label" label="Carga" span="4"/>
+				<control type="text" name="Sterile_Charge" span="7" required="true" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Notas" span="4"/>
+				<control type="textarea" name="Sterile_Note" span="7" rows="2" edit="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" 
+					showif="add"
+					name="InsertResultNext" 
+					label="Siguiente"
+					color="grey"
+					icon="circle-arrow-right"
+					modaltask="insert|add" />
+			</row>
+		</group>
+	</section>
+  <!-- Enter and edit surgery equipment list -->
+	<section type="tab" name="SurgeryEquipment" title="Equipos de Cirugía" trigger="SurgeryEquipmentGrid,Sem_EquipmentType">
+		<group>
+			<row>
+				<control type="datagrid" 
+					label="Equipos de Cirugía" 
+					name="SurgeryEquipmentGrid"
+					modalname="SurgeryEquipmentModal"
+					searchable="true"
+					span="12"
+					rows="20"
+					datasource="GetSurgeryEquipment"
+					datarequest="GetSurgeryEquipment"
+					datainsert="InsertSurgeryEquipment"
+					dataupdate="UpdateSurgeryEquipment"
+					source="Active,EquipmentTypeName,EquipmentName,EquipmentSerialNumber,Manufacturer,Notes"
+					sourcelabels="Activo,Tipo,Nombre,Serie,Fabricante,Notas"
+					align="|left|left|left|left|left"
+					format="boolean"
+					sort="EquipmentName=asc"
+					key="EquipmentGuid"/>
+			</row>
+		</group>
+	</section>
+	<!-- Modal to enter/edit surgery equipment list -->
+	<section type="modal" name="SurgeryEquipmentModal" title="Equipos de Cirugía" size="small" provoke="Kit_EquipmentGuid">
+		<group>
+			<row showif="edit">
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" 
+					name="Sem_Active" span="2"
+					source="True,False" sourcelabels="Sí,No" default="True" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Tipo" span="3"/>
+				<control type="select" name="Sem_EquipmentType" span="7" edit="true" 
+					namefield="EquipmentTypeName"
+					datasource="GetSurgeryEquipmentTypes" explicit="true"
+					source="TypeName,TypeGuid" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Nombre" span="3"/>
+				<control type="text" name="Sem_EquipmentName" span="7" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Serie" span="3"/>
+				<control type="text" name="Sem_EquipmentSerialNumber" span="3" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Fabricante" span="3"/>
+				<control type="text" name="Sem_Manufacturer" span="7" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Fecha de Compra" span="3"/>
+				<control type="date" name="Sem_DateTimePurchased" span="3" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Fecha de Inspección" span="3"/>
+				<control type="date" name="Sem_DateTimeLastInspection" span="3" edit="true"/>
+			</row>
+      <row>
+        <control type="label" label="Cantidad" span="3"/>
+        <control type="text" name="Sem_EquipmentCount" span="3" format="0" required="true" edit="true"/>
+      </row>
+			<row>
+				<control type="label" label="Notas" span="3"/>
+				<control type="textarea" name="Sem_Notes" span="7" rows="2" edit="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" 
+					showif="add"
+					name="SemInsertResultNext" 
+					label="Siguiente"
+					color="grey"
+					icon="circle-arrow-right"
+					modaltask="insert|add" />
+			</row>
+		</group>
+	</section>
+
+	<!-- Tab to enter/edit Surgery Equipment Types -->
+	<section type="tab" name="SugeryEquipmentTypes" title="Tipos de Equipos y Kits" trigger="SurgeryEquipmentTypesGrid,SurgeryKitTypesGrid">
+  	<group>
+			<row>
+				<control type="datagrid" 
+					label="Tipos de Equipos y Kits"
+					name="SurgeryEquipmentTypesGrid"
+					modalname="mdlEquipmentTypes"
+					searchable="true"
+					span="6" rows="20"
+					datarequest="GetSurgeryEquipmentTypes"
+					datainsert="InsertSurgeryEquipmentType"
+					dataupdate="UpdateSurgeryEquipmentType"
+					source="Active,TypeCode,TypeName,TypeDescription"
+					sourcelabels="Activo,Código,Nombre,Descripción"
+					align="|left|left|left"
+					format="boolean"
+					sort="TypeName=asc"
+					key="TypeGuid"/>
+        <control type="datagrid" 
+					label="Tipos de Kits de Cirugía" 
+					name="SurgeryKitTypesGrid"
+					modalname="mdlKitTypes"
+					searchable="true"
+					span="6" rows="20"
+					datarequest="GetSurgeryKitTypes"
+					datainsert="InsertSurgeryKitType"
+					dataupdate="UpdateSurgeryKitType"
+					source="Active,TypeCode,TypeName,TypeDescription"
+					sourcelabels="Activo,Código,Nombre,Descripción"
+					align="|left|left|left"
+					format="boolean"
+					sort="TypeName=asc"
+					key="TypeGuid"/>
+			</row>
+		</group>
+	</section>
+  <!-- Modal for equipment types -->
+	<section type="modal" name="mdlEquipmentTypes" title="Tipo de Equipo de Cirugía" size="small">
+		<group>
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" span="3" name="EqType_Active" source="True,False" 
+					sourcelabels="Sí,No" default="True" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Código" span="3"/>
+				<control type="text" name="EqType_TypeCode" span="3" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Nombre del Tipo" span="3"/>
+				<control type="text" name="EqType_TypeName" span="7" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Descripción del Tipo " span="3"/>
+				<control type="textarea" name="EqType_TypeDescription" span="7" rows="2" edit="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" 
+					showif="add"
+					name="EqTypeInsertResultNext" 
+					label="Siguiente"
+					color="grey"
+					icon="circle-arrow-right"
+					modaltask="insert|add" />
+			</row>
+		</group>
+	</section>
+	<!-- Modal to enter/edit kit types -->
+	<section type="modal" name="mdlKitTypes" title="Tipo de Kit de Cirugía" size="small">
+		<group>
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" span="3" name="KitType_Active" source="True,False" 
+					sourcelabels="Sí,No" default="True" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Código" span="3"/>
+				<control type="text" name="KitType_TypeCode" span="3" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Nombre del Tipo" span="3"/>
+				<control type="textarea" name="KitType_TypeName" span="7" rows="2" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Descripción del Tipo " span="3"/>
+				<control type="textarea" name="KitType_TypeDescription" span="7" rows="2" edit="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" 
+					showif="add"
+					name="InsertResultNext" 
+					label="Siguiente"
+					color="grey"
+					icon="circle-arrow-right"
+					modaltask="insert|add" />
+			</row>
+		</group>
+	</section>
+	<partial link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

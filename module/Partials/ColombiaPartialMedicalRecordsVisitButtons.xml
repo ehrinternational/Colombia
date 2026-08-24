@@ -1,0 +1,29 @@
+<partial>
+  <row>
+    <control type="button" name="btnCompleteReview" span="12" label="Revisar Completo" color="green"
+      reveal="[mdlAdmit_ReviewStatus]=Started|FollowUp"
+      action="save" 
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitUniqueId],ReviewStatus=Completed,ReviewCompleted=(now),ReviewedBy=(userName)"
+      set="mdlAdmit_ReviewStatus=Completed,mdlAdmit_ReviewCompleted=(now)"/>
+  </row>
+  <row>
+    <control type="button" name="btnStartReview" span="12" label="Comenzar Revisión" color="yellow"
+      reveal="[mdlAdmit_ReviewStatus]="
+      action="save" 
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitUniqueId],ReviewStatus=Started,ReviewedBy=(userName)"
+      set="mdlAdmit_ReviewStatus=Started"/>
+  </row>
+   <row>
+    <control type="button" name="btnFollowUpReview" span="12" label="Seguimiento" color="orange"
+      reveal="[mdlAdmit_ReviewStatus]=Completed|Started"
+      action="save" 
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitUniqueId],ReviewStatus=FollowUp,ReviewedBy=(userName)"
+      set="mdlAdmit_ReviewStatus=FollowUp"/>
+  </row>
+</partial>

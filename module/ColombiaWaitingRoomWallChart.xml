@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Sala de Espera">
+   <template name="patientGridTemplate" type="markup" align="center">
+        [div bgcolor=white align=center][h3]${[[PatientFullName]]} ${[[RoomService]]}[/h3][/div]
+  </template>
+  <section type="tab" name="tabConsultWaitingRoomDisplay" title="Sala de Espera">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="CurrentPatientName"/>
+        <control type="hidden" name="LastPatientName"/>
+        <control type="hidden" name="PatientName"/>
+        <control type="hidden" name="DepartmentName"/>
+        <control type="button" name="DisplayWaitingCallQueue"
+          acctsvcreq="true"
+          datarequest="GetDepartmentByDepartmentGuid"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup]"
+          set="CurrentPatientId=[[ServingPatient]],DepartmentName=[[ServingRoom]]"
+          provoke="[CurrentPatientId]!;PatientId^btnClearChart"/>
+        <control type="button" name="btnClearChart" action="new"/>
+        <control type="hidden" name="CurrentPatientId"/>
+        <control type="hidden" name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[CurrentPatientId]"
+          set="CurrentPatientName=[[PatientFullName]],CurrentPatientVisit=[[PatientVisit]],HasOpenVisit=[[HasOpenVisit]]"
+          provoke="PatientVisit"/>
+        <control type="hidden" name="CurrentPatientVisit"/>
+        <control type="hidden" name="HasOpenVisit"/>
+        <control type="hidden" name="PatientVisit"
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[CurrentPatientVisit]"
+          set="[[CurrentDepartment]]=[DepartmentGuidLookup];PatientName=[CurrentPatientName]^PatientName="
+          provoke="DisplayCallList,[PatientName]![LastPatientName];dingdong|sound,[PatientName]!;SetLastPatientName"/>
+        <control type="button" name="SetLastPatientName" action="trigger" set="[LastPatientName]=[PatientName]"/>
+      </row>
+      <row>
+        <control type="select" name="DepartmentGuidLookup"
+            span="3" acctsvc="true" explicit="true" edit="true" persist="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"
+            provoke="DisplayWaitingCallQueue"/>
+      </row>
+      <row>
+        <control span="2" type="image">../projects/Colombia/module/img/ShrinerBear.png</control>
+        <control type="markup" name="markUpContent" color="black" span="10">
+              [IF ${[PatientName]}!][h1 size=72 align=center]${[PatientName]}[/h1][/IF]
+              [IF ${[PatientName]}!][h1 size=60 align=center]Pasar a ${[DepartmentName]}[/h1][/IF]
+        </control>
+      </row>
+      <row>
+        <control name="DisplayCallList" type="repeater" label=""
+          refresh="300"
+          items="10" span="12" columns="2"
+          fititems="true"
+          filter="DateTimeCalled!,RecordUniqueId![CurrentPatientId]"
+          controlset="none"
+          acctsvcreq="true"
+          idle="[DepartmentGuidLookup]=|reset"
+          datarequest="GetAdmittedPatientsByDepartment"
+          appendrequest="DepartmentGuid=[DepartmentGuidLookup],excludePhoto=true"
+          source="patientGridTemplate"
+          sort="DateTimeCalled=desc"
+          key="key"
+          provoke="markUpContent,Length(DisplayCallList)=0;btnClearChart"/>
+      </row>
+    </group>
+  </section>
+</module>

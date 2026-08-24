@@ -1,0 +1,22 @@
+<partial>
+    <row>
+      <control type="button" name="btnKitchenReports"
+        span="12"
+        icon="print" label="Informes"
+        preset="Report_PatientId=[PatientId],Report_Type=Nutrition"
+        trigger="ReportList"
+        action="redirect" target="mdlReports"/>
+    </row>
+    <row>
+      <!--Print patient label-->
+      <control type="button"
+        reveal="[PatientId]!" 
+        span="12"
+        name="btnPrintDietOrderLabel"
+        action="print" 
+        mode="report" 
+        label="Etiquetas" 
+        icon="print" 
+        append="id=14c214853ef,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" /> 
+    </row>   
+</partial>

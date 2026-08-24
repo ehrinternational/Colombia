@@ -1,0 +1,12 @@
+<partial>
+  <!-- Partial surgery detail buttons -->
+  <!-- Button to search for patients (When no patient has been selected)  -->
+  <row name="rowPatientChart" reveal="[PatientId]!">
+    <control type="button" name="btnShowPatientChart"
+      span="12" label="Ficha Paciente"
+      action="redirect"
+      preset="Review_PatientId=[PatientId]"
+      trigger="Review_PatientId"
+      target="ReviewPatientTabModal"/>
+  </row>
+</partial>

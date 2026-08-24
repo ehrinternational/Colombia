@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Almacenista" type="onload" trigger="ItemMasterList">
+  <facet name="Project" value="Go"/>
+  <facet name="ShowManufacturer" value="False"/>
+  <facet name="NewStatus"/>
+  <facet name="ItemMasterString"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Warehouse"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Partial Item Master for warehouse-->
+  <partial link="../../ERPSpanish/module/Partials/PartialESItemMasterWarehouse.xml"/>
+  <!-- Inventory stock locations -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockLocations.xml"/>
+  <!-- Inventory stock items for location -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockItemsByLocation.xml"/>
+  <!-- Inventory Patient charge of stock items -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESPatientChargeStockItems.xml"/>
+  <!-- Inventory stock transfers -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockTransfers.xml"/>
+  <!-- Inventory stock receiving -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockReceiving.xml"/>
+  <!-- Fixed Asset receiving -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESPurchaseOrderAssetReceiving.xml"/>
+  <!-- Inventory stock item location modal -->
+  <partial target="mdlStockItemsByLocation" link="../../ERPSpanish/module/Partials/PartialESStockItemLocationModal.xml"/>
+  <!-- Inventory patient charges modal -->
+  <partial target="mdlInventoryChargeToPatient" link="../../ERPSpanish/module/Partials/PartialESInventoryPatientCharges.xml"/>
+  <!-- Inventory view patient charges modal -->
+  
+  <!-- Inventory stock history -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESLocationStockHistory.xml"/>
+  <!-- Inventory scan and count modal -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
+  <!-- Item Master history modal -->
+  <partial target="mdlItemHistory" link="./Partial/Modals/PartialItemMasterHistory.xml"/>
+  <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+</module>

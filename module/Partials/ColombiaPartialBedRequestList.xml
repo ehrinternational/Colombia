@@ -1,0 +1,52 @@
+<partial>
+  <!-- Inbound bed request list allows conversion of a bed request to admission -->
+  <!-- Inbound Bed Requests -->
+  <section type="tab" name="tabBedRequests" title="Solicitudes de Hospitalización Aprobadas" trigger="grdBedRequests">
+    <group>
+      <row>
+        <!-- Inbound Bed Requests for a date-->
+        <control
+            type="datagrid"
+            label="Solicitudes de Hospitalización"
+            name="grdBedRequests"
+            span="12" rows="20"
+            fitrows="true"
+            acctsvcreq="true"
+            rowcolor="Priority|1=green;2=yellow;3=red"
+            datarequest="GetFacilityBedRequests"
+            appendrequest="status=Approved,requestingFromFacility=[LookupTransferFacility]"
+            source="DateTimeEntered,DateTimeRequestedFor,WardName,PatientFullName,PatientSex,PatientDOB,RequestingFacilityName,RequestNotes,RequestingUserName"
+            sourcelabels="Creado,Solicitado,Sala,Paciente,Sexo,Nacimiento,Solicitudes por,Notas,Solicitado por"
+            align="||left|left|left|left|left|left"
+            format="datetime|datetime||||date"
+            sort="DateTimeRequestedFor=asc"
+            translate="PatientSex"
+            key="RequestGuid"
+            onselectset="RequestGuid=[[RequestGuid]]"
+            onselect="RequestGuid">
+            <control type="button" name="btnAdmitPatientFromRequest"
+              showif="feature" label="Ingresar Paciente"
+              action="redirect" target="PatientTabModal"
+              preset="PatientId=[[PatientId]],Admit_RequestGuid=[[RequestGuid]]"
+              trigger="PatientId"/>
+            <control type="button" name="btnCompleteRequest"
+              showif="feature" label="Completar"
+              action="save"
+              confirm="Por favor confirme que desea completar esta solicitud de hospitalización."
+              acctsvc="true"
+              dataupdate="UpdateFacilityBedRequests"
+              appendupdate="requestGuid=[[RequestGuid]],status=Completed"
+              provoke="grdBedRequests"/>
+            <control type="button" name="btnCancelRequest"
+              showif="feature" label="Cancelar"
+              action="save"
+              confirm="Por favor confirme que desea cancelar esta solicitud de hospitalización."
+              acctsvc="true"
+              dataupdate="UpdateFacilityBedRequests"
+              appendupdate="requestGuid=[[RequestGuid]],status=Canceled"
+              provoke="grdBedRequests"/>  
+          </control>
+        </row>
+    </group>
+  </section>
+</partial>

@@ -1,0 +1,91 @@
+﻿<partial>
+  <!-- Inpatient medications -->
+  <control type="datagrid" label="Órdenes de Medicamentos Internas" name="ERMedications"
+    option="Medication"
+    filter="Type=InPatient Order,Status=Active|On Hold"
+    searchable="true"
+    span="12" rows="5"
+    fitrows="true"
+    rowcolor="PharmacyRowColor|Dispensed=green;Rejected=red;Waiting=white"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientMedications"
+    appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+    source="DispenseStatus,DateStarted,Type,MedsTradeName,Frequency,MedsRoute,DesiredDoseValue,DoseUnit,Status,OrderedByFullName"
+    sourcelabels="Aprobado,Inicio,Tipo,Medicamento,Frecuencia,Vía,Dosis,UDM,Estatus,Ordenado por"
+    align="|left|left|left|left|left|left|left|left|left|left"
+    format="template=tmpDispenseStatus|datetime||template=medsNoteTemplate|||0.[000]"
+    translate="Type,Status,MedsRoute"
+    sort="DateStarted=desc"
+    key="MedsGuid">
+    <control type="button" name="btnMedAdmin"
+      reveal="HasOpenVisit=true"
+      icon="cloud-upload"
+      label="Administrar"
+      action="redirect|view"
+      target="med"
+      append="size=small,patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+      provoke="ERMedications,ERMedicationsCompleted,ERMedicationAdminActive,ERMedicationAdminComplete"/>
+    <!-- Update medication orders -->
+    <control type="button" name="btnUpdateMedications" label="Editar" icon="edit"
+      reveal="HasOpenVisit=true"
+      showif="feature"
+      action="redirect|view"
+      target="meds-update"
+      append="size=small,recordGuid=[[MedsGuid]],patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+      provoke="ERMedications,ERMedicationsCompleted,ERMedicationAdminComplete,ERMedicationAdminActive"/>
+     <!-- Show approval info -->
+     <control type="button" name="btnMedsApproval" label="Validado por" icon="search"
+      reveal="[[DispenseStatus]]!"
+      showif="feature"
+      action="redirect"
+      target="mdlMedicationApprovedBy"
+      preset="GetMedicationApprovals=[[MedsGuid]]"
+      trigger="GetMedicationApprovals"/>
+    <!-- Print medication label -->
+    <control type="button"
+      name="PrintChemoMedLabel"
+      showif="feature"
+      action="print"
+      mode="report"
+      label="Etiqueta"
+      icon="print"
+      append="id=4dede769e03,CurrentDateTime=(dateTimeNow),FacilityId=(facility),PatientId=[[PatientId]],MedicationGuid=[[MedsGuid]]" />
+    <!-- New medication orders -->
+    <control type="button" 
+      name="btnNewMedications"
+      reveal="HasOpenVisit=true"
+      icon="plus"
+      label="Añadir Nuevo"
+      action="redirect|view"
+      target="meds-add"
+      append="size=small,patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true,(facilityData.HospitalName)%Laureate;orderedByType=VORB"
+      provoke="ERMedications,ERMedicationsCompleted,ERMedicationAdminComplete,ERMedicationAdminActive,,GetUnacknowledgedOrders"/>
+    <control type="button" name="btnVidalConsult1"
+      action="redirect|url" target="https://mx.vidal-consult.com/?tk=(facilityData.VidalVademecumConsult)"
+      mode="window"
+      label="Investigación Vidal" icon="file-text"/>  
+    <control type="button" name="btnVidalInteractions12"
+      reveal="(facilityData.UseVidal)=true"
+      color="darkorange"
+      action="vidalinteractions"  
+      append="patientId=[PatientId],patientVisit=[PatientVisitGuid]"
+      label="Análisis Vidal"
+      icon="user-md"/>  
+    <control type="button" name="medVidalDetails12"
+      reveal="(facilityData.UseVidal)=true+[[VidalCommonNameGroupId]]!"
+      color="white"
+      showif="feature"
+      action="redirect|url" 
+      target="https://api-mx.vidal.fr/data/es_HP/vmpfr/com/vidal/data/vmp/vmp_[[VidalCommonNameGroupId]].html" 
+      label="Monografía Vidal"
+      icon="file"/>
+    <control type="button" name="medVidalDetailsNoData12"
+      reveal="(facilityData.UseVidal)=true+[[VidalCommonNameGroupId]]="
+      color="white"
+      showif="feature"
+      action="trigger" 
+      confirm="Este medicamento no está codificado para consulta VIDAL, notificar al área de farmacia|nocancel"
+      label="Monografía Vidal"
+      icon="file"/>                      
+    </control>
+</partial>

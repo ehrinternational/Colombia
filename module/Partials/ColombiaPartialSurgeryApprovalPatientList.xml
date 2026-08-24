@@ -1,0 +1,83 @@
+﻿<partial>
+  <!-- Partial admitting patient list by department-->
+  <section name="tabSurgeryApprovalPatients" type="tab" title="Pacientes de Ingresos" trigger="DepartmentGuidLookup">
+    <group>
+      <row>
+          <control type="select" name="DepartmentGuidLookup"
+            span="3" acctsvc="true" explicit="true" edit="true"
+            filter="DepartmentName%Ingresos" default="true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"
+            provoke="DepartmentServiceLookup"/>
+          <control type="select" name="DepartmentServiceLookup"
+            span="2" acctsvc="true" explicit="true" edit="true" default="true"
+            filter="Active=true,DepartmentGuid=[DepartmentGuidLookup]" 
+            sort="ServiceName=asc"
+            acctsvcreq="true"
+            datarequest="GetDepartmentServices" 
+            source="ServiceName,DepartmentServicesGuid"
+            provoke="PatientList"/>
+          <control type="hidden" name="QRScannedResult" span="2" 
+            mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+          <control type="button" name="btnScanPatientQR" 
+            action="scan" color="green" span="2"
+            icon="qrcode"
+            label="Escanear Paciente"
+            inject="value=[QRScannedResult]"
+            provoke="[QRScannedResult]!;GetScannedPatientByQR"/>
+      </row>
+      <row showif="never">
+        <control type="button" name="GetScannedPatientByQR"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[QRScannedResult]"
+          provoke="[[RecordUniqueId]]!+[[HasOpenVisit]]=true;btnOpenPatientChart^btnNoPatientFound"/>
+        <control type="button" name="btnOpenPatientChart"
+          preset="PatientId=[QRScannedResult]"
+          trigger="PatientId"
+          set="QRScannedResult="
+          action="redirect" target="PatientTabModal"/>
+        <control type="button" name="btnNoPatientFound"
+          action="trigger"
+          set="QRScannedResult="
+          confirm="No se ha encontrado ninguna paciente.|nocancel"/>
+      </row>
+      <row>
+        <!-- Display a list of patients currently assigned to the Ingresos department -->
+        <control type="datagrid" label="Pacientes de Ingresos" name="PatientList"
+          action="redirect" 
+          target="PatientTabModal"
+          searchable="true"
+          span="12" rows="15"
+          fitrows="true"
+          acctsvcreq="true"
+          datarequest="GetAdmittedSurgeryPatients"
+          idle="[DepartmentGuidLookup]=|reset"
+          appendrequest="excludePhoto=true,departmentGuid=[DepartmentGuidLookup],DepartmentService=[DepartmentServiceLookup]" 
+          source="DepartmentDateTime,SurgeryVisitStatus,ApprovedByOrtho,ApprovedByAnesthesia,ApprovedByPediatrics,AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,DepartmentServiceName,SurgeonFullName"
+          sourcelabels="Transferido,Estatus,Orto,Anes,Ped,Admitido,Expediente,Nombre,Nacimiento,Edad,Sexo,Servicio,Cirujano"
+          align="||||||left|left|left|left|left|left|left|left|left"
+          format="datetime||template=tmpOrthoApproval|template=tmpAnesthesiaApproval|template=tmpPediatricsApproval|datetime|||date"
+          translate="SurgeryVisitStatus,PatientSex"
+          sort="AdmitDateTime=asc"
+          key="RecordUniqueId"
+          onselectset="PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisit]]"
+          onselect="PatientId,PatientVisitGuid"> 
+          <control type="button" name="btnSearchForPatients"
+            icon="search" label="Buscar Pacientes"
+            preset="PatientSearchSource=54,DisplayOpenVisitsOnly=true"
+            action="redirect" target="mdlFindPatients"/>
+					<control type="button" name="btnRefreshPatientList" label="Actualizar"
+						icon="refresh" action="trigger" trigger="PatientList"/>
+          </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="SetSurgeryApprovalPatientId"
+            action="redirect"
+            preset="PatientId=[PatientSearchResults]"
+            trigger="PatientId"
+            target="PatientTabModal"/>
+        </row>
+      </group>
+  </section>
+</partial>

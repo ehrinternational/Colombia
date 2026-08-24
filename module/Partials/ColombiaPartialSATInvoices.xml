@@ -1,0 +1,88 @@
+<partial>
+  <section name="SATInvoices" type="tab" title="Facturas DIAN" trigger="SATInvoiceList">
+    <group>
+      <row>
+        <control type="date" name="SATStartDate" span="2" default="now-7"
+          set="txtFolioSelect=,UUIDSelect="
+          trigger="[SATStartDate]!+[SATEndDate]!;SATInvoiceList"/>
+        <control type="date" name="SATEndDate" span="2" default="now"
+          set="txtFolioSelect=,UUIDSelect="
+          trigger="[SATStartDate]!+[SATEndDate]!;SATInvoiceList"/>
+        <control type="buttongroup" name="btnPayerTypeSelect" span="4"
+          default="All"
+          mode="auto" source="All,Insurer,Patient" 
+          sourcelabels="Todos,Seguros,Pacientes"
+          set="txtFolioSelect=,UUIDSelect="
+          provoke="[SATStartDate]!+[SATEndDate]!;SATInvoiceList"/>
+        <control type="label" label="Folio" span="1"/>
+        <control type="text" name="txtFolioSelect" span="3"
+          set="UUIDSelect="
+          action="trigger" trigger="[SATStartDate]!+[SATEndDate]!;SATInvoiceList"/>
+      </row>
+      <row>
+        <!-- Select the SAT invoice status to display -->
+        <control type="select" name="selStatusSelect" span="3"
+          source="Pending,ReadyToPost,Rejected,Posted" 
+          sourcelabels="Pendiente,Lista para Timbrar,Rechazado,Timbrado"
+          set="txtFolioSelect=,UUIDSelect="
+          provoke="[SATStartDate]!+[SATEndDate]!;SATInvoiceList"/>
+        <!-- Document type selection when global invoices are not used-->
+        <control type="buttongroup" name="DocumentTypeSelect" span="3"
+          mode="auto" source="I,E,D" sourcelabels="Ingreso,Credito,Debito" default="I"
+          set="txtFolioSelect=,UUIDSelect="
+          provoke="[SATStartDate]!+[SATEndDate]!;SATInvoiceList"/>
+        <!-- SAT invoice UUID -->
+        <control type="label" label="UUID" span="1"/>
+        <control type="text" name="UUIDSelect" span="4"
+          set="txtFolioSelect="
+          action="trigger" trigger="[SATStartDate]!+[SATEndDate]!;SATInvoiceList"/>
+      </row>
+      <row>
+        <!-- Invoice List -->       
+        <control type="datagrid" label="Facturas DIAN" name="SATInvoiceList" span="12" rows="20"
+          acctsvcreq="true"
+          action="redirect"
+          target="[[DocumentType]]=I;mdlSATInvoiceModal,[[DocumentType]]=D;mdlNewSATDebitModal,[[DocumentType]]=E;mdlNewSATCredit"
+          searchable="true"
+          datarequest="GetSATInvoice"
+          appendrequest="LocationId=(facilityData.LocationId),
+          StartDate=[SATStartDate],
+          EndDate=[SATEndDate],
+          PayerType=[btnPayerTypeSelect],
+          Status=[selStatusSelect],
+          DocumentType=[DocumentTypeSelect],
+          [UUIDSelect]!;UUID=[UUIDSelect],
+          [txtFolioSelect]!;Folio=[txtFolioSelect]"
+          source="DateTimeIssued,SATInvoiceNumber,DocumentTypeName,PaymentMethod,PayerType,Status,SATStatus,Folio,UUID,PayerRFC,PayerName,PatientName,InvoiceTotal"
+          sourcelabels="Fecha,Número,Comprobante,Medio,Tipo,Estatus,DIAN,Folio,UUID,RFC,Pagador,Paciente,Total"
+          align="|Left|left|left|left|left|left|left|left|left|left|left|right"
+          format="datetime_short||||||||||||0,0.00"
+          translate="Status,PayerType"
+          sort="DateTimeIssued=desc"
+          key="InvoiceGuid" 
+          onselectset="[[DocumentType]]=I;SATInvoiceGuid=[[InvoiceGuid]],[[DocumentType]]=D;SATDebitGuid=[[InvoiceGuid]],[[DocumentType]]=E;SATCreditGuid=[[InvoiceGuid]]"
+          onselect="[[DocumentType]]=I;SATInvoiceGuid,[[DocumentType]]=D;SATDebitGuid,[[DocumentType]]=E;SATCreditGuid">
+          <!-- Feature button for SAT credits -->
+          <control type="button" name="btnNewPatientSATCredit"
+            showif="feature"
+            reveal="[[DocumentType]]=I+[[Status]]=Posted+[[HasPayments]]=false"
+            icon="plus" label="Credito Nuevo" 
+            action="redirect" target="mdlNewSATCredit"
+            preset="NSC_RelatedInvoiceGuid=[[InvoiceGuid]],NSC_PayerType=Patient,NSC_DocumentType=E"
+            trigger="btnGetRelatedInvoiceForCredit"/>
+         <!-- Feature button for SAT debits -->
+          <control type="button" name="btnNewPatientSATDebit"
+            showif="feature"
+            reveal="[[DocumentType]]=I+[[Status]]=Posted+[[HasPayments]]=false"
+            icon="plus" label="Debito Nuevo" 
+            action="redirect" target="mdlNewSATDebit"
+            preset="NSD_RelatedInvoiceGuid=[[InvoiceGuid]],NSD_PayerType=Patient,NSD_DocumentType=D"
+            trigger="btnGetRelatedInvoiceForDebit"/>
+          <!-- Button to refresh the SAT invoice list -->
+          <control type="button" name="btnRefreshSATInvoices"
+            icon="refresh" label="Actualizar" action="trigger" trigger="SATInvoiceList"/>
+          </control>
+        </row>
+    </group>
+  </section>
+</partial>

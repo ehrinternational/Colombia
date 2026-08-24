@@ -1,0 +1,55 @@
+﻿<partial>
+  <control type="datagrid" label="Órdenes de Imagenología de Visita" name="ERRadiologyOrders"
+    option="Studies"
+    span="12" rows="5"
+    idle="[PatientId]=,[PatientVisitGuid]=|reset"
+    datarequest="GetPatientImagingOrdersByPatientVisit"
+    appendrequest="patientId=[PatientId],patientVisit=[PatientVisitGuid]"
+    source="DateTimeEntered,OrderNumber,OrderPriority,ImagingOrderDescription,OrderStatus,OrderedByFullName,ExternalProviderName"
+    sourcelabels="Fecha y Hora,Número,Prioridad,Orden,Estatus,Médico,Médico Externo"
+    align="left|left|left|left|left|left"
+    translate="OrderPriority,OrderStatus"
+    format="datetime"
+    sort="Status=asc"
+    key="ImagingOrderGuid">
+  <control type="button" 
+    name="PrintAllImagingOrders" 
+    reveal="[PatientVisitGuid]!"
+    action="print"
+    mode="report" 
+    label="Receta Múltiple" 
+    icon="print"
+    confirm="Recordatorio: Solo se imprimirán los órdenes para la visita actual."
+    append="id=7b2bd9cf0f9,UserId=(userName),UserName=(userName),CurrentDateTime=(dateTimeNow),FacilityId=(facilityData.HospitalGuid),PatientId=[PatientId],PatientVisitId=[PatientVisitGuid]"/>
+  <control type="button" 
+    name="PrintImagingOrder" 
+    action="print" 
+    showif="feature" 
+    mode="report" 
+    label="Receta Sola" 
+    icon="print"                 
+    append="id=87c90a5570f,UserName=(userName),CurrentDateTime=(dateTimeNow),FacilityId=(facilityData.HospitalGuid),PatientId=[PatientId],PatientVisitId=[PatientVisitGuid],OrderGuid=[[ImagingOrderGuid]]" />
+  <!-- Update Imaging orders -->
+  <control type="button" 
+    name="btnUpdateImaging"
+    reveal="[PatientVisitGuid]!"
+    showif="feature"
+    icon="edit"
+    label="Editar"
+    action="redirect|view"
+    target="imaging-update"
+    append="recordGuid=[[ImagingOrderGuid]],patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+    provoke="ERRadiologyOrders"/>
+  <!-- New imaging orders -->
+  <control type="button" name="btnImagingOrders" icon="plus" label="Añadir Nuevo"
+    reveal="[PatientVisitGuid]!+(user.NPI)!"
+    action="redirect|view"
+    target="imaging-order"
+    append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+    provoke="ERRadiologyOrders"/>
+  <control type="button" name="btnImagingOrderNoNPI" icon="plus" label="Añadir Nuevo"
+    reveal="[PatientVisitGuid]!+(user.NPI)="
+    action="trigger"
+    confirm="Su cuenta de usuario no tiene una CMP. Póngase en contacto con el departamento de TI.|nocancel"/>
+  </control>
+</partial>

@@ -1,0 +1,21 @@
+﻿<partial>
+  <!-- Partial list of patient id's  -->
+    <control type="datagrid" label="Identificación del Paciente" name="Identification"
+      option="Identification"
+      span="12" rows="5"
+      modalname="mdlIdentification" 
+      fitrows="true"
+      idle="[PatientId]=|reset"
+      datarequest="GetPatientIdentificationRecords"
+      datainsert="InsertPatientIdentificationRecord"
+      dataupdate="UpdatePatientIdentificationRecord"
+      appendrequest="patientId=[PatientId]"
+      appendinsert="patientId=[PatientId]"
+      appendupdate="patientId=[PatientId]"
+      source="Active,IdType,IdNumber"
+      sourcelabels="Activo,Tipo,Identificación"
+      sort="DateTimeEntered=desc"
+      align="|left|left|"
+      format="boolean|template=tmpIdType"
+      key="IdGuid" />
+</partial>

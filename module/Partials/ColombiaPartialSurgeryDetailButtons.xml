@@ -1,0 +1,38 @@
+<partial>
+  <!-- Partial surgery detail buttons -->
+  <!-- Button to search for patients (When no patient has been selected)  -->
+  <row name="rowDetailSearchButton" reveal="[PatientId]=">
+    <control type="button" name="btnDetailSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=16,Search_PatientFirstName=[Surgery_PatientFirstName],Search_PatientMiddleName=[Surgery_PatientMiddleName],Search_PatientLastName=[Surgery_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+    <!-- Get the returned patientid and insert the patient -->
+    <control type="hidden" name="SurgerySearchReturn"
+      set="PatientId=[PatientSearchResults],
+        Surgery_PatientId=[PatientSearchResults]"
+      provoke="PatientId,[SurgeryGuid]!;btnAssignPatientId"/>
+  </row>
+  <row name="rowPatientPayers" reveal="[PatientId]!">
+    <control type="button" name="btnPatientPayers"
+      span="12" label="Beneficios" action="redirect" target="mdlPayerList"
+      trigger="PatientPayers"/>
+  </row>
+  <row showif="never">
+    <control type="button" 
+      name="btnAssignPatientId"
+      affector="none"
+      action="save"
+      dataupdate="UpdateScheduledSurgeries"
+      appendupdate="surgeryGuid=[SurgeryGuid],patientId=[PatientId]"
+      set="Surgery_PatientId=[PatientId]"
+      provoke="btnAssignPatientToPOs,SurgeryTimes"
+      emit="trigger|SurgeryTimes"/>
+    <!-- Insert the patient into any purchase orders for this surgery -->
+    <control type="button" name="btnAssignPatientToPOs"
+      action="save" acctsvc="true"
+      affector="none"
+      dataupdate="AssignPatientToPurchaseOrders"
+      appendupdate="surgeryGuid=[SurgeryGuid],patientId=[PatientId]"/>
+  </row>
+</partial>

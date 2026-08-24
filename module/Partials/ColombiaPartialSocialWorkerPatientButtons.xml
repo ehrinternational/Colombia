@@ -1,0 +1,118 @@
+<partial>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults],PatientSearched="
+      provoke="PatientId"/>
+  </row>
+  <row name="rowSaveNewPatient" reveal="[PatientSearched]=true+[PatientId]=">
+    <control type="button"  name="SaveNewPatientButton" span="12" label="Paciente Nuevo"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere generar a este paciente nuevo."
+      datainsert="InsertPatient"
+      provoke="btnInsertFirstCRMStatus"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnInsertInitialCRMStatusChange"
+      action="save"
+      affector="none" 
+      acctsvc="true"
+      datainsert="InsertCRMStatusChanges"
+      appendinsert="PatientId=[PatientId],NewStatus=[Consult_CRMStatus],
+      NewStatusName=[Consult_CRMStatusName],ReasonForChange=Paciente Nuevo"
+      provoke="PatientId"/>
+  </row>
+  <row name="rowSocialWorkerPatientUpdate" reveal="[PatientId]!">
+    <!--Save patient information-->
+    <control type="button" 
+      name="btnPatientUpdate"
+      span="12" label="Actualizar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[HasOpenVisit]=true+[PatientVisitGuid]!;btnUpdatePatientVisit"/>
+  </row>
+  <row showif="never">
+    <!-- Button to update patient visit info -->
+    <control type="button" name="btnUpdatePatientVisit"
+      action="save"
+      affector="none"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <control type="button" name="btnReports"
+       reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Admitting,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+  <row>
+    <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
+      span="12" icon="envelope" label="Email"
+      preset="bmd_PatientId=[PatientId],
+      bmd_PatientFirstName=[Consult_PatientFirstName],
+      bmd_PatientMiddleName=[Consult_PatientMiddleName],
+      bmd_PatientLastName=[Consult_PatientLastName],
+      bmd_EmailAddress=[Consult_PatientEmail]"
+      trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+      action="redirect" target="mdlSendWYSIWYGEmail"/>
+  </row>
+  <row>
+      <control type="button" name="btnInitiateTextMessage" 
+        reveal="[PatientId]!"
+        span="12" icon="envelope" label="Enviar Texto"
+        trigger="grdPhysicianMessages2"
+        preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
+        action="redirect" target="mdlSendTextMessage"/>
+    </row>
+  <row>
+    <!-- Print patient card -->
+    <control type="button" name="btnPrintPatientCard"
+      reveal="[PatientId]!" 
+      span="12"
+      action="print" 
+      mode="report" 
+      label="Carnet" 
+      icon="print" 
+      append="id=429c70f9100,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" />
+  </row>
+  <row>
+    <!--Print patient label-->
+    <control type="button"
+      reveal="[PatientId]!" 
+      span="12"
+      name="btnPrintLabel"
+      action="print" 
+      mode="report" 
+      label="Etiquetas" 
+      icon="print" 
+      append="id=14c214853ef,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" /> 
+  </row>
+  <!-- Call the patient in the waiting room -->
+  <partial link="Partials/ColombiaPartialCallPatientButton.xml"/>
+  <!-- AI buttons -->
+  <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+</partial>

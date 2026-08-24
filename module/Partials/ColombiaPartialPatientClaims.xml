@@ -1,0 +1,24 @@
+<partial>
+  <control type="datagrid" label="Beneficios de la Atención" name="grdPatientClaims" rows="5" 
+    action="redirect"
+    target="mdlNewClaims"
+    option="PayerClaims"
+    acctsvcreq="true"
+    idle="[PatientVisitGuid]=|reset"
+    datarequest="GetPayerClaimsByPatientVisit"
+    appendrequest="patientVisit=[PatientVisitGuid]"
+    source="ClaimDate,ClaimNumber,ClaimAuthorization,Status,PayerName,Notes"
+    sourcelabels="Fecha,Folio,Autorización,Estatus,Pagador,Notas"      
+    translate="Status"               
+    key="ClaimGuid"
+    align="||left|left|left|left"
+    format="datetime"
+    onselectset="ClaimGuid=[[ClaimGuid]]"
+    onselect="ClaimGuid">
+    <control type="button" name="btnInsertNewClaim" label="Añadir Nuevo" icon="plus"
+      reveal="[PatientVisitGuid]!"
+      preset="[Clm_PatientVisit]=[PatientVisitGuid],
+      [Clm_PatientId]=[PatientId]"
+      action="redirect" target="mdlNewClaims"/>
+    </control>
+</partial>

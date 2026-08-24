@@ -1,0 +1,135 @@
+﻿<partial>
+  <!-- Modal to insert quick admit -->
+  <section type="tabmodal" badge="none" name="mdlQuickAdmit" title="Ingresar Urgente"  size="small">
+    <group name="grpQuickAdmit">
+      
+      <row>
+        <control type="label" label="Nombre" align="left" span="4"/>
+        <control type="label" label="Primer Apellido" align="left" span="4"/>
+        <control type="label" label="Segundo Apellido" align="left" span="4"/>
+      </row>
+      <row>
+        <control type="text" name="Quick_PatientFirstName" span="4" required="true" edit="true" 
+        regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+        <control type="text" name="Quick_PatientMiddleName" span="4" required="true" edit="true"
+        regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+        <control type="text" name="Quick_PatientLastName" span="4" edit="true" 
+        regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,60}$"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha Nacimiento" span="3"/>
+        <control type="date" name="Quick_PatientDOB" span="3" edit="true" required="true"/>
+        <control type="timediff" name="Quick_AgeInYears" span="1" source="[Quick_PatientDOB],(now),years"/>
+        <control type="label" label="Sexo" span="2" />
+        <control type="select" name="Quick_PatientSex" span="3" required="true" edit="true"
+          source="Male,Female,Indeterminate,Unknown"  
+          sourcelabels="Masculino,Femenino,No Definido,Desconocido"/>
+      </row>
+      <row>
+        <control type="label" label="Id Genero" span="3"/>
+        <control type="select" name="Quick_PatientGenderId" span="3" edit="[Quick_AgeInYears]»4"
+          source="0,1,2,3,4,5" required="true"
+          sourcelabels="0 Sin información,1	Masculino,2	Femenino,3 Transgénero,4 Neutro,5	No lo declareara"
+          when="[Quick_AgeInYears]«5;"/>
+        <control type="label" label="Orientación" span="3"/>
+        <control type="select" name="Quick_PatientGenderIdText" span="3" edit="[Quick_AgeInYears]»4"
+          source="1,2,3,4,5" required="true"
+          sourcelabels="1	Lesbiana,2	Bisexual,3	Transexual,4	Intersexual,5	Heterosexual"
+          when="[Quick_AgeInYears]«5;"/>
+      </row>
+      <row>
+        <control type="label" label="Teléfono Primario" span="3"/>
+        <control type="text" name="Quick_PtPhoneNumber" span="3" edit="true"
+          regex="^\+?[a-zA-Z0-9]{0,15}$"/>
+        <control type="label" label="Teléfono Segundo" span="3"/>
+        <control type="text" name="Quick_PatientCellPhone" span="3" edit="true"
+          regex="^\+?[a-zA-Z0-9]{0,15}$"/>    
+      </row>
+      <row>
+        <control type="label" label="Tipo Documento" span="3"/>
+        <control type="select" name="Emr_PrimaryIdNumber" span="6" edit="true" required="true"
+          source="SI,RC,TI,CC,CE,NI,MS,PA,AS,NU,CD,SC,PE,CN,DE,PT"
+          sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
+      </row>
+      <row>
+        <control type="label" label="Numero Documento" span="3"/>
+        <control type="text" name="Emr0_PtSSN" span="3" readonly="true"
+          reveal="[Emr_PrimaryIdNumber]=SI|"/>
+        <control type="text" name="Emr1_PtSSN" span="3"  tooltip="11 caracteres alfanuméricos"
+          reveal="[Emr_PrimaryIdNumber]=RC" edit="true" required="true"
+          regex="^[a-zA-Z0-9]{11}$"/>
+        <control type="text" name="Emr2_PtSSN" span="3"   tooltip="11 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=TI" edit="true" required="true"
+          regex="^[0-9]{11}$"/>
+        <control type="text" name="Emr3_PtSSN" span="3"   tooltip="10 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=CC"  edit="true" required="true"
+          regex="^[0-9]{10}$"/>
+        <control type="text" name="Emr4_PtSSN" span="3"  tooltip="7 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=CE"  edit="true" required="true"
+          regex="^[0-9]{7}$"/>
+        <control type="text" name="Emr5_PtSSN" span="3"  tooltip="13 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=NI"  edit="true" required="true"
+          regex="^[0-9]{13}$"/>
+        <control type="text" name="Emr6_PtSSN" span="3"  tooltip="12 caracteres alfanuméricos"
+          reveal="[Emr_PrimaryIdNumber]=MS"  edit="true" required="true"
+          regex="^[a-zA-Z0-9]{12}$"/>
+        <control type="text" name="Emr7_PtSSN" span="3"  tooltip="16 caracteres alfanuméricos"
+          reveal="[Emr_PrimaryIdNumber]=PA"  edit="true" required="true"
+          regex="^[a-zA-Z0-9]{16}$"/>
+        <control type="text" name="Emr8_PtSSN" span="3"  tooltip="10 caracteres alfanuméricos"
+          reveal="[Emr_PrimaryIdNumber]=AS"  edit="true" required="true"
+          regex="^[a-zA-Z0-9]{10}$"/>
+        <control type="text" name="Emr9_PtSSN" span="3"  tooltip="12 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=NU"  edit="true" required="true"
+          regex="^[0-9]{12}$"/>
+        <control type="text" name="Emr10_PtSSN" span="3"  tooltip="11 caracteres alfanuméricos"
+          reveal="[Emr_PrimaryIdNumber]=CD"  edit="true" required="true"
+          regex="^[a-zA-Z0-9]{11}$"/>
+        <control type="text" name="Emr11_PtSSN" span="3"  tooltip="12 caracteres alfanuméricos"
+          reveal="[Emr_PrimaryIdNumber]=SC"  edit="true" required="true"
+          regex="^[a-zA-Z0-9]{12}$"/>
+        <control type="text" name="Emr12_PtSSN" span="3"  tooltip="15 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=PE"  edit="true" required="true"
+          regex="^[0-9]{15}$"/>
+        <control type="text" name="Emr13_PtSSN" span="3"  tooltip="14 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=CN"  edit="true" required="true"
+          regex="^[0-9]{14}$"/>
+        <control type="text" name="Emr14_PtSSN" span="3"  tooltip="16 caracteres alfanuméricos"
+          reveal="[Emr_PrimaryIdNumber]=DE"  edit="true" required="true"
+          regex="^[a-zA-Z0-9]{16}$"/>
+        <control type="text" name="Emr15_PtSSN" span="3"  tooltip="15 caracteres numéricos"
+          reveal="[Emr_PrimaryIdNumber]=PT"  edit="true" required="true"
+          regex="^[0-9]{15}$"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <control type="modalbutton" name="btnQuickAdmitSave" color="red" icon="ambulance" label="Ingresar Urgente"
+          action="save"
+          confirm="Recordatorio: Se creará un nuevo registro de paciente y se le dará ingreso en el departamento seleccionado."
+          affector="Quick_PatientId"
+          setaffector="RecordUniqueId"
+          capture="grpQuickAdmit" 
+          datainsert="InsertPatient"
+          appendinsert="AccountNumber=Desconocido"
+          provoke="btnQuickAdmitVisit"/>
+      </row>
+      <row showif="never">
+        <control type="hidden" name="Quick_PatientId"/>
+        <control type="button" name="btnQuickAdmitVisit"
+            action="save|close|new" 
+            affector="none"
+            datainsert="InsertPatientVisitAllFields"
+            appendinsert="LocationId=(facilityData.LocationId),
+              patientId=[Quick_PatientId],
+              visitType=Outpatient,
+              hospitalService=Esperando,
+              preAdmit=0,
+              admitDateTime=(dateTimeNow),
+              departmentGuid=[DepartmentGuidLookup]"
+            provoke="PatientList"
+            emit="trigger|PatientList"/>
+      </row>
+    </group>
+  </section>
+</partial>

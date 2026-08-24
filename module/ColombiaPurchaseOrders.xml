@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Compras" type="onload" trigger="ItemCategories,PurchaseOrderList">
+  <facet name="Project" value="Go"/>
+  <facet name="ShowManufacturer" value="False"/>
+  <facet name="NewStatus"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Purchasing"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <!-- Purchase Orders -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESPurchaseOrders.xml"/>
+  <!-- Modals -->
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+  <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+  <partial link="./Partial/Messaging/PartialSendEmailMessageToVendor.xml"/>
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockPayableInvoiceModal.xml"/>
+</module>

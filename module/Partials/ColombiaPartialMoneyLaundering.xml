@@ -1,0 +1,141 @@
+<partial>
+  <!-- Patient Address modal -->
+  <section type="tabmodal" name="mdlMoneyLaundering" title="Formulario de Datos - Registro de Información SARLAFT" badge="none">
+    <group>
+      <control type="hidden" name="RelatedGuid"
+          acctsvcreq="true"
+          datarequest="GetMoneyLaundering"
+          appendrequest="RelatedGuid=[RelatedGuid]"
+          inject="grpPayerMoneyInfo"/>
+    </group>
+    <group name="grpPayerMoneyInfo">
+      <subset bgcolor="white">
+      <row>
+        <control type="label" label="Tipo de Persona" span ="3"/>
+        <control type="buttongroup" name="Pym_PersonType" span="4" edit="true" 
+          source="Natural,Jurídica" required="true"/>
+      </row>
+      </subset>
+      <subset bgcolor="white">
+      <row>
+        <control type="label" label="¿El usuario acepta el registro de información de datos?" span ="8"/>
+        <control type="buttongroup" name="Pym_AcceptRegistration" span="2" edit="true" required="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="¿El usuario acepta el diligenciamiento de la declaración de origen de fondos?" span ="8"/>
+        <control type="buttongroup" name="Pym_AcceptDiligence" span="2" edit="true" required="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      </subset>
+      <subset bgcolor="white">
+      <row>
+          <control type="label" label="Nombre" align="left" span="4"/>
+          <control type="label" label="Primer Apellido" align="left" span="4"/>
+          <control type="label" label="Segundo Apellido" align="left" span="4"/>
+      </row>
+      <row>
+        <control type="text" name="Consult_UserFirstName" span="4" required="true" edit="true" 
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+        <control type="text" name="Consult_UserMiddleName" span="4" required="true" edit="true"
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+        <control type="text" name="Consult_UserLastName" span="4" edit="true" 
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,60}$"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo Identificación" span="3"/>
+        <control type="select" name="Pym_DocumentId" span="3" required="true" edit="true"
+          source="SI,CC,CE,PA"
+          sourcelabels="SIN IDENTIFICACIÓN,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,PASAPORTE"/>
+         <control type="label" label="Numero Documento" span="3"/>
+        <control type="text" name="Pym0_IdNumber" span="3" readonly="true"
+          reveal="[Pym_DocumentId]=SI|"/>
+        <control type="text" name="Pym3_IdNumber" span="3" required="true"  tooltip="10 caracteres numéricos"
+          reveal="[Pym_DocumentId]=CC"  edit="true"
+          regex="^[0-9]{10}$"/>
+        <control type="text" name="Pym4_IdNumber" span="3" required="true" tooltip="7 caracteres numéricos"
+          reveal="[Pym_DocumentId]=CE"  edit="true"
+          regex="^[0-9]{7}$"/>
+        <control type="text" name="Pym7_IdNumber" span="3" required="true" tooltip="16 caracteres alfanuméricos"
+          reveal="[Pym_DocumentId]=PA"  edit="true"
+          regex="^[a-zA-Z0-9]{16}$"/>
+      </row>
+      <row>      
+        <control type="label" label="País Nacimiento" span="3"/>
+        <control type="select" name="Pym_UserCountry" span="3" edit="true" required="true"
+          default="(facilityData.HospitalCountry)" searchable="true"
+          sort="CountrySpanish=asc"
+          datasource="GetCountries" 
+          source="CountrySpanish,Code"
+          provoke="Consult_PtState"/>
+        <control type="label" label="Fecha Nacimiento" span="3" />
+        <control type="date" name="Pym_UserDOB" span="3" required="true" edit="true" compare="≤now"/>
+      </row>
+      <row>
+        <control type="label" label="Teléfono" span="2"/>
+        <control type="text" name="Consult_UserPhone" span="2" edit="true" 
+        regex="^\+?[a-zA-Z0-9]{7,15}$" required="true"/>
+        <control type="label" label="Dirección" span="2"/>
+        <control type="text" name="Consult_UserAddress" span="6" edit="true" 
+        regex="^\+?[a-zA-Z0-9]{7,15}$" required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Profesión" span="3"/>
+        <control type="select" name="Consult_UserProfession" span="8" edit="true" required="true"
+        searchable="true"
+        acctsvcreq="true"
+        datarequest="GetColombiaProfessions"
+        source="Profession,Code"/>
+      </row>
+      <row>
+        <control type="label" label="Ocupacion" span="3"/>
+        <control type="select" name="Consult_UserOccupation" span="8" edit="true"  required="true"
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetColombiaOccupations"
+          source="Occupation,Code"/>
+      </row>
+      </subset>
+      <subset bgcolor="white">
+      <row>
+        <control type="label" label="¿Realiza operaciones internacionales?" span ="4"/>
+        <control type="buttongroup" name="Pym_IsInternational" span="2" edit="true" required="true"
+          source="True,False" sourcelabels="Sí,No"/>
+        <control type="label" label="Tipo de operación" span="3"/>
+        <control type="select" name="Pym_OperationType" span="3" source="00,01,02,03,04,06,07,08,09" 
+          sourcelabels="00 DESCONOCIDO,01 IMPORTACIÓN,02 EXPORTACIÓN,03 INVERSIONES,04 PRÉSTAMOS,
+            05 ENVÍO GIROS,06 RECEPCIÓN DE GIROS,07 PAGO DE SERVICIOS,08 TRANSFERENCIAS,09 OTRAS" 
+            edit="true" required="true"/>
+      </row>
+      <row>
+        <control type="label" label="¿Maneja recursos públicos y/u ostenta algun cargo público o goza de reconocimiento público?" span ="10"/>
+        <control type="buttongroup" name="Pym_PublicResources" span="2" edit="true" required="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="¿Es usted servidor público?" span ="10"/>
+        <control type="buttongroup" name="Pym_PublicServant" span="2" edit="true" required="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      </subset>
+      <row>
+        <control type="modalbutton" name="btnSaveMoneyLaundering" label="Guardar" icon="cloud-upload" color="green"
+          reveal="[RelatedGuid]="
+          action="save|close|new"
+          capture="grpPayerMoneyInfo"
+          acctsvc="true"
+          affector="none"
+          datainsert="InsertMoneyLaundering"
+          appendinsert="RelatedGuid=[RelatedGuid]"/>
+        <control type="modalbutton" name="btnUpdateMoneyLaundering" label="Actualizar" icon="cloud-upload"
+          reveal="[RelatedGuid]!"
+          action="save|close|new"
+          capture="grpPayerMoneyInfo"
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdateMoneyLaundering"
+          appendupdate="RelatedGuid=[RelatedGuid]"/>
+      </row>
+    </group>
+  </section>  
+</partial>

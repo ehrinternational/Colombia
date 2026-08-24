@@ -1,0 +1,35 @@
+﻿<partial>  
+  <section type="tab" title="Pacientes Ingresados">
+    <group>
+      <row>
+          <control type="datagrid" label="Pacientes Ingresados" name="PatientList"
+            action="redirect" 
+            target="PatientTabModal"
+            searchable="true"
+            rows="25"
+            fitrows="true"
+            rowcolor="ReadyForDischarge|true=green"
+            acctsvcreq="true"
+            datarequest="GetAdmittedPatientsByDepartment"
+            appendrequest="LocationId=(facilityData.LocationId),excludePhoto=true"
+            source="ReadyForDischarge,AdmitDateTime,MedicalRecordNumber,InvoiceNumber,PatientFullName,PatientSex,PatientDOB,PatientAge,DepartmentName,OpenRoom"
+            sourcelabels="Alta,Admisión,Expediente,Cuenta,Nombre,Sexo,Nacimiento,Edad,Departamento,Habitación"
+            translate="PatientSex"
+            align="||left|left|left|left|left|left|left|left"
+            format="boolean|datetime_short|||||date"
+            sort="AdmitDateTime=asc"
+            key="RecordUniqueId"
+            onselectset="PatientSearched=false,PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisitId]]"
+            onselect="PatientId,PatientVisitGuid">
+          <control type="button" name="btnQuickAdmit" color="red" icon="ambulance" label="Ingresar Urgente"
+            action="redirect" target="mdlQuickAdmit"/>
+          <control type="button" name="btnAdmitPatients" icon="folder-open" label="Ingresar/Buscar"
+            action="redirect" preset="PatientSearched=false"
+            target="PatientTabModal"/>
+          <control type="button" name="RefreshPatientList" label="Actualizar" icon="refresh" 
+              action="trigger" trigger="PatientList"/>
+          </control>
+        </row>
+      </group>
+    </section>
+</partial>

@@ -1,0 +1,57 @@
+﻿<partial>
+  <!-- Inpatient medications with administration -->
+  <control type="datagrid" label="Órdenes de Medicamentos Internas Activas" name="ERMedications"
+      option="Medication"
+      filter="Type=InPatient Order,Status=Active"
+      searchable="true"
+      rows="5"
+      fitrows="true"
+      datarequest="GetPatientMedications"
+      idle="[PatientId]=|reset"
+      appendrequest="patientVisit=[PatientVisitGuid],patientId=[PatientId]"
+      source="DispenseStatus,DateStarted,Type,MedsTradeName,Frequency,MedsRoute,DesiredDoseValue,DoseUnit,LastDispense,OrderedByFullName"
+      sourcelabels="Aprobado,Inicio,Tipo,Medicamento,Frecuencia,Vía,Dosis,UDM,Dispensado,Ordenado por"
+      align="|left|left|left|left|left|left|left|left"
+      format="template=tmpDispenseStatus|datetime||template=medsNoteTemplate|||0.[000]|datetime"
+      translate="Type,MedsRoute,Status"
+      sort="Status=asc"
+      key="MedsGuid">
+    <control type="button"
+      name="PrintMedLabel"
+      showif="feature"
+      action="print"
+      mode="report"
+      label="Etiqueta"
+      icon="print"
+      append="id=4dede769e03,CurrentDateTime=(dateTimeNow),FacilityId=(facility),PatientId=[[PatientId]],MedicationGuid=[[MedsGuid]]" />
+    <control type="button" name="btnMedAdmin" label="Administrar" icon="cloud-upload"
+      reveal="HasOpenVisit=true"
+      action="redirect|view"
+      target="med"
+      append="size=small,patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+      provoke="ERMedications,ERMedicationsCompleted,ERMedicationAdminActive,ERMedicationAdminComplete,GetUnacknowledgedOrders"/>
+    <control type="button" name="btnVidalInteractions15"
+      reveal="(facilityData.UseVidal)=true"
+      color="darkorange"
+      action="vidalinteractions"  
+      append="patientId=[PatientId],patientVisit=[PatientVisitGuid]"
+      label="Análisis Vidal"
+      icon="user-md"/>
+    <control type="button" name="medVidalDetails15"
+      reveal="(facilityData.UseVidal)=true+[[VidalCommonNameGroupId]]!"
+      color="white"
+      showif="feature"
+      action="redirect|url" 
+      target="https://api-mx.vidal.fr/data/es_HP/vmpfr/com/vidal/data/vmp/vmp_[[VidalCommonNameGroupId]].html" 
+      label="Monografía Vidal"
+      icon="file"/>
+    <control type="button" name="medVidalDetailsNoData15"
+      reveal="(facilityData.UseVidal)=true+[[VidalCommonNameGroupId]]="
+      color="white"
+      showif="feature"
+      action="trigger" 
+      confirm="Este medicamento no está codificado para consulta VIDAL, notificar al área de farmacia|nocancel"
+      label="Monografía Vidal"
+      icon="file"/>            
+    </control >
+</partial>

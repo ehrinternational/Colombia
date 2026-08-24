@@ -1,0 +1,91 @@
+﻿<partial>
+  <!-- Tabmodal to transfer patient to another department and cancel any bed assignment -->
+   <section type="tabmodal" badge="none" name="mdlTransferPatient" title="Transferir" size="small">
+      <group showif="never">
+        <row>
+          <control type="hidden" name="GetCurrentBedAssignment"
+            datarequest="GetPatientAllFields"
+            appendrequest="PatientId=[PatientId]"
+            set="Transfer2_BedAssignmentGuid=[[BedAssignmentGuid]],txtCurrentBed=[[RoomFullName]]"/>
+          <control type="hidden" name="Transfer2_BedAssignmentGuid"/>
+        </row>
+      </group>
+      <group name="grpTransferInfo">
+        <row name="rowCloseBedAssignment" reveal="[Transfer2_BedAssignmentGuid]!">
+          <control type="label" label="¿Cerrar asignación de cama?" span="4"/>
+          <control type="buttongroup" name="btnCloseBedAssignment" source="True,False" span="3"
+            sourcelabels="Sí,No" default="True"/>
+        </row>
+        <row name="rowShowBedAssignment" reveal="[Transfer2_BedAssignmentGuid]!">
+          <control type="label" label="Cama Actual" span="4"/>
+          <control type="textarea" name="txtCurrentBed" span="6" readonly="true" rows="1"/>
+        </row>
+        <row>
+          <control type="label" label="Departamento" span="4"/>
+          <control type="select" name="Transfer2_DepartmentGuid" span="6"
+            required="true" edit="true"
+            acctsvc="true"
+            filter="AdmissionType=true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"
+            provoke="Transfer2_DepartmentService"/>
+        </row>
+        <row>
+          <control type="label" label="Servicio" span="4"/>
+          <control type="select" name="Transfer2_DepartmentService" span="6"
+            edit="true" explicit="true"
+            acctsvcreq="true"
+            filter="Active=true"
+            datarequest="GetDepartmentServices"
+            appendrequest="DepartmentGuid=[Transfer2_DepartmentGuid]" 
+            source="ServiceName,DepartmentServicesGuid"/>
+        </row>
+      </group>
+      <group>
+        <row>
+          <control type="modalbutton" name="btnTransferButtonWithBedCancel"
+            reveal="Length(Transfer2_DepartmentService)=0"
+            color="orange" icon="move"
+            affector="none" 
+            action="save"
+            capture="grpTransferInfo"
+            label="Transferir" 
+            dataupdate="UpdatePatientVisitAllFields"
+            appendupdate="patientId=[PatientId],
+              patientVisitUniqueId=[PatientVisitGuid],
+              hospitalService=Esperando,
+              departmentService=null,
+              DateTimeCalled=null,
+              RoomService=null"
+            set="CurrentDepartment=[Transfer2_DepartmentGuid]"
+            provoke="[btnCloseBedAssignment]=True+[Transfer2_BedAssignmentGuid]!;btnCompleteCloseBedAssignment^btnCloseTransferBedAssignment"/>
+          <control type="modalbutton" name="btnTransferButtonWithBedCancel2"
+            reveal="Length(Transfer2_DepartmentService)»0"
+            color="orange" icon="move"
+            affector="none" 
+            action="save"
+            capture="grpTransferInfo"
+            label="Transferir" 
+            compare="[Transfer2_DepartmentService]!|Por favor seleccione un servicio de departamento."
+            dataupdate="UpdatePatientVisitAllFields"
+            appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],hospitalService=Esperando,DateTimeCalled=null,RoomService=null"
+            set="CurrentDepartment=[Transfer2_DepartmentGuid]"
+            provoke="[btnCloseBedAssignment]=True+[Transfer2_BedAssignmentGuid]!;btnCompleteCloseBedAssignment^btnCloseTransferBedAssignment"/>
+        </row>
+        <row showif="never">
+            <!--  Cancel an existing patent bed assignment -->
+            <control type="button" name="btnCompleteCloseBedAssignment"
+              action="save"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePatientBedAssignment"
+              appendupdate="bedAssignmentGuid=[Transfer2_BedAssignmentGuid],dateTimeCheckedOut=(dateTimeNow),status=Closed"
+              provoke="btnCloseTransferBedAssignment"/>
+          <control type="button" name="btnCloseTransferBedAssignment" action="close|new"
+            provoke="ClosePatientTabModal,OutPatientList,PatientList,AdmittedPatientList"
+            emit="trigger|DisplayDepartmentQueue"/>
+        </row>
+    </group>
+  </section>
+</partial>

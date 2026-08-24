@@ -1,0 +1,315 @@
+﻿ <partial>
+ <!-- Tobmodal to enter/edit a consult request -->
+  <section type="tabmodal" badge="none" title="Solicitud de Servicios" name="mdlInternalConsultModal">
+    <group showif="never">
+      <row>
+        <!-- Store the PatientId, read and inject the patient info -->
+        <control type="hidden" name="ICR_PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[ICR_PatientId]"
+          inject="ICTInternalPatientInfo"
+          set="[[HasOpenVisit]]=true;ICR_GetPatientVisit=[[PatientVisit]]"
+          provoke="[[HasOpenVisit]]=true;ICR_GetPatientVisit"/>
+        <!-- Get patient location in hospital -->
+        <control type="hidden" span="4" name="ICR_GetPatientVisit" 
+          datarequest="GetPatientVisitByUniqueId"
+          appendrequest="UniqueId=[ICR_PatientVisit]"
+          set="ICR_CurrentDepartment=[[CurrentDepartment]],ICR_OpenRoom=[[OpenRoom]]"/>
+        <!-- Store the ICR_PatientConsultGuid, read and inject the info -->
+        <control type="hidden" name="ICR_PatientConsultGuid"
+          acctsvcreq="true"
+          datarequest="GetConsultRequestsByConsultRequestGuid"
+          appendrequest="consultRequestGuid=[ICR_PatientConsultGuid]"
+          inject="grpInternalConsultInfo"
+          provoke="ICR_GetCompletedECDForm,ServiceEcdForms"/>
+        <!-- Get the completed ECD for this service request -->
+        <control type="select" name="ICR_GetCompletedECDForm"
+          default="true" explicit="true"
+          filter="OrderGuid=[ICR_PatientConsultGuid]"
+          datarequest="GetCompletedPatientFormsForPriorVisits"
+          appendrequest="PatientId=[ICR_PatientId]"
+          source="FormName,rowGuid"
+          set="ICR_CompletedRowGuid=[ICR_GetCompletedECDForm]"/>
+        <!-- Store the completed row guid -->
+         <control type="text" name="ICR_CompletedRowGuid"/>
+        <!-- Open the connected ECD for new service requests -->
+        <control type="button" name="btnOpenConnectedECD"
+          onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+          action="redirect|url" 
+          target="ecd/index.html"
+          mode="ecd" usesource="login"
+          append="ICR_ConsultRequestSpecialtyRequested%Análisis de marcha;ecdGuid=B91A03FD-C5E4-4EF8-BF5F-ED7C8606B62F-1300408,
+            ICR_ConsultRequestSpecialtyRequested%Nutrición;ecdGuid=15e1a93e-586d-4851-861e-63bd24315bd2,
+            ICR_ConsultRequestSpecialtyRequested%Odontología;ecdGuid=3e7c7023-0d05-4c73-b76b-c0066d8fbf20,
+            ICR_ConsultRequestSpecialtyRequested%Psicología;ecdGuid=ac80e379-994a-47d7-93b6-40200d47c390,
+            ICR_ConsultRequestSpecialtyRequested%Terapia física;ecdGuid=9BDDAEB2-B857-4B6F-A251-39E9FCD794C9,
+            ICR_ConsultRequestSpecialtyRequested%Terapia ocupacional;ecdGuid=AC0F628B-E1B3-4A90-BC35-289E84C7E120-1300408,
+            ICR_ConsultRequestSpecialtyRequested%Terapia respiratoria;ecdGuid=1E4D974B-75C6-4345-9CC0-A844CA1704DE-1300408,
+            ICR_ConsultRequestSpecialtyRequested%Terapia de lenguaje;ecdGuid=4AA1D4B4-65CB-4A9E-BDF4-7FF9917C3BB4-1300408,
+            orderGuid=[ICR_PatientConsultGuid],patientid=[ICR_PatientId],patientvisit=[ICR_PatientVisit]"
+          provoke="btnCloseInternalConsult"/>
+        <control type="button" name="btnCloseInternalConsult" action="close|new"/>
+      </row>
+    </group>
+    <group name="ICTInternalPatientInfo">
+        <row>
+          <control type="hidden" name="ICR_HasOpenVisit"/>
+          <control type="hidden" name="ICR_PatientVisit"/>
+        </row>
+        <row>
+            <control type="label" label="Expediente" span="2" />
+            <control type="label" label="Nombre" align="left" span="3"/>
+            <control type="label" label="Paterno" align="left" span="3"/>
+            <control type="label" label="Materno" align="left" span="3"/>
+          </row>
+          <row>
+            <control type="text" name="ICR_MedicalRecordNumber" span="2" readonly="true"/>
+            <control type="text" name="ICR_PatientFirstName" span="3" readonly="true" />
+            <control type="text" name="ICR_PatientMiddleName" span="3" readonly="true" />
+            <control type="text" name="ICR_PatientLastName" readonly="true" span="3"/>
+          </row>
+        <row>
+          <control type="label" label="Nacimiento" span="2" />
+          <control type="date" name="ICR_PatientDOB" readonly="true" span="2" compare="≤now"/>
+          <control type="text" name="ICR_PatientAge" readonly="true" span="2"/>
+          <control type="label" label="Sexo" span="1" />
+          <control type="select" 
+            name="ICR_PatientSex" span="3" 
+            readonly="true"  
+            source="Male,Female,Indeterminate,Unknown"  
+            sourcelabels="1 Masculino,2 Femenino,3 No Definido,4 Desconocido"/>
+        </row>
+        <row name="rowCurrentDepartment" reveal="ICR_HasOpenVisit]=true">
+          <control type="label" label="Departamento" span="2"/>
+          <control type="select" name="ICR_CurrentDepartment" span="4" readonly="true"
+            acctsvc="true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)"
+            source="DepartmentName,DepartmentGuid"/>
+          <control type="label" label="Cama" span="2"/>
+          <control type="text" name="ICR_OpenRoom" span="3" readonly="true"/>
+        </row>
+      </group>
+      <!-- Consult request group -->
+      <group name="grpInternalConsultInfo">
+        <row>
+          <control type="hidden" name="ConsultScheduledTimeGuid"/>
+        </row>
+        <row>
+          <control type="label" span="3" label="Folio"/>
+          <control type="text" span="2" name="ICR_ConsultNumber" readonly="true"/>
+          <control type="label" span="2" label="Estatus"/>
+          <control type="select" span="3" name="ICR_ConsultRequestStatus"  
+            source="Active,Assigned,Scheduled,Absent,Completed,Canceled"
+            sourcelabels="Activo,Asignado,Programado,Ausente,Completado,Cancelado"
+            default="Active" readonly="true"/>
+        </row>
+        <!-- Date and Priority -->
+        <row>
+          <control type="label" span="3" label="Fecha Solicitada"/>
+          <control type="datetime" span="3" name="ICR_ConsultRequestDateTime" required="true" default="now"/>
+          <control type="label" span="2" label="Prioridad"/>
+          <control type="select" span="2" name="ICR_ConsultRequestPriority"  
+            source="Low,Medium,High"
+            sourcelabels="Baja,Medio,Alta"
+            default="Low" edit="[ICR_PatientConsultGuid]="
+            required="true"/>
+        </row>
+         <row>
+          <control type="label" span="3" label="Fecha Programada"/>
+          <control type="datetime" span="3" name="ICR_ConsultScheduledDateTime" readonly="true"/>
+          <control type="label" span="2" label="Tipo de Paciente"/>
+          <control type="buttongroup" name="ICR_CaseType" span="4" source="Consulta Externa,Hospitalizado" 
+            mode="auto" required="true" edit="[ICR_PatientConsultGuid]="/>
+        </row>
+        <!-- Requesting department and requested from department -->
+        <row>
+          <control type="label" span="3" label="Departamento Solicitado"/>
+          <control type="select" span="5" name="ICR_ConsultRequestSpecialtyRequested" 
+            edit="[ICR_PatientConsultGuid]=" required="true" explicit="true"
+            source="Análisis de marcha,Nutrición,Odontología,Psicología,Terapia física,
+              Terapia ocupacional,Terapia respiratoria,Terapia de lenguaje"
+            provoke="ICR_ConsultRequestAssignedToId"/>
+        </row>
+        <row>
+          <control type="label" span="3" label="Departamento Solicitante"/>
+          <control type="select" span="5" name="ICR_RequestingDepartment"
+            acctsvc="true"
+            filter="AdmissionType=true" explicit="true"
+            datasource="GetDepartmentsActive" 
+            append="LocationId=(facilityData.LocationId)"
+            source="DepartmentNumber|DepartmentName,DepartmentGuid"
+            edit="[ICR_PatientConsultGuid]=" required="true" default="[HospitalizedDepartmentGuidLookup]"/>
+        </row>
+        <!-- Consult reason (required)-->
+        <row>
+          <control type="label" label="Nota Solicitada" span="3"/>
+          <control type="textarea" name="ICR_ConsultReason" rows="2" span="8" edit="[ICR_PatientConsultGuid]="/>
+        </row>
+        <!-- Consult reason (required)-->
+        <row name="rowConsultNote" reveal="[ICR_ConsultRequestStatus]=Assigned|Scheduled|Completed|Canceled">
+          <control type="label" label="Nota Completada" span="3"/>
+          <control type="textarea" name="ICR_ConsultNote" rows="2" span="8" edit="[ICR_ConsultRequestStatus]=Assigned|Scheduled" required="true"/>
+        </row>
+        <!-- Assigned to -->
+        <row name="rowInternalAssignedPhysician" reveal="[ICR_PatientConsultGuid]!">
+          <control type="label" span="3" label="Asignado"/>
+          <control type="select" name="ICR_ConsultRequestAssignedToId" 
+            edit="[ICR_ConsultRequestStatus]=Active|Assigned|Scheduled" span="5"
+            namefield="ICR_ConsultRequestAssignedToName" sort="true"
+            acctsvcreq="true" 
+            datarequest="GetUsersByAttributes" 
+            appendrequest="LocationId=(facilityData.LocationId),
+              active=true,
+              [ICR_ConsultRequestSpecialtyRequested]=Análisis de marcha;role=Therapy,
+              [ICR_ConsultRequestSpecialtyRequested]=Nutrición;role=Nutritionist,
+              [ICR_ConsultRequestSpecialtyRequested]=Odontología;role=Dentist,
+              [ICR_ConsultRequestSpecialtyRequested]=Psicología;role=Psychologist,
+              [ICR_ConsultRequestSpecialtyRequested]=Terapia física;role=Physical Therapy,
+              [ICR_ConsultRequestSpecialtyRequested]=Terapia ocupacional;role=Occupational Therapy,
+              [ICR_ConsultRequestSpecialtyRequested]=Terapia respiratoria;role=Respiratory Therapy,
+              [ICR_ConsultRequestSpecialtyRequested]=Terapia de lenguaje;role=Language Therapy" 
+            source="UserFirstMiddleLast,UserId"
+            searchable="true"/>
+        </row>
+        <row name="rowConsultEnteredBy" reveal="[ICR_PatientConsultGuid]!">
+          <control type="label" span="3" label="Introducido por"/>
+          <control type="text" name="ICR_EnteredByFullName" span="3" readonly="true"/>
+          <control type="label" span="2" label="Fecha y Hora"/>
+          <control type="datetime" span="3" name="ICR_DateTimeEntered" readonly="true" default="now"/>
+        </row>
+    </group>
+    <group name="grpRelatedECDs" reveal="[ICR_PatientConsultGuid]!">
+      <row>
+        <!-- ECD forms with new and view --> 
+        <control type="datagrid" label="Documentos" name="ServiceEcdForms"
+          span="12" rows="5" searchable="true"
+          action="redirect|url" 
+          target="ecd/index.html"
+          usesource="login"
+          append="ecdGuid=[[rowGuid]],patientid=[[PatientId]],patientvisit=[[PatientVisit]],ecdMode=review" 
+          datarequest="GetCompletedPatientFormsForPriorVisits"
+          appendrequest="patientId=[ICR_PatientId],mostRecent=true"
+          source="DateTimeEntered,RevisionId,Type,FormName,FullUserName,SignedByFullUserName"
+          sourcelabels="Fecha y Hora,Modificado,Tipo,Documento,Ingresado por,Firmado por"
+          align="left|left|left|left|left|left"
+          format="datetime|boolean"
+          translate="Type"
+          sort="DateTimeEntered=desc"
+          key="rowGuid">
+          <control type="button" name="btnServiceEcdFormsFromGrid" label="Añadir Nuevo" icon="hand-right"
+            onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+            reveal="[ICR_PatientId]!+[ICR_GetPatientVisit]!"
+            action="redirect|url" 
+            target="ecd/index.html" 
+            usesource="login"
+            mode="window"
+            append="patientid=[ICR_PatientId],patientvisit=[ICR_GetPatientVisit],orderGuid=[ICR_PatientConsultGuid]"
+            provoke="ServiceEcdForms"/>
+          <control type="button" name="btnRefreshEcdFormsFromGrid" label="Actualizar" icon="refresh"
+            action="trigger" provoke="ServiceEcdForms"/>
+        </control>
+      </row>
+    </group>
+    <group name="NewInternalConsultButtons" reveal="[ICR_PatientId]!">
+      <row>
+        <!-- Save and close new records -->
+        <control type="modalbutton" name="btnInternalSaveConsult" color="green" label="Continuar" icon="cloud-upload"
+          reveal="[ICR_PatientConsultGuid]="
+          action="save"
+          affector="ICR_PatientConsultGuid"
+          setaffector="ConsultRequestGuid"
+          acctsvc="true"
+          capture="grpInternalConsultInfo"
+          datainsert="InsertConsultRequests"
+          appendinsert="LocationId=(facilityData.LocationId),
+            ConsultType=Service,
+            PatientVisit=[PatientVisitGuid],
+            PatientId=[ICR_PatientId],
+            PatientFirstName=[ICR_PatientFirstName],
+            PatientMiddleName=[ICR_PatientMiddleName],
+            PatientLastName=[ICR_PatientLastName],
+            PatientDOB=[ICR_PatientDOB],
+            PatientSex=[ICR_PatientSex]"
+          provoke="InternalConsultList,btnOpenConnectedECD"/>
+         <!-- Assign consult request -->
+        <control type="modalbutton" name="btnAssignConsultRequest" color="green" label="Asignar" icon="cloud-upload"
+          reveal="[ICR_PatientConsultGuid]!+[ICR_ConsultRequestStatus]=Active"
+          action="save|close|new"
+          compare="[ICR_ConsultRequestAssignedToId]!|Por favor seleccione una tarea válida"
+          affector="none"
+          acctsvc="true"
+          confirm="Por favor confirme que desea asignar esta atención multidisciplinaria."
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[ICR_PatientConsultGuid],ConsultRequestStatus=Assigned,ConsultRequestAssignedToId=[ICR_ConsultRequestAssignedToId]"
+          provoke="InternalConsultList,dgrInternalConsultList"/>
+        <!-- Assign consult request appointment -->
+        <control type="modalbutton" name="btnScheduleConsultRequest" color="yellowgreen" 
+          label="Programar" icon="calendar"
+          reveal="[ICR_PatientConsultGuid]!+[ICR_ConsultRequestStatus]=Active|Assigned|Absent+[ConsultScheduledTimeGuid]="
+          preset="DefaultPatientId=[ICR_PatientId],DefaultOrderGuid=[ICR_PatientConsultGuid],DefaultOrderType=Interconsult"
+          action="redirect"
+          target="mdlConsultVisitCalendarAppointments"/>
+        <!-- Edit consult request appointment -->
+        <control type="modalbutton" name="btnEditConsultRequestAppointment" color="blue" 
+          label="Editar Cita" icon="calendar"
+          reveal="[ICR_PatientConsultGuid]!+[ICR_ConsultRequestStatus]=Active|Assigned|Absent+[ConsultScheduledTimeGuid]!"
+          preset="ConsultVisit_AppointmentGuid=[ConsultScheduledTimeGuid],DefaultOrderType=ServiceConsult"
+          trigger="ConsultVisit_AppointmentGuid"
+          action="redirect"
+          target="mdlConsultVisitAppointmentModal"/>
+        <!-- Absent consult request -->
+        <control type="modalbutton" name="btnAbsentConsultRequest" color="orange" label="Ausente" icon="cloud-upload"
+          reveal="[ICR_PatientConsultGuid]!+[ICR_ConsultRequestStatus]=Active|Assigned|Scheduled"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          confirm="Por favor confirme que desea ausente esta atención multidisciplinaria."
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[ICR_PatientConsultGuid],ConsultRequestStatus=Absent"
+          provoke="InternalConsultList,dgrInternalConsultList"/>
+        <!-- Complete consult request -->
+        <control type="modalbutton" name="btnCompleteConsultRequest" color="green" label="Completar" icon="cloud-upload"
+          reveal="[ICR_PatientConsultGuid]!+[ICR_ConsultRequestStatus]=Assigned|Scheduled"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          confirm="Por favor confirme que desea completar esta atención multidisciplinaria."
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[ICR_PatientConsultGuid],ConsultRequestStatus=Completed"
+          provoke="InternalConsultList,dgrInternalConsultList"/>
+        <!-- Cancel consult request -->
+        <control type="modalbutton" name="btnCancelConsultRequest" color="red" label="Cancelar" icon="remove"
+          reveal="[ICR_PatientConsultGuid]!+[ICR_ConsultRequestStatus]=Active|Assigned|Scheduled|Absent"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          confirm="Por favor confirme que desea cancelar esta atención multidisciplinaria."
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[ICR_PatientConsultGuid],ConsultRequestStatus=Canceled"
+          provoke="InternalConsultList,dgrInternalConsultList"/>
+        <!-- update an existing record -->
+        <control type="modalbutton" name="InternalUpdateAndCloseConsult" label="Actualizar" icon="cloud-upload"
+          reveal="[ICR_PatientConsultGuid]!+[ICR_ConsultRequestStatus]=Assigned|Scheduled"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          capture="grpInternalConsultInfo"
+          dataupdate="UpdateConsultRequests"
+          appendupdate="ConsultRequestGuid=[ICR_PatientConsultGuid]"
+          provoke="InternalConsultList,dgrInternalConsultList"/>
+        <control type="modalbutton" name="btnViewCompletedECD" span="2" label="Ver Documento" color="lightblue"
+          reveal="[ICR_CompletedRowGuid]!+[ICR_PatientConsultGuid]!"
+          action="redirect|url" 
+          filter="MostRecent=true"
+          target="ecd/index.html"
+          usesource="login"
+          append="ecdGuid=[ICR_CompletedRowGuid],patientid=[ICR_PatientId],patientvisit=[ICR_PatientVisit],ecdMode=review,department=[DepartmentGuidLookup]"/>
+        <control type="modalbutton" name="btnInsertCompletedECD" span="2" label="Ingresar Documento" color="green"
+          reveal="[ICR_CompletedRowGuid]=+[ICR_PatientConsultGuid]!"
+          action="trigger" 
+          provoke="btnOpenConnectedECD"/>
+      </row>
+    </group>
+  </section>
+  </partial>

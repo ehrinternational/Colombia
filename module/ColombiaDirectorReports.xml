@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Informes de Dirección" title="Informes de Dirección" type="onload" trigger="ReportList">
+<facet name="DefaultReportType" value="Director"/>
+<partial link="./Partial/Admin/PartialReportModalsAsTab.xml"/>
+</module>

@@ -1,0 +1,49 @@
+﻿ <partial>
+  <section type="tab" title="Solicitudes de Servicios" name="tabPhysicalTherapyWorklist" trigger="dgrInternalConsultList">
+    <group>
+      <row>
+        <control type="buttongroup" span="1" name="btgFilter" source="Todo,Mio" default="Todo"
+          provoke="dgrInternalConsultList"/>
+        <control type="select" span="2" name="selSpecialty" 
+          source="Análisis de marcha,Terapia física"
+          default="Terapia física"
+          provoke="dgrInternalConsultList"/>
+        <control type="buttongroup" span="5" name="btgRequestStatus" default="Active" mode="auto"
+            source="Active,Assigned,Scheduled,Absent,Completed,Canceled"
+            sourcelabels="Activo,Asignado,Programado,Ausente,Completado,Cancelado"
+            provoke="dgrInternalConsultList"/>
+        <control type="date" span="2" name="dteStartDate" default="now-7" 
+          trigger="dgrInternalConsultList"/>
+        <control type="date" span="2" name="dteEndDate" default="now" 
+          trigger="dgrInternalConsultList"/>
+      </row>
+      <row>
+        <!-- Internal Consult Requests for this patient-->
+        <control type="datagrid" label="Solicitudes de Servicios" name="dgrInternalConsultList" 
+          rows="15" cols="12" fitrows="true"
+          action="redirect"
+          filter="[btgFilter]=Mio;ConsultRequestAssignedToId=(userName)"
+          searchable="true"
+          target="mdlInternalConsultModal"
+          idle="[dteStartDate]=,[dteEndDate]="
+          acctsvcreq="true"
+          datarequest="GetConsultRequestsByCriteria"
+          appendrequest="ConsultType=Service,
+            Specialty=[selSpecialty],
+            Status=[btgRequestStatus],
+            StartDate=[dteStartDate],
+            EndDate=[dteEndDate]"
+          source="ConsultRequestDateTime,ConsultNumber,MedicalRecordNumber,PatientFullName,ConsultRequestSpecialtyRequested,CaseType,RequestingDepartmentName,ConsultReason"
+          sourcelabels="Solicitud,Folio,Expediente,Paciente,Departamento Solicitante,Tipo de Paciente,Departamento Solicitado,Nota"
+          align="|left|left|left|left|left|left|left"
+          format="datetime"
+          sort="ConsultRequestDateTime=desc"
+          translate="ConsultRequestStatus"
+          key="ConsultRequestGuid"
+          onselectset="ICR_PatientId=[[PatientId]],ICR_PatientConsultGuid=[[ConsultRequestGuid]]"
+          onselect="ICR_PatientId,ICR_PatientConsultGuid">
+        </control>
+        </row>
+      </group>
+    </section>
+</partial>

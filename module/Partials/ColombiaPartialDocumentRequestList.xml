@@ -1,0 +1,229 @@
+<partial>
+  <section type="tab" name="tabDocumentRequestList" title="Expedientes Físicos" trigger="MedicalRecordList">
+    <group>
+      <row>
+        <control type="buttongroup" name="RecordStatus" span="4" 
+          source="Active,Out,Returned,Canceled"
+          sourcelabels="Activo,Afuera,Devuelto,Cancelado"
+          default="Active"
+          provoke="MedicalRecordList"/>
+        <control type="date" name="MedRec_StartDate" default="now+1" span="2" trigger="MedicalRecordList"
+          reveal="[RecordStatus]=Active|Returned|Canceled"/>
+        <control type="date" name="MedRec_EndDate" default="now+1" span="2" trigger="MedicalRecordList"
+          reveal="[RecordStatus]=Active|Returned|Canceled"/>
+        <control type="button" name="btnBatchProcessReceiving"
+            reveal="[RecordStatus]=Active"
+            icon="qrcode" label="Entregado" span="2"
+            action="redirect" target="mdlBatchProcessReceiving"/>
+        <control type="button" name="btnBatchProcessReturns"
+            reveal="[RecordStatus]=Out"
+            icon="qrcode" label="Devueltos" span="2"
+            action="redirect" target="mdlBatchProcessReceiving2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="MedicalRecordList" label="Solicitudes de Expedientes Físicos" 
+          searchable="true"
+          action="redirect" 
+          target="mdlDocumentRequest"
+          span="12" rows="20"
+          rowcolor="Priority|1=green;2=yellow;3=red"
+          acctsvcreq="true"
+          datarequest="GetPatientDocumentRequest"
+          appendrequest="locationId=(facilityData.LocationId),[RecordStatus]=Active|Returned|Canceled;criteria=DateRange,[RecordStatus]=Out;criteria=status,status=[RecordStatus],[RecordStatus]=Active|Returned|Canceled;startDate=[MedRec_StartDate],[RecordStatus]=Active|Returned|Canceled;endDate=[MedRec_EndDate]"
+          source="DateTimeRequiredBy,DateTimeResponse,DateTimeReturned,DepartmentName,Reason,MedicalRecordNumber,PatientName,EnteredByFullName,Status"
+          sourcelabels="Solicitud,Afuera,Devuelto,Departamento,Calendario,Expediente,Paciente,Solicitante,Estatus"
+          align="|||left|left|left|left|left|left|left"
+          format="datetime|datetime|datetime"
+          sort="DateTimeRequiredBy=asc"
+          translate="Status"
+          key="DocumentRequestGuid"
+          onselectset="DocumentRequestGuid=[[DocumentRequestGuid]]"
+          onselect="DocumentRequestGuid">
+          <control type="button" name="btnNewPatientDocumentRequest"
+            icon="plus" label="Añadir Nuevo"
+            preset="PatientSearched=true,PatientSearchSource=50"
+            action="redirect" target="mdlFindPatients"/>
+          <control type="button" name="btnRefreshMedicalRecordList"
+            icon="refresh" label="Actualizar"
+            action="trigger" provoke="MedicalRecordList"/>
+          </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="NewMedDocumentPatient"
+            action="redirect" target="mdlDocumentRequest"
+            preset="DocumentPatientId=[PatientSearchResults]"
+            trigger="DocumentPatientId"/>
+        </row>
+      </group>
+  </section>
+  <!-- Batch process documents taken out -->
+  <section type="tabmodal" name="mdlBatchProcessReceiving" title="Escanear Expedientes Físicos" badge="none" size="medium" provoke="MedicalRecordList">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="UserVerified" default="false"/>
+        <control type="hidden" name="ReceivingScanText" mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+        <control type="hidden" name="ReceivingDocument"/>
+        <control type="hidden" name="SetManualPatient"/>
+        <control type="button" name="btnReceivingDocument"
+          target="BatchProcessList"
+          action="batchsetall|norefresh"
+          set="[[PatientId]]=[ReceivingScanText];[[Selected]]=true"
+          signify="[[anyset]]=True;ok-sign|green^remove-sign|red"/>
+        <control type="button" name="btnSetManualPatient"
+          target="BatchProcessList"
+          action="batchsetall"
+          set="[[PatientId]]=[SetManualPatient];[[Selected]]=true"
+          signify="[[anyset]]=True;ok-sign|green^remove-sign|red"/>
+        <control type="button" name="btnUnsetManualPatient"
+          target="BatchProcessList"
+          action="batchsetall"
+          set="[[PatientId]]=[SetManualPatient];[[Selected]]=false"
+          signify="[[anyset]]=True;ok-sign|green^remove-sign|red"/>
+      </row>
+      <row>
+        <control type="label" label="Recibido" span="1"/>
+        <control type="select" name="UserReceivingCharts" span="3" 
+          edit="[UserVerified]=false"
+          acctsvc="true" searchable="true"
+          datasource="GetUsersByAttributes"
+          append="LocationId=(facilityData.LocationId),Role=Social Worker|Nurse|Physician|Outpatient Nurse|Outpatient Physician|Admin Assistant|Therapy|Respiratory Therapy|Inhalation Therapist|Occupational Therapy|Physical therapy|Clinical Research|Psychologist|Nurse Supervisor|Outpatient Physician|Hospital Doctor"
+          source="UserFirstMiddleLast,UserId"/>
+        <control type="label" label="NIP" span="1"/>
+        <control type="password" name="ReceivingUserPIN" span="1" edit="[UserVerified]=false"/>
+        <control type="label" label="Seleccionado" span="1"/>
+        <control type="calc" name="clcSelectedTotal" source="1*SelectedTotal" span="1"/>
+        <control type="label" label="Abierto" span="1"/>
+        <control type="calc" name="clcOpenTotal" source="Length(BatchProcessList)-SelectedTotal" span="1"/>
+        <control type="label" label="Total" span="1"/>
+        <control type="calc" name="clcDocumentTotal" source="Length(BatchProcessList)" span="1"/>
+      </row>
+      <row>
+       <control type="modalbutton" name="btnScanReceivingDocument" 
+          reveal="[UserVerified]=false"
+          action="trigger" color="green" icon="qrcode" label="Escanear"
+          confirmrequest="VerifyThisUsersPin"
+          appendconfirm="pin=[ReceivingUserPIN],userIdToVerify=[UserReceivingCharts]"
+          confirmresponse="value=Correct Pin|Este NIP no es válido!"
+          set="UserVerified=true"
+          provoke="BatchProcessList,btnStartReceivingScan"/>
+      </row>
+      <row>
+        <control type="datagrid" name="BatchProcessList" label="Solicitudes de Expedientes Físicos"
+          reveal="[UserVerified]=true"
+          searchable="true" mode="batch"
+          skipbatchrow="[Selected]=true" 
+          postwith="DocumentRequestGuid"
+          appendbatch="Status=Out,ReceivedBy=[UserReceivingCharts],DateTimeResponse=(now)"
+          span="12" rows="20"
+          acctsvcreq="true"
+          datarequest="GetPatientDocumentRequest"
+          appendrequest="locationId=(facilityData.LocationId),criteria=DateRange,status=Active,startDate=[MedRec_StartDate],endDate=[MedRec_EndDate]"
+          source="Selected,DateTimeRequiredBy,DepartmentName,Reason,MedicalRecordNumber,PatientName"
+          sourcelabels="Escaneado,Solicitud,Departamento,Motivo,Expediente,Paciente"
+          align="||left|left|left|left"
+          format="boolean|datetime"
+          total="+"
+          sort="Selected=asc"
+          key="DocumentRequestGuid"
+          onselectset="SetManualPatient=[[PatientId]]"
+          onselect="[[Selected]]=true;btnUnsetManualPatient^btnSetManualPatient">
+          <control type="button" name="btnUpdateBatch" icon="cloud-upload" label="Procesar Solicitudes"
+            action="batchupdate|close|new"
+            confirm="Por favor, confirme que desea procesar estas solicitudes de documentos."
+            capture="BatchProcessList"
+            dataupdate="PatientDocumentRequest"/>
+          <control type="button" name="btnStartReceivingScan" action="scan" mode="multiple"
+            label="Escanear" icon="qrcode" 
+            inject="value=[ReceivingScanText]"
+            onclosetrigger="BatchProcessList|static"
+            provoke="[ReceivingScanText]!;btnReceivingDocument"/>
+        </control>
+      </row>
+    </group>
+  </section>
+  <!-- Batch process documents returned -->
+  <section type="tabmodal" name="mdlBatchProcessReceiving2" title="Devuelto Expedientes Físicos" badge="none" size="medium" provoke="MedicalRecordList">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="UserVerified2" default="false"/>
+        <control type="hidden" name="ReceivingScanText2" mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
+        <control type="hidden" name="ReceivingDocument2"/>
+        <control type="hidden" name="SetManualPatient2"/>
+        <control type="button" name="btnReceivingDocument2"
+          target="BatchProcessList2"
+          action="batchsetall|norefresh"
+          set="[[PatientId]]=[ReceivingScanText2];[[Selected2]]=true"
+          signify="[[anyset]]=True;ok-sign|green^remove-sign|red"/>
+        <control type="button" name="btnSetManualPatient2"
+          target="BatchProcessList2"
+          action="batchsetall"
+          set="[[PatientId]]=[SetManualPatient2];[[Selected2]]=true"
+          signify="[[anyset]]=True;ok-sign|green^remove-sign|red"/>
+        <control type="button" name="btnUnsetManualPatient2"
+          target="BatchProcessList2"
+          action="batchsetall"
+          set="[[PatientId]]=[SetManualPatient2];[[Selected2]]=false"
+          signify="[[anyset]]=True;ok-sign|green^remove-sign|red"/>
+      </row>
+      <row>
+        <control type="label" label="Recibido" span="1"/>
+        <control type="select" name="UserReceivingCharts2" span="3" 
+          edit="[UserVerified2]=false"
+          acctsvc="true" searchable="true"
+          datasource="GetUsersByAttributes"
+          append="LocationId=(facilityData.LocationId),Role=Social Worker|Nurse|Physician|Outpatient Nurse|Outpatient Physician|Admin Assistant|Therapy|Respiratory Therapy|Inhalation Therapist|Occupational Therapy|Physical therapy|Clinical Research|Psychologist|Nurse Supervisor|Outpatient Physician|Hospital Doctor"
+          source="UserFirstMiddleLast,UserId"/>
+        <control type="label" label="NIP" span="1"/>
+        <control type="password" name="ReceivingUserPIN2" span="1" edit="[UserVerified2]=false"/>
+         <control type="label" label="Seleccionado" span="1"/>
+        <control type="calc" name="clcSelected2Total" source="1*Selected2Total" span="1"/>
+        <control type="label" label="Abierto" span="1"/>
+        <control type="calc" name="clcOpen2Total" source="Length(BatchProcessList2)-Selected2Total" span="1"/>
+        <control type="label" label="Total" span="1"/>
+        <control type="calc" name="clcDocument2Total" source="Length(BatchProcessList2)" span="1"/>
+      </row>
+      <row>
+       <control type="modalbutton" name="btnScanReceivingDocument2" 
+          reveal="[UserVerified2]=false"
+          action="trigger" color="green" icon="qrcode" label="Escanear"
+          confirmrequest="VerifyThisUsersPin"
+          appendconfirm="pin=[ReceivingUserPIN2],userIdToVerify=[UserReceivingCharts2]"
+          confirmresponse="value=Correct Pin|Este NIP no es válido!"
+          set="UserVerified2=true"
+          provoke="BatchProcessList2,btnStartReceivingScan2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="BatchProcessList2" label="Devuelto Solicitudes de Expedientes Físicos"
+          reveal="[UserVerified2]=true"
+          searchable="true" mode="batch"
+          skipbatchrow="[Selected2]=true" 
+          postwith="DocumentRequestGuid"
+          appendbatch="Status=Returned,ReturnedBy=[UserReceivingCharts2],DateTimeReturned=(now)"
+          span="12" rows="20"
+          acctsvcreq="true"
+          datarequest="GetPatientDocumentRequest"
+          appendrequest="locationId=(facilityData.LocationId),[ScanProcess]=Out;criteria=DateRange^criteria=Status,[ScanProcess]=Out;status=Active^status=Out,[ScanProcess]=Out;startDate=[MedRec_StartDate],[ScanProcess]=Out;endDate=[MedRec_EndDate]"
+          source="Selected2,DateTimeRequiredBy,DepartmentName,Reason,MedicalRecordNumber,PatientName"
+          sourcelabels="Escaneado,Solicitud,Departamento,Motivo,Expediente,Paciente"
+          align="||left|left|left|left"
+          format="boolean|datetime"
+          total="+"
+          sort="Selected2=asc"
+          key="DocumentRequestGuid"
+          onselectset="SetManualPatient2=[[PatientId]]"
+          onselect="[[Selected2]]=true;btnUnsetManualPatient2^btnSetManualPatient2">
+          <control type="button" name="btnUpdateBatch2" icon="cloud-upload" label="Procesar Solicitudes"
+            action="batchupdate|close|new"
+            confirm="Por favor, confirme que desea procesar estas solicitudes de documentos."
+            capture="BatchProcessList2"
+            dataupdate="PatientDocumentRequest"/>
+          <control type="button" name="btnStartReceivingScan2" action="scan" mode="multiple"
+            label="Escanear" icon="qrcode" 
+            inject="value=[ReceivingScanText2]"
+            onclosetrigger="BatchProcessList2|static"
+            provoke="[ReceivingScanText2]!;btnReceivingDocument2"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

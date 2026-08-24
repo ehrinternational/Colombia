@@ -1,0 +1,349 @@
+<partial>
+  <!-- Tabmodal for maintenance work orders -->
+	<section type="tabmodal" badge="none" name="mdlMaintenanceWorkOrder" title="Orden de Trabajo">
+		<group showif="never">
+			<row>
+				<control type="hidden" name="NewBuidlingStatus"/>
+				<control type="hidden" name="Mtn_WorkOrderGuid"
+					acctsvcreq="true"
+					datarequest="GetMedicalDeviceWorkOrdersByCompletedMaintenanceGuid"
+					appendrequest="CompletedMaintenanceGuid=[Mtn_WorkOrderGuid]"
+					inject="grpBuildingWorkOrderInfo"
+					provoke="ButtonGroupSelectBuilding"/>
+				<control type="button" name="btnUpdateBuildingOrderForPrint"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpBuildingWorkOrderInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[Mtn_WorkOrderGuid]"
+					provoke="grdMaintenanceWorkOrders,btnPrintBuidlingWorkOrder"/>
+				<control type="button" name="btnPrintBuidlingWorkOrder"
+					action="print" 
+					mode="report" 
+					append="id=8b286da0ada,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),UserName=(userName),Parameter1=[Mtn_WorkOrderGuid],CurrentDateTime=(dateTimeNow)"/>
+				<control type="button" name="btnSaveNewBuildingStatus"
+					action="save"
+					acctsvc="true"
+					affector="none"
+					capture="grpBuildingWorkOrderInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[Mtn_WorkOrderGuid],"
+					provoke="btnUpdateNewBuildingStatus"/>
+				<control type="button" name="btnUpdateNewBuildingStatus"
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[Mtn_WorkOrderGuid],Status=[NewBuidlingStatus]"
+					provoke="grdMaintenanceWorkOrders"/>
+			</row>
+		</group>
+		<group name="grpBuildingWorkOrderInfo">
+			<row>
+				<control type="label" label="Orden" span="2"/>
+				<control type="text" name="Mtn_OrderNumber" span="1" readonly="true"/>
+				<control type="label" label="Estatus" span="2"/>
+				<control type="select" name="Mtn_Status" span="2"
+					source="Requested,Scheduled,Completed,Canceled"
+					sourcelabels="Requerido,Programado,Completado,Cancelado"
+					default="Requested" edit="true"/>
+				<control type="buttongroup" name="Mtn_ByVendor" span="3"
+					source="True,False" sourcelabels="Proveedor,Interno" default="False" edit="true" required="true"/>
+				<control type="button" name="btnSaveWorkOrder"
+					span="2" color="green" label="Guardar"
+					reveal="[Mtn_WorkOrderGuid]="
+					icon="cloud-upload" action="save"
+					acctsvc="true"
+					affector="Mtn_WorkOrderGuid"
+					setaffector="CompletedMaintenanceGuid"
+					capture="grpBuildingWorkOrderInfo"
+					datainsert="InsertMedicalDeviceWorkOrders"
+					appendinsert="Category=Building"
+					provoke="ButtonGroupSelectBuilding"/>
+				<control type="button" name="btnUpdateBuildingWorkOrder"
+					reveal="[Mtn_WorkOrderGuid]!"
+					span="2" label="Actualizar"
+					icon="cloud-upload" 
+					action="save|close|new"
+					acctsvc="true"
+					affector="none"
+					capture="grpBuildingWorkOrderInfo"
+					dataupdate="UpdateMedicalDeviceWorkOrders"
+					appendupdate="CompletedMaintenanceGuid=[Mtn_WorkOrderGuid],Category=Building"
+					provoke="ButtonGroupSelectBuilding"/>
+			</row>
+			<row>
+				<control type="label" label="Tipo" span="2"/>
+				<control type="select" name="Mtn_OrderType" span="3"
+					source="Maintenance,Repair,Inspection,Certification,Replacement"
+					sourcelabels="Mantenimiento,Reparar,Inspección,Certificación,Reemplazo" 
+					edit="true" required="true" default="Maintenance"/>
+				<control type="label" label="Prioridad" span="2"/>
+				<control type="select" name="Mtn_Priority" span="3"
+					source="Normal,High,Emergency" default="Normal"
+					sourcelabels="Baja,Media,Alta" edit="true" required="true"/>
+				<control type="button"
+					reveal="[Mtn_WorkOrderGuid]!"
+					name="btnTriggerPrintBuildingWorkOrder"
+					span="2" label="Imprimir" icon="print"
+					action="trigger"
+					trigger="btnUpdateBuildingOrderForPrint"/>
+			</row>
+			<row>
+				<control type="label" label="Departamento" span="2"/>
+				<control type="select" span="3" name="Mtn_DepartmentGuid"
+          acctsvc="true"
+          explicit="true" edit="true" required="true"
+          datasource="GetDepartmentsActive" 
+          source="DepartmentName,DepartmentGuid"
+					append="LocationId=(facilityData.LocationId)"
+					provoke="Mtn_RoomGuid,Mtn_DepartmentService,Mtn_DeviceGuid"/>
+				<control type="label" label="Servicio" span="2"/>
+				<control type="select" name="Mtn_DepartmentService"
+            span="3" acctsvc="true" explicit="true" edit="true"
+            filter="Active=true,DepartmentGuid=[Mtn_DepartmentGuid]"
+            acctsvcreq="true"
+            datarequest="GetDepartmentServices" 
+            source="ServiceName,DepartmentServicesGuid"/>
+			</row>
+			<!-- Select the medical device to be worked on -->
+			<row>
+				<control type="label" label="Equipo" span="2"/>
+				<!-- Select the building device to work on -->
+				<control type="select" name="Mtn_DeviceGuid" span="8"
+					searchable="true" 
+					filter="Active=true" explicit="true"
+					datarequest="GetMedicalDeviceItems"
+					appendrequest="LocationId=(facilityData.LocationId),Category=Building,DepartmentGuid=[Mtn_DepartmentGuid]"
+					source="DeviceCode|DeviceDescription,DeviceGuid" 
+					edit="true" required="true"/>
+				<control type="button" name="btnCompleteBuildingWorkOrder"
+					reveal="[Mtn_WorkOrderGuid]!"
+					label="Completar" icon="calendar" span="2" color="orange"
+					preset="NewBuidlingStatus=Completed"
+					action="trigger" trigger="btnSaveNewBuildingStatus"/>
+			</row>
+			<row>
+				<control type="label" label="Subsistema" span="2"/>
+				<control type="text" name="Mtn_Subsystem" span="8" edit="true" />
+				<control type="button" name="btnCancelBuildingWorkOrder"
+					reveal="[Mtn_WorkOrderGuid]!"
+					label="Cancelar" icon="remove" span="2" color="red"
+					preset="NewBuidlingStatus=Canceled"
+					action="trigger" trigger="btnSaveNewBuildingStatus"/>
+			</row>
+			<row>
+				<control type="label" label="Habitación" span="2"/>
+				<control type="select" name="Mtn_RoomGuid" span="3" edit="true"
+					acctsvcreq="true"
+					explicit="true"
+					datarequest="GetFacilityPatientRoomsAndBedsByDepartmentGuid"
+					appendrequest="departmentGuid=[Mtn_DepartmentGuid]"
+					source="RoomAndBedNumber,RoomGuid"/>
+			</row>
+			<row>
+				<control type="label" label="Descripción" span="2"/>
+				<control type="text" name="Mtn_Description" span="8" edit="true" required="true"/>
+				<control type="button" name="btnRepeatBuildingWorkOrder"
+					reveal="[Mtn_WorkOrderGuid]!"
+					label="Repetir" icon="calendar" span="2"
+					action="redirect" target="mdlRepeatBuildingWorkOrder"/>
+			</row>
+			<row>
+				<control type="label" label="Programada" span="2"/>
+				<control type="datetime" name="Mtn_ScheduledDateTime" span="3" edit="true" required="true"/>
+				<control type="label" label="Completado" span="2"/>
+				<control type="datetime" name="Mtn_DateTimeCompleted" span="3" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Asignado a" span="2"/>
+				<control type="select" name="Mtn_AssignedTo"
+					span="3" edit="true"
+					acctsvc="true"
+					datasource="GetUsersByAttributes"
+					append="LocationId=(facilityData.LocationId),
+						role=Maintenance Engineer|Maintenance Manager"
+					source="FullName,UserId"/>
+				<control type="label" label="Proveedor" span="2"/>
+				<control type="select" span="3" name="Mtn_Provider"
+          searchable="true"
+					acctsvc="true"
+          source="VendorName,VendorGuid"
+          datasource="GetVendors" edit="true"/>
+			</row>
+			<row>
+				<control type="label" label="Instrucciones" span="2"/>
+				<control type="textarea" name="Mtn_Notes" span="8" rows="1" edit="true" />
+			</row>
+			<row>
+				<control type="label" label="Notas Completadas" span="2"/>
+				<control type="textarea" name="Mtn_CompletedNotes" span="8" rows="1" edit="true" />
+			</row>
+		</group>
+
+		<!-- Scanned documents attached to maintenance record -->
+		<group name="grpBuildingWorkOrderDocuments" reveal="[Mtn_WorkOrderGuid]!">
+			 <row>
+        <control type="buttongroup" name="ButtonGroupSelectBuilding" 
+          edit="true" mode="auto" span="12"
+          source="Materials,Documents,Purchases,Stock" 
+          sourcelabels="Materiales,Documentos,Compras,Requisicións de Stock" 
+          default="Materials"  
+          provoke="GridOptionsBuilding|options"/>
+      </row>
+      <row>
+        <control type="options" name="GridOptionsBuilding" affector="ButtonGroupSelectBuilding" span="12">
+					<control type="datagrid" label="Materiales de la Orden de Trabajo" name="grdBuildingWorkOrderItems"
+							option="Materials"
+							rows="5"
+							action="redirect" 
+							target="mdlWorkOrderItems"
+							acctsvcreq="true"
+							searchable="true"
+							datarequest="GetMedicalDeviceMaintenanceItems"
+							appendrequest="maintenanceGuid=[Mtn_WorkOrderGuid]"
+							source="Active,ItemName,ItemDescription,Notes,Quantity"
+							sourcelabels="Activo,Artículo,Descripción,Notas,Cantidad" 
+							align="|left|left|right|left"
+							format="boolean||||0.00"
+							key="MaintenanceItemGuid"
+							onselectset="WorkOrderItemGuid=[[MaintenanceItemGuid]]"
+							onselect="WorkOrderItemGuid">
+						<!-- Add a new POItem -->
+						<control type="button"
+							name="btnNewBuildingWorkOrderItem"
+							label="Añadir Nuevo"
+							icon="plus"
+							action="redirect"
+							preset=""
+							target="mdlWorkOrderItems"/>
+					</control>
+					<control type="datagrid" label="Documentos de la Orden de Trabajo" 
+							name="grdBuildingWorkOrderDocuments"
+							option="Documents"
+							rows="5"
+							acctsvcreq="true"
+							filter="Status=Active"
+							datarequest="GetImagingOrderFilesByImagingOrderGuid"
+							appendrequest="ImagingOrderGuid=[Mtn_WorkOrderGuid]"
+							source="DateEntered,Category,Type,FileName,EnteredByFullName,"
+							sourcelabels="Fecha y Hora,Categoría,Tipo,Documento,Entregado"
+							translate="FileType"
+							align="left|left|left|left|left"
+							format="datetime"
+							sort="DateTimeEntered=desc"
+							key="PhotoGuid"
+							action="redirect|url"
+							target="printables/uploadviewer.html"
+							usesource="login"
+							append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+						<!-- Feature button to remove scanned document -->
+							<control type="button" name="btnRemoveBuildingScannedDocument"
+								showif="feature" icon="remove" label="Eliminar" color="red"
+								confirm="confirme que desea eliminar este documento."
+								action="save"
+								acctsvc="true"
+								dataupdate="UpdatePatientImages"
+								appendupdate="photoGuid=[[PhotoGuid]],status=Canceled"
+								provoke="grdBuildingWorkOrderDocuments"/>
+						<!-- Upload scanned documents -->
+							<control type="button"
+								name="btnBuildingWorkOrderScanDocuments"
+								label="Subir Documentos"
+								icon="folder-open"
+								append="LabOrderId=[Mtn_WorkOrderGuid]"
+								action="upload"
+								filter="pdf,jpg,jpeg,png"
+								provoke="grdBuidingWorkOrderDocuments"/>
+					</control>
+					<control type="datagrid" label="Requisicións de Stock de la Orden de Trabajo" name="BuildingStockRequests"
+						option="Stock"
+						rows="5"
+						acctsvcreq="true"
+						action="redirect"
+						target="mdlGenericStockRequest"
+						searchable="true"
+						datarequest="GetInventoryTransferListBySurgeryGuid"
+						appendrequest="SurgeryGuid=[Mtn_WorkOrderGuid]"
+						source="DateTimeEntered,TransferNumber,FromLocationName,Description,Notes,Status"
+						sourcelabels="Creado,Folio,Desde Ubicación,Descripción,Notas,Estatus"
+						align="|Left|Left|left|left|left"
+						format="datetime"
+						translate="Status"
+						sort="DateTimeEntered=desc"
+						key="TransferGuid" 
+						onselectset="StockRequestGuid=[[TransferGuid]],FromLocationDisplayName=[[FromLocationName]],ToLocationDisplayName=[[ToLocationName]]"
+						onselect="StockRequestGuid">
+						<!-- Refresh the transfer list -->
+						<control type="button" name="btnRefreshBuildingStockRequests"
+							icon="refresh" label="Actualizar"
+							action="trigger" trigger="BuildingStockRequests"/>
+						<!-- Display the transfer modal -->
+						<control type="button" name="btnNewBuildingStockRequest" 
+							reveal="[Mtn_WorkOrderGuid]!"
+							label="Añadir Nuevo"
+							icon="plus"
+							action="redirect"
+							preset="StkReq_SurgeryGuid=[Mtn_WorkOrderGuid],StkReq_Status=Requested"
+							target="mdlGenericStockRequest"/>
+					</control>
+					<control type="datagrid" label="Compras de la Orden de Trabajo" name="BuildingPurchaseOrders"
+						option="Purchases"
+						rows="5"
+						action="redirect"
+						target="mdlGenericPurchaseOrderRequest"
+						acctsvcreq="true"
+						datarequest="GetPurchaseOrderByStatus"
+						appendrequest="surgeryGuid=[Mtn_WorkOrderGuid]"
+						source="Status,PODate,DeliveryDate,PONumber,DepartmentName,VendorName,Description"
+						sourcelabels="Estatus,Fecha,Entrega,Número,Departamento,Proveedor,Descripción"
+						align="|left|left|left|left|left|left"
+						format="|date|date"
+						translate="Status"
+						key="POGuid"
+						onselectset="PurchaseOrderGuid=[[POGuid]]"
+						onselect="PurchaseOrderGuid">
+					<control type="button" name="btnBuildingPO"
+						icon="plus" label="Añadir Nuevo"
+						preset="POInfo_SurgeryGuid=[Mtn_WorkOrderGuid],POInfo_Status=Draft"
+						action="redirect" target="mdlGenericPurchaseOrderRequest"/>
+					</control>
+				</control>
+			</row>
+		</group>
+	</section>
+
+	<!-- Tabmodal to repeat work orders -->
+	<section type="tabmodal" name="mdlRepeatBuildingWorkOrder" title="Repetir Orden de Trabajo" badge="none" size="small">
+		<group name="grpRepeatBuildingOrderInfo">
+			<row>
+				<control type="label" label="Repetir" span="4"/>
+				<control type="integer" name="Mtn_CycleCount" span="1" min="0" max="365" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Ciclo" span="4"/>
+				<control type="select" name="Mtn_CycleType" span="3" edit="true"
+				source="Weeks,Days" sourcelabels="Semanas,Días" default="Weeks" required="true"/>
+			</row>
+			<row>
+				<control type="label" label="Hasta" span="4"/>
+				<control type="date" name="Mtn_CycleUntil" span="3" edit="true" required="true"/>
+			</row>
+			<row>
+				<control type="modalbutton" name="btnSaveBuildingWorkOrderRepeat"
+					icon="cloud-upload" label="Guardar" color="green"
+					action="save|close|new"
+					capture="grpRepeatBuildingOrderInfo"
+					affector="none"
+					confirm="Confirme que desea repetir esta orden de trabajo hasta la fecha seleccionada."
+					acctsvc="true"
+					dataupdate="RepeatMedicalDeviceWorkOrders"
+					appendupdate="WorkOrderGuid=[Mtn_WorkOrderGuid]"
+					provoke="grdMaintenanceWorkOrders"/>
+			</row>
+		</group>
+	</section>
+	<partial link="./Partial/Modals/PartialGenericStockRequestModal.xml"/>
+  <partial link="./Partial/Modals/PartialGenericPurchaseOrderRequestsModal.xml"/>
+</partial>

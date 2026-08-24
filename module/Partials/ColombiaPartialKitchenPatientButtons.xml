@@ -1,0 +1,10 @@
+<partial>
+    <row>
+      <control type="button" name="btnKitchenReports"
+        span="12"
+        icon="print" label="Informes"
+        preset="Report_PatientId=[PatientId],Report_Type=Kitchen"
+        trigger="ReportList"
+        action="redirect" target="mdlReports"/>
+    </row>
+</partial>

@@ -1,0 +1,361 @@
+﻿<partial>
+<!-- Colombia Partial Calendar Lab Appointment Modal -->
+	<section type="tabmodal" badge="none" name="mdlLabAppointment" title="Cita de Laboratorio">
+		<template name="tmpLabAppointment">
+			${(facilityData.HospitalName)}, le recuerda su próxima cita[br]
+			Registro: ${[LabApt_MedicalRecordNumber]}[br]
+			Fecha y Hora: [span format=datetime]${[LabApt_Start]}[/span][br]
+			Clinica: ${[LabApt_CalendarName]}[br]
+			Tu cita requiere una validación, responde con el número según corresponda:[br]
+			1. Confirmar[br]
+			2. Cancelar[br]
+			3. Reprogramar[br]
+			4. Ayuda[br]
+			5. Contacto Incorrecto[br]
+			Ninguno de nuestros servicios tiene costo para ti. Su respuesta es requerida, gracias.
+		</template>
+		<group showif="never">
+      <row>
+				<control type="hidden" name="LabApt_Source" persist="true"/>
+        <!-- Get the appointment information from the appointment record (existing appointment) -->
+        <control type="hidden" name="LabApt_AppointmentGuid"
+          datarequest="GetSchedulerAppointmentsByAppointmentGuid"
+          appendrequest="AppointmentGuid=[LabApt_AppointmentGuid]"
+          inject="LabApt_AppointmentInfo"
+					set="LabApt_PatientId=[[PatientId]]"
+          provoke="LabApt_PatientId"/>
+      </row>
+			<row>
+        <!-- Get the patient information and insert into the form -->
+				<control type="hidden" name="LabApt_PatientId"
+					datarequest="GetPatientAllFields"
+					appendrequest="PatientId=[LabApt_PatientId]"
+					inject="LabApt_PatientInfo"
+					set="DefaultPatientId="/>
+	  	</row>
+			<!-- Process return from search -->
+			<row>
+        <control type="hidden" name="NewLabAptSearch"
+					action="trigger"
+					set="LabApt_PatientId=[PatientSearchResults]"
+					provoke="LabApt_PatientId"/>
+      </row>
+		</group>
+		<group name="LabApt_PatientInfo">	
+			<columns>
+				<column span="10">
+					<row>
+						<control type="label" label="Nombre/Expediente" span="4" align="left"/>
+						<control type="label" label="Apellido Paterno" span="4" align="left"/>
+						<control type="label" label="Apellido Materno" span="4" align="left"/>
+					</row>
+					<row>
+						<control type="text" name="LabApt_PatientFirstName" span="4" edit="[LabApt_PatientId]="
+							action="trigger" trigger="btnNewAptPatientSearchV2" required="true"/>
+						<control type="text" name="LabApt_PatientMiddleName" span="4" edit="[LabApt_PatientId]="
+							action="trigger" trigger="btnNewAptPatientSearchV2" required="true"/>
+						<control type="text" name="LabApt_PatientLastName" span="4" edit="[LabApt_PatientId]="
+							action="trigger" trigger="btnNewAptPatientSearchV2"/> 
+				</row>
+				<row>
+					<control type="label" label="Expediente" span="2"/>
+					<control type="text" name="LabApt_MedicalRecordNumber" span="2" readonly="true"/>
+					<control type="label" label="Nacimiento" span="2"/>
+					<control type="date" name="LabApt_PatientDOB" span="3" edit="[LabApt_PatientId]=" required="true"/>
+					<control type="label" label="Sexo" span="1" />
+					<control type="select" name="LabApt_PatientSex" span="2" edit="[LabApt_PatientId]=" 
+						source="Male,Female" sourcelabels="Masculino,Femenino" required="true"/>
+				</row>
+				<row>
+					<control type="label" label="Celular" span="2" />
+					<control type="text" name="LabApt__PatientCellPhoneNumber" span="3" edit="[LabApt_PatientId]="/>
+					<control type="label" label="email" span="1"/>
+					<control type="text" name="LabApt_PatientEmail" span="6" edit="[LabApt_PatientId]="/>
+				</row>
+			</column>
+			<column span="2">
+				<row name="rowNewAptLabPatientPhoto" reveal="[LabApt_PatientId]!+[LabApt_ProfilePhoto]!">
+						<!--Patient photo-->
+						<control type="image"
+							format="jpg=circle" 
+							name="LabApt_ProfilePhoto"
+							span="12" />
+				</row>
+				<row>
+					<control type="button" name="btnNewLabPatientSearch"
+							label="Buscar" span="12" icon="search" color="grey"
+							reveal="[LabApt_PatientId]="
+							preset="PatientSearched=true,
+								PatientSearchSource=22,
+								Search_PatientFirstName=[LabApt_PatientFirstName],
+								Search_PatientMiddleName=[LabApt_PatientMiddleName],
+								Search_PatientLastName=[LabApt_PatientLastName]"
+							trigger="Search_FindPatient"
+							action="redirect" target="mdlFindPatients"/>
+				</row>
+			</column>
+		</columns>
+	</group>
+	<group name="LabApt_AppointmentInfo">
+		<columns>
+			<column span="10">
+				<row>
+					<control type="hidden" name="LabApt_OrderGuid"/>
+					<control type="hidden" name="LabApt_OrderId"/>
+					<control type="hidden" name="LabApt_OrderType"/>
+				</row>
+				<row>
+					<!-- Select the calendar for the appointment (editable directly only for extraordinary appointments) -->
+					<!-- (Other appointmens are scheduled by selecting a time from a calndar view.) -->
+					<control type="label" label="Calendario" span="2" />
+					<control type="select" name="LabApt_AppointmentTypeGuid"
+						namefield="LabApt_CalendarName"
+						explicit="true" span="4" readonly="true"
+						datasource="GetSchedulerAppointmentTypesByFacility" 
+						append="LocationId=(facilityData.LocationId)" 
+						source="CalendarName,CalendarGuid" 
+						provoke="LabApt_Service"/>
+					<control type="label" label="Departamento" span="2"/>
+					<control type="select" name="LabApt_DepartmentGuid" span="4"
+						namefield="LabApt_DepartmentName"
+						edit="[LabApt_Status]=Scheduled|Confirmed|Reschedule"
+            acctsvc="true" required="true" explicit="true"
+            datasource="GetDepartmentsActive" 
+						append="LocationId=(facilityData.LocationId)" 
+            source="DepartmentName,DepartmentGuid"/>
+				</row>
+				<row>
+					<!-- The datetime of the appointment (editable directly only for extraordinary appointments) -->
+					<control type="label" label="Programado" span="2" />
+					<control type="datetime" name="LabApt_Start" 
+						span="4" edit="true" required="true" when="«01:00;08:00"/>
+					<control type="label" label="Duración" badge="min" span="3" persist="true"/>
+					<control type="integer" name="LabApt_Duration" when="=1440;15" span="2" edit="true" required="true"/>
+				</row>
+					<row>
+						<control type="label" label="Estatus" span="2"/>
+						<control type="select" name="LabApt_Status" span="3"
+							source="Scheduled,Confirmed,No Show,Completed,Canceled,Reschedule"
+							sourcelabels="Agendada,Confirmada,No Asistio,Completa,Cancelado,Reprograma"
+							edit="(user.UserRoles)%SysAdmin" default="Scheduled"/>
+						<control type="label" label="Tipo de Atención" span="3"/>
+						<control type="select" name="LabApt_AdmitType" span="4" 
+							sort="AdmissionType=asc"
+							datasource="GetLookupAdmissionTypesActive" 
+							source="AdmissionType,AdmissionTypeGuid" 
+							required="true" 
+							explicit="true"
+							edit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Servicio" span="2"/>
+						<control type="select" name="LabApt_CaseType" span="4"
+							acctsvc="true" required="true"
+							datasource="GetCaseTypesActive" 
+							source="CaseTypeName,CaseTypeGuid" 
+							edit="[LabApt_Status]=Scheduled|Confirmed|Reschedule"/>
+						<control type="label" label="Atención" span="2"/>
+						<control type="select" name="LabApt_Service" 
+							namefield="LabApt_ServiceName"
+							explicit="true" span="4" required="true"
+							datarequest="GetSchedulerServicesByFacility"
+							appendrequest="CalendarGuid=[LabApt_AppointmentTypeGuid]"
+							append="status=Active" 
+							source="ServiceDescription,ServiceGuid" 
+							set="[LabApt_Service]!;LabApt_Duration=[[DefaultDurationMinutes]],
+								[LabApt_Service]!;LabApt_Subject=[[ServiceDescription]]"
+							edit="true"/>
+					</row>
+					<row>
+						<control type="label" label="Tipo de Llegada" span="2"/>
+						<control type="select" name="LabApt_AdmitSource" span="4" 
+							datasource="GetLookupAdmitSourcesByFacility" 
+							source="AdmitSource,AdmitSource"
+							edit="[LabApt_Status]=Scheduled|Confirmed|Reschedule" 
+							default="true"
+							required="true" 
+							explicit="true"
+							filter="Active=true"/>
+						<control type="label" label="Médico" span="2" />
+						<control type="select" name="LabApt_ProviderId" span="4" 
+							namefield="NewAptProvider" explicit="true"
+							sort="UserFirstMiddleLast=asc"
+							acctsvc="true" 
+							datasource="GetUsersByAttributes" 
+							append="LocationId=(facilityData.LocationId),role=Physician" 
+							source="UserFirstMiddleLast,UserId" 
+							edit="[LabApt_Status]=Scheduled|Confirmed"/>
+					</row>
+					<row>
+						<control type="label" label="Medio de Agendamiento" span="3"/>
+						<control type="select" name="LabApt_ContactSource" span="3"
+							required="true" edit="[LabApt_Status]=Scheduled|Confirmed|Reschedule"
+							source="Correo,Telefono,Salesforce,CRM,Presencial"/>
+						<!-- Reason for the appointment -->
+						<control type="label" label="Asunto" span="2"/>
+						<control type="text" name="LabApt_Subject" 
+							default="Visita Consulta"
+							edit="[LabApt_Status]=Scheduled|Confirmed|Reschedule" 
+							required="true" span="4"/>
+					</row>
+					<row>
+						<!-- Reason for the appointment -->
+						<control type="label" label="Observaciones" span="2"/>
+						<control type="text" name="LabApt_ASANote" 
+							edit="[LabApt_Status]=Scheduled|Confirmed|Reschedule" 
+							span="10"/>
+					</row>
+				</column>
+				<column span="2">
+					<row>
+						<control type="button" name="btnConfirmLabAppointment"
+							reveal="LabApt_AppointmentGuid!"
+							span="12" action="save|close|new" color="green"
+							icon="check-sign" label="Confirmar"
+							affector="none"
+							dataupdate="UpdateSchedulerAppointments"
+							appendupdate="appointmentGuid=[LabApt_AppointmentGuid],status=Confirmed"
+							provoke="[LabApt_Source]=1;LabAppointmentTimes,
+								[LabApt_Source]=2;NewLabAppointmentTimes,
+								[LabApt_Source]=3;grdPatientAppointmentList,
+								[LabApt_Source]=4;Appointments,
+								[LabApt_Source]=4;LabAppointments"/>
+					</row>
+					<row>
+						<!-- Button to complete and appointment (shown only in edit mode)-->
+							<control type="button" name="btnCompleteLabAppointment"
+									reveal="LabApt_AppointmentGuid!"
+									span="12" action="save|close|new" color="yellow"
+									icon="cloud-upload" label="Completar"
+									confirm="Por favor, confirme que desea completar esta cita."
+									affector="none"
+									dataupdate="UpdateSchedulerAppointments"
+									appendupdate="appointmentGuid=[LabApt_AppointmentGuid],Status=Completed"
+									provoke="[LabApt_Source]=1;LabAppointmentTimes,
+										[LabApt_Source]=2;NewLabAppointmentTimes,
+										[LabApt_Source]=3;grdPatientAppointmentList,
+										[LabApt_Source]=4;Appointments,
+										[LabApt_Source]=4;LabAppointments"/>
+						</row>
+						<row>
+							<!-- Button to set an appointment to No Show (shown only in edit mode) -->
+							<control type="button" name="btnNoShowLabAppointment"
+									reveal="LabApt_AppointmentGuid!"
+									span="12" action="save|close|new" color="orange"
+									icon="cloud-upload" label="Ausente"
+									confirm="Por favor, confirme que desea cambiar el estatus de esta cita a ausente."
+									affector="none"
+									dataupdate="UpdateSchedulerAppointments"
+									appendupdate="appointmentGuid=[LabApt_AppointmentGuid],Status=No Show"
+									provoke="[LabApt_Source]=1;LabAppointmentTimes,
+										[LabApt_Source]=2;NewLabAppointmentTimes,
+										[LabApt_Source]=3;grdPatientAppointmentList,
+										[LabApt_Source]=4;Appointments,
+										[LabApt_Source]=4;LabAppointments"/>
+						</row>
+						<row>
+							<!-- Button to cancel an appointment (shown only in edit mode) -->
+							<control type="button" name="btnCancelLabAppointment"
+									reveal="LabApt_AppointmentGuid!"
+									span="12" action="save|close|new" color="red"
+									icon="cloud-upload" label="Cancelar"
+									confirm="Por favor, confirme que desea cancelar esta cita."
+									affector="none"
+									dataupdate="UpdateSchedulerAppointments"
+									appendupdate="appointmentGuid=[LabApt_AppointmentGuid],status=Canceled"
+									provoke="[LabApt_Source]=1;LabAppointmentTimes,
+										[LabApt_Source]=2;NewLabAppointmentTimes,
+										[LabApt_Source]=3;grdPatientAppointmentList,
+										[LabApt_Source]=4;Appointments,
+										[LabApt_Source]=4;LabAppointments"/>
+						</row>
+				</column>
+		</columns>
+	</group>	
+	<group>
+		<row>
+      <!-- Save a new appointment and update order -->
+		  <control type="modalbutton" name="SaveNewLabAppointment" label="Programar"
+        reveal="[LabApt_AppointmentGuid]="
+			  action="save"
+			  color="green"
+			  affector="LabApt_AppointmentGuid"
+				setaffector="AppointmentGuid"
+			  icon="cloud-upload"
+			  capture="LabApt_AppointmentInfo"
+			  datainsert="InsertSchedulerAppointments"
+				compare="[LabApt_PatientId]!|Por favor seleccione un paciente para esta cita."
+			  appendinsert="Active=true,
+					reschedule=false,
+					PatientId=[LabApt_PatientId],
+					(facilityData.SMS)=true;sendMessage=true,
+					(facilityData.SMS)=true;txtMessage=[tmpLabAppointment]"
+				set="hidUpdateParents=false"
+			  provoke="[LabApt_Source]=1;LabAppointmentTimes,
+					[LabApt_Source]=2;NewLabAppointmentTimes,
+					[LabApt_Source]=3;grdPatientAppointmentList,
+					[LabApt_Source]=4;Appointments,
+					[LabApt_Source]=4;LabAppointments,
+					[LabApt_OrderGuid]!;btnUpdateLabOrder^btnCloseLabAppointment"/>
+			<!-- Save an appointment and update lab order and parents -->
+			<control type="modalbutton" name="SaveLabAppointmentAndUpdateParentOrders" label="Programar Grupo"
+        reveal="[LabApt_AppointmentGuid]=+[LabApt_OrderId]!"
+			  action="save" color="green" icon="cloud-upload"
+			  affector="LabApt_AppointmentGuid"
+				setaffector="AppointmentGuid"
+			  confirm="Confirme que desea programar los solicitudes que pertenecen a este grupo."
+			  capture="LabApt_AppointmentInfo"
+			  datainsert="InsertSchedulerAppointments"
+				compare="[LabApt_PatientId]!|Por favor seleccione un paciente para esta cita."
+			  appendinsert="Active=true,
+					reschedule=false,
+					PatientId=[LabApt_PatientId],
+					(facilityData.SMS)=true;sendMessage=true,
+					(facilityData.SMS)=true;txtMessage=[tmpLabAppointment]"
+				set="hidUpdateParents=true"
+			  provoke="[LabApt_Source]=1;LabAppointmentTimes,
+					[LabApt_Source]=2;NewLabAppointmentTimes,
+					[LabApt_Source]=3;grdPatientAppointmentList,
+					[LabApt_Source]=4;Appointments,
+					[LabApt_Source]=4;LabAppointments,
+					[LabApt_OrderGuid]!;btnUpdateLabOrder^btnCloseLabAppointment"/>
+			<!-- Update appointment -->
+			<control type="modalbutton" name="btnUpdateLabAppointment"
+        reveal="[LabApt_AppointmentGuid]!"
+				action="save" 
+				confirm="Por favor confirme que quiere actualizar esta cita"
+				affector="none"
+				capture="LabApt_AppointmentInfo"
+				label="Actualizar" 
+				icon="cloud-upload"
+				dataupdate="UpdateSchedulerAppointments"
+				appendupdate="appointmentGuid=[LabApt_AppointmentGuid]"
+				set="hidUpdateParents=true"
+				provoke="[LabApt_Source]=1;LabAppointmentTimes,
+					[LabApt_Source]=2;NewLabAppointmentTimes,
+					[LabApt_Source]=3;grdPatientAppointmentList,
+					[LabApt_Source]=4;Appointments,
+					[LabApt_Source]=4;LabAppointments,
+					[LabApt_OrderGuid]!;btnUpdateLabOrder^btnCloseLabAppointment"/>
+      </row>
+			<row showif="never">
+				<control type="hidden" name="hidUpdateParents"/>
+				<!-- If the calendar was called from the patient chart, update the patient appointment list -->
+				<control type="button" name="btnCloseLabAppointment" action="close|new"/>
+				<!-- If the modal was called from lab orders, update the order and parent orders -->
+				<control type="button" name="btnUpdateLabOrder"
+					action="save|close|new" 
+					affector="none"
+          acctsvc="true"
+					dataupdate="UpdateLabOrderStatusByOrderGuid"
+          appendupdate="OrderGuid=[LabApt_OrderGuid],
+						calendarGuid=[LabApt_AppointmentTypeGuid],
+						appointmentDateTime=[LabApt_Start],
+						appointmentGuid=[LabApt_AppointmentGuid],
+						[hidUpdateParents]=false;OrderId=null,
+						[hidUpdateParents]=true;UpdateParents=true,
+            dateTimeScheduled=[LabApt_Start]"/>
+			</row>
+		</group>
+  </section>
+</partial>

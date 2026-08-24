@@ -1,0 +1,44 @@
+<partial>
+  
+  <row name="rowMovePatientQueue" reveal="[HasOpenVisit]=true">
+      <!-- Transfer patient to another department -->
+      <control type="button" name="btnMovePatientQueue"
+      span="12" icon="move" label="Mover"
+      color="orange" action="redirect"
+      target="mdlMovePatient"/>
+  </row>
+  <row>
+      <!-- Transfer patient to another department -->
+      <control type="button" name="btnTransferPatient"
+      reveal="[HasOpenVisit]=true"
+      span="12" icon="hospital" label="Transferir"
+      color="orange" action="redirect"
+      preset="Transfer2_DepartmentGuid=[DepartmentGuidLookup]"
+      target="mdlTransferPatient"/>
+  </row>
+  <row>
+    <!-- Discharge patient button -->
+    <control type="button" name="btnDischargePatient"
+      reveal="[HasOpenVisit]=true"
+      span="12" icon="home" label="Cerrar Visita"
+      color="green" action="redirect"
+      target="mdlDischargePatient"/>
+  </row> 
+  <!-- Return patient to their prior department and service -->
+  <row name="rowReturnPatientToPriorDepartmentAndService" 
+    reveal="[PriorDepartmentGuid]!+[PatientId]!+[PatientVisitGuid]!">
+    <control type="button" name="btnReturnPatient" label="Dpto. previo"
+      color="green" icon="move" span="12"
+      affector="none" 
+      action="save|close|new"
+      confirm="Confirme que desea devolver a este paciente a su departamento y servicio anterior."
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],
+        patientVisitUniqueId=[PatientVisitGuid],
+        hospitalService=Esperando,
+        departmentGuid=[PriorDepartmentGuid],
+        departmentService=[PriorDepartmentService],
+        DateTimeCalled=null,
+        RoomService=null"/>
+    </row>
+</partial>

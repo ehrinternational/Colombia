@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Transfer Module -->
+<module name="Devoluciones de Stock" type="onload" trigger="TransferList">
+<facet name="NewTransferStatus"/>
+<partial link="../../ERPSpanish/module/Partials/PartialESStockReturns.xml"/>
+</module>

@@ -1,0 +1,35 @@
+<partial>
+  <row>
+    <control type="button" name="btnTimeline"
+      reveal="[HasOpenVisit]=true"
+      span="12"
+      icon="time" color="lightblue"
+      label="Cronograma"
+      action="redirect|view"
+      target="timeline"
+      append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+  </row>
+  <row>
+    <control type="button" name="btnPatientInterconsultRequest"
+        label="Interconsulta" icon="plus" span="12" color="green"
+        preset="InterConsult_PatientId=[PatientId]"
+        trigger="InterConsult_PatientId"
+        action="redirect" target="NewConsultModal"/>
+  </row>
+  <row name="rowReadyForDischargeButtons" reveal="HasOpenVisit=true">
+    <control type="button" name="btnAltaMedica"
+      reveal="ReadyForDischarge=true"
+      span="12" icon="home" label="Alta Médica"
+      color="green" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+    <control type="button" name="btnNoAltaMedica"
+      reveal="ReadyForDischarge=false"
+      span="12" icon="home" label="Alta Médica"
+      color="grey" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+  </row>
+</partial>

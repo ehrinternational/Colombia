@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Pharmacy Module-->
+<module name="Jefe de Farmacia" type="onload" trigger="(facilityData.HospitalName)%Colombia;ColombiaMedOrderList^MedOrderList">
+  <facet name="FileName" value="PharmacyManager"/>
+  <facet name="DefaultReceivingLocation" value="Farmacia"/>
+  <facet name="DefaultPatientId"/>
+  <facet name="DefaultOrderType"/>
+  <facet name="DefaultOrderGuid"/>
+  <!-- Import templates -->
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
+  <headerbutton name="btnReportsByType"
+    icon="print" label="Informes"
+    preset="Report_Type=Pharmacy"
+    trigger="ReportList"
+    action="redirect" target="mdlReports"/>
+  <headerbutton name="btnTaskCalendar"
+    icon="calendar" label="Mis Tareas"
+    preset="DefaultPatientId="
+    trigger="MyTaskAppointmentTimes"
+    action="redirect" target="mdlMyTaskAppointments"/>
+  <!-- Partial medication dispense -->
+  <partial link="../../PharmacySpanish/module/Partials/PartialESPharmacyDispenseModal.xml"/>
+  <!-- Pharmacy formulary items -->
+  <partial link="../../PharmacySpanish/module/Partials/PartialESPharmacyMeds.xml"/>
+  <!-- Pharmacy frequencies -->
+  <partial link="../../PharmacySpanish/module/Partials/PartialESMedicationFrequencies.xml"/>
+  <!-- Inventory stock items for location -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockItemsByLocation.xml"/>
+  <!-- Inventory stock transfers -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockTransfers.xml"/>
+  <!-- Inventory stock receiving -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockReceiving.xml"/>
+  <!-- Inventory stock requests -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockRequests.xml"/>
+  <!-- Inventory requisitions -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESRequisitions.xml"/>
+  <!-- Inventory count stock items for location -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESCountStockItemsByLocation.xml"/>
+  <!-- Inventory Patient charge of stock items -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESPatientChargeStockItems.xml"/>
+  <!-- Inventory patient charges modal -->
+  <partial target="mdlInventoryChargeToPatient" link="../../ERPSpanish/module/Partials/PartialESInventoryPatientCharges.xml"/>
+  <!-- Inventory view patient charges modal -->
+  
+  <!-- Inventory stock item location modal -->
+  <partial target="mdlStockItemsByLocation" link="../../ERPSpanish/module/Partials/PartialESStockItemLocationModal.xml"/>
+  <!-- Inventory stock history -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESLocationStockHistory.xml"/>
+  <!-- Inventory scan and count modal -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
+  <partial link="../../PharmacySpanish/module/Partials/PartialPharmacyDispenseReturnModal.xml"/>
+  <!-- General Modals -->
+  <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+  <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
+  <partial target="mdlItemHistory" link="./Partial/Modals/PartialItemMasterHistory.xml"/>
+  <partial target="CancelMedModal" link="./Partial/Modals/PartialCancelMedicationModal.xml"/>
+  <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
+  <partial target="mdlMyTaskAppointments" link="./Partial/Calendars/PartialCalendarMySalesTasksAsModal.xml"/>
+  <partial target="mdlNewProjectTasks" link="./Partial/Messaging/PartialNewProjectTasks.xml"/>
+</module>

@@ -1,0 +1,99 @@
+<partial>
+  <!-- New patient payers modal -->
+  <section type="tabmodal" title="Convenio del Paciente" name="mdlPatientPayers" badge="none">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="PatientPayerGuid"
+          datarequest="GetPatientPayersByPayerGuid"
+          appendrequest="PatientPayerGuid=[PatientPayerGuid]"
+          inject="grpPatientPayerInfo"/>
+      </row>
+    </group>
+    <group name="grpPatientPayerInfo">
+      <row>        
+        <control type="label" span="3" label="Activo"/>
+        <control type="buttongroup" name="PPL_Active" readonly="true" span="2" 
+          default="True" source="True,False" sourcelabels="Sí,No" />
+        <control type="label" label="Ordinal" span="3" />
+        <control type="select" name="Payers_Ordinal" span="2"
+          sourcelabels="Primario,Secundario,Tercero"
+          source="1,2,3"
+          default="1"
+          edit="true"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Número de Póliza"/> 
+        <control type="text" name="PPL_PolicyNumber" edit="true" span="2" required="true"
+          regex="^[a-zA-Z0-9]{0,50}$"/>
+        <control type="label" span="3" label="Número de Grupo"/>
+        <control type="text" name="PPL_GroupId" edit="true" span="2" required="true"
+          regex="^[a-zA-Z0-9]{0,50}$"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Relación"/> 
+        <control type="select" name="PPL_MemberCategory" edit="true" span="3"
+          source="1,2,3" sourcelabels="Titular,Hijo,Cónyuge" required="true"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Suscriptor"/>
+        <control type="text" name="PPL_Subscriber" edit="true" span="9" required="true"
+        regex="^[a-zA-ZñÑäëïöüÄËÏÖÜ ,]{0,200}$"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Plan"/>    
+        <control name="PPL_PlanName" type="select" explicit="true"
+          span="9" edit="true" searchable="true" required="true"
+          source="Premium Plan"/>
+        <!-- 
+          sort="PlanName" 
+          nameField="PPL_PlanName"
+          acctsvcreq="true"
+          datarequest="GetInsurancePlans" 
+          appendrequest="Active=true"
+          source="PlanName,PlanGuid"/>-->
+      </row>
+      <row>
+        <control type="label" span="3" label="Notas"/>
+        <control type="textarea" name="PPL_Notes" edit="true" span="9" rows="1"
+          regex="^[a-zA-Z0-9 ,.;/%$#!?¿*()´-]{0,500}$"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <control type="modalbutton" name="btnInsertPatientPayer"
+          icon="cloud-upload" color="green" label="Guardar"
+          reveal="[PatientPayerGuid]="
+          action="save|close|new"
+          affector="PatientPayerGuid"
+          setaffector="PatientPayerGuid"
+          capture="grpPatientPayerInfo"
+          datainsert="InsertPatientPayer2"
+          appendinsert="patientId=[PatientId]"
+          provoke="grdPatientPayers"/>
+        <control type="modalbutton" name="btnUpdatePatientPayer"
+          icon="cloud-upload" label="Actualizar"
+          reveal="[PatientPayerGuid]!"
+          action="save|close|new"
+          affector="PatientPayerGuid"
+          capture="grpPatientPayerInfo"
+          setaffector="PatientPayerGuid"
+          dataupdate="UpdatePatientPayer2"
+          appendupdate="PatientPayerGuid=[PatientPayerGuid]"
+          provoke="grdPatientPayers"/>
+        <control type="modalbutton" name="mbtDeactivatePatientCoverage" label="Desactivar" color="red" icon="remove" span="12"
+          reveal="[PatientPayerGuid]!+[PPL_Active]=True"
+          action="save|close|new"
+          acctsvc="true"
+          dataupdate="UpdatePatientPayer2"
+          appendupdate="PatientPayerGuid=[PatientPayerGuid],Active=false"
+          provoke="grdPatientPayers"/>
+        <control type="modalbutton" name="mbtDisplayPlanDetails1" label="Detalles del Plan" icon="search" span="12"
+          reveal="[PPL_PayerPlan]!"
+          action="redirect"
+          target="mdlDisplayPlan"
+          preset="PlanGuid=[PPL_PayerPlan]"
+          trigger="PlanGuid"/>
+      </row>
+    </group>
+  </section>     
+</partial>

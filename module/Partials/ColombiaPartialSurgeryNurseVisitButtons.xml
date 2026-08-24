@@ -1,0 +1,28 @@
+<partial>
+    <row>
+    <!-- Assign a patient room -->
+    <control type="button" name="btnAssignPatientBed" span="12"
+      reveal="[PatientVisitGuid]!+[PatientId]!"
+      icon="cloud-upload" color="orange"
+      label="Asignar Cama"
+      trigger="FindWardList"
+      action="redirect"
+      target="mdlFindRoomInDepartment"/>
+    </row>
+    <row>
+      <!-- Move the patient to another queue when patient is currently in surgery -->
+      <control type="button" name="btnMoveSurgeryPatient"
+        reveal="[PatientVisitGuid]!+[PatientId]!"
+        span="12" color="orange" icon="move" label="Mover"
+        action="redirect" target="mdlMoveSurgeryPatients"/>
+    </row>
+    <row>
+      <!-- Transfer the patient to surgery -->
+      <control type="button" name="btnTransferPatientToOrFromSurgery"
+        reveal="[PatientVisitGuid]!+[PatientId]!"
+        span="12" icon="home" label="Transferencia"
+        color="orange" action="redirect"
+        trigger="SurgTran_GetCurrentBedAssignment"
+        target="mdlTransferToSurgery"/>
+    </row>
+</partial>

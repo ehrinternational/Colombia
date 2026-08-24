@@ -1,0 +1,75 @@
+<partial>
+  <row showif="never">
+    <control type="button" name="btnUpdatePatientVisit"
+      action="save|close|new"
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <!-- Admit patient with no current visit -->
+    <control type="button" name="btnAdmitButton" span="12" color="green" label="Ingresar" icon="cloud-upload"
+      reveal="[HasOpenVisit]=false"
+      tooltip="Haga clic para ingresar a este paciente" 
+      action="save" 
+      confirm="Por favor confirme que quiere ingresar a este paciente."
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      datainsert="InsertPatientVisitAllFields"
+      appendinsert="CopyDiagnosis=true,
+        patientId=[PatientId],
+        visitType=[DefaultAdmitType],
+        departmentGuid=[CurrentDepartment],
+        hospitalService=Esperando,
+        ambulatoryStatus=Inpatient,
+        preAdmit=0,
+        admitDateTime=(dateTimeNow),
+        locationId=(facilityData.LocationId)"
+      set="HasOpenVisit=true,PatientVisit=[PatientVisitGuid]"
+      provoke="ButtonGroupSelect"/>
+  </row>
+  <row>
+    <!-- Assign a patient room -->
+    <control type="button" name="btnAssignPatientBed" span="12" icon="cloud-upload" color="orange" label="Asignar Cama"
+      reveal="[HasOpenVisit]=true"
+      trigger="FindWardList"
+      action="redirect"
+      target="mdlFindRoom"/>
+  </row>
+  <row>
+    <control type="button" name="btnAssignPhysician" label="Asignar Médico" span="12" icon="user-md" color="orange"
+      reveal="[HasOpenVisit]=true"
+      action="redirect"
+      preset="mdlAssign_PatientId=[PatientId],mdlAssign_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlAssignPhysician"/>  
+  </row>
+  <row name="rowTransferPatient" reveal="[HasOpenVisit]=true">
+    <control type="button" name="btnTransferPatient" span="12" icon="home" label="Transferir" color="orange" 
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      action="save"
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="btnRedirectToTransfer"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnRedirectToTransfer"
+      action="redirect"
+      trigger="GetCurrentBedAssignment"
+      target="mdlTransferPatient"/>
+  </row>
+  <row>
+    <!-- Discharge patient button -->
+    <control type="button" name="btnDischargePatient" span="12" icon="home" label="Cerrar Visita"
+      reveal="[HasOpenVisit]=true"
+      preset="Discharge_DischargeDisposition=[mdlAdmit_DischargeDisposition],Discharge_Note=[mdlAdmit_DischargeCondition]"
+      color="green" action="redirect"
+      target="mdlDischargePatient"/>
+  </row> 
+</partial>

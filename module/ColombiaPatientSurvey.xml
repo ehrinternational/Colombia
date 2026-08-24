@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Encuesta" type="onload" trigger="DepartmentList">
+  <facet name="FileName" value="PatientSurvey"/>
+  <!-- Import templates -->
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
+  <!--Tabmodal for admitting/reviewing hospital patients-->
+  <section type="tab" name="PatientSurvey" size="medium" title="Encuestas Pacientes">
+    <group>
+    <row>
+      <control type="button" name="btnScanPatient" size="large" icon="qrcode" label="Escanear Carnet" span="12"
+          action="scan" color="green"
+          mode="user"
+          inject="value=[GetScannedPatientER]"
+          provoke="[GetScannedPatientER]!;GetScannedPatientER"/>
+    </row>
+    <row showif="never">
+        <control type="hidden" name="GetScannedPatientER"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[GetScannedPatientER]"
+          set="PatientId=[[RecordUniqueId]],PatientVisit=[[PatientVisit]]"
+          provoke="[PatientId]!;DepartmentList"/>
+        <control type="hidden" name="PatientId"/>
+        <control type="hidden" name="PatientVisit"/>
+    </row>
+    <row name="rowDepartmentList" reveal="[PatientId]!+[PatientVisit]!">
+      <control type="repeater" label="Departamentos Visitados (Haga clic para la encuesta)" name="DepartmentList"
+        items="10" span="12" columns="1"
+        fititems="true"
+        mode="batch"
+        controlset="header"
+        filter="SurveyGuid!,DepartmentName!"
+        acctsvcreq="true"
+        datarequest="GetPatientDepartmentsVisited"
+        appendrequest="PatientId=[PatientId],LocationId=(facilityData.LocationId)"
+        source="DepartmentTemplate"
+        sort="DepartmentName=asc"
+        key="DepartmentGuid"
+        onselectset="[[Clicked]]=true,ECDGuid=[[SurveyGuid]]"
+        onselect="btnPatientSurveyECD">
+      </control>
+    </row>
+    <row showif="never">
+      <control type="hidden" name="ECDGuid"/>
+      <control type="button" name="btnPatientSurveyECD"
+        onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+        action="redirect|url" 
+        target="ecd/index.html" 
+        usesource="login"
+        append="ecdGuid=[ECDGuid],patientid=[PatientId],patientvisit=[PatientVisit]"
+        provoke="DepartmentList|static"/>
+    </row>
+    </group>
+  </section>
+</module>
