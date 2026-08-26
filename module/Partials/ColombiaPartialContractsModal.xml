@@ -221,8 +221,8 @@
     <group name="grpContractRelatedTables" >
       <row>
         <control type="buttongroup" name="ContractButtonGroupSelect" edit="true" mode="auto" span="8"
-          source="Plans,Components,Rules,Documents" 
-          sourcelabels="Planes,Componentes,Prestaciones,Documentos" 
+          source="Plans,Components,Documents" 
+          sourcelabels="Planes,Componentes,Documentos" 
           default="Plans"   
           provoke="ContractGridList|options"/>
       </row>
@@ -259,22 +259,7 @@
             align="left|left|left|left"
             sort="ComponentName=asc"
             key="ComponentGuid"/>
-          <control type="datagrid" name="dgrPricingRulesList" rows="10" label="Prestaciones del Convenio" option="Rules"
-            action="redirect" target="mdlPricingRules"
-            searchable="true"
-            acctsvcreq="true"
-            datarequest="GetPricingRules"
-            appendrequest="ContractGuid=[ContractGuid]"
-            source="Active,ItemCode,ItemName,MedicalSpecialtyName,ActivityName,GroupName"
-            sourcelabels="Vigente,Código,Prestación,Especialidad,Actividad,Agrupador"
-            align="|left|left|left|left|left"
-            format="boolean"
-            key="PricingRuleGuid"
-            onselectset="PricingRuleGuid=[[PricingRuleGuid]]"
-            onselect="PricingRuleGuid">
-            <control type="button" name="btnNewPricingRule" label="Añadir Nuevo" icon="plus" 
-              action="redirect" target="mdlPricingRules"/>
-          </control>
+
           <!-- Scanned images for contract -->
           <control type="datagrid" label="Documentos Escaneados" name="dgrScannedForms" option="Documents"
             rows="10"
@@ -432,173 +417,6 @@
         </row>
     </group>
   </section>
-  <!-- Contract Rules tabmodal -->
-  <section type="tabmodal" title="Prestaciones" name="mdlPricingRules" badge="none">
-    <group showif="never">
-      <row>
-        <control type="hidden" name="PricingRuleGuid"
-          datarequest="GetPricingRules"
-          appendrequest="RuleGuid=[PricingRuleGuid]"
-          inject="grpPricingRuleInfo"/>
-      </row>
-    </group>
-    <group name="grpPricingRuleInfo">
-      <columns>
-        <column span="12">
-          <row>
-            <control type="label" span="4" label="Código Prestación"/>
-            <control type="select" name="ItemName,ItemGuid" span="7" required="true"
-            source="catalog"/>
-          </row>
-          <row>
-            <control type="label" span="4" label="Tiempo Duración" badge="Min"/>
-            <control type="text" name="Rul_Duration" span="1" edit="true"/>
-          </row>
-          <row>
-            <control type="label" span="4" label="Actividad"/>
-             <control type="select" name="Rul_SubType" edit="true" span="7"
-              acctsvcreq="true"
-              datarequest="GetPrestacionSubtypes"
-              source="SubTypeCode|SubType,SubTypeCode"/>
-          </row>
-          <row>
-            <control type="label" span="4" label="Especialidad"/>
-            <control type="select" name="Rul_PrestacionType" edit="true"
-              span="7"
-              source="catalog"/>
-          </row>
-          <row>
-            <control type="label" span="4" label="Homologación SISPRO"/>
-             <control type="select" name="Rul_SISPRO" readonly="true" span="7"
-              acctsvcreq="true"
-              datarequest="GetSISPRO"
-              source="SISPROCode|SISPROName,SISPROGuid"/>
-          </row>
-        </column>
-        <column span="8">
-          <row>        
-            <control type="checkbox" span="6" label="Histórico" name="Rul_Historico" edit="true"/>
-            <control type="text" name="Rul_Weeks" span="1" edit="true"/>
-            <control type="label" span="5" label="Semanas" align="left"/>
-          </row>
-          <row>        
-            <control type="checkbox" span="6" label="Compuesta" name="Rul_Compuesta" source="True,False" edit="true"/>
-            <control type="checkbox" span="6" label="Vigente" name="Rul_Vigente" source="True,False" edit="true" default="true"/>
-          </row>
-          <row>        
-            <control type="checkbox" span="6" label="Valor Variable" name="Rul_Valor" source="True,False" edit="true"/>
-            <control type="checkbox" span="6" label="Se Realiza Interamente" name="Rul_Intensity" source="True,False" edit="true"/>
-          </row>
-          <row>        
-            <control type="checkbox" span="6" label="Recargo Nocturna" name="Rul_RecargaNocturna" source="True,False" edit="true"/>
-            <control type="checkbox" span="6" label="Conjunto de atención integral" name="Rul_Comprehensive" source="True,False" edit="true"/>
-          </row>
-          <row>        
-            <control type="checkbox" span="6" label="Requiere Historia" name="Rul_History" source="True,False" edit="true"/>
-            <control type="checkbox" span="6" label="Se Realiza en Quirófano o en Consultorio" name="Rul_InSurgery" source="True,False" edit="true"/>
-          </row>
-          <row>        
-            <control type="checkbox" span="6" label="PreCarga" name="Rul_PreCarga" source="True,False" edit="true"/>
-            <control type="checkbox" span="6" label="Publicación medio electrónico" name="Rul_Publication" source="True,False" edit="true"/>
-          </row>
-          <row>        
-            <control type="checkbox" span="6" label="Proc de Alto Costo" name="Rul_HighCost" source="True,False" edit="true"/>
-            <control type="select" span="6" name="Rul_Catastrofic" edit="true" 
-              source="00,01,02,03,04,05,06,07,08,09,10,11"
-              sourcelabels="00 SIN INFORMACION,01 TRANSPLANTE RENAL,02 DIALISIS,03 NEUROCIRUGIA; SISTEMA NERVIOSO,
-              04 CIRUGIA CARDIACA,05 REEMPLAZOS ARTICULARES,06 MANEJO DEL GRAN QUEMADO,07 MANEJO DEL TRAUMA MAYOR,
-              08 MANEJO DE PACIENTES INFECTADOS POR VIH,09 QUIMIOTERAPIA Y RADIOTERAPIA PARA EL CANCER,
-              10 MANEJO DE PACIENTES EN UNIDAD DE CUIDADOS INTENSIVOS,11 TRATAMIENTO QUIRURGICO DE ENFERMEDADES CONGENITAS"/>
-          </row>
-          <row>        
-            <control type="label" span="6" label="Sub-Atención"/>
-            <control type="select" span="6" name="Rul_SubAttention" edit="true" source="catalog"/>
-          </row>
-          <row bgcolor="white">      
-            <control type="label" span="3" label="Plan" align="left"/>
-            <control type="checkbox" span="3" label="POS'S" name="Rul_POSS" source="True,False" edit="true"/>
-            <control type="checkbox" span="3" label="POS" name="Rul_POS" source="True,False" edit="true"/>
-            <control type="checkbox" span="3" label="PAB" name="Rul_PAB" source="True,False" edit="true"/>
-          </row>
-          <row  bgcolor="white">
-            <control type="checkbox" span="3" label="PACS" name="Rul_PACS" source="True,False" edit="true"/>   
-            <control type="checkbox" span="3" label="SOAT" name="Rul_SOAT" source="True,False" edit="true"/>
-            <control type="checkbox" span="3" label="ATAP" name="Rul_ATAP" source="True,False" edit="true"/>
-            <control type="checkbox" span="3" label="EEXC" name="Rul_EEXC" source="True,False" edit="true"/>
-          </row>
-          <row>        
-            <control type="label" span="2" label="Pabellón"/>
-            <control type="select" span="10" name="Rul_Pavilion" edit="true" searchable="true"
-            source="G1,G2,G3,G4,GF,14,15,16,17,18,19,GN,GO,23,22,21,20,12,11,10,09,08,07,06,05,04,03,02,01,13,00,24,GA,GB,GC,GE"
-            sourcelabels="GRUPO ESPECIAL I,GRUPO ESPECIAL II,GRUPO ESPECIAL III,GRUPO ESPECIAL IV
-              ,GRUPO ESPECIAL FSFB,GRUPO 14,GRUPO 15,GRUPO 16,GRUPO 17,GRUPO 18,GRUPO 19
-              ,GRUPO ESPECIAL C NEUROLOGIA,GRUPO ESPECIAL C ORTOPEDIA,GRUPO ESPECIAL 23,GRUPO ESPECIAL 22
-              ,GRUPO ESPECIAL 21,GRUPO ESPECIAL 20,GRUPO 12,GRUPO 11,GRUPO 10,GRUPO 09
-              ,GRUPO 08,GRUPO 07,GRUPO 06,GRUPO 05,GRUPO 04,GRUPO 03,GRUPO 02,GRUPO 01
-              ,GRUPO 13,SIN INFORMACION,PARTO NORMAL O INTERVENIDO,GRUPO ESPECIAL A
-              ,GRUPO ESPECIAL B,GRUPO ESPECIAL C,GRUPO ESPECIAL E"/>
-          </row>
-          <row bgcolor="white">  
-            <control type="label" span="3" label="Nivel" align="left"/> 
-            <control type="buttongroup" span="9" name="Rul_Level" edit="true"
-            source="Nivel I,Nivel II,Nivel III,Nivel IV"/>
-          </row>
-          <row bgcolor="white">   
-            <control type="label" span="3" label="Sexo" align="left"/>
-            <control type="buttongroup" span="9" name="Rul_Sex" edit="true"
-            source="Masculino,Femenino,Ambos"/>
-          </row>
-      </column>
-      <column span="3">
-        <row>   
-          <control type="button" span="12" label="Compuestos" name="mbtPerfil" action="redirect" target="mdlCompuestos"/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Sinónimos" name="mbtSynonims" action="redirect" target="mdlSynonyms"/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Tarifas" name="mbtTarifas" action="redirect" target="mdlTariffs"/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="C. Costos" name="mbtCentros" action="redirect" target="mdlCostCenters"/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Atributos Valorización" name="mbtAttributes" action="redirect" target=""/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Códigos de Gestión" name="mbtCodes" action="redirect" target=""/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Vigencia por Centro" name="mbtCurrent" action="redirect" target="mdlActiveCostCenters"/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Conj Ateno Integ" name="mbtConjuga" action="redirect" target="mdlRelatedProcedures"/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Parametrización NO POS" name="mbtNOPOS" action="redirect" target=""/>
-        </row>
-        <row>   
-          <control type="button" span="12" label="Especialidades Prestación" name="mbtSpecialties" action="redirect" target="mdlAssociatedSpecialties"/>
-        </row>
-        <row>
-          <control type="button" name="mbtSavePricingRule" label="Guardar" icon="coloud-upload" color="green" span="12"
-            reveal="[PricingRuleGuid]="
-            action="Save|Close|New"
-            affector="none"
-            capture="grpPricingRuleInfo"
-            datainsert="InsertPricingRule"/>
-          <control type="button" name="mbtUpdatePricingRule" label="Actualizar" icon="refresh" span="12"
-            reveal="[PricingRuleGuid]!"
-            action="Save|Close|New"
-            affector="none"
-            capture="grpPricingRuleInfo"
-            dataupdate="UpdatePricingRule"
-            appendupdate="RuleGuid=[PricingRuleGuid]"/>
-        </row>
-      </column>
-    </columns>
-  </group>
-  </section> 
   <!-- tabmodal Compuestos-->
   <section type="tabmodal" title="Compuestos" name="mdlCompuestos" badge="none">
     <group>

@@ -1,0 +1,21 @@
+﻿<partial>
+  <!-- Partial surgery team members -->
+    <control type="datagrid" 
+      label="Personal de Cirugía" 
+      name="SurgeryTeam"
+      modalname="SurgeryTeamModal" 
+      rows="10" span="12"
+      fitrows="true"
+      idle="[SurgeryGuid]=|reset"
+      datarequest="GetScheduledSurgeryTeams"
+      appendrequest="surgeryGuid=[SurgeryGuid]"
+      datainsert="InsertScheduledSurgeryTeams"
+      appendinsert="surgeryGuid=[SurgeryGuid]"
+      dataupdate="UpdateScheduledSurgeryTeams"
+      appendupdate="surgeryGuid=[SurgeryGuid]"
+      source="Active,Role,UserName,Notes"
+      sourcelabels="Activo,Rol,Usuario,Notas"
+      align="|left|left|left"
+      format="boolean"
+      key="TeamMemberGuid"/>
+</partial>

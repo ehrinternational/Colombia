@@ -114,7 +114,7 @@
   <partial target="mdlNewExternalProvider" link="./Partial/Modals/PartialNewExternalProvider.xml"/>
   <partial target="mdlNewPatientIndication" link="./Partial/Modals/PartialNewIndicationModal.xml"/>
   <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
-  <partial target="NewPayers" link="./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+  
   <partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>
   <partial link="./Partial/Move/PartialLabMovePatients.xml"/>
   <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>

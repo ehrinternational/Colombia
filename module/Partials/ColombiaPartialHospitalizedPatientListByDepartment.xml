@@ -14,7 +14,7 @@
     <group>
       <row>
         <!-- Select the department -->
-        <control type="select" span="5" name="DepartmentGuidLookup" 
+        <control type="select" span="3" name="DepartmentGuidLookup" 
           acctsvc="true"
           explicit="true"
           filter="AdmissionType=true"

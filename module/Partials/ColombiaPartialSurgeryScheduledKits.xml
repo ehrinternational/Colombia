@@ -1,0 +1,19 @@
+﻿<partial>
+  <!-- Partial Surgery scheduled kits -->
+  <control type="datagrid" label="Kits de CEYE Programados" name="ScheduledSurgeryKits"
+    modalname="ScheduledSurgeryKitsModal" 
+    rows="10" span="12"
+    fitrows="true"
+    idle="[SurgeryGuid]=|reset"
+    datarequest="GetScheduledSurgeryKits"
+    appendrequest="SurgeryGuid=[SurgeryGuid]"
+    datainsert="InsertScheduledSurgeryKits"
+    appendinsert="SurgeryGuid=[SurgeryGuid]"
+    dataupdate="UpdateScheduledSurgeryKits"
+    appendupdate="SurgeryGuid=[SurgeryGuid]"
+    source="Active,KitTypeName,KitName,Description,Notes"
+    sourcelabels="Activo,Tipo,Nombre,Descripción,Notas"
+    align="|left|left|left"
+    format="boolean"
+    key="ScheduledKitGuid"/>
+</partial>

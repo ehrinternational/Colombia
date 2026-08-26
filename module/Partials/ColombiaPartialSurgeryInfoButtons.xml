@@ -220,4 +220,36 @@
       trigger="SelectSurgeryQuoteTemplateList"
       action="redirect" target="mdlSelectQuoteTemplate"/>
   </row>
+  
+  <row >
+    <control type="button" name="btnSurgeryTeam"
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      span="12" icon="edit" label="Personal"
+      action="redirect" target="tbmSurgeryTeam"/>
+  </row>
+  <!--
+  <row >
+    <control type="button" name="btnSurgeryKits"
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      span="12" icon="edit" label="Kits Quirúrgico"
+      action="redirect" target="tbmSurgeryKits"/>
+  </row> -->
+  <row >
+    <control type="button" name="btnSurgeryStockRequests"
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      span="12" icon="edit" label="Requisiciones Quirúrgico"
+      action="redirect" target="tbmSurgeryStockRequests"/>
+  </row>
+  <row >
+    <control type="button" name="btnSurgeryPurchaseRequests"
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      span="12" icon="edit" label="Compras Quirúrgico"
+      action="redirect" target="tbmSurgeryPurchaseRequests"/>
+  </row>
+  <row >
+    <control type="button" name="btnSurgeryPurchaseDocuments"
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      span="12" icon="edit" label="Documentos"
+      action="redirect" target="tbmSurgeryDocuments"/>
+  </row>
 </partial>

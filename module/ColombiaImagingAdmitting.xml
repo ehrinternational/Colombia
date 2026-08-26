@@ -115,7 +115,7 @@
     <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
     <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
     <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
-    <partial target="NewPayers" link="./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+    
     <partial target="ImageOrderModal" link="./Partial/Modals/PartialImagingOrderModal.xml"/>
     <partial target="mdlNewImagingReportModal" link="./Partial/Modals/PartialNewImagingReportModal.xml"/>
     <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>

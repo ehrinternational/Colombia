@@ -1,0 +1,34 @@
+﻿<partial>
+  <control type="datagrid" label="Órdenes de Banco de Sangre" name="SurgeryBloodBankOrders"
+    rows="5" span="12"
+    action="redirect"
+    target="mdlBloodBankOrder"
+    acctsvcreq="true"
+    idle="[PatientId]=|reset"
+    filter="SurgeryGuid=[SurgeryViewGuid]"
+    datarequest="GetBloodBankOrders"
+    appendrequest="patientId=[PatientId]"
+    source="DateTimeEntered,DateTimeRequired,OrderNumber,Priority,Status,OrderNotes,OrderedByName"
+    sourcelabels="Ordenado,Programado,Número,Prioridad,Estatus,Notas,Médico"
+    align="left|left|left|left|left|left|left"
+    translate="Priority,Status"
+    format="datetime_short|datetime_short"
+    sort="Status=asc"
+    key="OrderGuid"
+    onselectset="BloodBankOrderGuid=[[OrderGuid]]"
+    onselect="BloodBankOrderGuid">
+  <control type="button" name="PrintBloodBankOrderFromList" label="Imprimir" icon="print"
+    action="print" 
+    showif="feature" 
+    mode="report" 
+    append="id=1fbbcb7e377,UserName=(userName),CurrentDateTime=(dateTimeNow),
+     FacilityId=(facility),HospitalGuid=(facilityData.HospitalGuid),OrderGuid=[[OrderGuid]]" />
+  <!-- New blood bank orders -->
+  <control type="button" name="btnNewBloodBankOrder" icon="plus" label="Añadir Nuevo"
+    reveal="[PatientId]!"
+    preset="BloodBankOrder_PatientId=[SurgeryViewPatientId],BloodBankOrder_SurgeryGuid=[SurgeryViewGuid]"
+    trigger="GetBloodBankPatient"
+    action="redirect"
+    target="mdlBloodBankOrder"/>
+  </control>
+</partial>

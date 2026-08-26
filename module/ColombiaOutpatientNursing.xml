@@ -236,7 +236,7 @@
      <!-- Calendars -->
     <partial target="mdlConsultVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarConsultAppointmentsAsModal.xml"/>
     <partial target="mdlLabAppointments" link="./Partial/Calendars/PartialCalendarLabAsModal.xml"/>
-    <partial target="mdlSurgeryViewAppointments" link="./Partial/Calendars/PartialCalendarSurgeryAppointmentsViewOnlyAsModal.xml"/>
+    <partial target="mdlSurgeryViewAppointments" link="Partials/ColombiaPartialCalendarSurgeryAppointmentsViewOnlyAsModal.xml"/>
     <partial target="mdlCalendarSearchModal" link="Partials/ColombiaPartialCalendarSearchModal.xml"/>
     <partial target="mdlMyTaskAppointments" link="./Partial/Calendars/PartialCalendarMySalesTasksAsModal.xml"/>
     <partial target="tabImagingAppointments" link="./Partial/Calendars/PartialCalendarImagingWithModalitiesAsModal.xml"/>

@@ -32,7 +32,7 @@
           source="CaseTypeName,CaseTypeGuid" 
           sort="CaseTypeName=asc" 
           explicit="true"/>
-        <control type="label" label="Servicio" span="2"/>
+        <control type="label" label="Estatus" span="2"/>
         <control type="text" name="mdlAdmit_CurrentService" span="4" readonly="true"/>
       </row>
      <row>

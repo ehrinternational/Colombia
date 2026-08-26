@@ -1,0 +1,44 @@
+<partial>  
+  <control type="datagrid" label="Requisiciónes de Stock" name="SurgeryStockRequests"
+    option="StockRequests"
+    rows="20" span="12"
+    acctsvcreq="true"
+    action="redirect"
+    target="mdlSurgeryStockRequest"
+    searchable="true"
+    idle="[SurgeryGuid]=|reset"
+    datarequest="GetInventoryTransferListBySurgeryGuid"
+    appendrequest="SurgeryGuid=[SurgeryGuid]"
+    source="DateTimeEntered,TransferNumber,FromLocationName,Description,Notes,Status"
+    sourcelabels="Creado,Folio,Desde Ubicación,Descripción,Notas,Estatus"
+    align="|Left|Left|left|left|left"
+    format="datetime"
+    translate="Status"
+    sort="DateTimeEntered=desc"
+    key="TransferGuid" 
+    onselectset="StockRequestGuid=[[TransferGuid]],FromLocationDisplayName=[[FromLocationName]],ToLocationDisplayName=[[ToLocationName]]"
+    onselect="StockRequestGuid">
+    <!-- Refresh the transfer list -->
+    <control type="button" name="btnRefreshStockRequests"
+      icon="refresh" label="Actualizar"
+      action="trigger" trigger="StockRequestList"/>
+    <!-- Display the transfer modal -->
+    <control type="button" 
+      name="btnNewStockRequest" 
+      reveal="[SurgeryGuid]!+[EditMode]=Surgery"
+      label="Añadir Nuevo"
+      icon="plus"
+      action="redirect"
+      trigger="PatientId!;GetStockRequestPatientName"
+      preset="StkReq_SurgeryGuid=[SurgeryGuid],StkReq_Status=Requested,StkReq_PatientId=[PatientId]"
+      target="mdlSurgeryStockRequest"/>
+    <control type="button" 
+      name="btnNewTemplateStockRequest" 
+      reveal="[SurgeryGuid]!+[EditMode]=Template"
+      label="Añadir Nuevo"
+      icon="plus"
+      action="redirect"
+      preset="StkReq_SurgeryGuid=[SurgeryGuid],StkReq_Status=Template"
+      target="mdlSurgeryStockRequest"/>
+  </control>
+</partial>

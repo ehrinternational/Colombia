@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<module name="Agendar Cirugías" type="onload" trigger="SurgeryInf_RoomGuid,SurgeryTimes,Surgery_RoomGuid">
+<module name="Agendar Cirugías" type="onload" trigger="SurgeryLocationId">
   <facet name="FileName" value="SurgeryScheduling"/>
   <facet name="CalendarOption" value="Surgery"/>
   <facet name="PatientSearched" value="false"/>
@@ -12,16 +12,10 @@
       preset="Report_Type=Surgery"
       trigger="ReportList"
       action="redirect" target="mdlReports"/>
-  <!-- Export surgerys for AI -->
-  <headerbutton name="btnAISurgerySummary"
-      reveal="(userName)%sonic|medwave|ehrinternational" 
-      action="redirect"
-      target="mdlAISurgeries"
-      label="Consulta IA" icon="gears"/>
   <!-- This needs to use the accent once Andrew fixes the call -->
   <facet name="SurgeryWardName" value="Quirófano"/>
   <!-- Partial Surgery Calendar -->
-  <partial link="./Partial/Calendars/PartialCalendarSurgeryAppointments.xml"/>
+  <partial link="Partials/ColombiaPartialCalendarSurgeryAppointments.xml"/>
   <!-- Partial Surgery Template list -->
   <partial link="./Partial/Lists/PartialSurgeryTemplateList.xml"/>
   <!-- Tabmodal to enter/edit surgeries -->
@@ -57,31 +51,48 @@
         </column>
       </columns>
     </group>
-    <!-- Surgery grids -->
-    <group name="SurgeryGridGroup" reveal="SurgeryGuid!">
-      <!-- Show this buttongroup when entereing/editing a surgery -->
+  </section>
+  <!-- Tabmodals -->
+  <section type="tabmodal" name="tbmSurgeryTeam" title="Personal de Cirugía" badge="none" trigger="SurgeryTeam">
+    <group>
       <row>
-        <control type="buttongroup" 
-          name="SurgeryButtonGroupSelect" 
-          edit="true" mode="auto"          
-          source="Team,Equipment,SurgeryKits,StockRequests,Purchases,Appointments,Documents"
-          sourcelabels="Personal,Equipo,Kits,Stock,Compras,Citas,Documentos"
-          span="12" 
-          default="Team" 
-          value="Team" 
-          provoke="SurgeryGridList|options"/>
+        <partial link="Partials/ColombiaPartialSurgeryTeam.xml"/>
       </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="tbmSurgeryEquipment" title="Equipo de Cirugía" badge="none" trigger="ScheduledEquipment">
+    <group>
       <row>
-        <control name="SurgeryGridList" affector="SurgeryButtonGroupSelect" type="options" span="12">
-          <partial link="./Partial/Grids/PartialSurgeryTeam.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryScheduledEquipment.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryScheduledKits.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryStockRequests.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryScheduledPurchases.xml"/>
-          <partial link="./Partial/Grids/PartialAppointmentListForPatientAddEditConsulting.xml"/>
-          <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditAndForSurgery.xml"/>
-          <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancelInWindow.xml"/>
-        </control>
+        <partial link="Partials/ColombiaPartialSurgeryScheduledEquipment.xml"/>
+      </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="tbmSurgeryKits" badge="none" title="Kits de CEYE Programados" trigger="ScheduledSurgeryKits">
+    <group>
+      <row>
+        <partial link="Partials/ColombiaPartialSurgeryScheduledKits.xml"/>
+      </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="tbmSurgeryStockRequests" title="Requisiciónes de Stock" badge="none" trigger="SurgeryStockRequests">
+    <group>
+      <row>
+        <partial link="Partials/ColombiaPartialSurgeryStockRequests.xml"/>
+      </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="tbmSurgeryPurchaseRequests" title="Compras de Cirugía" badge="none" trigger="SurgeryPurchaseOrders">
+    <group>
+      <row>
+        <partial link="Partials/ColombiaPartialSurgeryScheduledPurchases.xml"/>
+      </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="tbmSurgeryDocuments" badge="none" title="Documentos de Cirugía" trigger="SurgeryEcdForms,SurgeryScannedForms">
+    <group>
+      <row>
+        <partial link="Partials/ColombiaPartialECDFormsForSurgery.xml"/>
+        <partial link="Partials/ColombiaPartialSurgeryScannedDocuments.xml"/>
       </row>
     </group>
   </section>

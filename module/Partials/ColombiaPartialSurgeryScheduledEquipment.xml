@@ -1,0 +1,19 @@
+﻿<partial>
+  <!-- Partial surgery equipment -->
+  <control type="datagrid" name="ScheduledEquipment" label="Equipo de Cirugía" 
+    modalname="ScheduledEquipmentModal" 
+    rows="10" span="12"
+    fitrows="true"
+    idle="[SurgeryGuid]=|reset"
+    datarequest="GetScheduledEquipment"
+    appendrequest="SurgeryGuid=[SurgeryGuid]"
+    datainsert="InsertScheduledEquipment"
+    appendinsert="SurgeryGuid=[SurgeryGuid]"
+    dataupdate="UpdateScheduledEquipment"
+    appendupdate="SurgeryGuid=[SurgeryGuid]"
+    source="Active,EquipmentName,EquipmentSerialNumber,Notes"
+    sourcelabels="Activo,Descripción,Serie,Notas"
+    align="|left|left|left|left|left"
+    format="boolean"
+    key="ScheduledGuid"/>
+</partial>

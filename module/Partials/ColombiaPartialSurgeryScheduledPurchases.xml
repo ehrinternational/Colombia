@@ -1,0 +1,31 @@
+﻿<partial>
+<!-- Partial surgery scheduled implants -->
+  <control type="datagrid" label="Compras de Cirugía" name="SurgeryPurchaseOrders"
+    option="Purchases"
+    rows="5" span="12"
+    action="redirect"
+    target="mdlPatientPurchaseOrderRequest"
+    acctsvcreq="true"
+    idle="[SurgeryGuid]=|reset"
+    datarequest="GetPurchaseOrderByStatus"
+    appendrequest="surgeryGuid=[SurgeryGuid]"
+    source="Status,PODate,DeliveryDate,PONumber,DepartmentName,VendorName,Description"
+    sourcelabels="Estatus,Fecha,Entrega,Número,Departamento,Proveedor,Descripción"
+    align="|left|left|left|left|left|left"
+    format="|date|date"
+    translate="Status"
+    key="POGuid"
+    onselectset="PurchaseOrderGuid=[[POGuid]]"
+    onselect="PurchaseOrderGuid">
+  <control type="button" name="btnNewSurgeryPO"
+    reveal="[EditMode]=Surgery"
+    icon="plus" label="Añadir Nuevo"
+    preset="POInfo_SurgeryGuid=[SurgeryGuid],POInfo_PatientId=[PatientId],POInfo_Status=Draft"
+    action="redirect" target="mdlPatientPurchaseOrderRequest"/>
+  <control type="button" name="btnNewTemplateSurgeryPO"
+    reveal="[EditMode]=Template"
+    icon="plus" label="Añadir Nuevo"
+    preset="POInfo_SurgeryGuid=[SurgeryGuid],POInfo_Status=Template"
+    action="redirect" target="mdlPatientPurchaseOrderRequest"/>
+  </control>
+</partial>

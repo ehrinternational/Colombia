@@ -175,7 +175,7 @@
   <partial target="mdlSurgeryECDs" link="Partials/ColombiaPartialSurgeryECDs.xml"/>
   <partial target="mdlSurgeryViewModal" link="Partials/ColombiaPartialSurgeryTabModal.xml"/>
   <partial target="NewConsultModal" link="Partials/ColombiaPartialInterconsultRequest.xml"/>
-  <partial  link="Partials/ColombiaPartialPatientContactsModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
   <partial target="NewSurgeryRequestModal" link="Partials/ColombiaPartialSurgeryRequestWaitList.xml"/>
   <partial target="mdlPathologyOrders" link="Partials/ColombiaPartialPathologyOrders.xml"/>
   <partial target="mdlBloodBankOrder" link="Partials/ColombiaPartialBloodBankOrder.xml"/>
@@ -183,7 +183,7 @@
    <!-- Calendars -->
   <partial target="mdlConsultVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarConsultAppointmentsAsModal.xml"/>
   <partial target="mdlFirstVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarFirstVisitAppointmentsAsModal.xml"/>
-  <partial target="mdlSurgeryViewAppointments" link="./Partial/Calendars/PartialCalendarSurgeryAppointmentsViewOnlyAsModal.xml"/>
+  <partial target="mdlSurgeryViewAppointments" link="Partials/ColombiaPartialCalendarSurgeryAppointmentsViewOnlyAsModal.xml"/>
   <partial target="mdlMyTaskAppointments" link="./Partial/Calendars/PartialCalendarMySalesTasksAsModal.xml"/>
   <partial target="mdlCalendarSearchModal" link="Partials/ColombiaPartialCalendarSearchModal.xml"/>
   <!-- Calendar Appointment modals -->
@@ -208,7 +208,7 @@
   <partial target="ImageOrderModalForReview" link="./Partial/Modals/PartialImagingOrderModalForReview.xml"/>
   <!-- Demographic modals -->
   <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
-  <partial target="NewPayers" link="./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+  
   <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
   <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
   <!-- Messaging -->

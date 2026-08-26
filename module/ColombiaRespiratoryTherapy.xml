@@ -143,7 +143,7 @@
     <partial target="mdlViewECDVersions" link="./Partial/Modals/PartialECDRevisions.xml"/> 
     <!-- Demographic modals -->
     <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
-    <partial target="NewPayers" link="./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
+    
     <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
     <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
     <!-- Messaging -->

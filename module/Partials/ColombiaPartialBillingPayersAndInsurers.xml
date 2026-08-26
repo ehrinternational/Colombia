@@ -96,6 +96,36 @@
             edit="true"/>
           </row>    
         </subset>
+        </column>
+        <column span="2">
+          <row>
+            <control type="button" name="btnSaveNewPayer" label="Continuar" color="green" icon="cloud-upload" span="12"
+              reveal="[PayerGuid]="
+              action="save"
+              acctsvc="true"
+              affector="PayerGuid"
+              setaffector="PayerGuid"
+              datainsert="InsertPayer"
+              capture="grpPayerGroup"/>
+            <control type="button" name="btnUpdateNewPayer" label="Actualizar" icon="cloud-upload" span="12"
+              reveal="[PayerGuid]!"
+              action="save|close|new"
+              acctsvc="true"
+              affector="none"
+              dataupdate="UpdatePayer"
+              appendupdate="PayerGuid=[PayerGuid]"
+              capture="grpPayerGroup"/>
+            <control type="button" name="btnMoneyLaunderingFound" label="Declaración Orig De Fondo" icon="search" span="12"
+              reveal="[PayerGuid]!+[MoneyLaunderingFound]=True"
+              preset="RelatedGuid=[PayerGuid]"
+              trigger="RelatedGuid"
+              action="redirect" target="mdlMoneyLaundering"/>
+            <control type="button" name="btnMoneyLaunderingNotFound" label="Declaración Orig De Fondo" icon="search" color="orange" span="12"
+              reveal="[PayerGuid]!+[MoneyLaunderingFound]=False"
+              action="redirect" target="mdlMoneyLaundering"/>
+          </row>
+        </column>
+        <column span="12">
         <subset bgcolor="white">
           <row>
             <control type="label" label="Actividad Económica" span="4"/>
@@ -237,34 +267,6 @@
           </row>
         </subset>
       </column>
-      <column span="2">
-          <row>
-            <control type="button" name="btnSaveNewPayer" label="Continuar" color="green" icon="cloud-upload" span="12"
-              reveal="[PayerGuid]="
-              action="save"
-              acctsvc="true"
-              affector="PayerGuid"
-              setaffector="PayerGuid"
-              datainsert="InsertPayer"
-              capture="grpPayerGroup"/>
-            <control type="button" name="btnUpdateNewPayer" label="Actualizar" icon="cloud-upload" span="12"
-              reveal="[PayerGuid]!"
-              action="save|close|new"
-              acctsvc="true"
-              affector="none"
-              dataupdate="UpdatePayer"
-              appendupdate="PayerGuid=[PayerGuid]"
-              capture="grpPayerGroup"/>
-            <control type="button" name="btnMoneyLaunderingFound" label="Declaración Orig De Fondo" icon="search" span="12"
-              reveal="[PayerGuid]!+[MoneyLaunderingFound]=True"
-              preset="RelatedGuid=[PayerGuid]"
-              trigger="RelatedGuid"
-              action="redirect" target="mdlMoneyLaundering"/>
-            <control type="button" name="btnMoneyLaunderingNotFound" label="Declaración Orig De Fondo" icon="search" color="orange" span="12"
-              reveal="[PayerGuid]!+[MoneyLaunderingFound]=False"
-              action="redirect" target="mdlMoneyLaundering"/>
-          </row>
-        </column>
       </columns>
       <!-- Display list of contracts and scanned documents -->
     </group>
