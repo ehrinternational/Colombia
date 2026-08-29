@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<module name="Agendar Cirugías" type="onload" trigger="SurgeryLocationId">
+<module name="Agendar Cirugías" type="onload" trigger="SurgeryRequestList">
   <facet name="FileName" value="SurgeryScheduling"/>
   <facet name="CalendarOption" value="Surgery"/>
   <facet name="PatientSearched" value="false"/>
@@ -14,12 +14,12 @@
       action="redirect" target="mdlReports"/>
   <!-- This needs to use the accent once Andrew fixes the call -->
   <facet name="SurgeryWardName" value="Quirófano"/>
+  <!-- Partial Surgery Request List -->
+  <partial link="Partials/ColombiaPartialSurgeryRequestList.xml"/>
   <!-- Partial Surgery Calendar -->
   <partial link="Partials/ColombiaPartialCalendarSurgeryAppointments.xml"/>
-  <!-- Partial Surgery Template list -->
-  <partial link="./Partial/Lists/PartialSurgeryTemplateList.xml"/>
   <!-- Tabmodal to enter/edit surgeries -->
-  <section type="tabmodal" badge="none" name="SurgeryTabModal" title="Información de la Cirugía" size="medium" >
+  <section type="tabmodal" badge="none" name="SurgeryTabModal" title="Información de la Cirugía" size="medium" provoke="SurgeryRequestList" >
     <group name="SurgeryGuidGroup" showif="never">
       <row>
         <control type="hidden" name="SurgeryGuid"
@@ -97,6 +97,7 @@
     </group>
   </section>
     <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
+    <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
     <partial link="./Partial/Calendars/PartialCalendarConsultVisitAppointmentModal.xml"/>
     <partial target="mdlConsultVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarConsultAppointmentsAsModal.xml"/>
     <!-- General Modals -->
@@ -106,7 +107,8 @@
     <partial target="MedicationDetailModal" link="./Partial/Modals/PartialMedicationDetailModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientPayersListModal.xml"/>
     <!-- Surgery Modals -->
-    <partial link="./Partial/Modals/PartialAISurgerySummary.xml"/>
+    <partial link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
+    <partial link="Partials/ColombiaPartialCalendarScheduleSurgeryOrder.xml"/>
     <partial link="./Partial/Modals/PartialSurgeryTeamModal.xml"/>
     <partial link="./Partial/Modals/PartialScheduledSurgeryKitsModal.xml"/>
     <partial link="./Partial/Modals/PartialSurgeryEquipmentModal.xml"/>

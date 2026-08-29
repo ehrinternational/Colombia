@@ -105,7 +105,7 @@
           <partial link="./Partial/Grids/PartialECDFormsWithNewEditAndVersionsWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancelInWindow.xml"/>
           <partial link="Partials/ColombiaPartialAppointmentListSocialWorker.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
         </control>
       </row>
     </group>
@@ -129,7 +129,7 @@
     <partial target="mdlViewECDVersions" link="./Partial/Modals/PartialECDRevisions.xml"/>
     <partial target="mdlViewVersions" link="./Partial/Modals/PartialViewECDVersions.xml"/> 
     <!-- Demographic modals -->
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
     <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
     <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>

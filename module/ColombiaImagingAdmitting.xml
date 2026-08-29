@@ -94,8 +94,7 @@
           <partial link="Partials/ColombiaPartialInpatientMedicationWithAdministration.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
-          
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
@@ -114,7 +113,7 @@
     <!-- General Modals -->
     <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
     <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
     <partial target="ImageOrderModal" link="./Partial/Modals/PartialImagingOrderModal.xml"/>
     <partial target="mdlNewImagingReportModal" link="./Partial/Modals/PartialNewImagingReportModal.xml"/>

@@ -20,7 +20,7 @@
       </row>
       <row>
         <control type="label" label="Zona Residencia" span="4"/>
-        <control type="buttongroup" name="Address_City" span="3" edit="true"
+        <control type="buttongroup" name="Address_Barangay" span="3" edit="true"
           source="U,R" default="U"
           sourcelabels="Urbano,Rural"/> 
       </row>
@@ -86,7 +86,7 @@
           acctsvcreq="true"    
           datarequest="GetColombiaMunicipalities"         
           appendrequest="StateCode=[Address_State]"
-          source="Municipality,MunicipalityCode"
+          source="Municipality,MunicipalCode"
           provoke="Address_City" />  
       </row>  
       <row>

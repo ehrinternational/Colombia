@@ -107,7 +107,7 @@
           <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialVitalSignsWithNewAndGraph.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
@@ -123,13 +123,14 @@
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialScannedImagingDocumentsInWindow.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+          <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
         </control>
       </row>
     </group>
   </section>
     <!-- Colombia partials -->
+    <partial target="mdlSurgeryOrderModal" link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
     <partial target="mdlInternalConsultModal" link="Partials/ColombiaPartialServiceConsultRequest.xml"/>
     <partial target="NewConsultModal" link="Partials/ColombiaPartialInterconsultRequest.xml"/>
     <partial target="MyInternalConsultList" link="Partials/ColombiaPartialMyInternalConsultRequestList.xml"/>
@@ -152,7 +153,7 @@
     <partial target="mdlCalendarSearchModal" link="Partials/ColombiaPartialCalendarSearchModal.xml"/>
 		<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/> 
     <!-- Demographic modals -->
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
     <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
     <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>

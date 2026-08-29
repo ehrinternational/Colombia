@@ -1,0 +1,106 @@
+<partial>
+  <!-- GoPartialSurgeryInformation -->
+  <row>
+    <control type="label" label="Tipo de Consulta" span="3"/>
+    <control type="buttongroup" name="SurgeryOrder_AttentionType" span="3" required="true"
+      source="Ambulatory,Hospital" sourcelabels="Ambulatorio,Hospitalización" 
+      edit="true"/>
+    <control type="label" label="Especialidad" span="3"/>
+    <control type="select" name="SurgeryOrder_MedicalSpecialty" span="3" 
+      acctsvc="true" required="true"
+      datasource="GetMedicalSpecialties"
+      default="[SearchSurgerySpecialty]"
+      source="Specialty,MedicalSpecialtyGuid"
+      edit="true"/>
+  </row>
+   <row>
+    <control type="label" label="Tipo de Solicitud" span="3"/>
+    <control type="select" name="SurgeryOrder_Priority" span="3" 
+      edit="true" required="true"
+      source="Electiva,Urgente" default="Electiva"/>
+    <control type="label" label="Estatus" span="3"/>
+    <control type="select" name="SurgeryOrder_Status" span="3" readonly="true"
+      required="true" explicit="true" 
+      source="Requested,Scheduled,Confirmed,In Process,Completed,Canceled,Template"
+      sourcelabels="Solicitado,Reservada,Confirmado,En Proceso,Realizada,Eliminada,Plantilla" 
+      default="Requested"/>
+  </row>
+  <row>
+    <control type="label" label="Tipo de Cirugía" span="3"/>
+    <control type="select" name="SurgeryOrder_SurgeryType" span="3" required="true"
+      edit="true"
+      source="Ortopedia,Mano,Columna,Retiro,Plástica,Plástica Reconstructiva,
+      Cirugía con Laser,No ortopédica,Especial"/>
+    <control type="label" label="Plano" span="3"/>
+    <control type="select" name="SurgeryOrder_Laterality" span="3"
+      source="1,2,3,4" 
+      sourcelabels="1 Izquierdo,2 Derecho,3 Bilateral,4 No Aplica" 
+      required="true"
+      edit="true"/>
+  </row>
+  <row>
+    <control type="label" label="Classificación de la Herida" span="3"/>
+    <control type="select" name="SurgeryOrder_CaseType" span="3" required="true"
+      edit="true"
+      source="Limpia,Limpia contaminada,Contaminada,Sucia"/>
+  </row>
+  <row>
+    <control type="label" label="Descripción de Cirugía" span="3"/>
+    <control type="textarea" name="SurgeryOrder_ScheduleNotes" span="9" rows="1" edit="true" required="true"/>
+  </row>
+  <row>
+    <control type="label" label="Diagnóstico/Hipótesis" span="3"/>
+    <control type="typeahead" name="SurgeryOrder_ConfirmedDiagnosis,SurgeryOrder_ConfirmedDiagnosisCode" span="9" 
+      edit="true" required="true"
+      datasource="GetICD10CodesSearchByTerm"
+      term="term"
+      source="ICD10CodeDescription,ICD10Code"/>
+  </row>
+  <row>
+    <control type="label" label="Procedimiento Principal" span="3"/>
+    <control type="typeahead" name="SurgeryOrder_PrimaryProcedureName,SurgeryOrder_PrimaryProcedure" span="9" 
+      edit="true" required="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+  </row>
+  <row>
+    <control type="label" label="Procedimiento Secundario" span="3"/>
+    <control type="typeahead" name="SurgeryOrder_SecondaryProcedureName,SurgeryOrder_SecondaryProcedure" span="6"
+      edit="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+  </row>
+  <row>
+    <control type="label" label="Procedimiento Tercero" span="3"/>
+    <control type="typeahead" name="SurgeryOrder_ProcedureName3,SurgeryOrder_Procedure3" span="6"
+      edit="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+  </row>
+  <row name="rowReferringMd" reveal="FileName=SurgeryScheduling">
+    <control type="label" label="Referidor" span="3"/>
+    <control type="select" name="SurgeryOrder_ReferringDoctor"
+			span="5" explicit="true" edit="true" sort="MdFirstName=asc" searchable="true"
+			acctsvc="true"
+			datasource="GetReferringMds" append="LocationId=(facilityData.LocationId)" 
+			source="MdFirstName|MdMiddleName|MdLastName,ReferringMdGuid"/>
+			<control type="button" name="btntNewReferringMd"
+			icon="plus" label="" action="redirect" span="1"
+			target="mdlReferringMd"/>
+    <control type="label" label="Referencia" span="1"/>
+    <control type="text" name="SurgeryOrder_Reference" span="2" edit="true" required="[SurgeryOrder_ReferringDoctor]!"/>
+  </row>
+  <row>
+    <!--??required="true"-->
+    <control type="label" label="Cirujano" span="3"/>
+    <control type="select" name="SurgeryOrder_SurgeonId"
+      searchable="true" 
+      acctsvc="true" datasource="GetUsersByAttributes" 
+      append="LocationId=(facilityData.LocationId),role=Surgeon|Physician"
+      source="UserFirstMiddleLast,UserId"
+      span="3" explicit="true" edit="true"/>
+  </row>
+</partial>

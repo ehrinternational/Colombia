@@ -70,13 +70,13 @@
           <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
           <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialIdentificationGrid.xml"/>
-          <partial link="./Partial/Grids/PartialPatientAddressesForMexico.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="./Partial/Grids/PartialPatientPhones.xml"/>
           <partial link="./Partial/Grids/PartialPatientContactsWithModal.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
           <partial link="Partials/ColombiaPartialAppointmentListForPatientWithCalendars.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
         </control>
       </row>
     </group>
@@ -97,7 +97,7 @@
     <partial target="mdlAssignPhysician" link="./Partial/Admin/PartialAssignAttendingPhysician.xml"/>
     <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
     <!-- Demographic modals -->
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
     <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
     <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>

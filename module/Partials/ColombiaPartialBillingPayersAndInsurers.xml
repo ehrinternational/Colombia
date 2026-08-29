@@ -70,6 +70,11 @@
             regex="^[A-Z0-9., \-]{3,100}$"/>
           </row>
           <row>
+            <control type="label" label="Dirección Página Web" span="3"/>
+            <control type="text" name="Pyr_WebPage" span="9" edit="true" 
+            regex="^[A-Z0-9., \@-]{3,100}$"/>
+          </row>
+          <row>
             <control type="label" label="Razón Social DIAN" span="3"/>
             <control type="text" name="Pyr_PayerName2" span="9" required="true" edit="true" 
             regex="^[A-Z0-9., \-]{3,100}$"/>
@@ -128,14 +133,9 @@
         <column span="12">
         <subset bgcolor="white">
           <row>
-            <control type="label" label="Actividad Económica" span="4"/>
-            <control type="select" name="Pyr_EconomicActivity" span="8" edit="true"
-              source="catalog"/>
-          </row>
-          <row>
             <control type="label" label="Responsabilidad" span="4"/>
             <control type="select" name="Pyr_Responsable" span="8" edit="true"
-              source="catalog"/>
+              source="0-13,R-99-PN"/>
           </row>
           <row>
             <control type="label" label="Registro Mercantil" span="4"/>
@@ -235,8 +235,9 @@
               edit="true" sort="Name" explicit="true" namefield="Pyr_LegalMunicipaliiy"
               searchable="true"  
               idle="[Pyr_LegalStateCode]=" 
-              source="Name,Code"      
-              datarequest="GetColombianMunicipalities"         
+              source="Name,Code" 
+              acctsvcreq="true"     
+              datarequest="GetColombiaMunicipalities"         
               appendrequest="State=[Pyr_LegalStateCode]"/>  
             <control type="label" label="Código Postal" span="3"/>
             <control type="text" name="Pyr_LegalPostalCode" span="3" edit="true"
@@ -254,10 +255,10 @@
           <row>
             <control type="label" label="Régimen Tributario" span="3"/>
             <control type="buttongroup" name="Pyr_RegTribute" span="3" edit="true"
-              source="Común,Simplificado"/>
+              source="C,S" sourcelabels="Común,Simplificado"/>
             <control type="label" label="Tipo Contribuyente" span="3"/>
             <control type="buttongroup" name="Pyr_Contribute" span="3" edit="true"
-              source="Grande,Pequeño"/>
+              source="P,G" sourcelabels="Pequeño,Grande"/>
           </row>
           <row>
             <control type="label" label="" span="3"/>
@@ -283,15 +284,15 @@
           <control type="datagrid" label="Contactos del Empressa" name="Contacts" 
             option="Contacts"
             span="12" rows="5"
-            modalname="mdlInsuranceContacts"
-            idle="[PatientId]=|reset"
+            modalname="mdlPayerContacts"
+            idle="[PayerGuid]=|reset"
             datarequest="GetPatientSupportContactsByPatientId"
             datainsert="InsertPatientSupportContacts"
             dataupdate="UpdatePatientSupportContacts"
             appendrequest="patientId=[PayerGuid]"
             appendinsert="patientId=[PayerGuid]"
             source="Active,FirstName,MiddleName,LastName,HomeTelephone,MobileTelephone,EmailAddress"
-            sourcelabels="Activo,Nombre(s),Apellido Primario,Apellido Segundo,Teléfono 1,Teléfono 2,Correo Electrónico"
+            sourcelabels="Activo,Nombre(s),Apellido Primario,Apellido Segundo,Teléfono,Celular,Correo Electrónico"
             align="|left|left|left|left|left|left|left|left"
             format="boolean" 
             key="ContactGuid"/>
@@ -394,8 +395,9 @@
          <control type="select" name="Pya_MailingCity" span="5"       
           edit="true" sort="Name" explicit="true"
           searchable="true"  
-          idle="[Pya_MailingStateProvince]="       
-          datarequest="GetColombianMunicipalities"         
+          idle="[Pya_MailingStateProvince]="
+          acctsvcreq="true"       
+          datarequest="GetColombiaMunicipalities"         
           source="Name,Code" 
           appendrequest="State=[Pya_MailingStateProvince]"/>  
       </row>  

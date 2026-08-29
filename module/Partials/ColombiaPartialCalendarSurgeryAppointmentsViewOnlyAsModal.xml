@@ -46,6 +46,9 @@
   <section type="tabmodal" name="mdlSurgeryViewAppointments" title="Programación de Cirugía"  badge="none" size="large">
   	<group>
       <row>
+        <control type="hidden" name="SurgeryCalendarRoomType" default="None"/>
+      </row>
+      <row>
         <!-- Select the calendar to view filter="CalendarType=Surgery" -->
         <control type="select" name="SurgeryCalendarLookup" span="6"
 				  datasource="GetSchedulerAppointmentTypesByFacility" 
@@ -56,7 +59,8 @@
           filter="CalendarType=Surgery,Active=true"
 				  edit="true" 
 					sort="CalendarName=asc"
-				  provoke="SurgeryTimes"/>
+      set="[[Service]]!;SurgeryCalendarRoomType=[[Service]^SurgeryCalendarRoomType=None"
+				  provoke="SurgeryTimes|resource"/>
         <!-- Select surgeon -->
         <control type="label" label="Cirujano" span="1"/>
         <control type="select" name="SurgeryInf_SurgeonId"
@@ -66,7 +70,7 @@
           append="LocationId=(facilityData.LocationId),role=Physician"
           source="UserFirstMiddleLast,UserId"
           span="3" explicit="true" edit="true"
-          provoke="SurgeryTimes"/>
+          provoke="SurgeryTimes|resource"/>
       </row>
 			<row>
           <!-- Surgery Calendar add roomGuid=[Inf_RoomGuid] -->
@@ -78,7 +82,7 @@
             resource="RoomAndBedNumber,RoomGuid"
             dataresource="GetRoomsAndBedsForThisFacility"
             appendresource="LocationId=(facilityData.LocationId)"
-            resourcefilter="RoomType%Quirófano"
+            resourcefilter="RoomTypeGuid=[SurgeryCalendarRoomType]"
             default="resourceTimeGridDay"
             navlinking="true"
             slotduration="00:15"
@@ -98,7 +102,7 @@
             onselect="SurgeryViewGuid">
             <!-- Button to refresh the calendar -->
             <control type="button" name="SurgerybtnRefreshCalendar"
-              icon="refresh" label="Actualizar" action="trigger" trigger="[SurgeryCalendarLookup]!;SurgeryTimes"/>
+              icon="refresh" label="Actualizar" action="trigger" trigger="[SurgeryCalendarLookup]!;SurgeryTimes|resource"/>
           </control>
       </row>
 		</group>

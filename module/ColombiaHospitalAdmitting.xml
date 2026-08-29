@@ -75,7 +75,7 @@
       <row>
         <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="Partials/ColombiaPartialPatientPayers.xml"/>
           <partial link="Partials/ColombiaPartialPatientClaims.xml"/>
@@ -90,7 +90,7 @@
     <!-- HarmoniColombia partials -->
     <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
     <partial target="mdlNewClaims" link="Partials/ColombiaPartialAdmittingPayerClaims.xml"/>
     <partial target="mdlDisplayPlan" link="Partials/ColombiaPartialDisplayPlanDetails.xml"/>

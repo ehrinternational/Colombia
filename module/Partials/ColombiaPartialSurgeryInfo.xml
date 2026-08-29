@@ -15,8 +15,7 @@
     <control type="label" label="Especialidad" span="3"/>
     <control type="select" name="Surgery_MedicalSpecialty" span="3" 
       acctsvc="true" required="true"
-      datasource="GetMedicalSpecialties" 
-      filter="ParentSpecialty=null"
+      datasource="GetMedicalSpecialties"
       default="[SearchSurgerySpecialty]"
       source="Specialty,MedicalSpecialtyGuid"
       edit="[FileName]=SurgeryScheduling+[Surgery_Status]=Scheduled|Confirmed"/>
@@ -24,7 +23,6 @@
    <row>
     <control type="label" label="Tipo de Solicitud" span="3"/>
     <control type="select" name="Surgery_Priority" span="3" 
-       
       edit="[FileName]=SurgeryScheduling+[Surgery_Status]=Scheduled|Confirmed"
       required="true"
       source="Electiva,Urgente" default="Electiva"/>
@@ -49,13 +47,6 @@
       datasource="GetRoomsAndBedsForThisFacility"
       source="RoomAndBedNumber,RoomGuid"
       filter="RoomType%Quirófano"
-      explicit="true" edit="[FileName]=SurgeryScheduling" required="true"
-      sort="RoomAndBedNumber=asc"/>
-    <control type="select" name="Labor_RoomGuid" span="3" 
-      reveal="[EditMode]=Labor"
-      datasource="GetRoomsAndBedsForThisFacility"
-      source="RoomAndBedNumber,RoomGuid"
-      filter="RoomType%Tococirugía"
       explicit="true" edit="[FileName]=SurgeryScheduling" required="true"
       sort="RoomAndBedNumber=asc"/>
   </row>
@@ -114,7 +105,7 @@
   </row>
   <row>
     <control type="label" label="Classificación de la Herida" span="3"/>
-    <control type="select" name="Surgery_Type" span="3" required="true"
+    <control type="select" name="Surgery_CaseType" span="3" required="true"
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process"
       source="Limpia,Limpia contaminada,Contaminada,Sucia"/>
   </row>
@@ -130,7 +121,7 @@
     <control type="label" label="Procedimiento Principal" span="3"/>
     <control type="typeahead" name="PrimaryProcedureName,PrimaryProcedure" span="9" 
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process"
-      source="ProcedureCode|ProcedureDescription,ProcedureGuid"
+      source="ProcedureDescription,ProcedureGuid"
       datasource="GetProceduresFromProcedureAdministration"
       term="procedureDescription" required="true"/>
   </row>
@@ -138,7 +129,7 @@
     <control type="label" label="Procedimiento Secundario" span="3"/>
     <control type="typeahead" name="SecondaryProcedureName,SecondaryProcedure" span="6"
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process"
-      source="ProcedureCode|ProcedureDescription,ProcedureGuid"
+      source="ProcedureDescription,ProcedureGuid"
       datasource="GetProceduresFromProcedureAdministration"
       term="procedureDescription"/>
     <control type="checkbox" name="Incision2" label="Misma Incisión" 
@@ -150,10 +141,10 @@
     <control type="label" label="Procedimiento Tercero" span="3"/>
     <control type="typeahead" name="ProcedureName3,Procedure3" span="6"
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process"
-      source="ProcedureCode|ProcedureDescription,ProcedureGuid"
+      source="ProcedureDescription,ProcedureGuid"
       datasource="GetProceduresFromProcedureAdministration"
       term="procedureDescription"/>
-      <control type="checkbox" name="Incision2" label="Misma Incisión" 
+      <control type="checkbox" name="Incision3" label="Misma Incisión" 
       source="True,False" span="3"  
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process" 
       when="[Procedure3]=;"/>
@@ -187,12 +178,12 @@
     <control type="textarea" name="Surgery_PreOpNotes" span="7" rows="1" 
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process"/>
   </row>
-  <row name="rowPostSurgeryNotes" reveal="[EditMode]=Surgery|Labor">
+  <row name="rowPostSurgeryNotes" reveal="[EditMode]=Surgery+[Surgery_Status]=In Process|Completed">
     <control type="label" label="Observaciones posteriores a la cirugía" span="5"/>
     <control type="textarea" name="Surgery_PostOpNotes" span="7" rows="1" 
     edit="[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process"/>
   </row>  
-  <row>
+  <row name="rowAnesthesiaDuration" reveal="[EditMode]=Surgery+[Surgery_Status]=In Process|Completed">
     <control type="label" label="Duración Anestesia" badge="min" span="4"/>
     <control type="integer" name="Surgery_AnesthesiaDuration" span="1" 
     edit="[FileName]=SurgeryScheduling|SurgeryDoctor|Anesthesiologist+[Surgery_Status]=Scheduled|Confirmed|In Process"/>
@@ -234,7 +225,6 @@
       source="UserFirstMiddleLast,UserId"
       span="3" explicit="true" edit="[FileName]=SurgeryScheduling|SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process"
       when="[Surgery_SurgeonId2]=;"/>
-    
   </row>
   <row name="rowSurgeryIncidents" reveal="[EditMode]=Surgery+[Surgery_Status]=In Process|Complete">
     <control type="label" label="Incidentes" span="3"/>
@@ -245,9 +235,14 @@
       Punción de dura madre,Intubación Dificil,Espasmo Laringeo,Bloqueo Insuficiente,
       Desaturación,Bronco Espasmo,No se pudo intubar"/>
   </row>
-  <row>
-    <control type="label" label="Originado por" span="3"/>
-    <control type="text" name="Surgery_EnteredBy" span="5" readonly="true"/>
-    <control type="datetime" name="Surgery_DateTimeEntered" span="4" readonly="true"/>
+  <row name="rowReferringMd" reveal="[Surgery_ReferringDoctor]!">
+    <control type="label" label="Referidor" span="3"/>
+    <control type="select" name="Surgery_ReferringDoctor"
+			span="5" explicit="true" readonly="true" sort="MdFirstName=asc"
+			acctsvc="true"
+			datasource="GetReferringMds" append="LocationId=(facilityData.LocationId)" 
+			source="MdFirstName|MdMiddleName|MdLastName,ReferringMdGuid"/>
+    <control type="label" label="Referencia" span="2"/>
+    <control type="text" name="SurgeryOrder_Reference" span="2" readonly="true"/>
   </row>
 </partial>

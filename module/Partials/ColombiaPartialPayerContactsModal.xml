@@ -1,0 +1,98 @@
+<partial>
+  <!-- New contacts modal-->
+  <section type="modal" title="Contacto del Empressa" name="mdlPayerContacts" badge="none" size="small">
+    <group>
+      <row>
+       <control type="label" label="Activo" span="4"/>
+        <control type="buttongroup" name="PyrCon_Active" span="3" 
+          required="true" source="True,False" sourcelabels="Sí,No" default="True" edit="true" />
+      </row>
+       <row>
+        <control type="label" label="Teléfono" span="4"/>
+        <control type="text" name="PyrCon_HomeTelephone" span="3" edit="true"
+          regex="^\+?[1-9]\d{0,14}$"/>
+      </row>
+       <row>
+        <control type="label" label="Celular" span="4"/>
+        <control type="text" name="PyrCon_MobileTelephone" span="3" edit="true"
+          regex="^\+?[1-9]\d{1,14}$"/>
+      </row>
+      <row>
+        <control type="label" label="Nombre(s)" span="4"/>
+        <control type="text" name="PyrCon_FirstName" span="5" required="true" edit="true"
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
+      </row>
+      <row>
+        <control type="label" label="Primir Apellido" span="4"/>
+        <control type="text" name="PyrCon_MiddleName" span="5" required="true" edit="true"
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"  />
+      </row>
+      <row>
+        <control type="label" label="Segundo Apellido" span="4"/>
+        <control type="text" name="PyrCon_LastName" span="5" edit="true"
+          regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$" />
+      </row>
+      <row>
+        <control type="label" label="Correo Electrónico" span="4"/>
+        <control type="text" name="PyrCon_EmailAddress" span="6" edit="true" required="true" 
+         regex="^[^@\s]+@[^@\s]+\.[^@\s]+$" />
+      </row>
+       <row>        
+        <control type="label" label="Dirección" span ="4"/>
+        <control type="text" name="PyrCon_StreetAddress1" span="6" edit="true"
+        regex="^[a-zA-Z0-9áéíóúüñÁÉÍÓÚÜÑ\s.,#°ªº\-\/]{0,100}$"/> 
+      </row>
+      <row>
+       <control type="label" label="País" span ="4"/>
+       <control type="select" name="PyrCon_Country" span="6" edit="true" 
+          default="(facilityData.HospitalCountry)" explicit="true"
+          namefield="PyrCon_CountryText"
+          searchable="true"
+          sort="CountrySpanish=asc"
+          datasource="GetCountries" 
+          source="CountrySpanish,Code"
+          provoke="PyrCon_State"/>  
+      </row>
+      <row>
+       <control type="label" label="Departamento" span="4"/>
+       <control type="select" name="PyrCon_State" span="6" 
+          namefield="PyrCon_StateText"
+          explicit="true" edit="true" searchable="true"           
+          idle="[PyrCon_Country]="
+          datarequest="GetStatesProvincesByCountryCode"
+          appendrequest="CountryCode=[PyrCon_Country]"
+          source="Name,Code"
+          provoke="PyrCon_Province"/>
+      </row>
+      <row>
+        <control type="label" label="Municipio" span="4"/>
+         <control type="select" name="PyrCon_Province" span="6" 
+          namefield="PyrCon_ProvinceText"      
+          edit="true" sort="Name" explicit="true"
+          searchable="true"    
+          acctsvcreq="true"    
+          datarequest="GetColombiaMunicipalities"         
+          appendrequest="StateCode=[PyrCon_State]"
+          source="Municipality,MunicipalCode"
+          provoke="PyrCon_City" />  
+      </row>  
+      <row>
+        <control type="label" label="Localidad" span="4"/>
+         <control type="select" name="PyrCon_City" span="6" 
+          namefield="PyrCon_CityOther"      
+          edit="true" sort="Name" explicit="true"
+          searchable="true"  
+          idle="[PyrCon_Province]="   
+          acctsvcreq="true"    
+          datarequest="GetColombiaCommunes"         
+          appendrequest="MunicipalCode=[PyrCon_Province]"
+          source="Commune,CommuneCode" />  
+      </row>  
+      <row>
+        <control type="label" label="Código Postal" span="4"/>
+        <control type="text" name="PyrCon_PostalCode" span="3" edit="true"
+          regex="^(\d{0,10})?$"/> 
+      </row>
+    </group>
+  </section>  
+</partial>

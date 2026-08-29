@@ -15,7 +15,7 @@
     trigger="ConsultVisit_selAppointmentTypeGuid"
     action="redirect" target="mdlConsultVisitCalendarAppointments"/>
   <headerbutton name="btnSurgeryCalendar"
-    icon="calendar" label="Cirugia"
+    icon="calendar" label="Cirugía"
     preset="DefaultPatientId="
     trigger="SurgeryTimes|resource"
     action="redirect" target="mdlSurgeryViewAppointments"/>
@@ -106,7 +106,7 @@
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+          <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>

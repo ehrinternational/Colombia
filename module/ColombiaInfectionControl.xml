@@ -128,7 +128,7 @@
         <control type="options" name="GridOptions2" affector="ButtonGroupSelect2" span="12">
           <partial link="./Partial/Grids/PartialPatientTasksWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancelInWindow.xml"/>
@@ -179,7 +179,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationActiveAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEditPrintPrescription.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+          <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditReviseWithNoVisitWindowMode.xml"/>
@@ -188,6 +188,7 @@
      </group>
    </section>
     <!-- Colombia partials -->
+    <partial target="mdlSurgeryOrderModal" link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
     <partial target="mdlSurgeryViewModal" link="Partials/ColombiaPartialSurgeryTabModal.xml"/>
     <partial target="mdlBuildingWorkOrderRequest" link="Partials/ColombiaPartialMaintenanceWorkOrderRequest.xml"/>
     <partial target="mdlMedicalDeviceWorkOrderRequest" link="Partials/ColombiaPartialBiomedicalWorkOrderRequest.xml"/>

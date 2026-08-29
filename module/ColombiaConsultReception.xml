@@ -31,7 +31,7 @@
     trigger="LabAppointmentTimes"
     action="redirect" target="mdlLabAppointments"/>
   <headerbutton name="btnSurgeryCalendar"
-    icon="calendar" label="Cirugia"
+    icon="calendar" label="Cirugía"
     preset="DefaultPatientId="
     trigger="SurgeryTimes|resource"
     action="redirect" target="mdlSurgeryViewAppointments"/>
@@ -105,7 +105,7 @@
           <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
           <partial link="Partials/ColombiaPartialConsultRequestsForPatientNoHospitals.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
@@ -137,7 +137,7 @@
     <partial target="mdlNewProjectTasks" link="./Partial/Messaging/PartialNewProjectTasks.xml"/>
     <!-- General modals -->
     <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     <partial target="mdlSelectLaboratoriesToPrint" link="./Partial/Modals/PartialPrintLabPrescriptionByLaboratory.xml"/>
     <partial target="mdlSelectImagingLabsToPrint" link="./Partial/Modals/PartialPrintImagingPrescriptionByLaboratory.xml"/>
 		<partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>

@@ -91,7 +91,7 @@
           <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
           <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
@@ -113,7 +113,7 @@
   <partial link="./Partial/Modals/PartialNewLabOrdersModal.xml"/>
   <partial target="mdlNewExternalProvider" link="./Partial/Modals/PartialNewExternalProvider.xml"/>
   <partial target="mdlNewPatientIndication" link="./Partial/Modals/PartialNewIndicationModal.xml"/>
-  <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
   
   <partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>
   <partial link="./Partial/Move/PartialLabMovePatients.xml"/>

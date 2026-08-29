@@ -13,7 +13,7 @@
   <!-- Imaging calendar for modality appointments -->
   <partial link="./Partial/Calendars/PartialCalendarImagingWithModalitiesSetup.xml"/>
   <!-- Surgery calendar setup -->
-  <partial link="./Partial/Calendars/PartialCalendarSurgerySetup.xml"/>
+  <partial link="Partials/ColombiaPartialCalendarSurgerySetup.xml"/>
   <!-- Lab calendar setup -->
   <partial link="./Partial/Calendars/PartialCalendarLabSetup.xml"/>
   <!-- Calendar services setup -->

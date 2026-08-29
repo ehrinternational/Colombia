@@ -1,0 +1,28 @@
+<partial>
+  <!-- Tab modal to display surgery details -->
+  <section type="tabmodal" name="mdlSurgeryOrderModal" title="Órden de Cirugía" badge="none" size="medium"
+    provoke="SurgeryRequestList">
+    <group>
+      <row>
+        <control type="hidden" name="SurgeryOrderPatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[SurgeryOrderPatientId]"
+          inject="SurgeryOrderPatientInfo"/>
+      </row>
+    </group>
+    <group name="SurgeryOrderPatientInfo">
+      <partial link="Partials/ColombiaPartialSurgeryPatientInfo.xml"/>
+    </group>
+    <!-- Surgery information -->
+    <group name="SurgeryOrderInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialSurgeryOrderInfo.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialSurgeryOrderButtons.xml"/>
+        </column>
+      </columns>
+    </group>
+  </section>
+</partial>

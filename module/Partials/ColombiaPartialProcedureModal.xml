@@ -1,0 +1,130 @@
+  
+<partial>
+  <section type="tabmodal" name="mdlPatientProcedures" title="Procedimiento del Paciente" badge="none">
+    <group>
+      <row>
+        <control type="hidden" name="ProcedureGuid"
+          datarequest="GetPatientProcedureOrderByProcedureGuid"
+          appendrequest="ProcedureGuid=[ProcedureGuid]"
+          inject="grpProcedureInfo"/>
+        <control type="hidden" name="ProcedureCode"
+          acctsvcreq="true"
+          datarequest="GetMxCertProcedures"
+          appendrequest="PRO_NOMBRE=[Procedure_ProcedureDescription]"
+          />
+      </row>
+    </group>
+    <group name="grpProcedureInfo">
+      <row>
+      <control type="label" span="12" label="* Campos Obligatorio"/>
+      <control type="label" span="12" label="** Campos Obligatorio Según Condiciones"/>
+      </row>
+      <row name="rowProcedureOrdinal" reveal="[ProcedureGuid]!">
+        <control type="label" label="Número*" span="3"/>
+        <control type="text" name="Procedure_Ordinal" span="2" readonly="true"/>
+        <control type="label" label="Folio*" span="3"/>
+        <control type="text" name="Procedure_OrderNumber" span="2" readonly="true"/>
+      </row>
+      <row name="rowProcedureOrdinal2" reveal="[ProcedureGuid]=">
+        <control type="label" label="Número*" span="3"/>
+        <control type="calc" name="Procedure2_Ordinal" span="2" source="Length(ERProcedures)+1"/>
+      </row>
+      <row>
+        <control type="label" label="Selectado" span="3"/>
+        <control type="buttongroup" name="Procedure_Selected" source="True,False" sourcelabels="Sí,No" 
+          tooltip="Los procedimientos seleccionados se incluirán en los informes digitales."
+          edit="true" span="2" default="True"/>
+      </row>
+      <row>
+        <control type="label" label="Descripción*" span="3"/>
+        <control type="text" name="Procedure_ProcedureApproach" span="8" 
+          tooltip="Campo: 56 descripcionProcedimiento"
+          edit="true" required="true" format="ucase"
+          regex="^[0-9A-ZÑ .,;\_/()-]{2,250}$"/>
+      </row>
+      <row>
+        <control type="label" label="Código Procedimiento*" span="3"/>
+        <control type="typeahead" name="Procedure_ProcedureDescription,Procedure_ProcedureCode" 
+          span="8" edit="true"
+          tooltip="Campo: 57 codigoCieProcedimiento"
+          acctsvc="true"
+          datasource="GetMxCertProcedures"
+          append="PatientSex=[Consult_PatientSex],
+            [Consult_PatientDOB]!;AgeInHours=[Consult_AgeInHours]"
+          term="PRO_NOMBRE"
+          required="true"
+          source="ProcedureDescription,CATALOG_KEY"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo de Anestesia*" span="3"/>
+        <control type="select" name="Procedure_Lateriality" span="3" edit="true" required="true"
+          tooltip="Campo: 58 tipoAnestesia"
+          source="1,2,3,4,5,6" sourcelabels="1-GENERAL,2-REGIONAL,3-SEDACION,4-LOCAL,5-COMBINADA,6-NO USO"/>
+      </row>
+      <row>
+        <control type="label" label="Quirofano*" span="3"/>
+        <control type="buttongroup" name="Procedure_ProcedureStatusCode" span="3" edit="true" 
+          tooltip="Campo: 59 quirofanoDentroFuera" 
+          required="true"
+          source="1,2" sourcelabels="1-DENTRO,2-FUERA"
+          provoke="[Procedure_ProcedureStatusCode]=1+[Procedure_RootOperation]=99;Procedure_BodySystem=,
+            [Procedure_ProcedureStatusCode]=1+[Procedure_RootOperation]=99;Procedure_RootOperation="/>
+      </row>
+      <row>
+         <control type="label" label="Tiempo Quirofano**" span="3" badge="horas"/>
+        <control type="text" name="Procedure_BodySystem" span="1" 
+          edit="[Procedure_ProcedureStatusCode]=1"
+          tooltip="Campo: 60 tiempoQuirofano"  
+          required="[Procedure_ProcedureStatusCode]=1"
+          regex="^(?:[0-9]|[1-3][0-9]|4[0-8]|99)$"
+          when="[Procedure_ProcedureStatusCode]=2;"/>
+        <control type="label" label="" span="1" badge="min"/>
+        <control type="text" name="Procedure_RootOperation" span="1" edit="[Procedure_ProcedureStatusCode]=1"  
+          tooltip="Campo: 60 tiempoQuirofano"
+          required="true" format="00"
+          regex="^([0-5][0-9]|99)$"
+          when="[Procedure_BodySystem]=48;00,[Procedure_ProcedureStatusCode]=2;"/>
+      </row>
+      <row>
+        <control type="label" label="Profesional**" span="3"/>
+        <control type="select" name="Procedure_PerformedBy" span="4" edit="[Procedure_ProcedureStatusCode]=1"  
+          required="[Procedure_ProcedureStatusCode]=1" searchable="true"
+          acctsvc="true"
+					datasource="GetUsersByAttributes"
+					append="role=Physician"
+					source="FullName,UserId"
+          when="[Procedure_ProcedureStatusCode]=2;"
+          set="[Procedure_laterialityCode]=[[NPI]]"/>
+      </row>
+      <row>
+        <control type="label" label="Cédula**" span="3" badge="6 o 14Car"/>
+        <control type="text" name="Procedure_laterialityCode" span="3" readonly="true"
+        when="[Procedure_ProcedureStatusCode]=2;"/>
+      </row>
+      <row>
+        <control type="modalbutton" name="mbtSaveNewProcedure" icon="plus" label="Guardar" color="green"
+          reveal="[ProcedureGuid]="
+          action="save|close|new"
+          capture="grpProcedureInfo"
+          datainsert="InsertPatientProcedure"
+          appendinsert="PatientId=[PatientId],PatientVisit=[PatientVisitGuid],ProcedureStatus=Completed"
+          provoke="ERProcedures"/>
+        <control type="modalbutton" name="mbtUpdatePatientProcedure" icon="cloud-upload" label="Actualizar"
+          reveal="[ProcedureGuid]!"
+          action="save|close|new"
+          affector="none"
+          capture="grpProcedureInfo"
+          dataupdate="UpdatePatientProcedureSetStatus"
+          appendupdate="ProcedureGuid=[ProcedureGuid]"
+          provoke="ERProcedures"/>
+        <!-- Allow canceling if it is the last procedure in the list (to preserve the ordinals)-->
+        <control type="modalbutton" name="mbtRemoveProcedure" icon="plus" label="Eliminar" color="red"
+          reveal="[ProcedureGuid]!"
+          action="save|close|new"
+          dataupdate="UpdatePatientProcedureSetStatus"
+          appendupdate="ProcedureGuid=[ProcedureGuid],Status=Canceled,Ordinal=[Procedure_Ordinal]"
+          provoke="ERProcedures"/>
+      </row>
+    </group>
+  </section>
+</partial>

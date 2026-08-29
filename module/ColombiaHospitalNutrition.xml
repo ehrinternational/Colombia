@@ -87,7 +87,7 @@
         <control type="options" name="GridOptions2" affector="ButtonGroupSelect2" span="12">
           <partial link="./Partial/Grids/PartialPatientTasksWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialAppointmentListForPatientNoEdit.xml"/>
@@ -132,7 +132,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersNoEdit.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancelInWindow.xml"/>
         </control>

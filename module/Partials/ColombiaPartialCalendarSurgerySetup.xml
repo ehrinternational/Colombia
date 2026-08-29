@@ -1,0 +1,301 @@
+﻿<partial>
+  <!-- Template for day view that shows the provider, description, and location-->
+    <template name="DocToolTipTemplate" type="markup">
+        [div size=12 align=left] 
+        [icon size=2x]stethoscope[/icon] ${[[MedicalSpecialtyName]]}[br]
+        [icon size=2x]user-md[/icon] ${[[ProviderFirstMiddleLast]]}[br]
+        [IF ${[[ExceptionNotes]]}!][icon size=2x color=yellow]edit[/icon] ${[[ExceptionNotes]]}[/IF]
+        [/div]
+    </template>
+    <template name="DocTimeWeekTemplate" type="markup">
+        [span size=14 color=darkgrey] 
+        ${[[MedicalSpecialtyName]]}[br]
+        ${[[ProviderFirstMiddleLast]]}[br]
+        ${[[ExceptionNotes]]}
+        [/span]
+    </template>
+    <template name="DoctimeMonthTemplate" type="markup">
+        [span size=14 color=darkgrey] 
+        ${[[MedicalSpecialtyName]]}
+        [/span]
+    </template>
+  <!-- A calendar view is shown and the user can select the calendar and view -->
+  <section type="tab" name="tabSurgeryCalendarSetup" title="Calendarios de Cirugías" trigger="dgrSurgeryCalendars">
+   <group>
+    <row>
+        <control type="datagrid" 
+				  name="dgrSurgeryCalendars"
+          label="Calendarios de Cirugías"
+          span="12" rows="20"
+          action="redirect"
+          searchable="true"
+          target="mdlSurgeryCalendarSetup"
+				  datarequest="GetSchedulerAppointmentTypesByFacility" 
+          appendrequest="LocationId=(facilityData.LocationId)" 
+				  source="Active,StartDate,EndDate,Location,CalendarName,CalendarDescription,EnteredByFullName,UpdatedByFullName,DateTimeUpdated" 
+					sourcelabels="Activo,Fecha de Inicio,Fecha Final,Ubicación,Nombre,Descripción,Introducido por,Editado por,Editado en "
+          filter="CalendarType=Surgery"
+          format="boolean|date|date||||||date"
+          align="|left|left|left|left|left|left|left|left"
+					sort="CalendarName=asc"
+          key="CalendarGuid"
+          onselectset="SurgerySetup_CalendarGuid=[[CalendarGuid]]"
+          onselect="SurgerySetup_CalendarGuid">
+        <control type="button" name="btnNewSurgeryCalendar"
+          label="Añadir Nuevo" icon="plus"
+          action="redirect" target="mdlSurgeryCalendarSetup"/>
+        <control type="button" name="btnSurgeryCalendarRefresh"
+          label="Actualizar" icon="refresh"
+          action="trigger" provoke="dgrSurgeryCalendars"/>
+        </control>
+      </row>
+		</group>
+  </section>
+  <!-- Tabmodal to enter and edit surgery calendars  -->
+  <section type="tabmodal" name="mdlSurgeryCalendarSetup" badge="none" title="Calendario de Cirugía">
+		<group showif="never">
+			<row>
+        <control type="text" name="SurgerySetup_CalendarGuid"
+					datarequest="GetSchedulerAppointmentTypesByAppointmentTypeGuid"
+					appendrequest="appointmentGuid=[SurgerySetup_CalendarGuid]"
+					inject="SurgerySetup_CalendarInfo"
+          provoke="SurgerySchedulerTimes|resource"/>
+        <control type="text" name="SurgeryDropTime_SchedulerExceptionGuid"/>
+        <control type="text" name="SurgeryDropTime_StartTime"/>
+        <control type="text" name="SurgeryDropTime_EndTime"/>
+        <control type="text" name="SurgeryDropTime_SchedulerRoomGuid"/>
+				<control type="button" name="btnUpdateSurgeryDropTime"
+					action="save"
+					affector="none"
+					acctsvc="true"
+					dataupdate="UpdateSchedulerExceptions"
+					appendupdate="schedulerExceptionGuid=[SurgeryDropTime_SchedulerExceptionGuid],StartDateTime=[SurgeryDropTime_StartTime],EndDateTime=[SurgeryDropTime_EndTime],SchedulerRoomGuid=[SurgeryDropTime_SchedulerRoomGuid]"/>
+			</row>
+		</group>
+    <group name="SurgerySetup_CalendarInfo">
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" name="SurgerySetup_Active"
+					default="True" source="True,False" sourcelabels="Sí,No" span="3" edit="true"/>
+        <control type="button" name="SurgerySetup_UpdateCalendar"
+					icon="cloud-upload" span="2"
+					label="Actualizar" offset="4"
+					reveal="[SurgerySetup_CalendarGuid]!"
+					action="save|close|new"
+					affector="none"
+					capture="SurgerySetup_CalendarInfo"
+					dataupdate="UpdateSchedulerAppointmentTypes"/>
+        <control type="button" name="SurgerySetup_SaveCalendar"
+          icon="cloud-upload" span="2" color="green"
+          reveal="[SurgerySetup_CalendarGuid]="
+          label="Guardar" offset="4"
+          action="save"
+          affector="SurgerySetup_CalendarGuid"
+          setaffector="CalendarGuid"
+          capture="SurgerySetup_CalendarInfo"
+          datainsert="InsertSchedulerAppointmentTypes"
+          appendinsert="CalendarType=Surgery"
+          provoke="SurgerySchedulerTimes"/>
+          <!-- Note: the update call uses AppointmentTypeGuid NOT CalendarGuid! -->
+          <control type="hidden" name="SurgerySetup_AppointmentTypeGuid"/>
+			</row>
+      <row>
+				<control type="label" label="Nombre del Calendario" span="3"/>
+				<control type="text" name="SurgerySetup_CalendarName"
+					span="8" required="true" edit="true" />
+			</row>
+      <row>
+				<control type="label" label="Descripción" span="3"/>
+				<control type="text" name="SurgerySetup_CalendarDescription"
+					span="8" edit="true" />
+			</row>
+      <row>
+				<control type="label" label="Ubicación Id" span="3"/>
+				<control type="text" name="SurgerySetup_LocationId" span="2" edit="true"/>
+        <control type="label" label="Tipo de Habitación" span="3"/>
+				<control type="select" name="SurgerySetup_Service" span="3" edit="true" required="true"
+          acctsvc="true"
+          datasource="GetRoomTypesActive"
+          source="RoomTypeName,RoomTypeGuid"
+          provoke="SurgerySchedulerTimes|resource"/>
+			</row>
+			<row>
+				<!-- Date controls to search by a range of dates (DateTimeEntered) -->
+				<control type="label" label="Rango de Fechas" span="3"/>
+				<control type="date" span="3" name="SurgerySetup_StartDate"
+				required="true" edit="true"/>
+				<control type="date" span="3" name="SurgerySetup_EndDate"
+					required="true" edit="true" compare="»[SurgerySetup_StartDate]"/>
+			</row>
+		</group>
+	  <group name="grpSurgeryDays" reveal="SurgerySetup_CalendarGuid!">
+      <row>
+        <control type="calendar" name="SurgerySchedulerTimes"
+            span="12"
+            aspect="10/6"
+            headerleft="prevYear,nextYear prev,next today"
+            headercenter="title"
+            headerright="dayGridMonth,resourceTimeGridDay,listDay"
+            resource="RoomAndBedNumber,RoomGuid"
+            dataresource="GetRoomsAndBedsForThisFacility"
+            appendresource="LocationId=(facilityData.LocationId)"
+            resourcefilter="RoomTypeGuid=[SurgerySetup_Service]"
+            default="resourceTimeGridDay"
+            navlinking="true"
+            slotduration="00:15"
+            duration="00:15"
+            eventcolor="Type|Background=blue;Block=grey"
+            source="tooltip=DocToolTipTemplate,dayGridMonth=DocTimeWeekTemplate,resourceTimeGridDay=DocTimeWeekTemplate,timeGridWeek=DocTimeWeekTemplate,listDay=DocTimeWeekTemplate"
+            edit="true"
+            editable="rowguid!"
+            editduration="rowguid!"
+            idle="[SurgerySetup_CalendarGuid]=|reset"
+            acctsvcreq="true"
+            datarequest="GetSchedulerExceptionsByDateRange"
+            appendrequest="calendarGuid=[SurgerySetup_CalendarGuid]"
+            map="start=StartDateTime,end=EndDateTime,title=rowguid,resourceId=SchedulerRoomGuid"
+            daterange="start=start,end=end"
+            key="key"
+            action="redirect"
+            target="mdlSurgerySetupModal"
+            onselectset="mdlSurgerySetup_SchedulerExceptionGuid=[[SchedulerExceptionGuid]]"
+            onselect="mdlSurgerySetup_SchedulerExceptionGuid"
+            droptarget="none"
+            ondropset="SurgeryDropTime_SchedulerExceptionGuid=[[SchedulerExceptionGuid]],SurgeryDropTime_StartTime=[[start]],SurgeryDropTime_EndTime=[[end]],SurgeryDropTime_SchedulerRoomGuid=[[resourceId]]"
+            ondrop="btnUpdateSurgeryDropTime"
+            resizetarget="none"
+            onresizeset="SurgeryDropTime_SchedulerExceptionGuid=[[SchedulerExceptionGuid]],SurgeryDropTime_StartTime=[[start]],SurgeryDropTime_EndTime=[[end]],SurgeryDropTime_SchedulerRoomGuid=[[resourceId]]"
+            onresize="btnUpdateSurgeryDropTime"
+					  selectable="true"
+					  selectabletarget="mdlSurgerySetupModal"
+					  onselectableset="mdlSurgerySetup_StartDateTime=[[start]],mdlSurgerySetup_EndDateTime=[[end]],mdlSurgerySetup_SchedulerRoomGuid=[[resourceId]]">
+            <!-- Button to refresh the calendar -->
+            <control type="button" name="SurgerybtnRefreshCalendar"
+              icon="refresh" label="Actualizar" action="trigger" trigger="SurgerySchedulerTimes|resource"/>
+          </control>
+			</row>
+		</group>
+	</section>
+
+	<!-- Enter/Edit Calendar Exceptions -->
+  <section type="tabmodal" badge="none" name="mdlSurgerySetupModal" title="Horarios de Cirugías" size="small">
+    <group name="mdlSurgerySetup_GuidStorage">
+      <row>
+        <control type="hidden" name="mdlSurgerySetup_SchedulerExceptionGuid"
+          acctsvcreq="true"
+          datarequest="GetSchedulerExceptionsByGuid"
+          appendrequest="schedulerExceptionGuid=[mdlSurgerySetup_SchedulerExceptionGuid]"
+          inject="mdlSurgerySpcInfo"/>
+      </row>
+    </group>
+    <group name="mdlSurgerySpcInfo">
+      <row>
+        <control type="label" label="Tipo de Horario" span="4"/>
+				<control type="buttongroup" name="mdlSurgerySetup_Type" default="Background"
+          source="Background,Block" sourcelabels="Horario,Bloquear" span="4" edit="true"/>
+				<control type="hidden" name="mdlSurgerySetup_Active" default="True"/>
+        <control type="hidden" name="mdlSurgerySetup_CalendarGuid"/>
+			</row>
+      <row>
+        <control type="label" label="Fecha/Hora de Inicio" span="4"/>
+        <control type="datetime" name="mdlSurgerySetup_StartDateTime" required="true" span="4"  edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha/Hora Fin" span="4"/>
+        <control type="datetime" name="mdlSurgerySetup_EndDateTime" required="true" span="4"  edit="true"
+					compare="»[mdlSurgerySetup_StartDateTime]"/>
+      </row>
+      <row name="rowSurgeryRepeat" reveal="[mdlSurgerySetup_SchedulerExceptionGuid]=">
+        <control type="label" label="Repetir Cada" span="4"/>
+        <control type="select" name="mdlSurgerySetup_RepeatDays" span="4" default="0" edit="true"
+          persist="true"
+          source="0,7,14,21,28" sourcelabels="No Repetir,Semana,Dos Semanas,Tres Semanas,Cuatro Semanas"/>
+      </row>
+      <row name="rowSurgeryRepeatUntil" reveal="[mdlSurgerySetup_RepeatDays]!0">
+        <control type="label" label="Hasta la Fecha" span="4"/>
+        <control type="date" name="mdlSurgerySetup_RepeatUntil" span="4" compare="»[mdlSurgerySetup_StartDateTime]"  required="true" edit="true" persist="true"/>
+      </row>
+      <row name="rowSpecialty" reveal="[mdlSurgerySetup_Type]=Background">
+				<control type="label" label="Especialidad" span="4"/>
+				<control type="select" name="mdlSurgerySetup_MedicalSpecialtyGuid" span="6"
+          acctsvc="true" 
+					datasource="GetMedicalSpecialties" 
+					source="Specialty,MedicalSpecialtyGuid" 
+          sort="Specialty=asc"
+					persist="true" default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row name="rowAnesthesiologist" reveal="[mdlSurgerySetup_Type]=Background">
+				<control type="label" label="Anestesiólogo" span="4"/>
+				<control type="select" name="mdlSurgerySetup_ProviderId" span="6" 
+					acctsvc="true" datasource="GetUsersByAttributes" append="LocationId=(facilityData.LocationId),role=Physician"
+          searchable="true" 
+					source="UserFirstMiddleLast,UserId" 
+					persist="true"
+          default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row>
+				<control type="label" label="Ubicación" span="4"/>
+				<control type="select" name="mdlSurgerySetup_SchedulerRoomGuid" span="6" 
+          datasource="GetRoomsAndBedsForThisFacility" 
+          append="LocationId=(facilityData.LocationId)"
+					source="RoomAndBedNumber,RoomGuid"
+          filter="RoomType%Quirófano,Active=true"
+          sort="RoomAndBedNumber=asc" required="true"
+					persist="true" default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row name="rowSurgeryExceptionNotes" reveal="[mdlSurgerySetup_Type]=BackGround">
+				<control type="label" label="Notas" span="4"/>
+				<control type="textarea" name="mdlSurgerySetup_ExceptionNotes"
+          span="6" rows="1" edit="true"/>
+      </row>
+      <row name="rowSurgeryReasonToBlock" reveal="[mdlSurgerySetup_Type]=Block">
+        <control type="label" label="Motivo para Bloquear" span="4"/>
+        <control type="textarea" name="mdlSurgerySetup2_ExceptionNotes"
+          span="6" rows="1" edit="true" required="true"/>
+			</row> 
+		</group>
+		<group>
+      <row>
+        <control type="modalbutton" name="btnSaveSurgeryException"
+          reveal="[mdlSurgerySetup_SchedulerExceptionGuid]="
+          label="Generar"
+          color="green"
+          icon="cloud-upload"
+          action="save|close"
+          affector="none"
+          capture="mdlSurgerySpcInfo"
+          acctsvc="true"
+          datainsert="InsertSchedulerExceptions"
+					appendinsert="calendarGuid=[SurgerySetup_CalendarGuid]"
+          provoke="SurgerySchedulerTimes|resource"/>
+        <control type="modalbutton" name="btnUpdateSurgeryException"
+          reveal="[mdlSurgerySetup_SchedulerExceptionGuid]!"
+          label="Actualizar"
+          color="grey"
+          icon="cloud-upload"
+          action="save|close|new"
+          affector="none"
+          capture="mdlSurgerySpcInfo"
+          acctsvc="true"
+          dataupdate="UpdateSchedulerExceptions"
+          appendupdate="schedulerExceptionGuid=[mdlSurgerySetup_SchedulerExceptionGuid]"
+          provoke="SurgerySchedulerTimes|resource"/>
+				<control type="modalbutton" name="btnRemoveSurgeryException"
+          reveal="[mdlSurgerySetup_SchedulerExceptionGuid]!"
+          label="Eliminar"
+          color="red"
+          icon="remove"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+					confirm="Por favor, confirma que deseas eliminar este horario"
+          dataupdate="UpdateSchedulerExceptions"
+          appendupdate="schedulerExceptionGuid=[mdlSurgerySetup_SchedulerExceptionGuid],active=false"
+          provoke="SurgerySchedulerTimes|resource"/>
+      </row>
+    </group>
+  </section>
+</partial>

@@ -19,7 +19,7 @@
           <control type="hidden" name="PatientSurgeryGuid"/>
         </row>
         <row>
-          <control type="datagrid" label="Documentos de Cirugias" name="SurgeryEcdForms"
+          <control type="datagrid" label="Documentos de Cirugías" name="SurgeryEcdForms"
             span="12" rows="15"
             rowcolor="CompletedRowGuid|!green"
             acctsvcreq="true"

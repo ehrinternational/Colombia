@@ -113,7 +113,7 @@
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
           <partial link="Partials/ColombiaPartialAppointmentListConsultsOnly.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialDietaryOrdersNoAddAsDiets.xml"/>
         </control>
@@ -138,7 +138,7 @@
     <partial target="mdlCalendarSearchModal" link="Partials/ColombiaPartialCalendarSearchModal.xml"/>
 		<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/> 
     <!-- Demographic modals -->
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
     <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
     <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>

@@ -15,7 +15,7 @@
     trigger="ReportList"
     action="redirect" target="mdlReports"/>
   <headerbutton name="btnSurgeryCalendar"
-    icon="calendar" label="Cirugia"
+    icon="calendar" label="Cirugía"
     preset="DefaultPatientId="
     trigger="SurgeryTimes|resource"
     action="redirect" target="mdlSurgeryViewAppointments"/>
@@ -172,7 +172,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationsCompleted.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

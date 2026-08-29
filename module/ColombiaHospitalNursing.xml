@@ -29,7 +29,7 @@
     action="redirect" target="mdlConsultVisitCalendarAppointments"/>
   <!-- Open the surgery calendar -->
   <headerbutton name="btnSurgeryCalendar"
-    icon="calendar" label="Cirugia"
+    icon="calendar" label="Cirugía"
     preset="DefaultPatientId="
     trigger="SurgeryTimes|resource"
     action="redirect" target="mdlSurgeryViewAppointments"/>
@@ -141,7 +141,7 @@
         <control type="options" name="GridOptions2" affector="ButtonGroupSelect2" span="12">
           <partial link="./Partial/Grids/PartialPatientTasksWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancelInWindow.xml"/>
           <partial link="./Partial/Grids/PartialAppointmentListForPatientNoEdit.xml"/>
@@ -190,7 +190,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationAdministrationsHistory.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEditPrintPrescriptionByVisit.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="./Partial/Grids/PartialAdverseMedicationEventsNoEdit.xml"/>
@@ -206,7 +206,7 @@
     <partial target="mdlOrthoticsWorkOrder" link="Partials/ColombiaPartialOrthoticsWorkOrder.xml"/>
     <partial target="NewConsultModal" link="Partials/ColombiaPartialInterconsultRequest.xml"/>
     <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     <partial target="mdlMovePatient" link="Partials/ColombiaPartialMovePatients.xml"/>
     <partial target="mdlMedicalDeviceWorkOrderRequest" link="Partials/ColombiaPartialBiomedicalWorkOrderRequest.xml"/>
     <partial target="mdlBuildingWorkOrderRequest" link="Partials/ColombiaPartialMaintenanceWorkOrderRequest.xml"/>

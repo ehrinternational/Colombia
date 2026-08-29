@@ -872,7 +872,7 @@
   </section>
   <!-- HarmoniColombia modals -->
   <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
-  <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
   <partial link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
   <partial link="Partials/ColombiaPartialNewSATCredit.xml"/>
   <partial link="Partials/ColombiaPartialNewSATInvoice.xml"/>
@@ -880,6 +880,7 @@
   <!-- Billing modals -->
   <partial link="Partials/ColombiaPartialPayerClaims.xml"/>
   <partial link="Partials/ColombiaPartialContractsModal.xml"/>
+  <partial link="Partials/ColombiaPartialPayerContactsModal.xml"/>
   <partial link="./Partial/Modals/PartialBillingAllocateCharges.xml"/>
   <partial link="./Partial/Modals/PartialBillingDeallocateCharges.xml"/>
   <partial link="./Partial/Modals/PartialBillingNewPatientChargesMexico.xml"/>

@@ -11,11 +11,6 @@
         Surgery_PatientId=[PatientSearchResults]"
       provoke="PatientId,[SurgeryGuid]!;btnAssignPatientId"/>
   </row>
-  <row name="rowPatientPayers" reveal="[PatientId]!">
-    <control type="button" name="btnPatientPayers" icon="search"
-      span="12" label="Beneficios" action="redirect" target="mdlPayerList"
-      trigger="PatientPayers"/>
-  </row>
   <row showif="never">
     <control type="button" 
       name="btnAssignPatientId"
@@ -25,7 +20,7 @@
       appendupdate="surgeryGuid=[SurgeryGuid],patientId=[PatientId]"
       set="Surgery_PatientId=[PatientId]"
       provoke="btnAssignPatientToPOs,SurgeryTimes"
-      emit="trigger|SurgeryTimes"/>
+      />
     <!-- Insert the patient into any purchase orders for this surgery -->
     <control type="button" name="btnAssignPatientToPOs"
       action="save" acctsvc="true"
@@ -34,7 +29,7 @@
       appendupdate="surgeryGuid=[SurgeryGuid],patientId=[PatientId]"/>
   </row>
   <!-- Save a new surgery -->
-  <row name="rowSaveNewSurgery" reveal="[SurgeryGuid]=+[EditMode]=Surgery|Labor">
+  <row name="rowSaveNewSurgery" reveal="[SurgeryGuid]=+[EditMode]=Surgery">
     <control type="button" name="btnSaveNewSurgery" label="Nueva Cirugía"
       span="12"
       affector="SurgeryGuid"
@@ -45,23 +40,13 @@
       action="save"
       confirm="Por favor confirme que quiere generar esta Nueva Cirugía."
       datainsert="InsertScheduledSurgeries"
-      provoke="SurgeryGuid,SurgeryTimes,[DefaultSurgeryRequestGuid]!;btnUpdateDefaultSurgeryRequest"
-      emit="trigger|SurgeryTimes"/>
-  </row>
-  <row showif="never">
-    <!-- Set the status on the surgery request to scheduled and clear the default request-->
-    <control type="button" name="btnUpdateDefaultSurgeryRequest"
-      action="save"
-      affector="none"
-      acctsvc="true"
-      dataupdate="UpdateConsultRequests"
-      appendupdate="ConsultRequestGuid=[DefaultSurgeryRequestGuid],ConsultRequestStatus=Scheduled"
-      set="DefaultSurgeryRequestGuid=,SurgeryRequest_ConsultRequestStatus=Scheduled"/>
+      provoke="SurgeryGuid"
+      />
   </row>
   <!-- Update a surgery -->
-  <row name="rowUpdateSurgery" reveal="[SurgeryGuid]!+[EditMode]=Surgery|Labor">
+  <row name="rowUpdateSurgery" reveal="[SurgeryGuid]!+[EditMode]=Surgery">
     <control type="button" name="btnUpdateSurgery"
-      action="save"
+      action="save|close|new"
       span="12"
       label="Actualizar"
       affector="none"
@@ -70,75 +55,15 @@
       confirm="Por favor confirme que quiere actualizar esta cirugía."
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid]"
-      provoke="[PatientId]!;btnPatientAdmitUpdate^btnCloseSurgeryTabModal,[EditMode]=Surgery;SurgeryTimes"
-      emit="trigger|SurgeryTimes"/>
+      provoke="SurgeryTimes"/>
   </row>
-  <!-- Update patient information -->
-  <row showif="never">
-    <control type="button" 
-      name="btnPatientAdmitUpdate"
-      affector="PatientId"
-      setaffector="RecordUniqueId"
-      capture="SurgSchPatientInfo" 
-      action="save|close|new"
-      dataupdate="UpdatePatient"
-      appendupdate="PatientId=[PatientId]"/>
-  </row>
-  <!-- Save a template to a surgery -->
-  <row name="rowSaveNewSurgeryFromTemplate" 
-    reveal="[SurgeryGuid]=+[EditMode]=Surgery+[DefaultSurgeryRequestGuid]=">
-    <control type="button"  
-      name="btnSaveNewSurgeryFromTemplate"
-      span="12" preset="DefaultRoom=[Surgery_RoomGuid]"
-      trigger="mdlSurgeryTemplateList"
-      label="De la plantilla"
-      action="redirect" target="mdlSelectTemplate"/>
-  </row>
-  <!-- Save a template to a surgery -->
-  <row name="rowSaveNewLaborFromTemplate" reveal="[SurgeryGuid]=+[EditMode]=Labor">
-    <control type="button"  name="btnSaveNewLaborFromTemplate" span="12" preset="DefaultRoom=[Labor_RoomGuid]"
-      trigger="mdlSurgeryTemplateList"
-      label="De la plantilla" icon="search"
-      action="redirect" target="mdlSelectTemplate"/>
-  </row>
-  <!-- Save a new surgery template -->
-  <row name="rowSaveNewTemplate" reveal="[SurgeryGuid]=+[EditMode]=Template">
-    <control type="button" name="btnSaveNewSurgeryTemplate" span="12" label="Plantilla Nueva"
-      affector="SurgeryGuid"
-      setaffector="SurgeryGuid"
-      capture="SurgeryInfo" 
-      icon="cloud-upload"
-      action="save"
-      confirm="Por favor confirme que quiere generar esta plantilla Nueva."
-      datainsert="InsertScheduledSurgeries"
-      provoke="SurgeryGuid,SurgeryTemplateList"
-      emit="trigger|SurgeryTemplateList"/>
-  </row>
-  <!-- Update an existing surgery template -->
-  <row name="rowUpdateTemplate" reveal="[SurgeryGuid]!+[EditMode]=Template">
-    <control type="button" name="btnUpdateTemplate" span="12" label="Actualizar Plantilla" icon="cloud-upload"
-      affector="none"
-      capture="SurgeryInfo" 
-      action="save|close|new"
-      confirm="Por favor confirme que quiere actualizar esta plantilla."
-      dataupdate="UpdateScheduledSurgeries"
-      appendupdate="surgeryGuid=[SurgeryGuid]"
-      provoke="SurgeryTemplateList"
-      emit="trigger|SurgeryTemplateList"/>
-  </row>
-  <!-- Remove an existing surgery template -->
-  <row name="rowCancelTemplate" reveal="[SurgeryGuid]!+[EditMode]=Template">
-    <control type="button" name="btnCancelTemplate" span="12" label="Cancelar Plantilla" icon="remove"
-      affector="none"
-      action="save|close|new"
-      confirm="Por favor confirme que quiere cancelar esta plantilla."
-      dataupdate="UpdateScheduledSurgeries"
-      appendupdate="surgeryGuid=[SurgeryGuid],Status=Removed"
-      provoke="SurgeryTemplateList"
-      emit="trigger|SurgeryTemplateList"/>
+  <row name="rowScheduleOrder" reveal="[SurgeryGuid]!+[EditMode]=Surgery+[Surgery_CalendarGuid]=">
+    <control type="button" name="btnScheduleOrder" span="12" label="Agendar Solicitud" 
+      icon="calendar" color="green"
+      action="redirect" target="mdlSurgeryOrderAppointments"/>
   </row>
   <!-- Confirm surgery that has a patient assigned -->
-  <row name="rowConfirmSurgery" reveal="[SurgeryGuid]!+[PatientId]!+[EditMode]=Surgery|Labor">
+  <row name="rowConfirmSurgery" reveal="[SurgeryGuid]!+[PatientId]!+[EditMode]=Surgery+[Surgery_CalendarGuid]!">
     <control type="button" name="btnConfirmSurgery" span="12" color="green" label="Confirmar"
       reveal="[Surgery_Status]=Scheduled|Requested"
       affector="SurgeryGuid"
@@ -153,7 +78,7 @@
       provoke="btnNewStatus"/>
   </row>
   <!-- Set surgery to In Process and insert the patient visit into the surgery.-->
-  <row name="rowSurgeryInProcess" reveal="[SurgeryGuid]!+[PatientId]!+[EditMode]=Surgery|Labor">
+  <row name="rowSurgeryInProcess" reveal="[SurgeryGuid]!+[PatientId]!+[EditMode]=Surgery+[Surgery_CalendarGuid]!">
     <control type="button" name="btnSurgeryInProcess" span="12" color="purple" label="En Proceso" icon="cloud-upload"
       reveal="[Surgery_Status]=Scheduled|Confirmed|Requested"   
       affector="none" 
@@ -166,7 +91,7 @@
       provoke="btnNewStatus"/>
   </row>
   <!-- Set the surgery to completed status and update the patient information-->
-  <row name="rowCompleteSurgery" reveal="[SurgeryGuid]!+[PatientId]!+[EditMode]=Surgery|Labor">
+  <row name="rowCompleteSurgery" reveal="[SurgeryGuid]!+[PatientId]!+[EditMode]=Surgery+[Surgery_CalendarGuid]!">
     <control type="button" name="btnCompleteSurgery" span="12" color="yellowgreen" label="Completar" icon="cloud-upload"
       reveal="[Surgery_Status]=Scheduled|Confirmed|Requested|In Process"   
       affector="none"
@@ -176,10 +101,10 @@
       preset="NewStatus=Completed"
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid],DateTimeCompleted=(now)"
-      provoke="[Surgery_WaitListGuid]!;btnUpdateSurgeryWaitList,btnNewStatus"/>
+      provoke="btnNewStatus"/>
   </row>
   <!-- Cancel the surgery -->
-  <row name="rowCancelSurgery" reveal="[SurgeryGuid]!+[EditMode]=Surgery|Labor">
+  <row name="rowCancelSurgery" reveal="[SurgeryGuid]!+[EditMode]=Surgery+[Surgery_CalendarGuid]!">
     <control type="button" name="btnCancelSurgery" span="12" color="red" label="Cancelar" icon="cloud-upload"
       reveal="[Surgery_Status]=Scheduled|Confirmed|Requested|In Process"   
       affector="none"
@@ -191,64 +116,35 @@
       appendupdate="surgeryGuid=[SurgeryGuid]"
       provoke="btnNewStatus"/>
   </row>
-  <!-- Update patient information and apply new status -->
+  <!-- Update apply new status -->
   <row showif="never">
-    <!-- When a surgery has an attached ConsultRequest, change the ConsultRequestStatus to completed -->
-    <control type="button" name="btnUpdateSurgeryWaitList"
-      action="save"
-      affector="none"
-      acctsvc="true"
-      dataupdate="UpdateConsultRequests"
-      appendupdate="ConsultRequestGuid=[Surgery_WaitListGuid],ConsultRequestStatus=Completed"/>
     <control type="button" name="btnNewStatus"
       action="save|close|new"
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid],Status=[NewStatus]"
       provoke="SurgeryTimes"/>
   </row>
-  <!-- Surgery quote modal -->
-  <row name="rowSurgeryQuote" reveal="[SurgeryGuid]!">
-    <control type="button" name="btnSurgeryQuote"
-      span="12" icon="hand-right" color="green" label="Cotización"
-      trigger="SurgeryQuoteItems"
-      action="redirect" target="mdlSurgeryQuote"/>
-  </row>
-  <!-- Surgery quote template list to insert a quote from a template -->
-  <row name="rowSelectSurgeryQuote" reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]=">
-    <control type="button" name="btnSurgeryQuoteTemplateList"
-      span="12" icon="search" color="green" label="Plantillas de Cotización"
-      trigger="SelectSurgeryQuoteTemplateList"
-      action="redirect" target="mdlSelectQuoteTemplate"/>
-  </row>
-  
   <row >
     <control type="button" name="btnSurgeryTeam"
-      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      reveal="[SurgeryGuid]!+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Personal"
       action="redirect" target="tbmSurgeryTeam"/>
   </row>
-  <!--
-  <row >
-    <control type="button" name="btnSurgeryKits"
-      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
-      span="12" icon="edit" label="Kits Quirúrgico"
-      action="redirect" target="tbmSurgeryKits"/>
-  </row> -->
   <row >
     <control type="button" name="btnSurgeryStockRequests"
-      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]=+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Requisiciones Quirúrgico"
       action="redirect" target="tbmSurgeryStockRequests"/>
   </row>
   <row >
     <control type="button" name="btnSurgeryPurchaseRequests"
-      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]=+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Compras Quirúrgico"
       action="redirect" target="tbmSurgeryPurchaseRequests"/>
   </row>
   <row >
     <control type="button" name="btnSurgeryPurchaseDocuments"
-      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]="
+      reveal="[SurgeryGuid]!+[Surgery_QuoteTemplateGuid]=+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Documentos"
       action="redirect" target="tbmSurgeryDocuments"/>
   </row>

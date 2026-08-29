@@ -1,68 +1,31 @@
 <partial>
   <!-- Partial surgery request wait list -->
-  <section type="tab" name="tabSurgeryRequestList" title="Lista de Espera de Cirugía" trigger="SurgeryRequestList">
+  <section type="tab" name="tabSurgeryRequestList" title="Solicitudes de Cirugía" trigger="SurgeryRequestList">
     <group>
       <row>
-        <control type="buttongroup" name="btngrpSurgeryRequestStatus"
-          source="Active,Approved,Scheduled,Rejected,Completed,Canceled"
-          sourcelabels="Esperando,Aprobada,Programada,Rechazada,Completa,Cancelado"
-          span="5" default="Active" mode="auto"
-          provoke="SurgeryRequestList"/>
-        <control type="hidden" name="QRScannedResult" 
-          mask="AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"/>
-        <control type="button" name="btnScanAppointmentQR" 
-          action="scan" color="green" span="1"
-          icon="qrcode"
-          label="Escanear"
-          inject="value=[QRScannedResult]"
-          provoke="[QRScannedResult]!;GetScannedPatientQR"/>
-      </row>
-      <row showif="never">
-        <control type="button" name="GetScannedPatientQR"
-          acctsvcreq="true"
-          datarequest="GetPatientNamesMatchingByFacilityDanEdition"
-					appendrequest="firstName=[QRScannedResult]"
-          set="[[RecordUniqueId]]!;PatientId=[[QRScannedResult]],QRScannedResult="
-          provoke="[[RecordUniqueId]]!;btnRedirectToPatient^btnNoPatientFound"/>
-        <control type="button" name="btnRedirectToPatient"
-          trigger="PatientId" action="redirect" target="PatientTabModal"/>
-        <control type="button" name="btnNoPatientFound" action="trigger"
-          confirm="No se encontró ninguna paciente coincidente.|nocancel"/>
-      </row>
-      <row>
-        <!-- Consult Request list -->
         <!-- Change mode to read waitng list records -->
-        <control type="datagrid" label="Lista de Espera de Cirugías" name="SurgeryRequestList" 
+        <control type="datagrid" label="Solicitudes de Cirugía" name="SurgeryRequestList" 
+          refresh="60"
           span="12" rows="20"
           searchable="true"
           fitrows="true"
+          rowcolor="Priority|Urgente=red"
           action="redirect"
-          target="NewSurgeryRequestModal"
-          rowcolor="ConsultRequestPriority|Emergency=red;High=yellow;Normal=white"
-          acctsvcreq="true" 
-          datarequest="GetConsultRequestsByCriteria"
-          appendrequest="LocationId=(facilityData.LocationId),ConsultType=Surgery,status=[btngrpSurgeryRequestStatus],searchCriteria=All"
-          source="DateTimeEntered,ElapsedDays,ConsultNumber,ConsultRequestPriority,MedicalRecordNumber,PatientFullName,PatientAge,ConsultRequestAssignedToName,SurgeryType,ProcedureName,CaseTypeName"
-          sourcelabels="Solicitud,Espera,Número,Prioridad,Expediente,Nombre,Edad,Médico,Tipo,Procedimiento,Servicio"
-          translate="ConsultRequestPriority"
-          align="|center|left|left|left|left|left|left|left|left|left"
+          target="SurgeryTabModal"
+          datarequest="GetScheduledSurgeries"
+          appendrequest="Location=(facilityData.LocationId),byStatus=Requested"
+          source="DateTimeEntered,Priority,MedicalSpecialtyName,PrimaryProcedureName,SecondaryProcedureName,PatientName,SurgeonName"
+          sourcelabels="Solicitud,Tipo,Especialidad,Procedimiento Primario,Procedimiento Segundo,Paciente,Cirujano"
+          align="|left|left|left|left|left|left|left|left"
           format="datetime"
           sort="DateTimeEntered=asc"
-          key="ConsultRequestGuid"
-          onselectset="PatientId=[[PatientId]],SurgeryRequest_PatientId=[[PatientId]],SurgeryRequest_PatientConsultGuid=[[ConsultRequestGuid]]"
-          onselect="SurgeryRequest_PatientId,SurgeryRequest_PatientConsultGuid">
-          <!-- Enter a new consult request -->
-          <control type="button" 
-            name="NewSurgeryRequestButton"
-            label="Solicitud Nueva"
-            icon="plus"
-            action="redirect"
-            target="NewSurgeryRequestModal"/> 
-          <!-- Refresh the consult list -->
-          <control type="button" 
-            name="RefreshSurgeryRequestList"
-            label="Actualizar"
-            icon="refresh"
+          key="SurgeryGuid"
+          onselectset="SurgeryGuid=[[SurgeryGuid]]"
+          onselect="SurgeryGuid">
+          <control type="button" name="btnNewSurgeryRequest" label="Añadir Nuevo" icon="plus"
+            action="redirect" trigger="SurgeryOrderPatientId"
+            target="mdlSurgeryOrderModal"/>
+          <control type="button" name="RefreshSurgeryRequestList" label="Actualizar" icon="refresh"
             action="trigger"
             trigger="SurgeryRequestList"/>
         </control>

@@ -109,7 +109,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationAdministrationsHistory.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
-          <partial link="Partials/ColombiaPartialPatientAddressesForColombia.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewEditCancelAndVersions.xml"/>
@@ -117,7 +117,7 @@
           <partial link="Partials/ColombiaPartialServiceConsultRequestsForPatientWithAddAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialNursingNotesForPatientVisitAllTypesAsDocuments.xml"/>
           <partial link="Partials/ColombiaPartialAppointmentListConsultsOnly.xml"/>
-          <partial link="./Partial/Grids/PartialSurgeryListForPatient.xml"/>
+           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialDietaryOrdersNoAddAsDiets.xml"/>
           <partial link="./Partial/Grids/PartialInternalConsultRequestsForPatientNoEdit.xml"/>
@@ -142,7 +142,7 @@
     <partial target="mdlTransferPatient" link="Partials/ColombiaPartialTransferPatientWithBedAssignment.xml"/>
     <partial target="mdlViewECDVersions" link="./Partial/Modals/PartialECDRevisions.xml"/> 
     <!-- Demographic modals -->
-    <partial link="Partials/ColombiaPartialPatientAddressModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
     <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
     <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>

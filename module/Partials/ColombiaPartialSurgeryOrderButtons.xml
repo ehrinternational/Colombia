@@ -1,0 +1,28 @@
+<partial>
+  <!-- Save a new surgery order -->
+  <!-- Button to search for patients (When no patient has been selected)  -->
+  <row name="rowOrderSearchButton" reveal="[SurgeryOrderPatientId]=">
+    <control type="button" name="btnOrderSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearchSource=16"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+    <!-- Get the returned patientid and insert the patient -->
+    <control type="hidden" name="SurgerySearchReturn"
+      set="SurgeryOrderPatientId=[PatientSearchResults]"
+      provoke="SurgeryOrderPatientId"/>
+  </row>
+  <row>
+    <control type="button" name="btnSaveNewSurgeryOrder" label="Órden de Cirugía"
+      reveal="[SurgeryOrderPatientId]!"
+      span="12" color="green"
+      affector="none"
+      capture="SurgeryOrderInfo" 
+      icon="cloud-upload"
+      action="save|close|new"
+      confirm="Por favor confirme que quiere generar esta órden de cirugía."
+      datainsert="InsertScheduledSurgeries"
+      appendinsert="PatientId=[SurgeryOrderPatientId],Location=(facilityData.locationId)"
+      provoke="dgrPatientSurgeries"/>
+  </row>
+</partial>

@@ -5,7 +5,7 @@
   <!-- Display list of consult requests by the selected criteria -->
   <facet name="FileName" value="SurgeryWaitList"/>
   <partial link="Partials/ColombiaPartialSurgeryRequestList.xml"/>
-  <partial target="NewSurgeryRequestModal" link="Partials/ColombiaPartialSurgeryRequestWaitList.xml"/>
+  <partial link="Partials/ColombiaPartialSurgeryRequestWaitList.xml"/>
   <partial link="Partials/ColombiaPartialSurgeryScheduleFromWaitListModal.xml"/>
   <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
   <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
