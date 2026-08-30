@@ -76,22 +76,22 @@
   </row>
   <row >
     <control type="button" name="btnEducationECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Cpnfirmed|In Process+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Educación del Paciente"/>
   </row>
   <row >
     <control type="button" name="btnNutritionECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Cpnfirmed|In Process+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Cribado Nutricional"/>
   </row>
   <row>
     <control type="button" name="btnMentalECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Cpnfirmed|In Process+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Salud Mental"/>
   </row>
   <row>
     <control type="button" name="btnPreopECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Cpnfirmed|In Process+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Nota Preoperatoria"/>
   </row>
   <row>
@@ -101,31 +101,31 @@
   </row>
   <row >
     <control type="button" name="btnViewBloodBankOrders"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Cpnfirmed|In Process+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Ordenes de Sangre"
       action="redirect" target="tbmSurgeryBloodBankOrders"/>
   </row>
   <row>
     <control type="button" name="btnViewSurgeryTeam"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Cpnfirmed+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Personal"
       action="redirect" target="tbmSurgeryTeam"/>
   </row>
   <row >
     <control type="button" name="btnViewSurgeryStockRequests"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Cpnfirmed+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Requisiciones Quirúrgico"
       action="redirect" target="tbmSurgeryStockRequests"/>
   </row>
   <row >
     <control type="button" name="btnViewSurgeryPurchaseRequests"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Cpnfirmed+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Compras Quirúrgico"
       action="redirect" target="tbmSurgeryPurchaseRequests"/>
   </row>
   <row >
     <control type="button" name="btnViewSurgeryPurchaseDocuments"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Cpnfirmed+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Documentos"
       action="redirect" target="tbmSurgeryDocuments"/>
   </row>

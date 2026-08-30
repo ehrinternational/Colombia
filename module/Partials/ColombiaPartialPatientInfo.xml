@@ -139,14 +139,13 @@
       appendrequest="CountryCode=[Consult_PtCountry]"
       source="Name,Code" explicit="true"
       provoke="Consult_PtCity"/>
-      <!--provoke="Consult_PtCity"/>-->
     <control type="label" label="Municipio" span ="2"/>
     <control type="select" name="Consult_PtCity" span="2" edit="true"
       searchable="true"
       acctsvcreq="true"
       datarequest="GetColombiaMunicipalities"
-      source="Municipality,MunicipalityCode" explicit="true"
-      append="StateCode=[Consult_PtState]"/>
+      appendrequest="StateCode=[Consult_PtState]"
+      source="Municipality,MunicipalCode" explicit="true"/>
   </row>
   <row>
     <control type="label" label="Teléfono Primario" span="2"/>
@@ -208,39 +207,23 @@
       source="1,2,3,4,5"
       sourcelabels="1 Soltero,2 Casado,3 Unión Libre,4 Divorciado,5 Viudo"
       when="[Consult_AgeInYears]«18;1,[Consult_AgeInYears]«14;"/>
-    <control type="label" label="Profesión" span="2"/>
-    <control type="select" name="Consult_EmployerName" span="5" edit="true"
-      searchable="true"
-      source="Q5,Q6,01,2,3,4,5,6,7,8,9,0A,0B,0C"
-      sourcelabels="Q5 AMA DE CASA,Q6 PENSIONADO,0 ABANIQUERO,1 ABOGADO,2 ACABADOR; CALZADO,3 ACABADOR; CERAMICA,
-      4 ACECINADOR,5 CEITADOR-ENGRASADOR,6 ACIDIFICADOR - POZOS DE PETROLE,7 ACTORES Y DIRECTORES DE CINE, 
-      8 ACTRIZ - CINE/TEATRO,9 ACTUARIO,0A ACUARELISTA,0B ACUICULTOR,0C ADAPTADOR MUSICAL"/>
-      <!-- acctsvcreq="true"
-      datarequest="GetColombiaOccupations"
-      source="Occupation,Code"/> -->
   </row>
+  <!-- ?? Change this to datasource once the call exists -->
+  <row>
+    <control type="label" label="Profesión" span="3"/>
+    <control type="select" name="Consult_Profession" span="9" edit="true"
+      searchable="true"
+      acctsvcreq="true"
+      datarequest="GetColombiaProfessions"
+      source="Profession,Code"/>
+  </row>
+  <!--  ?? Change this to datasource once call is in place-->
   <row name="rowOccupation" reveal="FileName%Admitting">
     <control type="label" label="Ocupacion" span="2"/>
     <control type="select" name="Consult_Occupation" span="10" edit="true"
-      searchable="true"
-      source="000,011,012,013,021,022,031,032,033,041,042,051,052"
-      sourcelabels="DIRECCION ALTA PUBLICA Y PRIVADA - DIRECTORES; GERENTES GENERALES; DIRECTIVOS,
-        ,ADMINISTRACION Y FINANZAS - PROFESIONALES
-        ,ADMINISTRACION Y FINANZAS - ASISTENTES
-        ,ADMINISTRACION Y FINANZAS - OFICINISTAS Y AUXILIARES
-        ,CIENCIAS NATURALES Y APLICADAS - PROFESIONALES
-        ,CIENCIAS NATURALES Y APLICADAS - TECNICOS
-        ,SALUD - PROFESIONALES
-        ,SALUD - TECNICOS
-        ,SALUD - AUXILIARES
-        ,CIENCIAS SOCIALES; EDUCACION; SERVICIOS GUBERNAMENTALES Y RELIGION - PROFESIONALES
-        ,SERVICIO SOCIAL; EDUCACION Y RELIGION - NIVEL MEDIO
-        ,ARTE Y CULTURA - PROFESIONALES
-        ,ARTE; CULTURA; ESPARCIMIENTO Y DEPORTE - TECNICOS Y ESPECIALIZADOS"/>
-      <!--
       acctsvcreq="true"
       datarequest="GetColombiaOccupations"
-      source="Occupation,Code"/>-->
+      source="Occupation,Code"/>
   </row>
   <row name="rowCRMStatus" reveal="FileName%Admitting|Social">
     <control type="label" label="Estatus CRM" span="3" />

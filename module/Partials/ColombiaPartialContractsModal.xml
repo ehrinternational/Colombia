@@ -222,7 +222,7 @@
       <row>
         <control type="buttongroup" name="ContractButtonGroupSelect" edit="true" mode="auto" span="8"
           source="Plans,Components,Documents" 
-          sourcelabels="Planes,Componentes,Documentos" 
+          sourcelabels="Planes,Tarifas,Documentos" 
           default="Plans"   
           provoke="ContractGridList|options"/>
       </row>
@@ -244,7 +244,7 @@
             format="boolean|date|date"
             sort="PlanName=asc"
             key="PlanGuid"/>
-          <control type="datagrid"  name="dgrComponents" option="Components" label="Componentes" rows="10"
+          <control type="datagrid"  name="dgrComponents" option="Components" label="Tarifas" rows="10"
             modalname="mdlContractComponents"
             searchable="true"
             acctsvc="true"
@@ -254,12 +254,12 @@
             datainsert="InsertContractComponents" 
             appendinsert="ContractGuid=[ContractGuid]"
             dataupdate="UpdateContractComponents"
-            source="ComponentName,TariffType,EnteredByFullName,UpdateByFullName"
-            sourcelabels="Componente,Tarifa,Entragado por,Actualizado por"
-            align="left|left|left|left"
+            source="Active,TariffType,ComponentType,CatalogueType,EnteredByFullName,UpdateByFullName"
+            sourcelabels="Activo,Tipo Tarifa,Categoria,Catalogo,Entragado por,Actualizado por"
+            align="|left|left|left|left"
+            format="boolean"
             sort="ComponentName=asc"
             key="ComponentGuid"/>
-
           <!-- Scanned images for contract -->
           <control type="datagrid" label="Documentos Escaneados" name="dgrScannedForms" option="Documents"
             rows="10"
@@ -315,35 +315,55 @@
     </group>
   </section> 
   <!-- modal for contract components --> 
-  <section type="modal" name="mdlContractComponents" title="Componente del Contrato" badge="none" size="small">
+  <section type="modal" name="mdlContractComponents" title="Tarifas del Contrato" badge="none" size="small">
     <group>
-      <!--acctsvc="true"
-            datarequest="GetComponentTypes"
-            source="component_name,component_guid"/>-->
         <row>
-          <control type="label" span="5" label="Tipo de Componente"/>
+          <control type="label" span="3" label="Activo"/>
+          <control type="buttongroup" name="Ctc_Active" source="True,False" sourcelabels="Sí,No" 
+            span="3" edit="true" default="True"/>
+        </row>
+        <row>
+          <control type="label" span="3" label="Tipo de Tarifa"/>
+          <control name="Ctc_TariffType" type="select" span="3" edit="true" required="true" explicit="true"
+            source="Global,Category,CUPS"
+            sourcelabels="Global,Categoria,CUPS" />
+        </row>
+        <row name="rowComponentCategory" reveal="[Ctc_TariffType]=Category">
+          <control type="label" span="3" label="Categoria"/>
           <control name="Ctc_ComponentType" type="select" span="5" edit="true" required="true" explicit="true"
-            source="SURGEON,ANESTHESIOLOGIST,ASSISTANT,ROOM,MATERIALS,MEDICATIONS,LABORATORY,IMAGING,GENERAL"/>
+             source="CIRUJANO,ANESTESIÓLOGO,ASISTENTE,SALA,MATERIALES,MEDICAMENTOS,LABORATORIO,IMAGENOLOGÍA,GENERAL"/>
+        </row>  
+        <row name="rowComponentCUPS" reveal="[Ctc_TariffType]=CUPS">
+          <control type="label" span="3" label="CUPS"/>
+          <control name="Ctc_CUPSGuid" type="typeahead" span="9" edit="true" required="true" explicit="true"
+            datarequest="GetCUPSBySearchTerm"
+            term="SearchTerm"
+            source="CUPSCode|CUPSName,CUPSCode"/>
         </row>  
         <row>
-          <control type="label" span="5" label="Tipo de Tariff"/>
-          <control name="Ctc_TariffType" type="select" span="5" edit="true" required="true" explicit="true"
-            source="SOAT,ISS_2001,ISS_2004,PROPRIETARY,PARTICULAR" default="SOAT"/>
+          <control type="label" span="3" label="Catalog de Tarifa"/>
+          <control name="Ctc_CatalogueType" type="select" span="5" edit="true" required="true" explicit="true"
+            source="SOAT,ISS_2001,ISS_2004,PROPRIETARY,PARTICULAR"/>
         </row>
-        <row name="rowISSRate" reveal="[Ctc_TariffType]%ISS">
-          <control type="label" span="5" label="UVR Value COP"/>       
+        <row name="rowISSRate" reveal="[Ctc_CatalogueType]%ISS">
+          <control type="label" span="3" label="UVR Value COP"/>       
           <control name="Ctc_IssUvrValueCop" type="text" span="2" edit="true" required="true"
             regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
         </row>
-        <row name="rowISSRate2" reveal="[Ctc_TariffType]%ISS">
-          <control type="label" span="5" label="UVR Rate COP"/>
+        <row name="rowISSRate2" reveal="[Ctc_CatalogueType]%ISS">
+          <control type="label" span="3" label="UVR Rate COP"/>
           <control name="Ctc_ContractUvrRateCop" type="text" span="2" edit="true" required="true"
             regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
         </row>
-        <row name="rowSOATModifier" reveal="[Ctc_TariffType]=SOAT">
-          <control type="label" span="5" label="Modificador SOAT"/>       
-          <control name="Ctc_CommericalModifier" type="text" span="2" edit="true" required="true"
+        <row name="rowSOATModifier" reveal="[Ctc_CatalogueType]%SOAT">
+          <control type="label" span="3" label="Modificador SOAT"/>       
+          <control name="Ctc1_CommericalModifier" type="text" span="2" edit="true" required="true"
             regex="^\d{1,5}(?:\.\d{1,4})?$" format="0.0000"/>
+        </row>
+         <row name="rowProprietaryModifier" reveal="[Ctc_CatalogueType]=PROPRIETARY|PARTICULAR">
+          <control type="label" span="3" label="Cantidad Proprietary"/>       
+          <control name="Ctc2_CommericalModifier" type="text" span="2" edit="true" required="true"
+            regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
         </row>
     </group>
   </section>

@@ -24,8 +24,6 @@
       appendinsert="CopyDiagnosis=true,
         patientId=[PatientId],
         visitType=[DefaultAdmitType],
-        departmentGuid=[CurrentDepartment],
-        hospitalService=Esperando,
         ambulatoryStatus=Inpatient,
         preAdmit=0,
         admitDateTime=(dateTimeNow),

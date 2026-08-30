@@ -76,7 +76,6 @@
       capture="VisitInfo"
       datainsert="InsertPatientVisitAllFields"
       appendinsert="copyDiagnosis=true,
-        copyApprovals=true,
         patientId=[PatientId],
         visitType=[DefaultAdmitType],
         hospitalService=Esperando,

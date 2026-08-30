@@ -35,11 +35,11 @@
           <control type="label" label="Segundo Apellido" align="left" span="4"/>
       </row>
       <row>
-        <control type="text" name="Consult_UserFirstName" span="4" required="true" edit="true" 
+        <control type="text" name="Pym_UserFirstName" span="4" required="true" edit="true" 
           regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
-        <control type="text" name="Consult_UserMiddleName" span="4" required="true" edit="true"
+        <control type="text" name="Pym_UserMiddleName" span="4" required="true" edit="true"
           regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
-        <control type="text" name="Consult_UserLastName" span="4" edit="true" 
+        <control type="text" name="Pym_UserLastName" span="4" edit="true" 
           regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,60}$"/>
       </row>
       <row>
@@ -67,29 +67,31 @@
           sort="CountrySpanish=asc"
           datasource="GetCountries" 
           source="CountrySpanish,Code"
-          provoke="Consult_PtState"/>
+          provoke="Pym_PtState"/>
         <control type="label" label="Fecha Nacimiento" span="3" />
         <control type="date" name="Pym_UserDOB" span="3" required="true" edit="true" compare="≤now"/>
       </row>
       <row>
         <control type="label" label="Teléfono" span="2"/>
-        <control type="text" name="Consult_UserPhone" span="2" edit="true" 
+        <control type="text" name="Pym_UserPhone" span="2" edit="true" 
         regex="^\+?[a-zA-Z0-9]{7,15}$" required="true"/>
         <control type="label" label="Dirección" span="2"/>
-        <control type="text" name="Consult_UserAddress" span="6" edit="true" 
+        <control type="text" name="Pym_UserAddress" span="6" edit="true" 
         regex="^\+?[a-zA-Z0-9]{7,15}$" required="true"/>
       </row>
+      <!-- ?? Change this to datasource once the call exists -->
       <row>
         <control type="label" label="Profesión" span="3"/>
-        <control type="select" name="Consult_UserProfession" span="8" edit="true" required="true"
-        searchable="true"
-        acctsvcreq="true"
-        datarequest="GetColombiaProfessions"
-        source="Profession,Code"/>
+        <control type="select" name="Pym_EmployerName" span="9" edit="true"
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetColombiaProfessions"
+          source="Profession,Code"/>
       </row>
+      <!-- ?? Change this to datasource once the call exists -->
       <row>
         <control type="label" label="Ocupacion" span="3"/>
-        <control type="select" name="Consult_UserOccupation" span="8" edit="true"  required="true"
+        <control type="select" name="Pym_UserOccupation" span="9" edit="true"  required="true"
           searchable="true"
           acctsvcreq="true"
           datarequest="GetColombiaOccupations"
