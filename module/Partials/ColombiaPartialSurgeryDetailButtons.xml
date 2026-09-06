@@ -15,7 +15,7 @@
   </row>
   <row name="rowPatientPayers" reveal="[PatientId]!">
     <control type="button" name="btnPatientPayers"
-      span="12" label="Beneficios" action="redirect" target="mdlPayerList"
+      span="12" label="Convenios" action="redirect" target="mdlPayerList"
       trigger="PatientPayers"/>
   </row>
   <row showif="never">

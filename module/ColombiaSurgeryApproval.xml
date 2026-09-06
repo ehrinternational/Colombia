@@ -60,7 +60,7 @@
     <group name="VisitInfo">
       <columns>
         <column span="10">
-          <partial link="Partials/ColombiaPartialSurgeryApprovalVisitInfo.xml"/>
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
         </column>
       </columns>
     </group>
@@ -70,8 +70,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" 
-          source="Problems,Nursing,Vitals,Physicians,Studies,Services,Medication,Surgery,Documents,Diets" 
-          sourcelabels="Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Servicios,Medicamentos,Procedimientos,Documentos,Dietas" 
+          source="Problems,Nursing,Vitals,Physicians,Studies,Services,Medication,Vaccines,Surgery,Documents,Diets" 
+          sourcelabels="Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Servicios,Medicamentos,Inmunizaciones,Procedimientos,Documentos,Dietas" 
           span="12" mode="auto"
           default="Problems" 
           value="Problems"  
@@ -102,10 +102,11 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationActiveAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="Partials/ColombiaPartialImagingOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

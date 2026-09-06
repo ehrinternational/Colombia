@@ -1,0 +1,123 @@
+<partial>
+  <!-- This tabmodal calculates the PIPP status of a patient and updates the PatientESI field -->
+  <section type="tabmodal" badge="none" name="mdlPIPP" title="Escala de PIPP-R" trigger="grdPIPPHistory">
+    <group name="PIPPInfo">
+      <row>
+        <control type="label" label="Edad Gestacional" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Pip_ESIPain" span="12" edit="true" 
+          source="0,1,2,3"
+          sourcelabels="≥ 36 semanas,
+          32 a 35 semanas + 6 días,
+          28 a 31 semanas + 6 días,
+          &lt; 28 semanas"
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Estado Conductual Basal: Se observa durante 15 segundos inmediatamente antes del procedimiento." align="left" span="12"/>
+        <control type="buttonvertgroup" name="Pip_ESIB" span="12" edit="true" 
+          source="0,1,2,3" 
+          sourcelabels="Sueño activo (Ojos cerrados, movimientos oculares rápidos [REM], respiración irregular),
+          Sueño quieto (Ojos cerrados, sin movimientos oculares, respiración regular),
+          Despierto activo (Ojos abiertos, movimientos corporales),
+          Despierto quieto (Ojos abiertos, movimientos mínimos)"
+          required="true"/>
+      </row>
+       <row>
+        <control type="label" label="Frecuencia Cardíaca (Aumento máximo desde la línea de base)" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Pip_ESIC" span="12" edit="true" 
+          source="0,1,2,3" 
+          sourcelabels="Aumento de 0 a 4 latidos por minuto (lpm),
+          Aumento de 5 a 14 lpm,
+          Aumento de 15 a 24 lpm,
+          Aumento de ≥ 25 lpm"
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Saturación de Oxígeno (SpO₂ - Disminución máxima desde la línea de base)" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Pip_ESID" span="12" edit="true" 
+          source="0,1,2,3" 
+          sourcelabels="Disminución de 0 a 2.4%,
+          Disminución de 2.5 a 4.9%,
+          Disminución de 5.0 a 7.4%,
+          Disminución de ≥ 7.5%"
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Fruncimiento de Cejas: (Abultamiento, arrugas o surcos verticales sobre/entre las cejas)." align="left" span="12"/>
+        <control type="buttonvertgroup" name="Pip_ESIAlert" span="12" edit="true" 
+          source="0,1,2,3" 
+          sourcelabels="No está presente (0% del tiempo),
+          Presente durante &lt; 10% del tiempo,
+          Presente entre el 10% y el 39% del tiempo,
+          Presente durante ≥ 40% del tiempo"
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Ojos Apretados: (Cierre hermético y forzado de los párpados)." align="left" span="12"/>
+        <control type="buttonvertgroup" name="Pip_ESIVisual" span="12" edit="true" 
+          source="0,1,2,3" 
+          sourcelabels="No está presente (0% del tiempo),
+          Presente durante &lt; 10% del tiempo,
+          Presente entre el 10% y el 39% del tiempo,
+          Presente durante ≥ 40% del tiempo"
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Surco Nasolabial: (Acentuación o elevación de la línea que va desde el lado de la nariz hasta la comisura de la boca)." align="left" span="12"/>
+        <control type="buttonvertgroup" name="Pip_ESIAuditory" span="12" edit="true" 
+          source="0,1,2,3" 
+          sourcelabels="No está presente (0% del tiempo),
+          Presente durante &lt; 10% del tiempo,
+          Presente entre el 10% y el 39% del tiempo,
+          Presente durante ≥ 40% del tiempo"
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Total Puntos" span="2"/>
+        <control type="calc" name="Pip_ESIRisk" span="1" format="0"
+          source="Pip_ESIPain+Pip_ESIB+Pip_ESIC+Pip_ESID+Pip_ESIAlert+Pip_ESIVisual+Pip_ESIAuditory"/>
+        <!-- Insert the PIPP record -->
+        <control type="button" name="btnInsertPatientPIPP" span="2" color="green" icon="cloud-upload" label="Guardar"
+          reveal="[Pip_ESIRisk]«7"
+          action="save|close|new"
+          affector="none"
+          capture="PIPPInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=PIPP,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+        <control type="button" name="btnInsertPatientPIPP2" span="2" color="orange" icon="cloud-upload" label="Guardar"
+          reveal="[Pip_ESIRisk]«13+[Pip_ESIRisk]»6"
+          action="save|close|new"
+          affector="none"
+          capture="PIPPInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=PIPP,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+        <control type="button" name="btnInsertPatientPIPP3" span="2" color="red" icon="cloud-upload" label="Guardar"
+          reveal="[Pip_ESIRisk]»12"
+          action="save|close|new"
+          affector="none"
+          capture="PIPPInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=PIPP,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdPIPPHistory" label="Historial de Estratificación"
+          span="12" rows="5"
+          acctsvcreq="true"
+          rowcolor="ESIRisk|0=green;1=green;2=green;3=green;4=green;5=green;6=green;7=orange;8=orange;9=orange;10=orange;11=orange;12=orange;13=red;14=red;15=red;16=red;17=red;18=red;19=red;20=red;21=red"
+          datarequest="GetPatientESI"
+          appendrequest="PatientId=[PatientId],ESIType=PIPP"
+          source="DateTimeEntered,ESIRisk,EnteredByFullName"
+          sourcelabels="Fecha de Estratificación,Estratificación,Enviado por"
+          sort="DateTimeEntered=desc"
+          format="datetime|"
+          key="PatientESIGuid"/>
+      </row>
+    </group>
+  </section>
+</partial>

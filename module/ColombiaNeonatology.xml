@@ -1,0 +1,203 @@
+<module name="Neonatología" type="onload" trigger="NeoWorkList">
+
+  <!-- ================================================================
+       Backlog 3.3 — Fundación Santa Fe de Bogotá
+       Estación de trabajo neonatal: alojamiento conjunto, UCIN, UCI
+       intermedia. Comparte ColombiaPartialNewbornRecord.xml con el
+       módulo de Obstetricia.
+
+       Punto de entrada distinto al de Obstetricia: aquí se selecciona
+       un RECIÉN NACIDO y desde él se resuelve hacia atrás el parto
+       ([Obs_BirthGuid]) y la madre.
+
+       Get/Update NewbornBirthRecords viven en
+       ClinicalGeniusSupplyChainEntities → acctsvc="true" obligatorio.
+       ================================================================ -->
+
+  <facet name="FileName" value="ColombiaNeonatology"/>
+  <facet name="DefaultAdmitType" value="Inpatient"/>
+  <facet name="EditMode" value="true"/>
+  <facet name="PatientSearched" value="true"/>
+  <facet name="ServiceLine" value="Neonatologia"/>
+
+  <headerbutton name="btnNeoReports" icon="print" label="Informes"
+      preset="Report_Type=Neonatology" trigger="ReportList"
+      action="redirect" target="mdlReports"/>
+
+  <headerbutton name="btnNeoBoard" icon="th-large" label="Tablero Neonatal"
+      action="redirect" target="NeoBoardTab"/>
+
+  <!-- ================================================================
+       1. Fila orquestadora oculta
+       ================================================================ -->
+  <section type="tab" name="NeoHidden" title="">
+    <group name="grpNeoOrchestrator">
+
+      <row name="rowNeoPatientId" showif="never">
+        <control type="text" name="PatientId"
+            datarequest="GetPatientAllFields"
+            appendrequest="PatientId=[PatientId]"
+            inject="grpNeoPatientHeader"
+            set="[[HasOpenVisit]]=true;PatientVisitGuid=[[PatientVisit]]"
+            provoke="grdNewbornsForBirth,grdNeoScreeningsDue,grdNeoDailyNotes"/>
+      </row>
+
+      <!-- Resuelve el parto de origen a partir del RN seleccionado.
+           SP nuevo: GetBirthGuidForNewbornPatient (SupplyChain). -->
+      <row name="rowNeoResolveBirth" showif="never">
+        <control type="text" name="Neo_NewbornPatientId"
+            acctsvc="true" acctsvcreq="true"
+            datarequest="GetBirthGuidForNewbornPatient"
+            appendrequest="patientId=[Neo_NewbornPatientId],facility=(facility)"
+            set="Obs_BirthGuid=[[BirthGuid]],Neo_NewbornGuid=[[NewbornGuid]],Neo_MotherPatientId=[[MotherPatientId]]"
+            idle="[PatientId]=|reset"
+            provoke="grdNewbornsForBirth,grpNeoMotherLink"/>
+      </row>
+
+      <row name="rowNeoEcdGuids" showif="never">
+        <control type="text" name="Obs_Apgar_EcdGuid"       default="ECD-APGAR-COL"/>
+        <control type="text" name="Neo_Ballard_EcdGuid"     default="ECD-BALLARD-COL"/>
+        <control type="text" name="Neo_Downes_EcdGuid"      default="ECD-DOWNES-SILVERMAN-COL"/>
+        <control type="text" name="Neo_KangarooEcdGuid"     default="ECD-CANGURO-COL"/>
+      </row>
+
+    </group>
+  </section>
+
+  <!-- ================================================================
+       2. Tablero neonatal
+       SP nuevo: GetNeonatalPatientList (clínico → sin acctsvc)
+       ================================================================ -->
+  <section type="tab" name="NeoBoardTab" title="Tablero Neonatal">
+
+    <template name="tmpNeoRiskTemplate" type="markup" align="center">
+      [IF ${[[CareLevel]]}=UCIN][icon color=red]h-sign[/icon] UCIN[/IF]
+      [IF ${[[CareLevel]]}=Intermedia][icon color=orange]h-sign[/icon] Intermedia[/IF]
+      [IF ${[[CareLevel]]}=Basica][icon color=green]h-sign[/icon] Básica[/IF]
+      [IF ${[[CareLevel]]}=Conjunto]Alojamiento conjunto[/IF]
+    </template>
+
+    <template name="tmpNeoWeightTemplate" type="markup" align="center">
+      [IF ${[[CurrentWeight]]}«1500][icon color=red]warning-sign[/icon] [b]${[[CurrentWeight]]} g[/b][/IF]
+      [IF ${[[CurrentWeight]]}≥1500]${[[CurrentWeight]]} g[/IF]
+    </template>
+
+    <group name="grpNeoWorkList">
+      <row>
+        <control type="datagrid" name="NeoWorkList" label="Recién Nacidos en la Unidad"
+            span="12" rows="15" searchable="true"
+            datarequest="GetNeonatalPatientList"
+            appendrequest="locationId=(facilityData.LocationId),facility=(facility)"
+            source="PatientName,MedicalRecordNumber,Bed,CareLevel,DaysOfLife,GestationWeeks,BirthWeight,CurrentWeight,MotherName,Isolation,AdmitDateTime"
+            sourcelabels="Recién Nacido,HC,Cama,Nivel,Días de vida,Sem. Gest.,Peso al nacer,Peso actual,Madre,Aislamiento,Ingreso"
+            align="left|left|center|center|center|center|right|right|left|center|left"
+            format="||||0|0|0|0|||datetime"
+            translate="CareLevel,Isolation"
+            rowcolor="CareLevel|UCIN=red;Intermedia=orange"
+            sort="AdmitDateTime=desc"
+            key="PatientId"
+            onselectset="PatientId=[[PatientId]],PatientVisitGuid=[[PatientVisit]],Neo_NewbornPatientId=[[PatientId]]"
+            onselect="PatientId"
+            action="redirect" target="NeoPatientTabModal">
+
+          <control type="button" name="btnNeoRefresh" label="Actualizar" icon="refresh"
+              action="trigger" provoke="NeoWorkList"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- ================================================================
+       3. Expediente del recién nacido
+       ================================================================ -->
+  <section type="tabmodal" name="NeoPatientTabModal" title="Historia del Recién Nacido"
+      reveal="[PatientId]!" size="large">
+
+    <group name="grpNeoPatientHeader">
+      <row>
+        <control type="label" label="Recién nacido" span="2"/>
+        <control type="text" name="PatientName" span="3" readonly="true"/>
+        <control type="label" label="HC" span="1"/>
+        <control type="text" name="MedicalRecordNumber" span="2" readonly="true"/>
+        <control type="label" label="Días de vida" span="2"/>
+        <control type="text" name="Neo_DaysOfLife" span="2" readonly="true"/>
+      </row>
+    </group>
+
+    <!-- Vínculo con la madre, en sentido inverso -->
+    <group name="grpNeoMotherLink">
+      <row reveal="[Neo_MotherPatientId]!">
+        <control type="label" label="Madre" span="2"/>
+        <control type="text" name="Neo_MotherName" span="4" readonly="true"/>
+        <control type="button" name="btnNeoOpenMother" label="Abrir Historia de la Madre" icon="user"
+            span="3"
+            action="redirect|url" target="../Projects/Colombia/Module/ColombiaObstetrics.xml"
+            append="patientid=[Neo_MotherPatientId]"/>
+        <control type="button" name="btnNeoKangaroo" label="Programa Madre Canguro" icon="file"
+            span="3"
+            action="redirect|url" target="ecd/index.html"
+            append="ecdGuid=[Neo_KangarooEcdGuid],patientid=[PatientId],size=medium"/>
+      </row>
+      <row reveal="[Neo_MotherPatientId]=">
+        <control type="label" span="12" color="orange"
+            label="Este recién nacido no tiene vínculo con una historia materna. Resuélvalo desde Obstetricia → Vínculo Madre - RN antes de facturar o generar RIPS."/>
+      </row>
+    </group>
+
+    <!-- Registro de nacimiento completo (compartido con Obstetricia) -->
+    <partial link="Partials/ColombiaPartialNewbornRecord.xml"/>
+
+    <!-- ===== Tamizajes pendientes ===== -->
+    <section type="tab" name="NeoScreeningTab" title="Tamizajes">
+      <group name="grpNeoScreenings">
+        <row>
+          <control type="label" span="12"
+              label="[span size=10]Tamizaje neonatal obligatorio — Ley 1980 de 2019 y Resolución 3280 de 2018.[/span]"/>
+        </row>
+        <row>
+          <control type="datagrid" name="grdNeoScreeningsDue" label="Tamizajes y Profilaxis"
+              span="12" rows="8" fitrows="true"
+              acctsvc="true" acctsvcreq="true"
+              datarequest="GetNewbornScreeningsDue"
+              appendrequest="newbornGuid=[Neo_NewbornGuid],patientId=[PatientId],facility=(facility)"
+              idle="[PatientId]=|reset"
+              source="ScreeningName,DueWindow,Status,PerformedDate,Result,PerformedBy"
+              sourcelabels="Tamizaje,Ventana,Estado,Fecha,Resultado,Realizado por"
+              align="left|left|center|left|left|left"
+              format="|||datetime||"
+              translate="Status"
+              rowcolor="Status|Overdue=red;Pending=orange;Done=white"
+              sort="DueWindow=asc" key="ScreeningGuid"/>
+        </row>
+      </group>
+    </section>
+
+    <!-- ===== Evolución neonatal ===== -->
+    <section type="tab" name="NeoNotesTab" title="Evolución">
+      <group name="grpNeoNotes">
+        <row>
+          <control type="button" name="btnNeoBallard" label="Ballard / Capurro (ECD)" icon="file" span="3"
+              action="redirect|url" target="ecd/index.html"
+              append="ecdGuid=[Neo_Ballard_EcdGuid],patientid=[PatientId],size=medium"/>
+          <control type="button" name="btnNeoDownes" label="Downes / Silverman (ECD)" icon="file" span="3"
+              action="redirect|url" target="ecd/index.html"
+              append="ecdGuid=[Neo_Downes_EcdGuid],patientid=[PatientId],size=medium"/>
+        </row>
+        <row>
+          <control type="datagrid" name="grdNeoDailyNotes" label="Notas de Evolución"
+              span="12" rows="10" fitrows="true" searchable="true"
+              datarequest="GetPatientProgressNotes"
+              appendrequest="patientId=[PatientId],patientVisit=[PatientVisitGuid]"
+              idle="[PatientId]=|reset"
+              source="NoteDateTime,NoteType,Provider,Summary"
+              sourcelabels="Fecha y Hora,Tipo,Profesional,Resumen"
+              align="left|left|left|left"
+              format="datetime|||"
+              sort="NoteDateTime=desc" key="NoteGuid"/>
+        </row>
+      </group>
+    </section>
+
+  </section>
+
+</module>

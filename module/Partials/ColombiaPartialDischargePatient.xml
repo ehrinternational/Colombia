@@ -1,0 +1,37 @@
+﻿ <partial> 
+  <!--Tabmodal to discharge a patient -->
+	<section type="tabmodal" badge="none" name="mdlDischargePatient" title="Cerrar Visita" size="small">
+		<group name="DischargeInfo">
+			<row>
+				<control type="label" label="Motivo de Alta" span="4"/>
+				<control type="select" name="Discharge_DischargeDisposition" span="7" required="true" 
+				source="01,02,03,04,05,06,07,08"
+				sourcelabels="PACIENTE CON DESTINO A SU DOMICILIO,
+				PACIENTE MUERTO,
+				PACIENTE DERIVADO A OTRO SERVICIO,
+				REFERIDO A OTRA INSTITUCION,
+				CONTRAREFERIDO A OTRA INSTITUCION,
+				DERIVADO O REFERIDO A HOSPITALIZACION DOMICILIRIA,
+				DERIVADO A SERVICIO SOCIAL,
+				PACIENTE CONTINUA EN EL SERVICIO (CORTE FACTURACION)" edit="true" />
+			</row>
+			<row>
+				<control type="label" label="Observaciones" span="4"/>
+				<control type="textarea" name="Discharge_Note" span="7" required="true" rows="2" edit="true" />
+			</row>
+		</group>
+		<group>
+			<row>
+			<!--Discharge patient-->
+				<control type="modalbutton" name="DischargeSave" label="Cerrar Visita" color="green" icon="home"
+					action="save|close|new" 
+					confirm="Por favor confirme que quiere cerrar de visita a este paciente."
+					affector="none"
+					capture="DischargeInfo"
+					dataupdate="UpdatePatientVisitAllFields"
+					appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisit],dischargeDateTime=(dateTimeNow),dischargedBy=(userName)"
+					provoke="ClosePatientTabModal,PatientList"/>
+			</row>
+		</group>
+	</section>
+</partial>

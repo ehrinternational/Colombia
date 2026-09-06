@@ -115,12 +115,12 @@
   <partial target="mdlNewPatientIndication" link="./Partial/Modals/PartialNewIndicationModal.xml"/>
   <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
   
-  <partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>
+  <partial target="mdlDischargePatient" link="Partials/ColombiaPartialDischargePatient.xml"/>
   <partial link="./Partial/Move/PartialLabMovePatients.xml"/>
   <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
   <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>    
-  <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
-  <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
+  
   <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
   <partial target="mdlCalendarSearchModal" link="Partials/ColombiaPartialCalendarSearchModal.xml"/>
   <!-- Messaging -->

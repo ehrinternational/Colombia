@@ -71,8 +71,8 @@
           <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialIdentificationGrid.xml"/>
           <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
-          <partial link="./Partial/Grids/PartialPatientPhones.xml"/>
-          <partial link="./Partial/Grids/PartialPatientContactsWithModal.xml"/>
+          
+          <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
           <partial link="Partials/ColombiaPartialAppointmentListForPatientWithCalendars.xml"/>
@@ -99,8 +99,8 @@
     <!-- Demographic modals -->
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
-    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
-    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
+    
     <!-- Messaging -->
 		<partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
     <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>

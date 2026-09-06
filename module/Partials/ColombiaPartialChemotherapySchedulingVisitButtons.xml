@@ -1,0 +1,67 @@
+<partial>
+  <row>
+    <!-- Admit patient with no current visit -->
+    <control type="button" 
+      name="btnAdmitButton"
+      span="12"
+      reveal="[HasOpenVisit]=false"
+      color="orange"
+      tooltip="Haga clic para ingresar a este paciente" 
+      action="save" 
+      confirm="Por favor confirme que quiere ingresar a este paciente."
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      label="Ingresar" 
+      icon="cloud-upload"
+      compare="[CurrentDepartment]!+[Consult_PatientFirstName]!+[Consult_PatientMiddleName]!+[Consult_PatientDOB]!+[Consult_PatientSex]!+[PtSSN]!+[Consult_Sector]!+[Consult_AttendingPhysician]!+[Consult_BirthPlace]!|Faltan Departamento, Nombres, Fecha de nacimiento, CURP, Establecimiento o Asignado"
+      datainsert="InsertPatientVisitAllFields"
+      appendinsert="CopyDiagnosis=true,LocationId=(facilityData.LocationId),patientId=[PatientId],visitType=[DefaultAdmitType],departmentGuid=[CurrentDepartment],hospitalService=Esperando,ambulatoryStatus=Inpatient
+      ,preAdmit=0,admitDateTime=(dateTimeNow),payerName=[Consult_PatientNameSuffix],PayerRFC=[Consult_RFC],PayerPostalCode=[Consult_PrimaryPayorZipCode],PayerAddress=[Consult_PrimaryPayorAddLineOne]"
+      set="HasOpenVisit=true,PatientVisit=[PatientVisitUniqueId]"
+      provoke="ERProblemList"/>
+  </row>
+  <!-- Partial Hospital Visit Buttons -->
+  <row name="rowSendText" reveal="[PatientCellPhone]!">
+    <control type="button" name="btnSendTextMessage2"  
+      span="12" icon="envelope" label="Texto"
+      preset="Send_PhoneNumber=[PatientCellPhone],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages2"
+      action="redirect" target="mdlSendTextMessage"/>
+  </row>
+  <row name="rowSendEmail" reveal="[Consult_PatientEmail]!">
+    <control type="button" name="btnSendEmailMessage2"
+      span="12" icon="envelope" label="Email"
+      preset="Send_EmailAddress=[Consult_PatientEmail],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages1"
+      action="redirect" target="mdlSendEmailMessage"/>
+  </row>
+  <row>
+    <!-- Assign a patient room -->
+    <control type="button" name="btnAssignPatientBed" span="12"
+      reveal="[HasOpenVisit]=true"
+      icon="cloud-upload" color="orange"
+      label="Asignar Cama"
+      trigger="FindWardList"
+      action="redirect"
+      target="mdlFindRoom"/>
+  </row>
+  <row>
+      <!-- Transfer patient to another department -->
+      <control type="button" name="btnTransferPatient"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      span="12" icon="hospital" label="Transferir"
+      color="orange" action="redirect"
+      preset="Transfer_DepartmentGuid=[DepartmentGuidLookup]"
+      target="mdlTransferPatient"/>
+  </row>
+  <row>
+    <!-- Discharge patient button -->
+    <control type="button" name="btnDischargePatient"
+      reveal="[HasOpenVisit]=true"
+      span="12" icon="home" label="Cerrar Visita"
+      preset="Discharge_DischargeDisposition=[mdlAdmit_DischargeDisposition],Discharge_Note=[mdlAdmit_DischargeCondition]"
+      color="green" action="redirect"
+      target="mdlDischargePatient"/>
+  </row> 
+</partial>

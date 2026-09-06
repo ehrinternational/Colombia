@@ -140,8 +140,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" mode="auto" 
-          source="Nursing,Problems,Vitals,Physicians,Studies,Medication,Surgery,Services,Documents" 
-          sourcelabels="Enfermería,Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Procedimientos,Servicios,Documentos" 
+          source="Nursing,Problems,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Services,Documents" 
+          sourcelabels="Enfermería,Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Servicios,Documentos" 
           span="12" 
           default="Nursing" 
           value="Nursing"  
@@ -161,7 +161,6 @@
           <partial link="./Partial/Grids/PartialNursingOrdersCompleted.xml"/>
           <partial link="./Partial/Grids/PartialNursingNotesForPatientVisitAllTypesAsDocuments.xml"/>
           <partial link="Partials/ColombiaPartialServiceConsultRequestsForPatientWithAddAndEdit.xml"/>
-          
           <partial link="./Partial/Grids/PartialPatientLines.xml"/>
           <partial link="./Partial/Grids/PartialPhysicianAssignmentsWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialLabOrdersWithScannedResultsNoEdit.xml"/>
@@ -172,8 +171,9 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationsCompleted.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>

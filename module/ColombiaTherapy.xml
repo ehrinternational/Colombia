@@ -109,7 +109,7 @@
           <partial link="Partials/ColombiaPartialAppointmentListConsultsOnly.xml"/>
           <partial link="Partials/ColombiaPartialServiceConsultRequestsForPatientWithAddAndEdit.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialDietaryOrdersNoAddAsDiets.xml"/>
         </control>
       </row>
@@ -133,8 +133,8 @@
     <!-- Demographic modals -->
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
-    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
-    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
+    
     <!-- Messaging -->
     <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
     <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>

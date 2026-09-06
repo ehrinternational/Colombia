@@ -79,23 +79,23 @@
         <control type="text" name="Pym_UserAddress" span="6" edit="true" 
         regex="^\+?[a-zA-Z0-9]{7,15}$" required="true"/>
       </row>
-      <!-- ?? Change this to datasource once the call exists -->
       <row>
         <control type="label" label="Profesión" span="3"/>
         <control type="select" name="Pym_EmployerName" span="9" edit="true"
           searchable="true"
-          acctsvcreq="true"
-          datarequest="GetColombiaProfessions"
-          source="Profession,Code"/>
+          filter="Active=true"
+          acctsvc="true"
+          datasource="GetCoProfessions"
+          source="PROFESIONNOMBRE,PROFESIONCODIGO"/>
       </row>
-      <!-- ?? Change this to datasource once the call exists -->
       <row>
         <control type="label" label="Ocupacion" span="3"/>
         <control type="select" name="Pym_UserOccupation" span="9" edit="true"  required="true"
           searchable="true"
-          acctsvcreq="true"
-          datarequest="GetColombiaOccupations"
-          source="Occupation,Code"/>
+          filter="Active=true"
+          acctsvc="true"
+          datasource="GetCoOccupations"
+          source="OCUPACIONNOMBRE,OCUPACIONCODIGO"/>
       </row>
       </subset>
       <subset bgcolor="white">

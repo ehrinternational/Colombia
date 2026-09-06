@@ -46,8 +46,6 @@
         admitType=[Consult_AdmitType],
         admissionType=[Consult_AdmissionType],
         hospitalService=Esperando,
-        ambulatoryStatus=Outpatient,
-        AdmitSource=[Consult_AdmitSource],
         preAdmit=0,
         admitDateTime=(dateTimeNow)"
       success="Esta paciente ha sido admitida."/>
@@ -84,12 +82,8 @@
   </row>
   <row name="rowAdmitDepartmentSource" reveal="[PatientId]!+[HasOpenVisit]=false">
     <control type="label" label="Tipo de llegada" span="12"/>
-    <control type="select" name="Consult_AdmitSource" span="12" 
-      datasource="GetLookupAdmitSourcesByFacility" 
-      source="AdmitSource,AdmitSource"
-      edit="true" sort="AdmitSource=asc"
-      required="true" 
-      explicit="true"
-      filter="Active=true"/>
+   <control type="select" name="mdlAdmit_AdmitSource" span="3" required="true" explicit="true"
+          source="Medical,Emergency,AutoAccident,OccAccident,OccDisease,Elective"
+          sourcelabels="Médico,Urgente,Accidente Auto,Accidente Laboral,Médico Laboral,Electiva"/>
   </row>
 </partial>

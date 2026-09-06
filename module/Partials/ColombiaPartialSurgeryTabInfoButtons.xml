@@ -75,35 +75,16 @@
       provoke="SurgeryTimes"/>
   </row>
   <row >
-    <control type="button" name="btnEducationECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
-      span="12" icon="edit" label="Educación del Paciente"/>
-  </row>
-  <row >
-    <control type="button" name="btnNutritionECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
-      span="12" icon="edit" label="Cribado Nutricional"/>
-  </row>
-  <row>
-    <control type="button" name="btnMentalECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
-      span="12" icon="edit" label="Salud Mental"/>
-  </row>
-  <row>
-    <control type="button" name="btnPreopECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
-      span="12" icon="edit" label="Nota Preoperatoria"/>
-  </row>
-  <row>
-    <control type="button" name="btnPostopECD" color="green" action="trigger"
-      reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=In Process|Completed+[Surgery_CalendarGuid]!"
-      span="12" icon="edit" label="Nota Postoperatoria"/>
-  </row>
-  <row >
     <control type="button" name="btnViewBloodBankOrders"
       reveal="[SurgeryViewGuid]!+[FileName]=SurgeryDoctor+[Surgery_Status]=Scheduled|Confirmed|In Process+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Ordenes de Sangre"
       action="redirect" target="tbmSurgeryBloodBankOrders"/>
+  </row>
+  <row>
+    <control type="button" name="btnInitiateSurgeryECDs2" 
+      reveal="[PatientId]!"
+      span="12" icon="edit" label="Documentos de Cirugía"
+      action="redirect" target="mdlSurgeryECDsWithSurgeryGuid"/>
   </row>
   <row>
     <control type="button" name="btnViewSurgeryTeam"
@@ -122,11 +103,5 @@
       reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Compras Quirúrgico"
       action="redirect" target="tbmSurgeryPurchaseRequests"/>
-  </row>
-  <row >
-    <control type="button" name="btnViewSurgeryPurchaseDocuments"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
-      span="12" icon="edit" label="Documentos"
-      action="redirect" target="tbmSurgeryDocuments"/>
   </row>
 </partial>

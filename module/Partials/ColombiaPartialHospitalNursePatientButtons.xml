@@ -1,9 +1,5 @@
 <partial>
     <!-- Partial Hospital Nursing Patient Buttons -->
-    <row name="rowPatientPhoto" reveal="[PatientId]!">
-    <!--Patient photo-->
-    <control type="image" format="jpg=circle" name="Admit_ProfilePhoto" default="null" span="12" />
-    </row>
     <row>
       <control type="button" name="Consult_PatientUpdate" label="Actualizar" icon="cloud-upload" span="12"
         reveal="PatientId!" 
@@ -56,6 +52,17 @@
         usesource="login"
         mode="ecd"
         append="ecdGuid=03098ec0-ad84-43bb-b607-af6662654988,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+        provoke="EREcdForms"/>
+    </row>
+    <row>
+      <control type="button"  name="btnInitialNurseSurveyECD" label="Evaluación Inicial " color="green" span="12"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+        action="redirect|url" 
+        target="ecd/index.html" 
+        usesource="login"
+        mode="ecd"
+        append="ecdGuid=0e79a2be-08fd-4b26-bf49-9da2afed3884,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
         provoke="EREcdForms"/>
     </row>
     <!--

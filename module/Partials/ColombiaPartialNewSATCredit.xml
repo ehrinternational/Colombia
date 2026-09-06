@@ -147,7 +147,7 @@
             <control type="buttongroup" name="NSC_PaymentMethod" span="3" default="PUE"
               source="PPD,PUE" offset="3" edit="[NSC_Status]=Pending|Rejected"/>
           </row>
-          <!-- Fiscal Regimen for Mexico for invoicing 4.0-->
+          <!-- Fiscal Regimen invoicing 4.0-->
           <row name="rowFiscalRegimenForSATCredit">
             <control type="label" label="Persona" span="3"/>
             <control type="buttongroup" name="NSC_FiscalType" span="2"

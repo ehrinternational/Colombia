@@ -1,0 +1,30 @@
+<partial>
+  <row name="rowPatientPhoto" reveal="[PatientId]!">
+    <!-- Patient photo -->
+    <control type="image" 
+      format="jpg=circle" 
+      default="null"
+      name="Admit_ProfilePhoto" 
+      span="12" />
+  </row>
+  <row name="rowbtngrpShow" reveal="[PatientId]!">
+    <control type="buttongroup" name="btngrpShow"
+      span="12" edit="true"
+      source="Open,Close"
+      color="grey,grey"
+      sourcelabels="Abrir,Cerrar"
+      default="Close"/>
+  </row>
+  <row>
+    <!--Print patient label-->
+    <control type="button"
+      reveal="[PatientId]!" 
+      span="12"
+      name="btnPrintLabel"
+      action="print" 
+      mode="report" 
+      label="Etiquetas" 
+      icon="print" 
+      append="id=14c214853ef,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" /> 
+  </row>
+</partial>

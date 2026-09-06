@@ -1,6 +1,6 @@
 <partial>
   <!-- New contacts modal-->
-  <section type="modal" title="Contacto del Empressa" name="mdlPayerContacts" badge="none" size="small">
+  <section type="modal" title="Contacto del Empressa" name="mdlPayerContacts" badge="none" size="small" trigger="PyrCon_Country">
     <group>
       <row>
        <control type="label" label="Activo" span="4"/>
@@ -49,7 +49,7 @@
           namefield="PyrCon_CountryText"
           searchable="true"
           sort="CountrySpanish=asc"
-          datasource="GetCountries" 
+          datarequest="GetCountries" 
           source="CountrySpanish,Code"
           provoke="PyrCon_State"/>  
       </row>

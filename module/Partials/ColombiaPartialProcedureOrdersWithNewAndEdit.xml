@@ -1,0 +1,30 @@
+﻿<partial>
+  <!-- Procedure orders with new and edit -->
+  <control type="datagrid" label="Procedimientos" name="ERProcedures"
+    option="Surgery"
+    rows="5"
+    idle="[PatientId]=|reset"
+    datarequest="GetPatientProceduresByPatientVisit"
+    appendrequest="patientId=[PatientId]"
+    source="DateTimeEntered,OrderNumber,ProcedureDescription,OrderedByFullName"
+    sourcelabels="Fecha,Folio,Procedimiento,Ordenado por"
+    align="||left|left"
+    key="ProcedureGuid"
+    format="datetime">
+  <control type="button" name="btnUpdateProcedures" icon="edit" label="Editar"
+    reveal="[HasOpenVisit]=true"
+    showif="feature"
+    action="redirect|view"
+    target="procedures-update"
+    append="recordGuid=[[ProcedureGuid]],size=small,patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+    provoke="ERProcedures"/>
+  <control type="button"  name="btnProcedureOrders" icon="plus" label="Añadir Nuevo"
+    reveal="[HasOpenVisit]=true"
+    compare="{[mdlAdmit_FinalConsult]!+[mdlAdmit_ModalityAttention]!+[mdlAdmit_ServiceGroup]!}|Grupo Servicios; Modalidad Atención; y Finalidad Consulta requirido!"
+    action="redirect|view"
+    target="procedures-add"
+    append="size=small,patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true,FinalConsult=[mdlAdmit_FinalConsult],
+      ModalityAttention=[mdlAdmit_ModalityAttention],ServiceGroup=[mdlAdmit_ServiceGroup]"
+    provoke="ERProcedures"/>
+  </control>
+</partial>

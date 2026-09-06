@@ -1,0 +1,483 @@
+<partial><!--Used By Colombia FSFB-->
+
+  <!-- ================================================================
+       REGISTRO DE RECIÉN NACIDO
+       Contra el API entregado:
+         GetNewbornBirthRecords    (facility, newbornGuid, birthGuid, patientId)
+         InsertNewbornBirthRecords (sin newbornGuid — lo genera el SP)
+         UpdateNewbornBirthRecords (con newbornGuid)
+       Entidades en ClinicalGeniusSupplyChainEntities → acctsvc OBLIGATORIO.
+
+       ── DEFECTO CONOCIDO DEL API ────────────────────────────────────
+       La columna devuelta se llama  IndigeniusChecked
+       y el parámetro de entrada     indigenousChecked
+       El runtime construye el parámetro pasando a minúscula la primera
+       letra del name del control (confirmado por pKUExamDate, iRTExamDate
+       y eHIGrade en el propio contrato). Por tanto NINGÚN nombre de
+       control satisface los dos lados a la vez.
+       Solución aplicada: el control se llama IndigeniusChecked (para que
+       funcionen inject y la rejilla) y el valor se envía además de forma
+       explícita en appendinsert/appendupdate. Ver README §Defectos.
+       ────────────────────────────────────────────────────────────────
+
+       ── ADAPTACIÓN CHILE → COLOMBIA ─────────────────────────────────
+       El esquema es de origen chileno. Reasignación semántica:
+         FinancialClass      → EPS / Entidad Responsable de Pago
+         FonasaSection       → Régimen (Contributivo/Subsidiado/Especial/
+                               Excepción/Particular/Vinculado)
+         OtherFinancialClass → ARL, SOAT, póliza o pagador extranjero
+         PrimaryId           → Tipo de documento del RN (CN, RC, MS)
+         ExamPKU / PKUExamDate → Tamizaje neonatal metabólico (TSH),
+                               obligatorio por Ley 1980 de 2019
+         ExamIRT / IRTExamDate → Tamizaje auditivo neonatal
+       Faltan columnas para pulsioximetría (cardiopatía congénita),
+       tamizaje visual (rojo retiniano) y hemoclasificación → ver README.
+       ================================================================ -->
+
+  <section type="tab" name="NewbornRecordTab" title="Recién Nacidos" reveal="[Obs_BirthGuid]!|[PatientId]!">
+
+    <template name="tmpApgarTemplate" type="markup" align="center">
+      [IF ${[[Apgar5Min]]}«4][icon color=red]warning-sign[/icon] [b]${[[Apgar5Min]]}[/b][/IF]
+      [IF ${[[Apgar5Min]]}=4|5|6][icon color=orange]exclamation-sign[/icon] ${[[Apgar5Min]]}[/IF]
+      [IF ${[[Apgar5Min]]}»6][icon color=green]ok[/icon] ${[[Apgar5Min]]}[/IF]
+    </template>
+
+    <template name="tmpNewbornWeightTemplate" type="markup" align="center">
+      [IF ${[[Weight]]}«1500][icon color=red]warning-sign[/icon] [b]${[[Weight]]} g[/b][/IF]
+      [IF ${[[Weight]]}«2500]${[[Weight]]} g [span size=10](bajo peso)[/span][/IF]
+      [IF ${[[Weight]]}≥2500]${[[Weight]]} g[/IF]
+    </template>
+
+    <group name="grpNewbornList">
+      <row>
+        <control type="datagrid" name="grdNewbornsForBirth" label="Recién Nacidos del Parto"
+            span="12" rows="6" fitrows="true" searchable="true"
+            modalname="mdlNewbornRecord"
+            acctsvc="true" acctsvcreq="true"
+            datarequest="GetNewbornBirthRecords"
+            appendrequest="birthGuid=[Obs_BirthGuid],facility=(facility)"
+            datainsert="InsertNewbornBirthRecords"
+            appendinsert="birthGuid=[Obs_BirthGuid],facility=(facility),status=Open,patientId=[Lnk_NewbornPatientId],indigenousChecked=[grpNewbornRecord_IndigeniusChecked]"
+            dataupdate="UpdateNewbornBirthRecords"
+            appendupdate="newbornGuid=[Neo_NewbornGuid],birthGuid=[Obs_BirthGuid],facility=(facility),patientId=[Lnk_NewbornPatientId],indigenousChecked=[grpNewbornRecord_IndigeniusChecked]"
+            idle="[Obs_BirthGuid]=|reset"
+            source="Ordinal,PatientFirstName,PatientLastName,PatientSex,DateTimeOfBirth,GestationWeeks,Weight,Height,CranialCircumference,Apgar1Min,Apgar5Min,DeliveryResult,MedicalRecordNumber,Status"
+            sourcelabels="Orden,Nombres,Apellidos,Sexo,Fecha y Hora,Sem.,Peso (g),Talla (cm),PC (cm),Apgar 1',Apgar 5',Resultado,HC,Estado"
+            align="center|left|left|center|left|center|right|right|right|center|center|left|left|center"
+            format="0||||datetime|0|0|0.0|0.0|0|0|||"
+            translate="PatientSex,DeliveryResult,Status"
+            rowcolor="DeliveryResult|Mortinato=grey;Vivo=white"
+            sort="Ordinal=asc"
+            key="NewbornGuid"
+            onselectset="Neo_NewbornGuid=[[NewbornGuid]],Neo_NewbornPatientId=[[PatientId]]"
+            onselect="Neo_NewbornGuid">
+
+          <control type="button" name="btnNewbornNew" label="Registrar Recién Nacido" icon="plus"
+              color="green"
+              reveal="[Obs_BirthGuid]!"
+              action="redirect|view" target="mdlNewbornRecord"
+              append="size=large"
+              set="Neo_NewbornGuid="
+              provoke="grdNewbornsForBirth"/>
+
+          <control type="button" name="btnNewbornApgarECD" label="Apgar Detallado (ECD)" icon="file"
+              reveal="[Neo_NewbornGuid]!"
+              action="redirect|url" target="ecd/index.html"
+              append="ecdGuid=[Obs_Apgar_EcdGuid],patientid=[Neo_NewbornPatientId],newbornguid=[Neo_NewbornGuid],size=medium"
+              tooltip="Puntaje por componentes. El total se transcribe al registro."/>
+
+          <control type="button" name="btnNewbornPrint" label="Imprimir" icon="print"
+              action="print" preset="Report_Type=NewbornRecord"
+              append="newbornguid=[Neo_NewbornGuid],birthguid=[Obs_BirthGuid]"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- ================================================================
+       MODAL — registro completo del recién nacido
+       ================================================================ -->
+  <section type="modal" name="mdlNewbornRecord" title="Registro de Recién Nacido" size="large"
+      enteredby="EnteredBy" updatedby="UpdatedBy"
+      dtentered="DateTimeEntered" dtupdated="DateTimeUpdated">
+
+    <group name="grpNewbornRecord" capture="grpNewbornRecord">
+
+      <!-- ===== Identificación ===== -->
+      <subset name="subNewbornIdentity" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Identificación[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Orden de nacimiento" span="3"/>
+          <control type="integer" name="Ordinal" span="1" edit="true" min="1" max="6" required="true"
+              default="1" tooltip="1 en parto único; 1..n en gestación múltiple"/>
+          <control type="label" label="Fecha y hora de nacimiento" span="3"/>
+          <control type="datetime" name="DateTimeOfBirth" span="3" edit="true" required="true"
+              default="(dateTimeNow)"/>
+        </row>
+        <row>
+          <control type="label" label="Primer nombre" span="3"/>
+          <control type="text" name="PatientFirstName" span="3" edit="true"/>
+          <control type="label" label="Segundo nombre" span="3"/>
+          <control type="text" name="PatientMiddleName" span="3" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Apellidos" span="3"/>
+          <control type="text" name="PatientLastName" span="3" edit="true" required="true"/>
+          <control type="label" label="Sexo" span="3"/>
+          <control type="select" name="PatientSex" span="3" edit="true" explicit="true" required="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes"
+              filter="CodeGroup=Sex"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Tipo de documento" span="3"/>
+          <control type="select" name="PrimaryId" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes"
+              filter="CodeGroup=PrimaryIdType"
+              source="CodeDescription,CodeValue"
+              tooltip="CN Certificado de Nacido Vivo, RC Registro Civil, MS Menor sin identificación"/>
+          <control type="label" label="Número de documento" span="3"/>
+          <control type="text" name="PrimaryIdNumber" span="3" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Nacionalidad" span="3"/>
+          <control type="text" name="Nationality" span="3" edit="true" default="Colombiana"/>
+          <control type="label" label="Lugar de nacimiento" span="3"/>
+          <control type="text" name="BirthPlace" span="3" edit="true"
+              default="(facilityData.HospitalShortName)"/>
+        </row>
+        <row>
+          <control type="label" label="Pertenencia étnica indígena" span="3"/>
+          <control type="checkbox" name="IndigeniusChecked" span="3" edit="true"/>
+          <control type="label" label="Afrodescendiente" span="3"/>
+          <control type="checkbox" name="AfricanDescent" span="3" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Historia clínica asignada" span="3"/>
+          <control type="text" name="Neo_NewbornMRN" span="3" readonly="true"/>
+          <control type="label" label="Id de paciente del RN" span="3"/>
+          <control type="text" name="Neo_NewbornPatientIdDisplay" span="3" readonly="true"
+              tooltip="Se asigna al crear la historia del RN desde Vínculo Madre-RN"/>
+        </row>
+      </subset>
+
+      <!-- ===== Aseguramiento (adaptación Colombia) ===== -->
+      <subset name="subNewbornPayer" bgcolor="lightblue">
+        <row>
+          <control type="label" label="[b]Aseguramiento[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="EPS / Entidad Responsable de Pago" span="3"/>
+          <control type="select" name="FinancialClass" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupPayers"
+              source="PayerName,PayerCode"/>
+          <control type="label" label="Régimen" span="3"/>
+          <control type="select" name="FonasaSection" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes"
+              filter="CodeGroup=Regimen"
+              source="CodeDescription,CodeValue"
+              tooltip="Campo FonasaSection reutilizado como Régimen (ver README)"/>
+        </row>
+        <row>
+          <control type="label" label="Otro pagador" span="3"/>
+          <control type="text" name="OtherFinancialClass" span="9" edit="true"
+              placeholder="ARL, SOAT, póliza o pagador extranjero"/>
+        </row>
+      </subset>
+
+      <!-- ===== Datos del nacimiento ===== -->
+      <subset name="subNewbornDelivery" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Datos del nacimiento[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Tipo de parto" span="3"/>
+          <control type="select" name="DeliveryType" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes" filter="CodeGroup=BirthType"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Presentación" span="3"/>
+          <control type="select" name="Presentation" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=Presentation"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Resultado" span="3"/>
+          <control type="select" name="DeliveryResult" span="3" edit="true" explicit="true" required="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=DeliveryResult"
+              source="CodeDescription,CodeValue"
+              tooltip="Vivo, Mortinato anteparto, Mortinato intraparto"/>
+          <control type="label" label="Lugar de atención" span="3"/>
+          <control type="select" name="DeliveryPlace" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=DeliveryPlace"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Posición del parto" span="3"/>
+          <control type="select" name="DeliveryPosition" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=DeliveryPosition"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Inducción" span="3"/>
+          <control type="select" name="Inducement" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=Inducement"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Método de extracción" span="3"/>
+          <control type="select" name="ExtractionMethod" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=ExtractionMethod"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Libre movimiento en trabajo de parto" span="3"/>
+          <control type="checkbox" name="FreeMovement" span="3" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Clasificación de Robson" span="3"/>
+          <control type="select" name="RobsonClass" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes" filter="CodeGroup=RobsonClass"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Polihidramnios" span="3"/>
+          <control type="checkbox" name="BroadWater" span="3" edit="true"/>
+        </row>
+      </subset>
+
+      <!-- ===== Antropometría ===== -->
+      <subset name="subNewbornAnthropometry" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Antropometría y edad gestacional[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Peso (g)" span="3"/>
+          <control type="double" name="Weight" span="2" edit="true" min="200" max="7000" required="true"/>
+          <control type="label" label="Talla (cm)" span="2"/>
+          <control type="double" name="Height" span="2" edit="true" min="15" max="65"/>
+          <control type="label" label="P. cefálico (cm)" span="2"/>
+          <control type="integer" name="CranialCircumference" span="1" edit="true" min="15" max="50"/>
+        </row>
+        <row>
+          <control type="label" label="Edad gestacional (semanas)" span="3"/>
+          <control type="integer" name="GestationWeeks" span="2" edit="true" min="20" max="44" required="true"/>
+          <control type="label" label="Días" span="2"/>
+          <control type="integer" name="GestationDays" span="1" edit="true" min="0" max="6"/>
+          <control type="label" label="Método (Ballard/Capurro)" span="2"/>
+          <control type="select" name="Gestation" span="2" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=GestationMethod"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Adecuación peso / edad gestacional" span="3"/>
+          <control type="select" name="Adequacy" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=Adequacy"
+              source="CodeDescription,CodeValue"
+              tooltip="PEG, AEG o GEG según curva de crecimiento intrauterino"/>
+        </row>
+      </subset>
+
+      <!-- ===== Apgar y adaptación neonatal ===== -->
+      <subset name="subNewbornApgar" bgcolor="lightblue">
+        <row>
+          <control type="label" label="[b]Apgar y adaptación neonatal[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Apgar 1 min" span="2"/>
+          <control type="integer" name="Apgar1Min" span="1" edit="true" min="0" max="10" required="true"/>
+          <control type="label" label="3 min" span="1"/>
+          <control type="integer" name="Apgar3Min" span="1" edit="true" min="0" max="10"/>
+          <control type="label" label="5 min" span="1"/>
+          <control type="integer" name="Apgar5Min" span="1" edit="true" min="0" max="10" required="true"/>
+          <control type="label" label="10 min" span="2"/>
+          <control type="integer" name="Apgar10Min" span="1" edit="true" min="0" max="10"/>
+          <control type="button" name="btnApgarDetail" label="Detalle" icon="file" span="2"
+              action="redirect|url" target="ecd/index.html"
+              append="ecdGuid=[Obs_Apgar_EcdGuid],newbornguid=[Neo_NewbornGuid],size=small"/>
+        </row>
+        <row>
+          <control type="label" label="Reanimación" span="3"/>
+          <control type="select" name="Resuscitation" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=Resuscitation"
+              source="CodeDescription,CodeValue"
+              tooltip="Ninguna, estimulación, VPP, intubación, masaje, adrenalina"/>
+          <control type="label" label="Oxígeno profiláctico" span="3"/>
+          <control type="checkbox" name="ProphylacticOxygen" span="3" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Encefalopatía hipóxico-isquémica" span="3"/>
+          <control type="checkbox" name="EHIGrade" span="3" edit="true"
+              tooltip="El API declara EHIGrade como booleano; el grado de Sarnat se registra en Comentarios (ver README)"/>
+          <control type="label" label="Malformaciones" span="3"/>
+          <control type="checkbox" name="Malformations" span="3" edit="true"
+              provoke="MalformationText"/>
+        </row>
+        <row>
+          <control type="label" label="Descripción de malformaciones" span="3"/>
+          <control type="textarea" name="MalformationText" span="9" edit="true" rows="2"/>
+        </row>
+      </subset>
+
+      <!-- ===== Cordón, líquido y placenta ===== -->
+      <subset name="subNewbornCord" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Cordón umbilical, líquido amniótico y placenta[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Cordón umbilical" span="3"/>
+          <control type="select" name="UmbilicalCord" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=UmbilicalCord"
+              source="CodeDescription,CodeValue"
+              tooltip="Incluye pinzamiento tardío (≥60 s), circular, nudo, procúbito"/>
+          <control type="label" label="Arterias" span="2"/>
+          <control type="integer" name="ArteryCount" span="1" edit="true" min="0" max="3" default="2"/>
+          <control type="label" label="Venas" span="2"/>
+          <control type="integer" name="VeinCount" span="1" edit="true" min="0" max="3" default="1"/>
+        </row>
+        <row>
+          <control type="label" label="Líquido amniótico" span="3"/>
+          <control type="select" name="AmnioticFluid" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=AmnioticFluid"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Hora de alumbramiento" span="3"/>
+          <control type="datetime" name="PlacentaDateTime" span="3" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Peso de la placenta (g)" span="3"/>
+          <control type="double" name="PlacentaWeight" span="2" edit="true" min="0" max="2000"/>
+          <control type="label" label="Estado de la placenta" span="3"/>
+          <control type="select" name="PlacentaCondition" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=PlacentaCondition"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Observaciones de la placenta" span="3"/>
+          <control type="text" name="PlacentaComment" span="9" edit="true"/>
+        </row>
+      </subset>
+
+      <!-- ===== Apego, lactancia y acompañamiento ===== -->
+      <subset name="subNewbornAttachment" bgcolor="lightblue">
+        <row>
+          <control type="label" label="[b]Apego precoz y lactancia (IAMII)[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Apego piel a piel" span="3"/>
+          <control type="select" name="Attachment" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=Attachment"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Duración (minutos)" span="3"/>
+          <control type="integer" name="AttachmentTime" span="2" edit="true" min="0" max="240"/>
+        </row>
+        <row>
+          <control type="label" label="Causa de no apego" span="3"/>
+          <control type="text" name="NonAttachmentCause" span="9" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Lactancia en la primera hora" span="3"/>
+          <control type="checkbox" name="BreastFed" span="2" edit="true"/>
+          <control type="label" label="Contacto con la madre" span="2"/>
+          <control type="checkbox" name="MotherContact" span="1" edit="true"/>
+          <control type="label" label="Contacto con el padre" span="2"/>
+          <control type="checkbox" name="FatherContact" span="1" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Acompañamiento en duelo" span="3"/>
+          <control type="text" name="GriefSupport" span="9" edit="true"
+              reveal="[grpNewbornRecord_DeliveryResult]!Vivo"
+              placeholder="Intervención de psicología / trabajo social en muerte perinatal"/>
+        </row>
+      </subset>
+
+      <!-- ===== Profilaxis y tamizajes ===== -->
+      <subset name="subNewbornScreening" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Profilaxis y tamizajes[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Vitamina K" span="3"/>
+          <control type="checkbox" name="VitaminK" span="2" edit="true"/>
+          <control type="label" label="Sitio de punción" span="3"/>
+          <control type="select" name="VitaminKPunctureSite" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=PunctureSite"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Vacuna Hepatitis B" span="3"/>
+          <control type="checkbox" name="HepatitisBVaccine" span="2" edit="true"/>
+          <control type="label" label="Sitio de punción" span="3"/>
+          <control type="select" name="HepatitisBVaccinePunctureSite" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupNewbornCodes" filter="CodeGroup=PunctureSite"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Profilaxis ocular" span="3"/>
+          <control type="checkbox" name="OcularProfilaxis" span="2" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Tamizaje metabólico (TSH)" span="3"/>
+          <control type="checkbox" name="ExamPKU" span="2" edit="true"
+              tooltip="Ley 1980 de 2019 — tamizaje neonatal obligatorio"/>
+          <control type="label" label="Fecha de la toma" span="3"/>
+          <control type="date" name="PKUExamDate" span="3" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Tamizaje auditivo" span="3"/>
+          <control type="checkbox" name="ExamIRT" span="2" edit="true"/>
+          <control type="label" label="Fecha de la toma" span="3"/>
+          <control type="date" name="IRTExamDate" span="3" edit="true"/>
+        </row>
+      </subset>
+
+      <row>
+        <control type="label" label="Comentarios" span="3"/>
+        <control type="textarea" name="Comments" span="9" edit="true" rows="3"/>
+      </row>
+
+      <!-- El nombre Status lo ocupa el registro de parto en la misma pagina.
+           El estado del RN se fija por accion explicita, no por campo. -->
+      <row>
+        <control type="modalbutton" showif="edit" name="mbtNewbornClose"
+            label="Cerrar Registro del RN" color="grey"
+            action="save|close|new"
+            affector="none"
+            acctsvc="true"
+            dataupdate="UpdateNewbornBirthRecords"
+            appendupdate="newbornGuid=[Neo_NewbornGuid],birthGuid=[Obs_BirthGuid],facility=(facility),status=Closed"
+            confirm="Se cerrará el registro del recién nacido. ¿Continuar?"
+            provoke="grdNewbornsForBirth,grdMotherNewbornLink"/>
+      </row>
+
+      <!-- ===== Botones ===== -->
+      <row>
+        <control type="modalbutton" showif="add" name="mbtNewbornInsert"
+            label="Guardar Recién Nacido" color="green" modaltask="insert|add"
+            provoke="grdNewbornsForBirth,grdMotherNewbornLink"/>
+      </row>
+      <row>
+        <control type="modalbutton" showif="edit" name="mbtNewbornUpdate"
+            label="Actualizar Recién Nacido" color="green" modaltask="update|next"
+            provoke="grdNewbornsForBirth,grdMotherNewbornLink"/>
+      </row>
+
+    </group>
+  </section>
+
+</partial>

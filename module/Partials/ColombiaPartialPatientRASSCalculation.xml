@@ -1,0 +1,66 @@
+<partial>
+  <!-- This tabmodal calculates the RASS status of a patient and updates the PatientESI field -->
+  <section type="tabmodal" badge="none" name="mdlRASS" title="Escala de RASS" trigger="grdRASSHistory" size="medium">
+    <group name="RASSInfo">
+      <row>
+        <control type="label" label="Agitación" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Ras_ESIPain" span="12" edit="true" required="true"
+          source="0,1,2,3,4"
+          sourcelabels="Alerta y tranquilo: Paciente despierto; calmado; atento a su entorno.,
+          Ansioso / Inquieto: Ansioso; inquieto; pero los movimientos no son vigorosos ni agresivos.,
+          Agitado: Movimientos frecuentes y no intencionados; asincronía con el ventilador mecánico; pero no es agresivo ni combativo.,
+          Muy agitado: Agitado; agresivo; el paciente se mueve continuamente; lucha contra el ventilador mecánico.,
+          Combativo: Francamente combativo; violento; peligro inmediato para el personal o para sí mismo intenta retirarse tubos o catéteres."/>
+      </row>
+      <row>
+        <control type="label" label="Sedación" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Ras_ESIB" span="12" edit="true" 
+          source="0,-1,-2,-3,-4,-5" 
+          sourcelabels="Alerta y tranquilo: Paciente despierto; calmado; atento a su entorno.,
+          Somnoliento: No está plenamente alerta; pero se mantiene despierto (abre los ojos y mantiene la mirada) ante la voz (≥ 10 segundos).,
+          Sedación leve: Despierta brevemente con los ojos abiertos ante la voz; pero no mantiene la mirada (&lt; 10 segundos).,
+          Sedación moderada: Realiza algún movimiento o abre los ojos ante la voz; pero no hay contacto visual.,
+          Sedación profunda: No responde a la voz; pero abre los ojos o realiza algún movimiento ante el estímulo físico / doloroso.,
+          Sedación muy profunda: No responde a la voz ni al estímulo físico / doloroso (sin movimientos)."
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Total Puntos" span="2"/>
+        <control type="calc" name="Ras_ESIRisk" span="1" format="0"
+          source="Ras_ESIPain+Ras_ESIB"/>
+        <!-- Insert the RASS record -->
+        <control type="button" name="btnInsertPatientRASS" span="2" color="green" icon="cloud-upload" label="Guardar"
+          reveal="[Ras_ESIRisk]=-1|0"
+          action="save|close|new"
+          affector="none"
+          capture="RASSInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=RASS,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+        <control type="button" name="btnInsertPatientRASS2" span="2" color="orange" icon="cloud-upload" label="Guardar"
+          reveal="[Ras_ESIRisk]«7+[Ras_ESIRisk]!-1|0"
+          action="save|close|new"
+          affector="none"
+          capture="RASSInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=RASS,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdRASSHistory" label="Historial de Estratificación"
+          span="12" rows="5"
+          acctsvcreq="true"
+          rowcolor="ESIRisk|0=green;-1=green;2=orange;3=orange;4=orange;5=orange;-2=orange;-3=orange;-4=orange;-5=orange"
+          datarequest="GetPatientESI"
+          appendrequest="PatientId=[PatientId],ESIType=RASS"
+          source="DateTimeEntered,ESIRisk,EnteredByFullName"
+          sourcelabels="Fecha de Estratificación,Estratificación,Enviado por"
+          sort="DateTimeEntered=desc"
+          format="datetime|"
+          key="PatientESIGuid"/>
+      </row>
+    </group>
+  </section>
+</partial>

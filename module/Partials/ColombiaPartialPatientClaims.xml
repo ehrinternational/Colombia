@@ -1,5 +1,5 @@
 <partial>
-  <control type="datagrid" label="Beneficios de la Atención" name="grdPatientClaims" rows="5" 
+  <control type="datagrid" label="Convenios de la Atención" name="grdPatientClaims" rows="5" 
     action="redirect"
     target="mdlNewClaims"
     option="PayerClaims"

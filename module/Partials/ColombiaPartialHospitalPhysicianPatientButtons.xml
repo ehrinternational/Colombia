@@ -87,6 +87,12 @@
         append="ecdGuid=03098ec0-ad84-43bb-b607-af6662654988,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
         provoke="EREcdForms"/>
     </row>
+    <row>
+      <control type="button" name="btnPatientBirthRecords" 
+        reveal="[PatientId]!+[Consult_PatientSex]=Female+[Consult_AgeInYears]»8"
+        span="12" icon="search" label="Abortos/Partos"
+        action="redirect" target="tmdPatientBirthRecords"/>
+    </row>
     <!-- AI buttons -->
     <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
     <row showif="never">

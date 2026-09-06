@@ -1,6 +1,6 @@
 <partial>
   <!-- Patient Address modal -->
-  <section type="tabmodal" name="mdlAddresses" title="Dirección del Paciente" size="small" provoke="Addresses" badge="none">
+  <section type="tabmodal" name="mdlAddresses" title="Dirección del Paciente" size="small" trigger="Address_CountryCode" provoke="Addresses" badge="none">
     <group>
       <control type="hidden" name="AddressGuid" 
         datarequest="GetPatientAddressByAddressGuid"
@@ -62,7 +62,7 @@
           searchable="true"
           required="true"
           sort="CountrySpanish=asc"
-          datasource="GetCountries" 
+          datarequest="GetCountries" 
           source="CountrySpanish,Code"
           provoke="Address_State"/>  
       </row>

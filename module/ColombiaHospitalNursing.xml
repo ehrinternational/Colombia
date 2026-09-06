@@ -21,18 +21,8 @@
     preset="DefaultPatientId="
     trigger="MyTaskAppointmentTimes"
     action="redirect" target="mdlMyTaskAppointments"/>
-  <!-- Open the outpatient consult calendar -->
-  <headerbutton name="btnConsultCalendar"
-    icon="calendar" label="Consulta"
-    preset="DefaultPatientId=,DefaultOrderGuid=,ConsultCalendarType=ConsultVisit"
-    trigger="ConsultVisit_selAppointmentTypeGuid"
-    action="redirect" target="mdlConsultVisitCalendarAppointments"/>
-  <!-- Open the surgery calendar -->
-  <headerbutton name="btnSurgeryCalendar"
-    icon="calendar" label="Cirugía"
-    preset="DefaultPatientId="
-    trigger="SurgeryTimes|resource"
-    action="redirect" target="mdlSurgeryViewAppointments"/>
+  
+  
   <!-- Review My Biomedical work orders and insert a new work order -->
    <headerbutton name="btnBiomedicalWorkOrder"
     icon="edit" label="Equipo"
@@ -154,8 +144,8 @@
           provoke="ButtonGroupSelect2"/>
         <control type="buttongroup" name="ButtonGroupSelect" 
           edit="true" mode="auto" span="11" default="Nursing"
-          source="Nursing,Diets,Problems,Vitals,Physicians,Studies,Medication,Surgery,Services,Documents,Orthotics" 
-          sourcelabels="Enfermería,Dietas,Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Procedimientos,Servicios,Documentos,Ortesis" 
+          source="Nursing,Diets,Problems,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Services,Documents,Orthotics" 
+          sourcelabels="Enfermería,Dietas,Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Servicios,Documentos,Ortesis" 
           provoke="ERGridList|options"/>
       </row>
       <row name="rowMedicalDataGrids" reveal="[ShowDataGrids]=Medical">
@@ -189,7 +179,8 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationAdministrationsHistory.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEditPrintPrescriptionByVisit.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

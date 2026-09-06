@@ -68,7 +68,7 @@
         <control type="buttongroup" name="ButtonGroupSelect" 
           edit="true" mode="auto" span="12"
           source="Identification,Addresses,Contacts,PatientPayers,PayerClaims,Documents,Appointments,Programs" 
-          sourcelabels="Identificación,Direcciones,Contactos,Beneficios,Beneficios de Atención,Documentos,Citas,Programas" 
+          sourcelabels="Identificación,Direcciones,Contactos,Convenios,Convenios de Atención,Documentos,Citas,Programas" 
           default="Identification"  
           provoke="GridOptions|options"/>
       </row>
@@ -108,7 +108,7 @@
     <partial target="mdlConsultVisitAppointmentModal" link="./Partial/Calendars/PartialCalendarConsultVisitAppointmentModal.xml"/>
     <partial target="mdlNewProjectTasks" link="./Partial/Messaging/PartialNewProjectTasks.xml"/>  <!-- Move modals -->
     <partial target="mdlTransferPatient" link="./Partial/Move/PartialTransferPatientWithBedAssignment.xml"/>
-		<partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>
+		<partial target="mdlDischargePatient" link="Partials/ColombiaPartialDischargePatient.xml"/>
   	<partial target="mdlMergePatients" link="./Partial/Move/PartialMergePatients.xml"/>
     <partial target="mdlQuickAdmit" link="Partials/ColombiaPartialEmergencyQuickAdmit.xml"/>
     <!-- Admin modals -->

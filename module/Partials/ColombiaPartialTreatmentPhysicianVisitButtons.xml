@@ -1,0 +1,58 @@
+<partial>
+  <row>
+    <control type="button" name="btnTimeline"
+      reveal="[HasOpenVisit]=true"
+      span="12"
+      icon="time" color="lightblue"
+      label="Cronograma"
+      action="redirect|view"
+      target="timeline"
+      append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+  </row>
+  <row>
+    <control type="button" name="btnEsperando"
+      span="12" icon="move" label="Esperando"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      color="orange" 
+      action="save|close|new"
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[DepartmentGuidLookup],hospitalService=Esperando"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <control type="button" name="btnTratamiento"
+      span="12" icon="move" label="Tratamiento"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      color="orange" 
+      action="save|close|new"
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[DepartmentGuidLookup],hospitalService=Tratamiento"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <control type="button" name="btnAusente"
+      span="12" icon="move" label="Ausente"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      color="orange" 
+      action="save|close|new"
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientId=[PatientId],patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[DepartmentGuidLookup],hospitalService=Ausente"
+      provoke="PatientList"/>
+  </row>
+  <row name="rowReadyForDischargeButtons" reveal="HasOpenVisit=true">
+    <control type="button" name="btnAltaMedica"
+      reveal="ReadyForDischarge=true"
+      span="12" icon="home" label="Alta Médica"
+      color="green" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+    <control type="button" name="btnNoAltaMedica"
+      reveal="ReadyForDischarge=false"
+      span="12" icon="home" label="Alta Médica"
+      color="grey" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+  </row>
+</partial>

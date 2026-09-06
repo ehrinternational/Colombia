@@ -77,17 +77,10 @@
       <columns>
         <column span="10">
           <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
         </column>
         <column span="2">
           <partial link="Partials/ColombiaPartialSurgeonPatientButtons.xml"/>
-        </column>
-      </columns>
-    </group>
-    <!-- Patient visit and physician buttons -->
-    <group name="VisitInfo">
-      <columns>
-        <column span="10">
-          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
         </column>
       </columns>
     </group>
@@ -125,8 +118,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" mode="auto" 
-          source="Surgery,Problems,Nursing,Vitals,Physicians,Studies,Medication,Services,Documents,Diets" 
-          sourcelabels="Procedimientos,Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Servicios,Documentos,Dietas" 
+          source="Surgery,Problems,Nursing,Vitals,Physicians,Studies,Medication,Vaccines,Services,Documents,Diets" 
+          sourcelabels="Procedimientos,Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Servicios,Documentos,Dietas" 
           span="11" 
           default="Surgery"   
           provoke="ERGridList|options"/>
@@ -158,12 +151,13 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationActiveAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="Partials/ColombiaPartialImagingOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialScannedImagingDocumentsInWindow.xml"/>
           <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
           
           <partial link="./Partial/Grids/PartialBloodBankOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
@@ -174,6 +168,7 @@
   <!-- Colombia Partials -->
   <partial target="mdlSurgeryOrderModal" link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
   <partial target="mdlSurgeryECDs" link="Partials/ColombiaPartialSurgeryECDs.xml"/>
+  <partial target="mdlSurgeryECDsWithSurgeryGuid" link="Partials/ColombiaPartialSurgeryECDsWithSurgeryGuid.xml"/>
   <partial target="mdlSurgeryViewModal" link="Partials/ColombiaPartialSurgeryTabModal.xml"/>
   <partial target="NewConsultModal" link="Partials/ColombiaPartialInterconsultRequest.xml"/>
   <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
@@ -210,8 +205,8 @@
   <!-- Demographic modals -->
   <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
   
-  <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
-  <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
+  
   <!-- Messaging -->
   <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
   <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>

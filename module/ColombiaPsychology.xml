@@ -92,8 +92,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" mode="auto" span="12"
-          source="Tasks,Problems,Medication,Physicians,Identification,Addresses,Contacts,Documents,Appointments,Surgery,Services,Diets" 
-          sourcelabels="Tareas,Diagnósticos,Medicamentos,Médicos,Identificación,Direcciones,Contactos,Subir Documentos,Citas,Procedimientos,Servicios,Dietas" 
+          source="Tasks,Problems,Medication,Vaccines,Physicians,Identification,Addresses,Contacts,Documents,Appointments,Surgery,Services,Diets" 
+          sourcelabels="Tareas,Diagnósticos,Medicamentos,Inmunizaciones,Médicos,Identificación,Direcciones,Contactos,Subir Documentos,Citas,Procedimientos,Servicios,Dietas" 
           default="Tasks"  
           provoke="GridOptions|options"/>
       </row>
@@ -102,19 +102,19 @@
           <partial link="./Partial/Grids/PartialPatientTasksWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinationsNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialOutpatientMedicationsNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialConsultRequestsForPatientNoHospitals.xml"/>
           <partial link="Partials/ColombiaPartialServiceConsultRequestsForPatientWithAddAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
-          <partial link="./Partial/Grids/PartialIdentificationGrid.xml"/>
-          <partial link="./Partial/Grids/PartialPatientAddressesForMexico.xml"/>
-          <partial link="./Partial/Grids/PartialPatientPhones.xml"/>
-          <partial link="./Partial/Grids/PartialPatientContactsWithModal.xml"/>
+          <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
+          <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancel.xml"/>
           <partial link="Partials/ColombiaPartialAppointmentListConsultsOnly.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialDietaryOrdersNoAddAsDiets.xml"/>
         </control>
       </row>
@@ -139,9 +139,8 @@
 		<partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/> 
     <!-- Demographic modals -->
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
+    <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
     
-    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
-    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
     <!-- Messaging -->
     <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
     <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>

@@ -77,8 +77,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" mode="auto" 
-          source="Studies,Problems,Medication,Identification,Addresses,Contacts,Documents,Appointments" 
-          sourcelabels="Imagenología,Diagnósticos,Medicamentos,Identificación,Direcciones,Contactos,Subir Documentos,Citas" 
+          source="Studies,Problems,Medication,Vaccines,Identification,Addresses,Contacts,Documents,Appointments" 
+          sourcelabels="Imagenología,Diagnósticos,Medicamentos,Inmunizaciones,Identificación,Direcciones,Contactos,Subir Documentos,Citas" 
           span="12" 
           default="Studies"  
           provoke="GridOptions|options"/>
@@ -93,6 +93,7 @@
           <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialInpatientMedicationWithAdministration.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinationsNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
           <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
@@ -122,10 +123,10 @@
     <partial target="mdlNewExternalProvider" link="./Partial/Modals/PartialNewExternalProvider.xml"/>
     <partial target="mdlNewPatientIndication" link="./Partial/Modals/PartialNewIndicationModal.xml"/>
     <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
-		<partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>
+		<partial target="mdlDischargePatient" link="Partials/ColombiaPartialDischargePatient.xml"/>
     <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>   
-    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
-    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
+    
     <!-- Messaging -->
     <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
     <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>

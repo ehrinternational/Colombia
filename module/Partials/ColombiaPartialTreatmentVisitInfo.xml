@@ -1,0 +1,89 @@
+<partial>
+  <!-- Partial Hospital Patient Visit information -->
+    <row>
+      <control type="hidden" name="ReadyForDischarge"/>
+    </row>
+    <row>
+      <control type="label" label="Área Tratante" span="3"/>
+      <control type="select" name="mdlAdmit_CaseType" span="3" 
+        sort="CaseTypeName=asc"
+        explicit="true" edit="[FieldEdit]=1|2|4" required="true"
+        acctsvc="true"
+        datasource="GetCaseTypesActive" 
+        source="CaseTypeName,CaseTypeGuid"/>
+      <control type="label" label="Hospital Transferencia" span="3"/>
+      <control type="select" name="Consult_FacilityTransferredFrom" span="3" edit="[FieldEdit]=1|2|4" explicit="true"
+        acctsvc="true" sort="HospitalName=asc"
+        datasource="GetTransferHospitalsActive" append="LocationId=(facilityData.LocationId)" 
+        source="HospitalName,HospitalGuid"/>
+    </row>
+    <row>
+      <control type="label" label="Tipo de Servicio" span="3"/>
+      <control type="select" name="mdlAdmit_AdmitType" span="3" 
+        sort="AdmissionType=asc"
+        datasource="GetLookupAdmissionTypes" 
+        source="AdmissionType,AdmissionTypeGuid" 
+        edit="[FieldEdit]=1|2|4" required="true" explicit="true"
+        filter="Active=true"/>
+      <control type="label" label="Tipo de Consulta" span="3"/>
+      <control type="select" name="mdlAdmit_BedStatus" span="3" 
+        source="Primera vez,Subsecuente"
+        edit="[FieldEdit]=1|2|4" explicit="true"/>
+    </row>
+    <row>
+      <control type="label" label="Medio de Llegada" span="3"/>
+      <control type="select" name="mdlAdmit_AdmitSource" span="3" 
+        datasource="GetLookupAdmitSourcesByFacility" 
+        source="AdmitSource,AdmitSource"
+        edit="[FieldEdit]=1|2|4" required="true" explicit="true" filter="Active=true"/>
+      <control type="label" label="Consultorio" span="2"/>
+      <control type="text" name="mdlAdmit_OpenRoom" span="4" readonly="true"/>
+    </row>
+    <row name="rowPregnancy" reveal="[Consult_PatientSex]=Female">
+      <control type="label" label="Embarazo" span="3"/>
+      <control type="buttongroup" name="IsPregnant" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No"/>
+    </row>
+    <row name="rowObstetrics" reveal="[IsPregnant]=true">
+      <control type="label" label="Semanas de Embarazo" span="3"/>
+      <control type="text" name="WeeksPregnant" span="1" edit="true" required="true"/>
+    </row>
+    <row>
+      <control type="label" label="Acompañante" span="2"/>
+      <control type="text" name="mdlAdmit_InformantName" span="4" readonly="true"/>
+      <control type="label" label="Contacto Acompañante" span="3"/>
+      <control type="text" name="mdlAdmit_InformantContactNumber" span="3" readonly="true"/>
+    </row>
+    <row>
+      <control type="hidden" name="CurrentProtocolGuid"/>
+      <control type="hidden" name="CurrentCycleGuid"/>
+      <control type="hidden" name="CurrentDayGuid"/>
+      <control type="hidden" name="ProtocolWeight"/>
+      <control type="hidden" name="ProtocolHeight"/>
+      <control type="hidden" name="ProtocolCreatinine"/>
+    </row>
+    <row>
+      <control type="label" label="Esquema" span="2"/>
+      <control type="text" name="CurrentProtocolNumber" span="1" readonly="true"/>
+      <control type="text" name="CurrentProtocolDescription" span="3" readonly="true"/>
+      <control type="label" label="Aprobado por" span="2"/>
+      <control type="text" name="CurrentApprovedByName" span="4" readonly="true"/>
+      <control type="hidden" name="CurrentApprovedBy" />
+    </row>
+    <row>
+      <control type="label" label="Notas" span="2"/>
+      <control type="textarea" name="CurrentProtocolNotes" span="10" rows="1" readonly="true"/>
+    </row>
+    <row>
+      <control type="label" label="Ciclo" span="2"/>
+      <control type="text" name="CurrentCycleNumber" span="1" readonly="true"/>
+      <control type="text" name="CurrentCycleDescription" span="3" readonly="true"/>
+      <control type="label" label="Día" span="2"/>
+      <control type="text" name="CurrentDayNumber" span="1" readonly="true"/>
+      <control type="text" name="CurrentDayDescription" span="3" readonly="true"/>
+    </row>
+    <row>
+      <control type="label" label="Notas del Día" span="2"/>
+      <control type="textarea" name="CurrentDayNotes" span="10" rows="1" readonly="true"/>
+    </row>
+</partial>

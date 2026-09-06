@@ -1,0 +1,72 @@
+<partial>
+    <!-- Partial Hospital Nursing Patient Buttons -->
+    <row>
+      <control type="button" name="Consult_PatientUpdate" label="Actualizar" icon="cloud-upload" span="12"
+        reveal="PatientId!" 
+        affector="PatientId"
+        setaffector="RecordUniqueId"
+        capture="PatientInfo" 
+        action="save"
+        confirm="Por favor confirme que quiere actualizar a este paciente."
+        dataupdate="UpdatePatient"
+        appendupdate="PatientId=[PatientId]"
+        provoke="btnUpdatePatientVisit"/>
+    </row>
+    <row showif="never">
+      <control type="button" name="btnUpdatePatientVisit"
+        action="save|close|new"
+        affector="PatientVisitGuid"
+        setaffector="PatientVisitUniqueId"
+        capture="VisitInfo"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+        provoke="PatientList"/>
+    </row>
+    <row>
+      <control type="button" name="addNursingNotes" span="12" color="yellowgreen" label="Notas" icon="user-md"
+        action="redirect|view"
+        target="patient-notes"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],notetype=Nurse"/>
+    </row>
+    <row>
+      <control type="button" name="btnAcknowledgeRed" span="12" color="red" icon="warning-sign" label="Reconocer"
+        reveal="[UnAcknowledgedOrders]!0"
+        action="redirect|view"
+        target="acknowledge"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+        provoke="GetUnAcknowledgedOrders"/>
+      <control type="button" name="btnAcknowledgeGreen" span="12" color="green" icon="thumbs-up" label="Reconocer"
+        reveal="[UnAcknowledgedOrders]=0"
+        action="redirect|view"
+        target="acknowledge"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+        provoke="GetUnAcknowledgedOrders"/>
+    </row>
+    <row>
+      <control type="button"  name="btnLoadAdverseReactionECD" label="Reacción Adversa" color="red" span="12"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+        action="redirect|url" 
+        target="ecd/index.html" 
+        usesource="login"
+        mode="ecd"
+        append="ecdGuid=03098ec0-ad84-43bb-b607-af6662654988,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+        provoke="EREcdForms"/>
+    </row>
+     <row>
+      <!-- Display the patient timeline -->
+      <control type="button" name="btnTimeline"  span="12" color="yellow" icon="time" label="Cronograma"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+    </row>
+    <row>
+      <control type="button" name="btnTriageCalculation" label="Triaje" icon="edit" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        action="redirect" target="mdlTriageCalculation"/>
+    </row>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+</partial>

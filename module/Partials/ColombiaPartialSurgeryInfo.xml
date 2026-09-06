@@ -6,6 +6,7 @@
     <control type="hidden" name="Surgery_TemplateGuid"/>
     <control type="hidden" name="Surgery_QuoteTemplateGuid"/>
     <control type="hidden" name="Surgery_WaitListGuid"/>
+    <control type="hidden" name="CalendarRoomType2"/>
   </row>
   <row>
     <control type="label" label="Tipo de Consulta" span="3"/>
@@ -24,7 +25,6 @@
    <row>
     <control type="label" label="Tipo de Solicitud" span="3"/>
     <control type="select" name="Surgery_Priority" span="3" 
-       
       edit="[FileName]=SurgeryScheduling+[Surgery_Status]=Scheduled|Confirmed"
       required="true"
       source="Electiva,Urgente" default="Electiva"/>
@@ -37,26 +37,20 @@
   </row>
   <row name="rowSurgeryCalendar" reveal="[EditMode]=Surgery">
     <control type="label" label="Calendario" span="3"/>
-    <control type="select" name="Surgery_CalendarGuid"
-      span="3"
+    <control type="select" name="Surgery_CalendarGuid" span="3"
       datasource="GetSchedulerAppointmentTypesByFacility" 
       source="CalendarName,CalendarGuid" 
       required="true"
-      readonly="true"/>
+      readonly="true"
+      set="[[Service]]!;CalendarRoomType2=[[Service]]^CalendarRoomType2=None"
+      provoke="Surgery_RoomGuid"/>
     <control type="label" label="Sala" span="3"/>
     <control type="select" name="Surgery_RoomGuid" span="3" 
       reveal="[EditMode]=Surgery"
-      datasource="GetRoomsAndBedsForThisFacility"
+      datarequest="GetRoomsAndBedsForThisFacility"
       source="RoomAndBedNumber,RoomGuid"
-      filter="RoomType%Quirófano"
-      explicit="true" edit="[FileName]=SurgeryScheduling" required="true"
-      sort="RoomAndBedNumber=asc"/>
-    <control type="select" name="Labor_RoomGuid" span="3" 
-      reveal="[EditMode]=Labor"
-      datasource="GetRoomsAndBedsForThisFacility"
-      source="RoomAndBedNumber,RoomGuid"
-      filter="RoomType%Tococirugía"
-      explicit="true" edit="[FileName]=SurgeryScheduling" required="true"
+      filter="RoomTypeGuid=[CalendarRoomType2]"
+      explicit="true" edit="[FileName]=SurgeryScheduling,[Surgery_RoomGuid]=" required="true"
       sort="RoomAndBedNumber=asc"/>
   </row>
   <row name="rowSurgeryDateTime" reveal="[EditMode]=Surgery">
@@ -100,6 +94,19 @@
     <control type="label" label="Descripción Cirugía" span="3"/>
     <control type="textarea" name="Surgery_ScheduleNotes" span="9" rows="1" edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant|Anesthesiologist" />
   </row>
+  <row name="rowSurgeryPatientPayer" reveal="[EditMode]!Template+[FileName]=SurgeryScheduling">
+    <control type="label" label="Plan de Convenios" span="3"/>
+    <control type="select" name="Surgery_PatientPayerGuid" span="7" edit="true"
+      filter="Active=true" required="true"
+      acctsvcreq="true" 
+      datarequest="GetPatientPayers"
+      appendrequest="PatientId=[Surgery_PatientId]"
+      source="PlanName,PatientPayerGuid"/>
+    <control type="button" name="btnPatientPayerDetails" label="Detalles" span="2" icon="search"
+      reveal="[Surgery_PatientPayerGuid]!"
+      preset="[PatientPayerGuid]=[Surgery_PatientPayerGuid]" trigger="PatientPayerGuid"
+      action="redirect" target="mdlPatientPayers"/>
+  </row>
   <row name="rowTemplateDescription" reveal="[EditMode]=Template">
     <control type="label" label="Descripción de Plantilla" span="3"/>
     <control type="text" name="Surgery_Description" span="9" edit="[FileName]=SurgeryScheduling" required="true"/>
@@ -114,7 +121,7 @@
   </row>
   <row>
     <control type="label" label="Classificación de la Herida" span="3"/>
-    <control type="select" name="Surgery_Type" span="3" required="true"
+    <control type="select" name="Surgery_WoundType" span="3" required="true"
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Scheduled|Confirmed|In Process"
       source="Limpia,Limpia contaminada,Contaminada,Sucia"/>
   </row>
@@ -128,35 +135,87 @@
   </row>
   <row>
     <control type="label" label="Procedimiento Principal" span="3"/>
-    <control type="typeahead" name="PrimaryProcedureName,PrimaryProcedure" span="9" 
+    <control type="typeahead" name="PrimaryProcedureName,PrimaryProcedure" span="8" 
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Scheduled|Confirmed|In Process"
-      source="ProcedureCode|ProcedureDescription,ProcedureGuid"
+      source="ProcedureDescription,ProcedureGuid"
       datasource="GetProceduresFromProcedureAdministration"
       term="procedureDescription" required="true"/>
+    <control type="buttongroup" name="Incision1" span="1" default="1" edit="true" required="[PrimaryProcedure]!"
+      reveal="[PrimaryProcedure]!"
+      source="1"
+      tooltip="Ingrese el número de incisión."/>
   </row>
   <row>
     <control type="label" label="Procedimiento Secundario" span="3"/>
-    <control type="typeahead" name="SecondaryProcedureName,SecondaryProcedure" span="6"
+    <control type="typeahead" name="SecondaryProcedureName,SecondaryProcedure" span="8"
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Scheduled|Confirmed|In Process"
-      source="ProcedureCode|ProcedureDescription,ProcedureGuid"
+      source="ProcedureDescription,ProcedureGuid"
       datasource="GetProceduresFromProcedureAdministration"
       term="procedureDescription"/>
-    <control type="checkbox" name="Incision2" label="Misma Incisión" 
-      source="True,False" span="3" 
-      edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Scheduled|Confirmed|In Process" 
-      when="[SecondaryProcedure]=;"/>
+    <control type="buttongroup" name="Incision2" span="1" default="1" edit="true" required="[SecondaryProcedure]!"
+      reveal="[SecondaryProcedure]!"
+      source="1,2"
+      tooltip="Ingrese el número de incisión."/>
   </row>
   <row>
     <control type="label" label="Procedimiento Tercero" span="3"/>
-    <control type="typeahead" name="ProcedureName3,Procedure3" span="6"
+    <control type="typeahead" name="ProcedureName3,Procedure3" span="8"
       edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Scheduled|Confirmed|In Process"
-      source="ProcedureCode|ProcedureDescription,ProcedureGuid"
+      source="ProcedureDescription,ProcedureGuid"
       datasource="GetProceduresFromProcedureAdministration"
       term="procedureDescription"/>
-      <control type="checkbox" name="Incision2" label="Misma Incisión" 
-      source="True,False" span="3"  
-      edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Scheduled|Confirmed|In Process" 
-      when="[Procedure3]=;"/>
+      <control type="buttongroup" name="Incision3" span="1" default="1" edit="true" required="[Procedure3]!"
+      reveal="[Procedure3]!"
+      source="1,2,3"
+      tooltip="Ingrese el número de incisión."/>
+  </row>
+  <row name="rowFourthProcedure" reveal="[ProcedureName3]!">
+    <control type="label" label="Procedimiento 4" span="3"/>
+    <control type="typeahead" name="ProcedureName4,Procedure4" span="8"
+      edit="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+      <control type="buttongroup" name="Incision4" span="1" default="1" edit="true" required="[Procedure4]!"
+      reveal="[Procedure4]!"
+      source="1,2,3,4"
+      tooltip="Ingrese el número de incisión."/>
+  </row>
+  <row name="rowFifthProcedure" reveal="[ProcedureName4]!">
+    <control type="label" label="Procedimiento 5" span="3"/>
+    <control type="typeahead" name="ProcedureName5,Procedure5" span="8"
+      edit="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+    <control type="buttongroup" name="Incision5" span="1" default="1" edit="true" required="[Procedure5]!"
+      reveal="[Procedure5]!"
+      source="1,2,3,4"
+      tooltip="Ingrese el número de incisión."/>
+  </row>
+  <row name="rowSixthProcedure" reveal="[ProcedureName5]!">
+    <control type="label" label="Procedimiento 6" span="3"/>
+    <control type="typeahead" name="ProcedureName6,Procedure6" span="8" edit="true"
+      reveal="[Procedure6]!"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+    <control type="buttongroup" name="Incision6" span="1" default="1" edit="true" required="[Procedure6]!"
+      reveal="[Procedure6]!"
+      source="1,2,3,4"
+      tooltip="Ingrese el número de incisión."/>
+  </row>
+  <row name="rowSeventhProcedure" reveal="[ProcedureName6]!">
+    <control type="label" label="Procedimiento 7" span="3"/>
+    <control type="typeahead" name="ProcedureName7,Procedure7" span="8"
+      edit="true"
+      source="ProcedureDescription,ProcedureGuid"
+      datasource="GetProceduresFromProcedureAdministration"
+      term="procedureDescription"/>
+    <control type="buttongroup" name="Incision7" span="1" default="1" edit="true" required="[Procedure7]!"
+      reveal="[Procedure7]!"
+      source="1,2,3,4"
+      tooltip="Ingrese el número de incisión."/>
   </row>
   <row>
     <control type="label" label="Equipos especiales" span="3"/>

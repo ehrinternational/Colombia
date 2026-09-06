@@ -1,0 +1,105 @@
+<partial>
+  <row name="rowPatientPhoto" reveal="[PatientId]!">
+    <!-- Patient photo -->
+    <control type="image" 
+      format="jpg=circle" 
+      default="null"
+      name="Admit_ProfilePhoto" 
+      span="12" />
+  </row>
+  <row showif="never">
+    <control type="hidden" name="btnUpdatePatientPhoto"
+      datarequest="GetPatientPhotoBySize"
+      appendrequest="patientId=[PatientId]"
+      set="Admit_ProfilePhoto=[[BinaryPhoto]]"/>
+  </row>
+  <row name="rowbtngrpShow" reveal="[PatientId]!">
+    <control type="buttongroup" name="btngrpShow"
+      span="12" edit="true"
+      source="Open,Close"
+      color="grey,grey"
+      sourcelabels="Abrir,Cerrar"
+      default="Close"/>
+  </row>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row name="rowSaveNewPatient" reveal="[PatientSearched]=true">
+    <control type="button"   
+      name="SaveNewPatientButton"
+      span="12"
+      label="Paciente Nuevo"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere generar a este paciente nuevo."
+      datainsert="InsertPatient"
+      provoke="PatientId"/>
+  </row>
+  <row>
+    <control type="button" 
+      reveal="[PatientId]!"
+      name="btnTakeProfilePhoto" 
+      color="grey" 
+      span="12" 
+      label="Foto" 
+      icon="camera" 
+      action="patientphoto" 
+      append="patientId=[PatientId]" 
+      provoke="btnUpdatePatientPhoto" /> 
+  </row>
+  <row name="rowAdmitPatientUpdate" reveal="[PatientId]!">
+    <!--Save patient information-->
+    <control type="button" 
+      name="btnPatientUpdate"
+      reveal="[PatientId]!" 
+      span="12" 
+      label="Actualizar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[HasOpenVisit]=true;btnUpdatePatientVisit"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnUpdatePatientVisit"
+      action="save"
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <!--Print patient label-->
+    <control type="button"
+      reveal="[PatientId]!" 
+      span="12"
+      name="btnPrintLabel"
+      action="print" 
+      mode="report" 
+      label="Etiquetas" 
+      icon="print" 
+      append="id=14c214853ef,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]" /> 
+  </row>
+</partial>

@@ -1,0 +1,52 @@
+<partial>
+  <!-- Tabmodal to select and create surgery ECDs -->
+  <section type="tabmodal" badge="none" name="mdlSurgeryECDsWithSurgeryGuid" title="Documentos de Cirugía" trigger="dgrSurgeryEcdForms3">
+    <group>
+
+        <row>
+          <control type="datagrid" label="Documentos de Cirugías" name="dgrSurgeryEcdForms3"
+            span="12" rows="15"
+            rowcolor="CompletedRowGuid|!green;default=orange"
+            acctsvcreq="true"
+            datarequest="GetFormTemplatesWithCompletedForms"
+            appendrequest="Type=SurgicalNote,SurgeryGuid=[SurgeryViewGuid]"
+            source="FormDescription,CompletedByFullName,CompletedDateTime"
+            sourcelabels="Documento,Completado por,Fecha y Hora"
+            align="left|left"
+            format="||datetime"
+            sort="FormDescription=asc"
+            key="FormGuid"
+            onselectset="[[CompletedRowGuid]]=;SelectedSurgeryECD2=[[FormGuid]],[[CompletedRowGuid]]!;ECDToView2=[[CompletedRowGuid]]"
+            onselect="[[CompletedRowGuid]]=;btnInsertSelectedECD2,[[CompletedRowGuid]]!;btnViewSurgeryECD2">
+             <!-- Revise a surgery ECD-->
+            <control type="button" name="btnReviseSurgeryECD2" label="Revisar" icon="refresh" showif="feature"
+              reveal="(userName)=[[CompletedBy]]"
+              confirm="Por favor confirme que desea revisar este documento"
+              action="redirect|url" 
+              target="ecd/index.html"
+              onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+              usesource="login" mode="ecd"
+              append="patientid=[[PatientId]],patientvisit=[[PatientVisit]],ecdMode=revise,ecdGuid=[[rowGuid]]" />
+          </control>
+        </row>
+        <row showif="never">
+          <control type="hidden" name="ECDToView2"/>
+          <control type="button" name="btnViewSurgeryECD2"
+            action="redirect|url" 
+            target="ecd/index.html"
+            usesource="login"
+            filter="MostRecent=true"
+            append="ecdGuid=[ECDToView2],patientid=[PatientId],patientvisit=[PatientVisit],ecdMode=review,department=[DepartmentGuidLookup]"/>
+          <control type="hidden" name="SelectedSurgeryECD2"/>
+          <control type="button"  name="btnInsertSelectedECD2"
+            onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+            action="redirect|url" 
+            target="ecd/index.html" 
+            usesource="login"
+            mode="window"
+            append="ecdGuid=[SelectedSurgeryECD2],orderGuid=[SurgeryViewGuid],patientid=[PatientId],patientvisit=[PatientVisit],Department=[DepartmentGuidLookup]"
+            provoke="dgrSurgeryEcdForms3"/>
+        </row>
+      </group>
+    </section>
+</partial>

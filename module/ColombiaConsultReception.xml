@@ -36,7 +36,6 @@
     trigger="SurgeryTimes|resource"
     action="redirect" target="mdlSurgeryViewAppointments"/>
   <headerbutton name="btnClinicCalendar"
-    reveal="(facilityData.LocationId)¡SMEX"
     icon="calendar" label="Clinicas"
     preset="DefaultPatientId=,DefaultOrderGuid=,DefaultOrderType="
     trigger="AppointmentTimes|resource,selProviderSearch"
@@ -140,7 +139,7 @@
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     <partial target="mdlSelectLaboratoriesToPrint" link="./Partial/Modals/PartialPrintLabPrescriptionByLaboratory.xml"/>
     <partial target="mdlSelectImagingLabsToPrint" link="./Partial/Modals/PartialPrintImagingPrescriptionByLaboratory.xml"/>
-		<partial target="mdlDischargePatient" link="./Partial/Move/PartialDischargePatient.xml"/>
+		<partial target="mdlDischargePatient" link="Partials/ColombiaPartialDischargePatient.xml"/>
   	<partial target="mdlMergePatients" link="./Partial/Move/PartialMergePatients.xml"/>
     <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
     <partial target="mdlFindRoomInDepartment" link="./Partial/Beds/PartialAssignPatientBedInDepartment.xml"/>

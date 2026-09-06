@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-  <menu widescreen="true" language="es" dateformat="DMY24" version="2.01">
+  <menu widescreen="false" language="es" dateformat="DMY24" version="2.01">
     <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaAdmittingManagement.xml" roles="MedWave,Admitting,Sys Assistant,SysAdmin,Clinic Admitting">Admisión Vigilancia</item>
     <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaCustomerManagement.xml" roles="MedWave,Social Worker,Medical Director,Director">Pacientes de Primera vez</item>
     <item widescreen="true" icon="hospital" link="../Projects/Colombia/Module/ColombiaSocialWorker.xml" roles="MedWave,Social Worker,Sys Assistant,SysAdmin">Trabajo Social</item>

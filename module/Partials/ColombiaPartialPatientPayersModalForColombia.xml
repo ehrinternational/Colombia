@@ -7,9 +7,17 @@
           datarequest="GetPatientPayersByPayerGuid"
           appendrequest="PatientPayerGuid=[PatientPayerGuid]"
           inject="grpPatientPayerInfo"/>
+        <control type="hidden" name="GetPayerInfoForPlan"
+          acctsvcreq="true"
+          datarequest="GetPayerByPayerGuid"
+          appendrequest="PayerGuid=[PPL_PayerGuid]"
+          set="[PPL_PlanPayerType]=[[PayerType]],[PPL_PlanPayerName]=[[PayerName]]"/>
       </row>
     </group>
     <group name="grpPatientPayerInfo">
+      <row>
+         <control type="hidden" name="PPL_PayerGuid"/>
+      </row>
       <row>        
         <control type="label" span="3" label="Activo"/>
         <control type="buttongroup" name="PPL_Active" readonly="true" span="2" 
@@ -39,18 +47,43 @@
         <control type="text" name="PPL_Subscriber" edit="true" span="9" required="true"
         regex="^[a-zA-ZñÑäëïöüÄËÏÖÜ ,]{0,200}$"/>
       </row>
+     
       <row>
-        <control type="label" span="3" label="Plan"/>    
-        <control name="PPL_PlanName" type="select" explicit="true"
-          span="9" edit="true" searchable="true" required="true"
-          source="Premium Plan"/>
-        <!-- 
-          sort="PlanName" 
-          nameField="PPL_PlanName"
+        <control type="label" span="3" label="Convenio"/>    
+        <control name="PPL_PlanGuid" type="select" explicit="true" span="9" edit="true" searchable="true" required="true"
+          sort="PlanName"  nameField="PPL_PlanName"
           acctsvcreq="true"
           datarequest="GetInsurancePlans" 
           appendrequest="Active=true"
-          source="PlanName,PlanGuid"/>-->
+          source="PlanName,PlanGuid"
+          set="[PPL_PlanCategory]=[[Category]],[Pld_PlanFolio]=[[PlanNumber]],[PPL_PlanActive]=[[Active]]"
+          provoke="GetPayerInfoForPlan"/>
+      </row>
+      <row name="rowPlanCategory" reveal="[PPL_PlanGuid]!">
+        <control type="label" span="3" label="Categoría"/>
+        <control type="text" name="PPL_PlanCategory" readonly="true" span="2"/>
+        <control type="label" span="1" label="Empressa"/>
+        <control type="text" name="PPL_PlanPayerName" readonly="true" span="6"/>
+      </row>
+      <row name="rowPlanActive" reveal="[PPL_PlanGuid]!">
+        <control type="label" span="3" label="Estado de Plan"/>
+        <control type="buttongroup" name="PPL_PlanActive" readonly="true" span="3"
+          source="True,False" sourcelabels="Sí,No"/>
+        <control type="label" span="2" label="Tipo Afiliado"/>
+        <control type="select" name="PPL_PlanPayerType" span="4"
+            source="01,05,07,06,03,02,09,08,12,11,04,13" readonly="true"
+            sourcelabels="01 EMRESA PROMOTORA DE SALUD - EPS,
+              05 EMPRESA PARTICULAR,
+              07 ADMINISTRADORA DE RIESGOS PROFESIONALES - ARP,
+              06 INSTITUCION PRESTADORA DE SALUD - IPS,
+              03 EMPRESA DE SEGURIDAD SOCIAL DEL ESTADO - ESS,
+              02 ADMINSTRADORS DE REGIMEN SUBSIDIADO - ARS,
+              09 COMPANIA NACIONAL DE SEGUROS,
+              08 CAJA DE COMPENSACION FAMILIAR,
+              12 EMPRESA MEDICINA PREPAGADA,
+              11 ENTIDADES GUBERNAMENTALES,
+              04 PERSONA NATURAL,
+              13 CONVENIO ESPECIAL"/>
       </row>
       <row>
         <control type="label" span="3" label="Notas"/>

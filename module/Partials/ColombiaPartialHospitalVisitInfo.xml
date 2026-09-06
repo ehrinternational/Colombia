@@ -6,36 +6,93 @@
       <control type="hidden" name="PriorDepartmentService"/>
     </row>
     <row>
-        <control type="label" label="Tipo de Atención" span="2"/>
-        <control type="select" name="mdlAdmit_AdmitType" span="4" 
-          namefield="mdlAdmit_AdmissionType"
-          sort="AdmissionType=asc"
-          datasource="GetLookupAdmissionTypesActive" 
-          source="AdmissionType,AdmissionTypeGuid" 
-          required="true" 
-          explicit="true"
-          edit="true"/>
-        <control type="label" label="Tipo de llegada" span="2"/>
-        <control type="select" name="mdlAdmit_AdmitSource" span="4" 
-          datasource="GetLookupAdmitSourcesByFacility" 
-          source="AdmitSource,AdmitSource"
-          edit="true" sort="AdmitSource=asc"
-          required="true" 
-          explicit="true"
-          filter="Active=true"/>
+      <control type="label" label="Via Ingreso Usuario" span="2"/>
+      <control type="select" name="mdlAdmit_AdmitType" span="4" edit="true"
+        source="01,02,03,04" default="03"
+        sourcelabels="01 URGENCIAS,02 REMITIDO (REFERENCIA),03 CONSULTA EXTERNA, 04 NACIMIENTO"/>
+      <control type="label" label="Causa Externa" span="2"/>
+      <control type="select" name="mdlAdmit_AdmissionType" span="4" searchable="true" required="true" edit="true" explicit="true"
+        source="21,22,23,24,25,26,37,38,39,28,29,30,31,32,33,40,27,34,35,41,42,15,16,17,36,43,44,56" 
+        sourcelabels="21 Accidente de trabajo,
+          22 Accidente en el hogar,
+          23 Accidente de tránsito de origen común,
+          24 Accidente de tránsito de origen laboral,
+          25 Accidente en el entorno educativo,
+          26 Otro tipo de accidente,
+          37 Accidente de mina antipersonal,
+          38 Accidente de Artefacto Explosivo Improvisado,
+          39 Accidente de Munición Sin Explotar,
+          28 Lesión por agresión,
+          29 Lesión auto infligida,
+          30 Sospecha de violencia física,
+          31 Sospecha de violencia psicológica
+          32 Sospecha de violencia sexual,
+          33 Sospecha de negligencia y abandono,
+          40 Otra víctima de conflicto armado colombiano
+          27 Evento catastrófico de origen natural,
+          34 Enfermedad general,
+          35 Enfermedad laboral,
+          41 Riesgo ambiental,
+          42 Otros eventos catastróficos,
+          15 IVE relacionado con peligro a la salud o vida de la mujer,
+          16 IVE por malformación congénita incompatible con la vida
+          17 IVE por violencia sexual; incesto o por inseminación artificial,
+          36 Promoción y mantenimiento de la salud – intervenciones individuales,
+          43 Intervención colectiva,
+          44 Atención de población materno perinatal,
+          56 Evento adverso en salud"/>
+    </row>
+    <row name="rowServiceGroup" reveal="[FileName]¡Admitting">
+      <control type="label" label="Grupo Servicios" span="2"/>
+      <control type="select" name="mdlAdmit_ServiceGroup" span="4" searchable="true" required="true" edit="true"
+        source="01,02,03,04,05" default="03"
+        sourcelabels="01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
+          03 Internación,04 Quirúrgico,05 Atención inmediata"/>
+      <control type="label" label="Modalidad Atención" span="2"/>
+      <control type="select" name="mdlAdmit_ModalityAttention" span="4" searchable="true" required="true" edit="true"
+        source="01,02,03,04,05,06,07,08" default="01"
+        sourcelabels="01 Intramural,
+        02 Extramural unidad móvil,
+        03 Extramural domiciliaria,
+        04 Extramural jornada de salud,
+        05 Extramural (atención pre hospitalaria o transporte asistencial),
+        06 Telemedicina interactiva,
+        07 Telemedicina no interactiva,
+        08 Telemedicina - Telexperticia"/>
+    </row> 
+    <row name="rowFinalidadConsulta" reveal="[FileName]¡Admitting">
+        <control type="label" label="Finalidad Consulta" span="2"/>
+        <control type="select" name="mdlAdmit_FinalConsult" span="4" searchable="true" required="true" edit="true"
+          source="10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,31,41,42,43,44" 
+          sourcelabels="10 Enfermedad general,
+          11 Paliación,
+          12 Rehabilitación,
+          13 Tratamiento,
+          14 Detección temprana,
+          15 Atención para el cuidado preconcepcional,
+          16 Atención prenatal,
+          17 Atención del parto,
+          18 Atención del puerperio,
+          19 Atención al recién nacido,
+          21 Valoración integral - primera infancia,
+          22 Valoración integral - infancia,
+          23 Valoración integral - adolescencia,
+          24 Valoración integral - juventud,
+          25 Valoración integral - adultez,
+          26 Valoración integral - vejez,
+          27 Planificación familiar y anticoncepción,
+          28 Protección específica,
+          31 Atención psicosocial,
+          41 Desarrollo de habilidades para la vida,
+          42 Promoción del ejercicio de los derechos sexuales y reproductivos,
+          43 Apoyo a la lactancia materna,
+          44 Promoción de prácticas saludables de crianza y cuidado"/>
       </row>
       <row>
-        <control type="label" label="Tipo de Caso" span="2"/>
-        <control type="select" name="mdlAdmit_CaseType" span="4" 
-          acctsvc="true" required="true" edit="true"
-          datasource="GetCaseTypesActive" 
-          source="CaseTypeName,CaseTypeGuid" 
-          sort="CaseTypeName=asc" 
-          explicit="true"/>
-        <control type="label" label="Estatus" span="2"/>
-        <control type="text" name="mdlAdmit_CurrentService" span="4" readonly="true"/>
+        <control type="label" label="Autorizo el tratamiento de mis datos Personales(Envio Información)" span="10"/>
+        <control type="buttongroup" name="mdlAdmit_PatientAuthorization" source="True,False" span="2" edit="true" sourcelabels="Sí,No"/>
       </row>
-     <row>
+      <row>
         <control type="label" label="Departamento" span="2"/>
         <control type="select" name="mdlAdmit_CurrentDepartment" span="4"
           reveal="[HasOpenVisit]=true" readonly="true"

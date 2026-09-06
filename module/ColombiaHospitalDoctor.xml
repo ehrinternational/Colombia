@@ -112,8 +112,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" 
-          source="Problems,Nursing,Vitals,Physicians,Studies,Medication,Surgery,Services,Documents,Diets,Orthotics" 
-          sourcelabels="Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Procedimientos,Servicios,Documentos,Dietas,Ortesis" 
+          source="Problems,Nursing,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Services,Documents,Diets,Orthotics" 
+          sourcelabels="Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Servicios,Documentos,Dietas,Ortesis" 
           span="11" mode="auto"
           default="Problems" 
           value="Problems"  
@@ -146,10 +146,11 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationActiveAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="Partials/ColombiaPartialImagingOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

@@ -1,4 +1,26 @@
 <partial>
+  <template name="tmpExceptionType" type="markup">
+    [IF ${[[ExceptionType]]}]=1]Quirurgico[/IF]
+    [IF ${[[ExceptionType]]}]=2]CUPS[/IF]
+    [IF ${[[ExceptionType]]}]=3]Medicamentos[/IF]
+    [IF ${[[ExceptionType]]}]=4]Inmunizaciones[/IF]
+    [IF ${[[ExceptionType]]}]=5]Laboratorio[/IF]
+    [IF ${[[ExceptionType]]}]=6]Imagenologia[/IF]
+    [IF ${[[ExceptionType]]}]=7]General[/IF]
+  </template>
+  <template name="tmpSubType" type="markup">
+    [IF ${[[SubType]]}]=1]Cirujano[/IF]
+    [IF ${[[SubType]]}]=2]Anestesiologo[/IF]
+    [IF ${[[SubType]]}]=3]Ayudante[/IF]
+    [IF ${[[SubType]]}]=4]Sala[/IF]
+    [IF ${[[SubType]]}]=5]Materiales[/IF]
+  </template>
+  <template name="tmpPriceTable" type="markup">
+    [IF ${[[SubType]]}]=1]SOAT[/IF]
+    [IF ${[[SubType]]}]=2]ISS_2001[/IF]
+    [IF ${[[SubType]]}]=3]ISS_2004[/IF]
+  </template>
+
   <template name="tmpTaskPriorityTemplate" type="markup">
     [IF ${[[TaskPriority]]}=][icon color=green]ok[/icon][/IF]
     [IF ${[[TaskPriority]]}=1][icon color=green]ok[/icon][/IF]
@@ -48,5 +70,19 @@
   <template name="tmpPediatricsApproval">
     [if ${[[ApprovedByPediatrics]]}=true][icon color=green]ok-sign[/icon][/if]
     [if ${[[ApprovedByPediatrics]]}=false][icon color=red]remove[/icon][/if]
+  </template>
+  <template name="tmpPayerType" type="markup">
+    [IF ${[[PayerType]]}=01]01 EMRESA PROMOTORA DE SALUD - EPS[/IF]
+    [IF ${[[PayerType]]}=05]05 EMPRESA PARTICULAR[/IF]
+    [IF ${[[PayerType]]}=07]07 ADMINISTRADORA DE RIESGOS PROFESIONALES - ARP[/IF]
+    [IF ${[[PayerType]]}=06]06 INSTITUCION PRESTADORA DE SALUD - IPS[/IF]
+    [IF ${[[PayerType]]}=03]03 EMPRESA DE SEGURIDAD SOCIAL DEL ESTADO - ESS[/IF]
+    [IF ${[[PayerType]]}=02]02 ADMINSTRADORS DE REGIMEN SUBSIDIADO - ARS[/IF]
+    [IF ${[[PayerType]]}=09]09 COMPANIA NACIONAL DE SEGUROS[/IF]
+    [IF ${[[PayerType]]}=08]08 CAJA DE COMPENSACION FAMILIAR[/IF]
+    [IF ${[[PayerType]]}=12]12 EMPRESA MEDICINA PREPAGADA[/IF]
+    [IF ${[[PayerType]]}=11]11 ENTIDADES GUBERNAMENTALES[/IF]
+    [IF ${[[PayerType]]}=04]04 PERSONA NATURAL[/IF]
+    [IF ${[[PayerType]]}=13]13 CONVENIO ESPECIAL[/IF]
   </template>
 </partial>

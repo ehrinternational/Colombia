@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Procedures">
+  <!-- Procedures -->
+  <section type="tab" title="Procedimientos">
+    <group>
+     <row>
+        <control type="datagrid" label="Procedimientos" name="ProceduresGrid" searchable="true"
+          modalname="NewProcedures" 
+          rows="20" span="12"
+          acctsvc="true"
+          acctsvcreq="true"
+          datasource="GetProcedureAdministrationItems"
+          datainsert="InsertProcedureAdministrationItem"
+          dataupdate="UpdateProcedureAdministrationItem"
+          source="Active,PatientChargeable,RVSCode,ProcedureCategory,ProcedureDescription,AssociatedProcedureDescription,Cost,BasePrice"
+          sourcelabels="Activo,Cargo,Código,Categoría,Procedimiento,Descripción,Costo,Precio Base"
+          align="|||left|left|left|right|right"
+          format="boolean|boolean|||||0,000.00|0,000.00"
+          sort="ProcedureDescription=asc"         
+          provoke="ProcedureCategoryGuid"
+          key="ProcedureGuid" />
+      </row>
+    </group>
+  </section>
+
+  <section type="modal" name="NewProcedures" title="Procedimiento" 
+           enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+           dtentered="DateTimeEntered" dtupdated="DateTimeUpdated"> 
+    <group name="NewProceduresGroup">
+      <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="NewProceduresGroup_Active" span="3" 
+          sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Paciente Cobrable" span="3"/>
+        <control type="buttongroup" name="PatientChargeable" span="3" 
+          sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
+      </row>
+       <row>
+        <control type="label" label="Categoría" span="3"/>
+        <control type="select" name="ProcedureCategory" span="3" required="true" edit="true" 
+          filter="Active=true"
+          explicit="true"
+          acctsvc="true"
+          datasource="GetProcedureCategories"
+          source="ProcedureCategory,ProcedureCategory"/>
+      </row>
+      <row showif="add">
+        <control type="label" label="CUPS" span="3"/>
+        <control type="typeahead" name="CUPSName,CupsGuid" span="9" edit="true"
+          acctsvc="true"
+          datasource="GetCUPSBySearchTerm"
+          term="cUPSName"
+          source="CUPSName,CupsGuid"
+          set="[RVSCode]=[[CUPSCode]],[ProcedureDescription]=[[CUPSName]]"/>
+      </row>
+      <row>
+        <control type="label" label="Código" span="3"/>
+        <control type="text" name="RVSCode" span="3" readonly="true" />
+      </row>
+      <row>
+        <control type="label" label="Procedimiento" span="3"/>
+        <control type="textarea" name="ProcedureDescription" span="9" 
+          required="true" readonly="true"  rows="2"/>
+      </row>
+       <row>
+        <control type="label" label="Notas" span="3"/>
+        <control type="textarea" name="AssociatedProcedureDescription" span="9" edit="true"  rows="2"/>
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="UpdateResultNext1" 
+          label="Siguiente"
+          color="lightgrey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="InsertResultNext1" 
+          label="Siguiente"
+          color="lightgrey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>
+   <!-- Procedure Types-->
+  <section type="tab" title="Categorías de Procedimientos">
+    <group>
+     <row>
+        <control type="datagrid" label="Categorías de Procedimientos" name="ProcedureCategories" searchable="true"
+          modalname="NewProcedureCategories" span="12"
+          rows="20"
+          acctsvc="true"
+          acctsvcreq="true"
+          datasource="GetProcedureCategories"
+          datainsert="InsertProcedureCategories"
+          dataupdate="UpdateProcedureCategories"
+          source="Active,ProcedureCategory,DepartmentName"
+          sourcelabels="Activo,Categoría,Departamento"
+          filter="Facility!ALL"
+          align="|left|left"
+          format="boolean|"
+          sort="ProcedureType=asc"
+          key="ProcedureCategoryGuid" />
+      </row>
+    </group>
+  </section>
+
+  <section type="modal" name="NewProcedureCategories" title="Categoría del Procedimiento" 
+           enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+           dtentered="DateTimeEntered" dtupdated="DateTimeUpdated"> 
+    <group name="NewProcedureCategoryGroup">
+      <row>
+        <control type="label" label="Activo" span="5"/>
+        <control type="buttongroup" name="NewProcedureCategoryGroup_Active" span="4" sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Categoría" span="5"/>
+        <control type="text" name="ProcedureCategory" span="5" required="true" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="UpdateResultNext2" 
+          label="Siguiente"
+          color="lightgrey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="InsertResultNext2" 
+          label="Siguiente"
+          color="lightgrey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>
+</module>

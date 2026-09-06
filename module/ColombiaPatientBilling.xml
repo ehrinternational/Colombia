@@ -13,10 +13,6 @@
   <partial link="Partials/ColombiaPartialAllAdmittedPatientList.xml"/>
   <!-- SAT Invoices -->
   <partial link="Partials/ColombiaPartialSATInvoices.xml"/>
-  <!-- Insurers -->
-  <partial link="Partials/ColombiaPartialBillingPayersAndInsurers.xml"/>
-  <!-- Prestaciones -->
-  <partial link="Partials/ColombiaPartialPrestacion.xml"/>
   <!-- Patient tabmodal -->
   <section type="tabmodal" name="PatientTabModal" title="Facturas del Paciente" badge="none" size="medium" provoke="InvoiceList">
     <group showif="never">
@@ -112,10 +108,9 @@
           </row>    
           <row>
             <control type="label" label="Origen llegada" span="2"/>
-            <control type="select" name="PVI_AdmitSource" span="3" 
-              datasource="GetLookupAdmitSourcesByFacility" 
-              source="AdmitSource,AdmitSource"
-              readonly="true" />
+            <control type="select" name="mdlAdmit_AdmitSource" span="3" required="true" explicit="true" 
+              source="Medical,Emergency,AutoAccident,OccAccident,OccDisease,Elective"
+              sourcelabels="Médico,Urgente,Accidente Auto,Accidente Laboral,Médico Laboral,Electiva"/>
             <control type="label" label="Tipo de llegada" span="3"/>
             <control type="select" name="PVI_BedStatus" span="3" 
               source="Voluntario,Emergencia"
@@ -750,7 +745,7 @@
         <control type="buttongroup" name="ButtonGroupSelect" span="12"
           edit="true" mode="auto" default="Charges"
           source="Charges,PatientPayers,PayerClaims,Addresses,Contacts,Documents,SATInvoices,Quotes,Appointments" 
-          sourcelabels="Cargos,Beneficios,Beneficios de Atención,Direcciones,Contactos,Documentos,Facturas,Cotizaciones,Citas" 
+          sourcelabels="Cargos,Convenios,Convenios de Atención,Direcciones,Contactos,Documentos,Facturas,Cotizaciones,Citas" 
           provoke="GridOptions|options"/>
       </row>
       <row>
@@ -897,6 +892,6 @@
   <partial link="./Partial/Admin/PartialPatientSearchModal.xml"/>
   <partial link="./Partial/Messaging/PartialSendEmailMessageToPatient.xml"/>
   <partial link="./Partial/Admin/PartialReportModals.xml"/>    
-  <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
+  <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
   <partial link="./Partial/Modals/PartialReferringMds.xml"/>
 </module>

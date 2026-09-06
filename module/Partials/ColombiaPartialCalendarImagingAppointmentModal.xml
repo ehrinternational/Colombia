@@ -203,14 +203,10 @@
 					</row>
 					<row>
 						<control type="label" label="Tipo de Llegada" span="2"/>
-						<control type="select" name="Imaging_AdmitSource" span="4" 
-							datasource="GetLookupAdmitSourcesByFacility" 
-							source="AdmitSource,AdmitSource"
-							edit="[Imaging_Status]=Scheduled|Confirmed|Reschedule" 
-							default="true"
-							required="true" 
-							explicit="true"
-							filter="Active=true"/>
+						<control type="select" name="Imaging_AdmitSource" span="3" required="true" explicit="true"
+          source="Medical,Emergency,AutoAccident,OccAccident,OccDisease,Elective"
+          sourcelabels="Médico,Urgente,Accidente Auto,Accidente Laboral,Médico Laboral,Electiva"/>
+  
 						<control type="label" label="Médico" span="2" />
 						<control type="select" name="ImagingProvider_ProviderId" span="4" 
 							namefield="NewAptProvider" explicit="true"

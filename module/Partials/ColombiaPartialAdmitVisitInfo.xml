@@ -6,13 +6,9 @@
     </row>
     <row>
         <control type="label" label="Origen de llegada" span="3"/>
-        <control type="select" name="mdlAdmit_AdmitSource" span="3" 
-          datasource="GetLookupAdmitSourcesByFacility" 
-          source="AdmitSource,AdmitSource"
-          edit="true" 
-          required="true" 
-          explicit="true"
-          filter="Active=true"/>
+        <control type="select" name="mdlAdmit_AdmitSource" span="3" required="true" explicit="true"
+          source="Medical,Emergency,AutoAccident,OccAccident,OccDisease,Elective"
+          sourcelabels="Médico,Urgente,Accidente Auto,Accidente Laboral,Médico Laboral,Electiva"/>
         <control type="label" label="Tipo de llegada" span="3"/>
         <control type="select" name="mdlAdmit_BedStatus" span="3" 
           source="Voluntario,Emergencia"
@@ -37,6 +33,7 @@
             explicit="true"
             span="4" edit="true"/>
       </row>
+
       <row name="rowAttendingDoctor"> 
         <control type="label" label="Médico de Guardia" span="2"/>
         <control type="select" name="ReferringDoctor"

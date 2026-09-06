@@ -24,7 +24,6 @@
       appendinsert="CopyDiagnosis=true,
         patientId=[PatientId],
         visitType=[DefaultAdmitType],
-        ambulatoryStatus=Inpatient,
         preAdmit=0,
         admitDateTime=(dateTimeNow),
         locationId=(facilityData.LocationId)"

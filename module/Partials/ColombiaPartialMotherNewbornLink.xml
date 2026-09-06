@@ -1,0 +1,208 @@
+<partial><!--Used By Colombia FSFB-->
+
+  <!-- ================================================================
+       VÍNCULO MADRE ↔ RECIÉN NACIDO   (pieza estructural del punto 3.3)
+
+       Por qué existe: en el API, el recién nacido se ata al parto por
+       BirthGuid, pero su historia clínica propia es un PatientId
+       independiente que alguien tiene que crear y vincular. Sin ese
+       vínculo resuelto:
+         · el RN no tiene historia clínica ni puede ser facturado,
+         · no se puede emitir el archivo AR (recién nacidos) de RIPS
+           (Res. 2275 de 2023), que exige el documento de la madre,
+         · el RDA del episodio del RN queda huérfano (Res. 1888 de 2025).
+
+       Flujo soportado:
+         1. Registro de parto abierto  →  [Obs_BirthGuid]
+         2. Uno o más RN registrados   →  NewbornGuid + Ordinal
+         3. Crear historia del RN (o vincular una existente) → PatientId
+         4. Admitir al RN y, si aplica, trasladar a neonatología/UCIN
+         5. Número de Certificado de Nacido Vivo (CNV/RUAF-ND)
+         6. Marcar listo para AR de RIPS
+
+       SP NUEVOS REQUERIDOS (ver README):
+         GetMotherNewbornLinks / InsertNewbornPatientFromBirth /
+         UpdateMotherNewbornLink / GetNewbornRIPSARStatus
+       Deben crearse en la misma base que las tablas Birth* —
+       ClinicalGeniusSupplyChain — de ahí acctsvc="true".
+       Si el DBA las coloca en ClinicalGeniusEHR, quitar acctsvc de
+       TODOS los controles de este archivo.
+       ================================================================ -->
+
+  <section type="tab" name="MotherNewbornLinkTab" title="Vínculo Madre - RN" reveal="[PatientId]!">
+
+    <template name="tmpLinkStatusTemplate" type="markup" align="center">
+      [IF ${[[LinkStatus]]}=Linked][icon color=green]ok[/icon] Vinculado[/IF]
+      [IF ${[[LinkStatus]]}=Pending][icon color=orange]exclamation-sign[/icon] Sin historia[/IF]
+      [IF ${[[LinkStatus]]}=Error][icon color=red]warning-sign[/icon] Inconsistente[/IF]
+    </template>
+
+    <template name="tmpRipsArTemplate" type="markup" align="center">
+      [IF ${[[RIPSARStatus]]}=Ready][icon color=green]ok[/icon] Listo[/IF]
+      [IF ${[[RIPSARStatus]]}=Incomplete][icon color=orange]exclamation-sign[/icon] Incompleto[/IF]
+      [IF ${[[RIPSARStatus]]}=Sent][icon color=blue]cloud-upload[/icon] Enviado[/IF]
+    </template>
+
+    <group name="grpMotherNewbornLink">
+
+      <!-- Resumen del parto seleccionado -->
+      <subset name="subLinkBirthSummary" bgcolor="lightblue" reveal="[Obs_BirthGuid]!">
+        <row>
+          <control type="label" label="Madre" span="1"/>
+          <control type="text" name="Lnk_MotherName" span="3" readonly="true"/>
+          <control type="label" label="Doc. madre" span="2"/>
+          <control type="text" name="Lnk_MotherIdNumber" span="2" readonly="true"/>
+          <control type="label" label="Fetos" span="1"/>
+          <control type="text" name="Lnk_FetalCount" span="1" readonly="true"/>
+          <control type="label" label="Registrados" span="1"/>
+          <control type="text" name="Lnk_NewbornCount" span="1" readonly="true"/>
+        </row>
+        <row reveal="[Lnk_NewbornCount]![Lnk_FetalCount]">
+          <control type="label" span="12" color="orange"
+              label="El número de recién nacidos registrados no coincide con el número de fetos del registro de parto."/>
+        </row>
+      </subset>
+
+      <row reveal="[Obs_BirthGuid]=">
+        <control type="label" span="12" color="orange"
+            label="Seleccione un Registro de Parto para gestionar el vínculo con los recién nacidos."/>
+      </row>
+
+      <row>
+        <control type="datagrid" name="grdMotherNewbornLink" label="Recién Nacidos y Vínculo"
+            span="12" rows="6" fitrows="true"
+            modalname="mdlMotherNewbornLink"
+            acctsvc="true" acctsvcreq="true"
+            datarequest="GetMotherNewbornLinks"
+            appendrequest="birthGuid=[Obs_BirthGuid],motherPatientId=[PatientId],facility=(facility)"
+            dataupdate="UpdateMotherNewbornLink"
+            appendupdate="newbornGuid=[Lnk_NewbornGuid],birthGuid=[Obs_BirthGuid],motherPatientId=[PatientId],facility=(facility),updatedBy=(userName)"
+            idle="[Obs_BirthGuid]=|reset"
+            reveal="[Obs_BirthGuid]!"
+            source="Ordinal,NewbornName,NewbornSex,DateTimeOfBirth,NewbornPatientId,NewbornMedicalRecordNumber,CNVNumber,LinkStatus,RIPSARStatus"
+            sourcelabels="Orden,Recién Nacido,Sexo,Nacimiento,Id Paciente,HC,CNV,Vínculo,RIPS AR"
+            align="center|left|center|left|left|left|left|center|center"
+            format="0||||||||"
+            translate="NewbornSex"
+            rowcolor="LinkStatus|Pending=orange;Error=red;Linked=white"
+            sort="Ordinal=asc"
+            key="NewbornGuid"
+            onselectset="Lnk_NewbornGuid=[[NewbornGuid]],Lnk_NewbornPatientId=[[NewbornPatientId]],Neo_NewbornGuid=[[NewbornGuid]]"
+            onselect="Lnk_NewbornGuid">
+
+          <control type="button" name="btnLinkCreatePatient" label="Crear Historia del RN" icon="user"
+              color="green"
+              reveal="[Lnk_NewbornGuid]!+[Lnk_NewbornPatientId]="
+              acctsvc="true"
+              datainsert="InsertNewbornPatientFromBirth"
+              appendinsert="newbornGuid=[Lnk_NewbornGuid],birthGuid=[Obs_BirthGuid],motherPatientId=[PatientId],motherVisit=[PatientVisitGuid],facility=(facility),enteredBy=(userName)"
+              action="save"
+              confirm="Se creará la historia clínica del recién nacido a partir del registro de parto. ¿Continuar?"
+              provoke="grdMotherNewbornLink,grdNewbornsForBirth"/>
+
+          <control type="button" name="btnLinkExisting" label="Vincular Historia Existente" icon="link"
+              reveal="[Lnk_NewbornGuid]!+[Lnk_NewbornPatientId]="
+              action="redirect|view" target="mdlMotherNewbornLink"
+              append="size=medium"/>
+
+          <control type="button" name="btnLinkAdmitNewborn" label="Admitir RN" icon="h-sign"
+              reveal="[Lnk_NewbornPatientId]!"
+              action="redirect" target="mdlAdmitPatient"
+              set="PatientId=[Lnk_NewbornPatientId]"
+              tooltip="Abre la admisión del RN. VERIFICAR el nombre del modal de admisión del proyecto."/>
+
+          <control type="button" name="btnLinkOpenNeonatology" label="Abrir en Neonatología" icon="stethoscope"
+              reveal="[Lnk_NewbornPatientId]!"
+              action="redirect|url" target="../Projects/Colombia/Module/ColombiaNeonatology.xml"
+              append="patientid=[Lnk_NewbornPatientId]"/>
+
+          <control type="button" name="btnLinkRefresh" label="Actualizar" icon="refresh"
+              action="trigger" provoke="grdMotherNewbornLink"/>
+        </control>
+      </row>
+
+      <!-- Preparación del archivo AR de RIPS -->
+      <subset name="subLinkRipsAR" bgcolor="white" reveal="[Obs_BirthGuid]!">
+        <row>
+          <control type="label" label="[b]Archivo AR de RIPS — recién nacidos[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" span="12"
+              label="[span size=10]El archivo AR exige tipo y número de documento de la madre, fecha y hora del nacimiento, edad gestacional, peso al nacer, sexo, diagnóstico del RN y condición de egreso. Los campos ausentes se listan a continuación.[/span]"/>
+        </row>
+        <row>
+          <control type="datagrid" name="grdNewbornRIPSGaps" label="Campos Pendientes para RIPS AR"
+              span="12" rows="4" fitrows="true"
+              acctsvc="true" acctsvcreq="true"
+              datarequest="GetNewbornRIPSARStatus"
+              appendrequest="birthGuid=[Obs_BirthGuid],facility=(facility)"
+              idle="[Obs_BirthGuid]=|reset"
+              source="Ordinal,NewbornName,MissingField,FieldSource,Severity"
+              sourcelabels="Orden,Recién Nacido,Campo Faltante,Origen,Criticidad"
+              align="center|left|left|left|center"
+              format="0||||"
+              rowcolor="Severity|Blocking=red;Warning=orange"
+              sort="Ordinal=asc" key="key"/>
+        </row>
+      </subset>
+
+    </group>
+  </section>
+
+  <!-- ================================================================
+       MODAL — vincular a una historia clínica existente
+       ================================================================ -->
+  <section type="modal" name="mdlMotherNewbornLink" title="Vincular Recién Nacido" size="medium">
+
+    <group name="grpMotherNewbornLinkModal" capture="grpMotherNewbornLinkModal">
+
+      <row>
+        <control type="label" label="Recién nacido" span="3"/>
+        <control type="text" name="Lnk_NewbornNameDisplay" span="6" readonly="true"/>
+        <control type="label" label="Orden" span="2"/>
+        <control type="text" name="Lnk_OrdinalDisplay" span="1" readonly="true"/>
+      </row>
+
+      <row>
+        <control type="label" label="Buscar historia clínica" span="3"/>
+        <control type="typeahead" name="NewbornPatientId" namefield="NewbornPatientName" span="9"
+            edit="true" explicit="true" required="true"
+            datasource="GetPatientSearch"
+            source="MedicalRecordNumber|PatientName,PatientId"
+            placeholder="Número de historia o nombre del recién nacido"/>
+      </row>
+
+      <row>
+        <control type="label" label="Número de CNV (RUAF-ND)" span="3"/>
+        <control type="text" name="CNVNumber" span="4" edit="true"
+            tooltip="Certificado de Nacido Vivo. Requerido para el archivo AR de RIPS."/>
+        <control type="label" label="Fecha del CNV" span="2"/>
+        <control type="date" name="CNVDate" span="3" edit="true"/>
+      </row>
+
+      <row>
+        <control type="label" label="Parentesco / responsable" span="3"/>
+        <control type="text" name="ResponsibleParty" span="9" edit="true"
+            placeholder="Madre por defecto; indicar otro responsable si aplica"/>
+      </row>
+
+      <row>
+        <control type="label" label="Observaciones del vínculo" span="3"/>
+        <control type="textarea" name="LinkNotes" span="9" edit="true" rows="2"/>
+      </row>
+
+      <row>
+        <control type="modalbutton" name="mbtLinkSave" label="Vincular" color="green"
+            action="save|close|new"
+            capture="grpMotherNewbornLinkModal"
+            affector="none"
+            acctsvc="true"
+            dataupdate="UpdateMotherNewbornLink"
+            appendupdate="newbornGuid=[Lnk_NewbornGuid],birthGuid=[Obs_BirthGuid],motherPatientId=[PatientId],facility=(facility),linkStatus=Linked,updatedBy=(userName)"
+            provoke="grdMotherNewbornLink,grdNewbornRIPSGaps"/>
+      </row>
+
+    </group>
+  </section>
+
+</partial>

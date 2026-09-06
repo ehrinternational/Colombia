@@ -95,8 +95,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" mode="auto" span="12"
-          source="Tasks,Problems,Physicians,Vitals,Studies,Medication,Identification,Addresses,Contacts,Documents,Appointments,Surgery,Services" 
-          sourcelabels="Tareas,Diagnósticos,Consultas,Signos Vitales,Estudios,Medicamentos,Identificación,Direcciones,Contactos,Subir Documentos,Citas,Cirugía,Servicios" 
+          source="Tasks,Problems,Physicians,Vitals,Studies,Medication,Vaccines,Identification,Addresses,Contacts,Documents,Appointments,Surgery,Services" 
+          sourcelabels="Tareas,Diagnósticos,Consultas,Signos Vitales,Estudios,Medicamentos,Inmunizaciones,Identificación,Direcciones,Contactos,Subir Documentos,Citas,Cirugía,Servicios" 
           default="Tasks"  
           provoke="GridOptions|options"/>
       </row>
@@ -119,12 +119,13 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationActiveAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="Partials/ColombiaPartialImagingOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialScannedImagingDocumentsInWindow.xml"/>
           <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
         </control>
       </row>
     </group>
@@ -155,8 +156,8 @@
     <!-- Demographic modals -->
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     
-    <partial link="./Partial/Modals/PartialPatientIdModal.xml"/>
-    <partial link="./Partial/Modals/PartialPatientPhoneModal.xml"/>
+    <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
+    
     <!-- Messaging -->
 		<partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
     <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>

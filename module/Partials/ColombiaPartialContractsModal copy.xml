@@ -1,0 +1,940 @@
+<partial>
+  <!-- Contract tabmodal -->
+  <section type="tabmodal" title="Contrato de Empressa" name="mdlContracts" badge="none" size="medium">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="ContractGuid"
+          acctsvcreq="true"
+          datarequest="GetInsuranceContracts"
+          appendrequest="ContractGuid=[ContractGuid]"
+          inject="grpContractInfo"
+          provoke="ContractButtonGroupSelect"/>
+      </row>
+    </group>
+    <group name="grpContractInfo">
+      <columns>
+        <column span="6">
+          <row>
+            <control type="select" name="Ctc_ContractType" edit="true" span="7" 
+              source="1,2,3" sourcelabels="1 CONTRATO,2 CARTA DE COMPROMISO,3 CONVENIO PRESTACION SERVICIOS" 
+              required="true" default="1" explicit="true"/>
+              <control type="label" span="1" label="NIT"/>
+              <control type="text" name="Ctc_ContractId" span="3" edit="true"
+                regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{1,25}$"/>
+          </row>
+          <row>
+            <control type="label" span="6" label="Tipo de Convenio" align="left"/>
+            <control type="label" span="6" label="Linea Negocio" align="left"/>
+          </row>
+          <row>
+            <control type="select" name="Ctc_InsuranceType" edit="true" span="6" 
+              source="1,2,3,4,5,6,7,8,9,10,11,12" 
+              sourcelabels="1 PBS,2 NO PBS,3 PREPAGADA,4 INTERMEDIACIÓN,5 SALUD,
+              6 PREVENCIÓN,7 INTERMEDIACIÓN,8 PÓLIZA DE SALUD,9 ACCIDENTES PERSONALES,
+              10 PÓLIZA JUVENIL,11 INTERMEDIACIÓN,12 SOAT" 
+              required="true"/>
+            <control type="select" name="Ctc_LineType" edit="true" span="6" 
+              source="1,2,3,4,5,6,7,8,9,10,11,12" 
+              sourcelabels="LN-CUENTAS_MEDICAS_PBS,LN-CUENTAS_MEDICAS_NO_PBS,
+              LN-PREPAGADA,LN-INTERMEDIACION,LN-CUENTAS_MEDICAS_SALUD,LN-PREVENCION,
+              LN-INTERMEDIACION,LN-CUENTAS_MEDICAS,LN-ACCIDENTES_PERSONALES,
+              LN-JUVENIL,LN-INTERMEDIACION,LN-SOAT" 
+              required="true"/>
+          </row>
+          <row>
+            <control type="label" span="4" label="Número de Convenio"/>       
+            <control name="Ctc_ContractNumber" type="text" span="4" edit="true"
+              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{1,25}$" />
+            <control type="checkbox" name="Ctc_POSGroup" edit="true" span="4" 
+              label="Grupo No Pos" source="True,False"/>
+          </row>
+          <row>
+            <control type="label" span="4" label="Número del Plan" align="left"/>
+            <control type="label" span="4" label="Fecha" align="left"/>
+            <control type="label" span="4" label="Código Entidad" align="left"/>
+          </row>
+          <row>
+            <control type="text" span="4" name="PlanNumber" edit="true"
+              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,25}$" />
+            <control type="date" span="4" name="PlanDate"  edit="true"/>
+            <control type="text" span="4" name="EntityCode" edit="true"
+              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,25}$" />
+          </row>
+          <row>
+            <control type="label" span="4" label="Nombre del Convenio"/>
+            <control type="text" span="8" name="PlanName" edit="true"
+              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
+          </row>
+          <row>
+            <control type="label" span="5" label="Nombre del Convenio DIAN"/>
+            <control type="text" span="7" name="DIANPlanName" rows="1"
+            regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$"  />
+          </row>
+           <row>
+            <control type="label" span="4" label="Dirección Facturación"/>
+            <control type="textarea" span="8" name="BillAddress" rows="1" edit="true"
+              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
+          </row>
+          <row>
+            <control type="checkbox" name="PlanPromote" span="5" label="Prórroga Automatica" 
+              edit="true" source="True,False"/>
+            <control type="checkbox" name="PlanLiq" span="4" label="Liq Honorarios" 
+              edit="true" source="True,False"/>
+            <control type="text" span="2" name="LiqPercent" edit="true" format="0.000"/>
+            <control type="label" label="%" span="1" align="left"/>
+          </row>
+          <row>        
+            <control type="label" span="4" label="Tipo de Convenio"/>
+            <control type="select" name="Ctc_CoverageType" edit="true" span="8" 
+              source="EPS,ARS,ARP,PARTICULAR,CAJA DE COMPENSACION,CONVENIO EMPRESARIAL,
+              COMPANIA DE SEGUROS,MEDICINA PREPAGADA,IPS,PAGO DIRECTO,VINCULADOS,OTRAS POLIZAS EN SALUD,
+              REGIMEN DE EXCEPCIÓN,FONDO NACIONAL DE SALUD,PLAN COMPLEMENTARIO" required="true"/>
+          </row>
+          <row>        
+            <control type="label" span="4" label="Convenio Público"/>
+            <control type="buttongroup" name="Ctc_PlanPublic" span="6" sourcelabels="Público,No Público" 
+            edit="true" source="True,False"/>
+          </row>
+          <row>
+            <control type="checkbox" name="Ctc_PendingRevision" edit="true" span="6" 
+              label="Pendiente Renovación" source="True,False" required="true"/>
+          </row>
+        </column>
+        <column span="6">
+           <row>
+            <control type="label" span="4" label="Vigencia" align="left"/>
+            <control type="label" span="4" label="Desde" align="left"/>
+            <control type="label" span="4" label="Hasta" align="left"/>
+          </row>
+          <row>
+            <control type="checkbox" name="Ctc_Active" edit="true" span="4" 
+              label="Vigente" source="True,False"/>
+            <control type="date" name="Ctc_StartDate" span="4" edit="true"/>
+            <control type="date" name="Ctc_EndDate" span="4" edit="true"/>
+          </row>
+          <row>        
+            <control type="label" span="3" label="Motivo de"/>
+            <control type="select" name="Ctc_ActiveReason" edit="true" span="9" searchable="true" 
+              source="00,01,02,03,04,05,06,07,08,09,10" 
+              sourcelabels="00 SIN INFORMACION,01 ACUERDO MUTUO,02 INCUMPLIMIENTO EN PAGOS,03 INCUMPLIMIENTO OBLIGACIONES CONTRACTUALES,
+              04 CAPACIDAD FINANCIERA INSUFICIENTE,05 CESION A TERCERO,06 INTERVENCION ENTIDAD DE VIGILACIA Y CONTROL,
+              07 SUSPENSION LICENCIA SANITARIA,08 SUSPENSION LICENCIA DE FUNCIONAMIENTO,09 INCOMPATIBILIDAD O INHABILIDAD PARA CONTRATAR,
+              10 DISOLUCION DE SOCIEDAD CONTRATANTE"
+              required="true" />
+          </row>
+          <row>        
+            <control type="label" span="8" label="Valor Impuesto Timbre del Convenio" align="left"/>
+            <control type="button" name="btnNewInsuranceContract" label="Guardar" icon="cloud-upload" edit="true" span="4" color="green"
+              reveal="[ContractGuid]="
+              confirm="Por favor, confirme que desea insertar este nuevo convenio."
+              action="save|close|new"
+              capture="grpContractInfo"
+              affector="none"
+              datainsert="InsertInsuranceContract"/>
+            <control type="button" name="btnUpdateInsuranceContract" label="Actualizar" icon="refresh" edit="true" span="4" 
+              reveal="[ContractGuid]!"
+              confirm="Por favor, confirme que desea actualizar este convenio."
+              action="save|close|new"
+              capture="grpContractInfo"
+              affector="none"
+              dataupdate="UpdateInsuranceContract"
+              appendupdate="ContractGuid=[ContractGuid]"/>
+          </row>
+          <row>
+            <control type="checkbox" name="Ctc_ContractMaximum" edit="true" span="4" 
+              label="Topes por Convenio" source="True,False"/>
+            <control type="label" span="2" label="Valor"/>
+            <control type="text" span="2" name="Ctc_MaxValue" edit="true" format="0,0.00" default="0.00"/>
+          </row>
+          <row>        
+            <control type="checkbox" name="Ctc_TaxTimbre" edit="true" span="8" 
+              label="Impuesto de Timbre" source="True,False"/>
+          </row>
+          <row>        
+            <control type="label" span="4" label="Contratante" badge="%"/>
+            <control type="text" span="2" name="Ctc_Contratante" edit="true" format="0.0000" default="0.0000"/>
+            <control type="label" span="4" label="Contratista(IPS)" badge="%"/>
+            <control type="text" span="2" name="Ctc_Contrtista" edit="true" format="0.0000" default="0.0000"/>
+          </row>
+          <row>        
+            <control type="checkbox" name="Ctc_NightCharge" edit="true" span="12" 
+              label="Paga Recargos Nocturnos y de Dias Festivos" source="True,False"/>
+          </row>
+          <row>        
+            <control type="checkbox" name="Ctc_ValueVariable" edit="true" span="8" 
+              label="Valor Variable en Liq de Prestaciones" source="True,False"/>
+             <control type="button" name="Ctc_Historical" edit="true" span="4" label="Histórico" 
+              action="redirect" target=""/>
+          </row>
+          <row>        
+            <control type="checkbox" name="Ctc_AuthorizationFee" edit="true" span="8" 
+              label="Valor Derecho de Autoirizaciones" source="True,False"/>
+            <control type="button" name="Ctc_Professionals" edit="true" span="4" label="Profesionales" 
+              action="redirect" target=""/>
+          </row>
+          <row>        
+            <control type="checkbox" name="Ctc_FOSYGA" edit="true" span="8" 
+              label="Convenio FOSYGA" source="True,False"/>
+            <control type="button" name="Ctc_Auditing" edit="true" span="4" label="Auditores" 
+              action="redirect" target=""/>
+          </row>
+           <row>        
+            <control type="checkbox" name="Ctc_ExternalIPSCare" edit="true" span="12" 
+              label="Habilitar para Atención IPS Externa" source="True,False"/>
+           </row>
+        </column>
+      </columns>
+      <row>        
+        <control type="label" span="4" label="Modelo Tarifario de Medicamentos"/>
+        <control type="select" name="Ctc_MedicineTariff" edit="true" span="6" 
+          source="catalog" required="true"/>
+      </row>
+      <row>        
+        <control type="label" span="4" label="Modalidades de Contratación y pago"/>
+        <control type="select" name="Ctc_Modalities" edit="true" span="6" searchable="true"
+          source="1,2,3,4,5,6,7,11,12" required="true" 
+          sourcelabels="1 PAGO INDIVIDUAL POR CASO/CONJUNTO INTEGRAL DE ATENCIONES/PAQUETE/CANASTA,
+          2 OTRA MODALIDAD (GRUPOS RELACIONADOS POR DIAGNÓSTICO),
+          3 OTRA MODALIDAD (INTEGRAL POR GRUPO DE RIESGO),
+          4 OTRA MODALIDAD (PAGO POR CONTACTO POR ESPECIALIDAD),
+          5 OTRA MODALIDAD (PAGO POR ESCENARIO DE ATENCIÓN),
+          6 OTRA MODALIDAD (PAGO POR TIPO DE SERVICIO),
+          7 PAGO GLOBAL PROSPECTIVO,
+          11 PAGO POR CAPACITACIÓN,
+          12 PAGO POR EVENTO"/>
+      </row>
+      <row>        
+        <control type="label" span="5" label="Clasificación Normativa:    Tipo de Entidad Aseguradora"/>
+        <control type="select" name="Ctc_EntityType" edit="true" span="4" 
+          source="00,CCF,EAS,ENTE,EOC,EPS,EPSI,ESS,SINC" required="true" searchable="true"
+          sourcelabels="00 SIN INFORMACION,CCF CAJAS DE COMPENSACION FAMILIAR,
+          EAS ENTIDADES ADAPATADAS DE SALUD,ENTE ENTIDADES TERRITORIALES,
+          EOC EMPRESAS OBLIGADAS A COMPENSAR,EPS EMPRESA PROMOTORA DE SALUD Y EPS SUBSIDIADAS,
+          EPSI EMPRESAS PROMOTORAS DE SALUD INDIGENAS,ESS EMPRESAS SOLIDARIAS DE SALUD,
+          SINC SIN CLASIFICACION" />
+         <control type="label" span="1" label="Régimen"/>
+        <control type="select" name="Ctc_Regimen" edit="true" span="2" 
+          source="0,C,E,N,P,S,V" required="true"
+          sourcelabels="0-SIN INFORMACION,C-CONTRIBUTIVO,E-ESPECIAL,N-NO ASEGURADO,
+          P-EXCEPCION,S-SUBSIDIADO,V-VINCULADO"/>
+      </row>
+    </group>
+    <!-- reveal="[ContractGuid]!"-->
+    <group name="grpContractRelatedTables" >
+      <row>
+        <control type="buttongroup" name="ContractButtonGroupSelect" edit="true" mode="auto" span="8"
+          source="Plans,Components,Documents" 
+          sourcelabels="Planes,Tarifas,Documentos" 
+          default="Plans"
+          provoke="ContractGridList|options"/>
+      </row>
+      <row>
+        <control name="ContractGridList" affector="ContractButtonGroupSelect" type="options" span="12">
+          <control type="datagrid"  name="dgrPayerPlans" option="Plans" label="Planes" rows="10"
+            modalname="mdlContractPlans"
+            searchable="true"
+            acctsvc="true"
+            acctsvcreq="true"
+            idle="[ContractGuid]="
+            datarequest="GetInsurancePlans" 
+            appendrequest="ContractGuid=[ContractGuid]"
+            datainsert="InsertInsurancePlans" 
+            appendinsert="ContractGuid=[ContractGuid],PayerGuid=[PayerGuid]"
+            dataupdate="UpdateInsurancePlans"
+            source="Active,StartDate,EndDate,PlanCode,PlanCategory,PlanName,LastUpdatedByFullName"
+            sourcelabels="Activo,Fecha Inicio,Fecha Fin,Código,Tipo,Nombre,Actualizado por"
+            align="|left|left|left|left|left|left"
+            format="boolean|date|date"
+            sort="PlanName=asc"
+            key="PlanGuid"/>
+          <control type="datagrid"  name="dgrComponents" option="Components" label="Tarifas" rows="10"
+            modalname="mdlContractComponents"
+            searchable="true"
+            acctsvc="true"
+            acctsvcreq="true"
+            datarequest="GetContractComponents" 
+            append="ContractGuid=[ContractGuid]"
+            datainsert="InsertContractComponents" 
+            appendinsert="ContractGuid=[ContractGuid]"
+            dataupdate="UpdateContractComponents"
+            source="Active,TariffType,ComponentType,CatalogueType,EnteredByFullName,UpdateByFullName"
+            sourcelabels="Activo,Tipo Tarifa,Categoria,Catalogo,Entragado por,Actualizado por"
+            align="|left|left|left|left"
+            format="boolean"
+            sort="ComponentName=asc"
+            key="ComponentGuid"/>
+          <!-- Scanned images for contract -->
+          <control type="datagrid" label="Documentos Escaneados" name="dgrScannedForms" option="Documents"
+            rows="10"
+            fitrows="true"
+            searchable="true"
+            idle="[ContractGuid]=|reset"
+            datarequest="GetPatientImages"
+            appendrequest="patientId=[ContractGuid]"
+            source="DateEntered,Category,Type,FileName,Status"
+            sourcelabels="Fecha y Hora,Tipo,Categoría,Documento,Estatus"
+            align="|left|left|left|left"
+            format="datetime"
+            translate="Category,Status,Type"
+            sort="DateEntered=desc"
+            key="PhotoGuid"
+            action="redirect|url" 
+            target="printables/uploadviewer.html" 
+            usesource="login"
+            append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+          <!--Button to upload scanned documents-->
+          <control type="button" name="btnScanDocuments" label="Subir Documentos" icon="folder-open"
+            append="patientId=[ContractGuid],patientVisit=[ContractGuid]"
+            action="upload" 
+            filter="pdf,jpg,jpeg,png"
+            provoke="dgrScannedForms"/>
+          <!-- Button to deactivate -->
+          <control type="button" name="btnDeactivateDocument" label="Inactivo" color="orange"
+            reveal="[[Status]]=Active"
+            showif="feature"
+            icon="remove"
+            confirm="Por favor, confirme que desea desactivar este documento escaneado."
+            action="save"
+            affector="none"
+            acctsvc="true"
+            dataupdate="UpdatePatientImages"
+            appendupdate="PhotoGuid=[[PhotoGuid]],status=Inactive"
+            provoke="dgrScannedForms"/>
+          <!-- Button to reactivate -->
+          <control type="button" name="btnReactivateDocument" label="Activo" color="yellowgreen"
+            reveal="[[Status]]=Inactive"
+            showif="feature"
+            icon="edit"
+            confirm="Por favor, confirme que desea reactivar este documento escaneado."
+            action="save"
+            affector="none"
+            acctsvc="true"
+            dataupdate="UpdatePatientImages"
+            appendupdate="PhotoGuid=[[PhotoGuid]],status=Active"
+            provoke="dgrScannedForms"/>
+          </control>
+        </control>
+      </row>
+    </group>
+  </section> 
+  <!-- modal for contract components --> 
+  <section type="modal" name="mdlContractExceptions" title="Tarifas" badge="none" size="small">
+    <group>
+        <row>
+          <control type="label" span="3" label="Activo"/>
+          <control type="buttongroup" name="Ctc_Active" source="True,False" sourcelabels="Sí,No" 
+            span="3" edit="true" default="True"/>
+        </row>
+        <row>
+          <control type="label" span="3" label="Tipo de Tarifa"/>
+          <control name="Ctc_TariffType" type="select" span="3" edit="true" required="true" explicit="true"
+            source="Global,Category,CUPS"
+            sourcelabels="Global,Categoria,CUPS" />
+        </row>
+        <row name="rowComponentCategory" reveal="[Ctc_TariffType]=Category">
+          <control type="label" span="3" label="Categoria"/>
+          <control name="Ctc_ComponentType" type="select" span="5" edit="true" required="true" explicit="true"
+             source="CIRUJANO,ANESTESIÓLOGO,ASISTENTE,SALA,MATERIALES,Medicamentos,Inmunizaciones,LABORATORIO,IMAGENOLOGÍA,GENERAL"/>
+        </row>  
+        <row name="rowComponentCUPS" reveal="[Ctc_TariffType]=CUPS">
+          <control type="label" span="3" label="CUPS"/>
+          <control name="Ctc_CUPSGuid" type="typeahead" span="9" edit="true" required="true" explicit="true"
+            datarequest="GetCUPSBySearchTerm"
+            term="SearchTerm"
+            source="CUPSCode|CUPSName,CUPSCode"/>
+        </row>  
+        <row>
+          <control type="label" span="3" label="Catalog de Tarifa"/>
+          <control name="Ctc_CatalogueType" type="select" span="5" edit="true" required="true" explicit="true"
+            source="SOAT,ISS_2001,ISS_2004,PROPRIETARY,PARTICULAR"/>
+        </row>
+        <row name="rowISSRate" reveal="[Ctc_CatalogueType]%ISS">
+          <control type="label" span="3" label="UVR Value COP"/>       
+          <control name="Ctc_IssUvrValueCop" type="text" span="2" edit="true" required="true"
+            regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
+        </row>
+        <row name="rowISSRate2" reveal="[Ctc_CatalogueType]%ISS">
+          <control type="label" span="3" label="UVR Rate COP"/>
+          <control name="Ctc_ContractUvrRateCop" type="text" span="2" edit="true" required="true"
+            regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
+        </row>
+        <row name="rowSOATModifier" reveal="[Ctc_CatalogueType]%SOAT">
+          <control type="label" span="3" label="Modificador SOAT"/>       
+          <control name="Ctc1_CommericalModifier" type="text" span="2" edit="true" required="true"
+            regex="^\d{1,5}(?:\.\d{1,4})?$" format="0.0000"/>
+        </row>
+         <row name="rowProprietaryModifier" reveal="[Ctc_CatalogueType]=PROPRIETARY|PARTICULAR">
+          <control type="label" span="3" label="Cantidad Proprietary"/>       
+          <control name="Ctc2_CommericalModifier" type="text" span="2" edit="true" required="true"
+            regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
+        </row>
+    </group>
+  </section>
+  <!-- Contract plans modal -->
+  <section type="modal" name="mdlContractPlans" title="Planes del Contrato" badge="none">
+    <group>
+        <row>
+          <control type="label" span="3" label="Activo"/>
+          <control name="Pln_IsActive" type="buttongroup" span="3" edit="true" 
+            sourcelabels="Sí,No"
+            source="True,False" default="True"/>
+          <control type="label" span="3" label="Folio"/>
+          <control name="Pln_PlanNumber" type="text" span="2" readonly="true"/>
+        </row>
+         <row>
+          <control type="label" span="3" label="Fecha Inicio"/>
+          <control name="Pln_StartDate" type="date" span="3" edit="true" required="true"/>
+          <control type="label" span="3" label="Fecha Final"/>
+          <control name="Pln_EndDater" type="date" span="3" edit="true" required="true"/>
+        </row>
+        <row>
+          <control type="label" span="3" label="Código"/>
+          <control name="Pln_PlanCode" type="text" span="3" edit="true" required="true"
+          regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,25}$" />
+          <control type="label" span="3" label="Categoría"/>
+          <control name="Pln_Category" type="select" span="3" edit="true" required="true" explicit="true"
+            source="EPS_POS,PREPAGADA,SOAT,ARL_ATEP,POLIZA_PRIVADA"/>
+        </row>  
+        <row>
+          <control type="label" span="3" label="Nombre"/>
+          <control name="Pln_PlanName" type="text" span="9" edit="true" required="true"
+          regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
+        </row> 
+        <row>
+          <control type="label" span="3" label="Copago"/>
+          <control name="Pln_Copay" type="text" span="3" edit="true" format="0.00"/>
+          <control type="label" span="4" label="Max de Gastos de Bolsillo" />
+          <control name="Pln_MaxOutOfPocket" type="text" span="2" edit="true" format="0.00"/>
+        </row> 
+        <row>
+          <control type="label" span="3" label="Coaseguro Cirugía" badge="%"/>
+          <control name="Pln_MedicalCoinsurance" type="text" span="3" edit="true" format="0.0000"/>
+          <control type="label" span="4" label="Coaseguro Comercial" badge="%"/>
+          <control name="Pln_Coinsurance" type="text" span="2" edit="true" format="0.0000"/>
+        </row> 
+        <row>
+          <control type="label" span="3" label="Cap Tope"/>
+          <control name="Pln_HasTopeCap" type="buttongroup" span="3" 
+            source="True,False" 
+            sourcelabels="Sí,No" edit="true"/>
+          <control type="label" span="4" label="Max Tope por Evento"/>
+          <control name="Pln_MaxTopeEvent" type="text" span="2" edit="true" format="0.00"/>
+        </row> 
+        <row>
+          <control type="label" span="3" label="Max Tope Anual"/>
+          <control name="Pln_MaxTopeAnnual" type="text" span="3" edit="true" format="0.00"/>
+          <control type="label" span="4" label="Deducible Anual"/>
+          <control name="Pln_DeductibleAnnual" type="text" span="2" edit="true" format="0.00"/>
+        </row> 
+        <row>
+          <control type="label" span="3" label="Requiere Autorización"/>
+          <control name="Pln_RequiresAuthorization" type="buttongroup" span="3" edit="true"
+            source="True,False" sourcelabels="Sí,No"/>
+          <control type="label" span="3" label="Cobertura de Anulación" />
+          <control name="Pln_CoverageOverride" type="text" span="3" edit="true"/>
+        </row> 
+        <row>
+          <control type="label" span="3" label="Notas" />
+          <control name="Pln_Notes" type="text" span="9" edit="true"
+          regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$"/>
+        </row>
+    </group>
+  </section>
+  <!-- tabmodal Compuestos-->
+  <section type="tabmodal" title="Compuestos" name="mdlCompuestos" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Prestación" span="2"/>
+        <control type="text" name="Cm2_PrestaionCode" span="2" readonly="true"/>
+        <control type="textarea" name="Cm2_PrestaionDescription" span="8" readonly="true" rows="2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdCompuestos" label="Compuestos" span="12" rows="10"
+          edit="true"	searchable="true"
+          mode="batch"
+          modalname="mdlNewCompuesto"
+          rowcolor="Modify|insert=green;update=yellow"
+          datarequest="GetCompuestos"
+          appendrequest="RuleGuid=[RuleGuid]"
+          source="PrestacionCode,PrestacionDescription,Quantity,Unit"
+          sourcelabels="Código Prestación,Descripción Prestación,Cantidad,Unidad"
+          align="left|left|left|left"
+          key="CompuestoGuid">
+        <control type="button" name="btnInsertCompuestos" label="Actualizar Catalog" icon="cloud-upload"
+          action="batchinsert" color="green"
+          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
+          capture="grdCompuestos"
+          datainsert="Compuestos"
+          appendbatch="CompuestoGuid=(newUUID),RuleGuid=[RuleGuid]"
+          skipbatchrow="[[Modify]]=insert"
+          postwithout="Modify"
+          provoke="btnUpdateCompuestos"/>
+        </control>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnUpdateCompuestos"
+          action="batchupdate|close|new"
+          key="CompuestoGuid"
+          capture="grdCompuestos"
+          dataupdate="Compuestos"
+          skipbatchrow="[[Modify]]=update"
+          postwithout="Modify"/>
+      </row>
+    </group>
+  </section>
+  <section type="modal" title="Compuestos" name="mdlNewCompuesto">
+    <group>
+       <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Cmp_Active" span="3" edit="true" default="True"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="Prestación" span="3"/>
+        <control type="select" name="Cmp_PrestacionGuid" span="8" searchable="true" required="true"
+          acctsvcreq="true"
+          datarequest="GetPrestaciones"
+          source="Code|Description,PrestacionGuid" edit="true"
+          set="Cmp_PrestacionCode=[[Code]],Cmp_PrestacionDescription=[[Description]]"/>
+      </row>
+      <row>
+        <control type="hidden" name="Cmp_PrestacionCode"/>
+        <control type="hidden" name="Cmp_PrestacionDescription"/>
+      </row>
+      <row>
+        <control type="label" label="Cantidad" span="3"/>
+        <control type="text" name="Cmp_Quantity" span="3" format="0" edit="true" required="true"
+          regex=""/>
+      </row>
+      <row>
+        <control type="label" label="Unidad" span="3"/>
+        <control type="text" name="Cmp_Unit" span="3" edit="true" regex="" required="true"/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+
+<!-- tabmodal Compuestos-->
+  <section type="tabmodal" title="Especalidades Asociadas" name="mdlAssociatedSpecialties" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Prestación" span="2"/>
+        <control type="text" name="Cm8_PrestaionCode" span="2" readonly="true"/>
+        <control type="textarea" name="Cm8_PrestaionDescription" span="8" readonly="true" rows="2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdSpecialties" label="Especalidades Asociadas" span="12" rows="10" size="small"
+          edit="true"	searchable="true"
+          mode="batch"
+          modalname="mdlNewSpecialty"
+          rowcolor="Modify|insert=green;update=yellow"
+          datarequest="GetAssociatedSpecialties"
+          appendrequest="RuleGuid=[RuleGuid]"
+          source="Code,Description"
+          sourcelabels="Código,Descripción"
+          align="left|left"
+          key="AssociatedGuid">
+        <control type="button" name="btnInsertSpecialties" label="Actualizar Catalog" icon="cloud-upload"
+          action="batchinsert" color="green"
+          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
+          capture="grdSpecialties"
+          datainsert="AssociatedSpecialties"
+          appendbatch="AssociatedGuid=(newUUID),RuleGuid=[RuleGuid]"
+          skipbatchrow="[[Modify]]=insert"
+          postwithout="Modify"
+          provoke="btnUpdateSpecialties"/>
+        </control>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnUpdateSpecialties"
+          action="batchupdate|close|new"
+          key="AssociatedGuid"
+          capture="grdSpecialties"
+          dataupdate="AssociatedSpecialties"
+          skipbatchrow="[[Modify]]=update"
+          postwithout="Modify"/>
+      </row>
+    </group>
+  </section>
+  <section type="modal" title="Especalidades Asociadas" name="mdlNewSpecialty">
+    <group>
+       <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Cm9_Active" span="3" edit="true" default="True"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="Especialidad" span="3"/>
+        <control type="select" name="Cm9_SpecialtyGuid" span="8" searchable="true" required="true"
+          acctsvc="true"
+          datasource="GetMedicalSpecialties"
+          source="SpecialtyCode|Specialty,MedicalSpecialtyGuid" edit="true"
+          set="Cm9_Code=[[SpecialtyCode]],Cm9_Description=[[Specialty]]"/>
+      </row>
+      <row>
+        <control type="hidden" name="Cm9_Code"/>
+        <control type="hidden" name="Cm9_Description"/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+
+<!-- tabmodal Sinonimos-->
+  <section type="tabmodal" title="Sinonímos" name="mdlSynonyms" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Prestación" span="2"/>
+        <control type="text" name="Cm3_PrestaionCode" span="2" readonly="true"/>
+        <control type="textarea" name="Cm3_PrestaionDescription" span="8" readonly="true" rows="2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdSynonyms" label="Sinonimos" span="12" rows="10"
+          edit="true"	searchable="true"
+          mode="batch"
+          modalname="mdlNewSynonyms"
+          datarequest="GetSynonyms"
+          appendrequest="RuleGuid=[RuleGuid]"
+          source="Tariff,Code,Description,Active"
+          sourcelabels="Tarifa,Código S.,Descripción,Vigenta"
+          align="left|left|left|left"
+          format="|||boolean"
+          key="SynonimGuid">
+        <control type="button" name="btnInsertSynonyms" label="Actualizar Catalog" icon="cloud-upload"
+          action="batchinsert" color="green"
+          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
+          capture="grdSynonyms"
+          datainsert="Synonims"
+          appendbatch="SynonimGuid=(newUUID),RuleGuid=[RuleGuid]"
+          skipbatchrow="[[Modify]]=insert"
+          postwithout="Modify"
+          provoke="btnUpdategrdSynonyms"/>
+        </control>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnUpdategrdSynonyms"
+          action="batchupdate|close|new"
+          key="grdSynonymGuid"
+          capture="grdSynonyms"
+          dataupdate="Synonyms"
+          skipbatchrow="[[Modify]]=update"
+          postwithout="Modify"/>
+      </row>
+    </group>
+  </section>
+  <section type="modal" title="Sinonimo" name="mdlNewSynonyms">
+    <group>
+       <row>
+        <control type="label" label="Vigente" span="3"/>
+        <control type="buttongroup" name="Cm3_Active" span="3" edit="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="Tarifa" span="3"/>
+        <control type="select" name="Cm3_Tariff" span="8" searchable="true"
+          acctsvcreq="true"
+          datarequest="GetTariffs"
+          source="Code|Description,TariffGuid" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Código" span="3"/>
+        <control type="text" name="Cm3_Code" span="3" format="0" edit="true"
+          regex=""/>
+      </row>
+      <row>
+        <control type="label" label="Descripción" span="3"/>
+        <control type="text" name="Cm3_Description" span="8" edit="true" regex=""/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+  <!-- tabmodal Tariffs-->
+  <section type="tabmodal" title="Tarifas" name="mdlTariffs" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Prestación" span="2"/>
+        <control type="text" name="Cm4_PrestaionCode" span="2" readonly="true"/>
+        <control type="textarea" name="Cm4_PrestaionDescription" span="8" readonly="true" rows="2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdTariffs" label="Tarifas" span="12" rows="10"
+          edit="true"	searchable="true"
+          acctsvcreq="true"
+          datarequest="GetPrestacionTariffs"
+          appendrequest="RuleGuid=[RuleGuid],Active=true"
+          source="Description,Period,ISSPoint,ISSValue,QxGroup,Salaries,PropiaPoint,Value"
+          sourcelabels="Descripción,Periodo,Punto ISS,Valor ISS,Grupo Qx,Salarios,Punto Tarifa Propia,Valor"
+          align="left|left|left|left|left|left|left|left"
+          key="TariffGuid"/>
+      </row>
+    </group>
+  </section>
+  <!-- tabmodal Tariffs-->
+  <section type="tabmodal" title="Centros Costos" name="mdlCostCenters" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Prestación" span="2"/>
+        <control type="text" name="Cm5_PrestaionCode" span="2" readonly="true"/>
+        <control type="textarea" name="Cm5_PrestaionDescription" span="8" readonly="true" rows="2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdCostCenters" label="Centros Costos" span="12" rows="10"
+          edit="true"	searchable="true"
+          mode="batch"
+          modalname="mdlCostCenter"
+          acctsvcreq="true"
+          datarequest="GetPrestacionCostCenters"
+          appendrequest="RuleGuid=[RuleGuid],Active=true"
+          source="Code,Description"
+          sourcelabels="Código,Descripción"
+          align="|left|left"
+          format="boolean"
+          key="CostCenterGuid">
+        <control type="button" name="btnInsertCostCenters" label="Actualizar Catalog" icon="cloud-upload"
+          action="batchinsert" color="green"
+          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
+          capture="grdCostCenters"
+          datainsert="PrestacionCostCenters"
+          appendbatch="CostCenterGuid=(newUUID),RuleGuid=[RuleGuid]"
+          skipbatchrow="[[Modify]]=insert"
+          postwithout="Modify"
+          provoke="btnUpdategrdCostCenters"/>
+        </control>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnUpdategrdCostCenters"
+          action="batchupdate|close|new"
+          key="CostCenterGuid"
+          capture="grdCostCenters"
+          dataupdate="PrestacionCostCenters"
+          skipbatchrow="[[Modify]]=update"
+          postwithout="Modify"/>
+      </row>
+    </group>
+  </section>
+  <section type="modal" title="Centro de Costo" name="mdlCostCenter" trigger="Cm5_CostCenterGuid">
+    <group>
+      <row>
+        <control type="label" label="Vigente" span="3"/>
+        <control type="buttongroup" name="Cm5_Active" span="3" edit="true" default="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="Centro de Costo" span="3"/>
+        <control type="select" name="Cm5_CostCenterGuid" span="8" searchable="true" required="true"
+          acctsvc="true"
+          datasource="GetHospitalByGroupId"
+          append="GroupId=(facilityData.GroupId)"
+          source="HospitalName,HospitalGuid" edit="true"
+          set="Cm5_Code=[[LocationId]],Cm5_Description=[[HospitalName]]"/>
+        <control type="hidden" name="Cm5_Code"/>
+        <control type="hidden" name="Cm5_Description"/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+  <!-- tabmodal Vigente-->
+  <section type="tabmodal" title="Centros Costos Vigente" name="mdlActiveCostCenters" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Prestación" span="2"/>
+        <control type="text" name="Cm12_PrestaionCode" span="2" readonly="true"/>
+        <control type="textarea" name="Cm12_PrestaionDescription" span="8" readonly="true" rows="2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdActiveCostCenters" label="Centros Costos Vigente" span="12" rows="10"
+          edit="true"	searchable="true"
+          mode="batch"
+          modalname="mdlActiveCostCenter"
+          acctsvcreq="true"
+          datarequest="GetActiveCostCenters"
+          appendrequest="RuleGuid=[RuleGuid],Active=true"
+          source="Code,Description,IsActive"
+          sourcelabels="Código,Descripción,Vigente"
+          align="|left|left"
+          format="||boolean"
+          key="ActiveCenterGuid">
+        <control type="button" name="btnInsertActiveCostCenters" label="Actualizar Catalog" icon="cloud-upload"
+          action="batchinsert" color="green"
+          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
+          capture="grdActiveCostCenters"
+          datainsert="ActiveCostCenters"
+          appendbatch="ActiveCenterGuid=(newUUID),RuleGuid=[RuleGuid]"
+          skipbatchrow="[[Modify]]=insert"
+          postwithout="Modify"
+          provoke="btnUpdateActiveCostCenters"/>
+        </control>
+      </row>
+      <row showif="never">
+        <control type="button" name="btnUpdateActiveCostCenters"
+          action="batchupdate|close|new"
+          key="ActiveCenterGuid"
+          capture="grdActiveCostCenters"
+          dataupdate="ActiveCostCenters"
+          skipbatchrow="[[Modify]]=update"
+          postwithout="Modify"/>
+      </row>
+    </group>
+  </section>
+  <section type="modal" title="Centro de Costo Vigente" name="mdlActiveCostCenter">
+    <group>
+      <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Cm12_Active" span="3" edit="true" default="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="Centro de Costo" span="3"/>
+        <control type="select" name="Cm12_CostCenterGuid" span="8" searchable="true" required="true"
+          acctsvc="true"
+          datasource="GetHospitalByGroupId"
+          append="GroupId=(facilityData.GroupId)"
+          source="HospitalName,HospitalGuid" edit="true"
+          set="Cm12_Code=[[LocationId]],Cm12_Description=[[HospitalName]]"/>
+        <control type="hidden" name="Cm12_Code"/>
+        <control type="hidden" name="Cm12_Description"/>
+      </row>
+      <row>
+        <control type="label" label="Vigente" span="3"/>
+        <control type="buttongroup" name="Cm12_IsActive" span="3" edit="true" default="true"
+          source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+  <!-- tabmodal Tariffs-->
+  <section type="tabmodal" title="Conjunto de Atención" name="mdlRelatedProcedures" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Prestación" span="2"/>
+        <control type="text" name="Cm6_PrestaionCode" span="2" readonly="true"/>
+        <control type="textarea" name="Cm6_PrestaionDescription" span="8" readonly="true" rows="2"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdRelatedProcedures" label="Procedimientos Asociados" span="12" rows="5"
+          edit="true"	searchable="true"
+          mode="batch"
+          acctsvcreq="true"
+          datarequest="GetPrestacionProcedures"
+          appendrequest="RuleGuid=[RuleGuid],Active=true"
+          source="Code,Description,Quantity,Opportunity,Reference"
+          sourcelabels="Código,Descripción,Cantidad,Oportunidad,Referencia"
+          align="left|left|left|left|"
+          format="||||boolean"
+          key="RelatedProcedureGuid">
+        <control type="button" name="btnInsertRelatedProcedures" label="Actualizar Catalog" icon="cloud-upload"
+          action="batchinsert" color="green"
+          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
+          capture="grdRelatedProcedures"
+          datainsert="PrestacionProcedures"
+          appendbatch="RelatedProcedureGuid=(newUUID),RuleGuid=[RuleGuid]"
+          skipbatchrow="[[Modify]]=insert"
+          postwithout="Modify"
+          provoke="btnUpdateRelatedProcedures"/>
+        </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="btnUpdateRelatedProcedures"
+            action="batchupdate|close|new"
+            key="RelatedProcedureGuid"
+            capture="grdRelatedProcedures"
+            dataupdate="PrestacionProcedures"
+            skipbatchrow="[[Modify]]=update"
+            postwithout="Modify"/>
+        </row>
+        <row>
+          <control type="datagrid" name="grdRelatedItems" label="Productos Asociados" span="12" rows="5"
+            edit="true"	searchable="true"
+            mode="batch"
+            acctsvcreq="true"
+            datarequest="GetPrestacionItems"
+            appendrequest="RuleGuid=[RuleGuid],Active=true"
+            source="Code,Description,Quantity,Opportunity"
+            sourcelabels="Código,Descripción,Cantidad,Oportunidad"
+            align="left|left|left|left"
+            key="RelatedItemGuid">
+          <control type="button" name="btnInsertRelatedItems" label="Actualizar Catalog" icon="cloud-upload"
+            action="batchinsert" color="green"
+            confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
+            capture="grdRelatedItems"
+            datainsert="PrestacionItems"
+            appendbatch="RelatedItemGuid=(newUUID),RuleGuid=[RuleGuid]"
+            skipbatchrow="[[Modify]]=insert"
+            postwithout="Modify"
+            provoke="btnUpdateRelatedItems"/>
+          </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="btnUpdateRelatedItems"
+            action="batchupdate|close|new"
+            key="RelatedItemGuid"
+            capture="grdRelatedItemss"
+            dataupdate="PrestacionItems"
+            skipbatchrow="[[Modify]]=update"
+            postwithout="Modify"/>
+        </row>
+    </group>
+  </section>
+  <section type="modal" title="Procedimiento Asociado" name="mdlNewRelatedProcedure">
+    <group>
+      <row>
+        <control type="label" label="Procedimiento Asociado" span="3"/>
+        <control type="select" name="Cm6_ProcedureGuid" span="8" searchable="true" required="true"
+          acctsvc="true"
+          datasource="GetProcedureAdministrationItemsNamesOnly"
+          source="ProcedureDescription,ProcedureGuid"
+          set="Cm6_Code=[[ProcedureCode]],Cm6_Description=[[ProcedureDescription]]"/> 
+        <control type="hidden" name="Cm6_Code"/>
+        <control type="hidden" name="Cm6_Description"/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+  <section type="modal" title="Producto Asociado" name="mdlNewRelatedProcedure">
+    <group>
+      <row>
+        <control type="label" label="Producto Asociado" span="3"/>
+        <control type="typeahead" name="ItemMasterGuid" span="9"
+          acctsvc="true"
+          datasource="GetItemMasterItemsBySearchCriteria"
+          term="searchCriteria"
+          append="Inventory=true,Status=Active"
+          source="ItemName,ItemMasterGuid"
+          set="[Cm10_Code]=[[ItemCode]],[Cm10_Description]=[[ItemName]]"/>
+        <control type="hidden" name="Cm10_Code"/>
+        <control type="hidden" name="Cm10_Description"/>
+      </row>
+      <row>
+        <control type="label" label="Cantidad" span="3"/>
+        <control type="text" name="Cm10_Quantity" span="3" format="0" edit="true" required="true"
+          regex=""/>
+      </row>
+      <row>
+        <control type="label" label="Oportunidad" span="3"/>
+        <control type="text" name="Cm10_Opportunity" span="3" format="0" edit="true" required="true"
+          regex=""/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+</partial>

@@ -1,0 +1,595 @@
+<partial>
+  <section type="tabmodal" badge="none" name="mdlBirthRecord" title="Hoja de Parto/Aborto">
+    <group showif="never">
+      <row>
+        <control name="BirthGuid" type="hidden"
+          acctsvcreq="true"
+          datarequest="GetPatientBirthRecords"
+          appendrequest="BirthGuid=[BirthGuid]"
+          inject="grpBirthRecordInfo"
+          provoke="GetBirthMotherInfo,grdBirthDeliveries"/>
+        <control type="hidden" name="GetBirthMotherInfo"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="grpMothersInfo"/>
+      </row>
+    </group>
+
+		<group name="grpMothersInfo" bgcolor="white">
+          <row>
+            <control type="hidden" name="Birth_HasOpenVisit"/>
+            <control type="hidden" name="Birth_DateTimeOfDeath"/>
+            <control type="hidden" name="Birth_PatientVisit"/>
+            <control type="hidden" name="Birth_HasOpenCharges"/>
+            <control type="hidden" name="Birth_HasOpenPayments"/>
+            <control type="hidden" name="Birth_HasPatientPayer"/>
+            <control type="hidden" name="Birth_PatientFullName"/>
+          </row>
+          <row>
+              <control type="label" label="Nombre" align="left" span="3"/>
+              <control type="label" label="Segundo Nombre" align="left" span="3"/>
+              <control type="label" label="Primer Apellido" align="left" span="3"/>
+              <control type="label" label="Segundo Apellido" align="left" span="3"/>
+          </row>
+          <row>
+            <control type="text" name="Birth_PatientFirstName" span="3" readonly="true"/>
+            <control type="text" name="Birth_PatientNameSuffix" span="3" readonly="true"/>
+            <control type="text" name="Birth_PatientMiddleName" span="3" readonly="true"/>
+            <control type="text" name="Birth_PatientLastName" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Expediente" span="2"/>
+            <control type="text" name="Birth_MedicalRecordNumber" span="2" readonly="true"/> 
+          <control type="label" label="Nacionalidad" span="2"/>
+            <control type="select" name="Birth_Nationality" span="2" readonly="true"
+              default="(facilityData.HospitalCountry)"
+              sort="CountrySpanish=asc"
+              datasource="GetCountries" 
+              source="CountrySpanish,Code"/>   
+            <control type="label" label="Sangre" span="2" />
+            <control type="select" name="Birth_BloodType" span="2" readonly="true"
+              source="A+,A-,B+,B-,O+,O-,AB+,AB-,Desconoce"/>
+          </row>
+          <row>
+            <control type="label" label="Fecha Nacimiento" span="2"/>
+            <control type="date" name="Birth_PatientDOB" span="3" readonly="true"/>
+            <control type="text" name="Birth_PatientAge" span="2" readonly="true"/>
+            <control type="label" label="Hora Nacimiento" span="3" />
+            <control type="time" name="Birth_TimeOfBirth" span="2" readonly="true"/>
+          </row>
+          <row showif="never">
+            <control type="timediff" name="Birth_AgeInHours" span="1" source="[Birth_PatientDOB],(now),hours"/>
+            <control type="timediff" name="Birth_AgeInDays" span="1" source="[Birth_PatientDOB],(now),days"/>
+            <control type="timediff" name="Birth_AgeInMonths" span="1" source="[Birth_PatientDOB],(now),months"/>
+            <control type="timediff" name="Birth_AgeInYears" span="1" source="[Birth_PatientDOB],(now),years"/>
+          </row>
+    </group>
+    <group name="grpBirthRecordInfo" bgcolor="white">
+      <row>
+        <control type="label" label="Fecha/Hora" span="3"/>
+        <control type="datetime" name="Birth_DateOfBirth" span="3" default="now" edit="true" required="true"/>
+        <control type="button" name="btnSaveBirthRecord" color="green" icon="cloud-upload" 
+          label="Guardar" span="2" offset="4"
+          reveal="[BirthGuid]=+[Birth_PregnancyTermination]=2" 
+          action="save" acctsvc="true"
+          capture="grpBirthRecordInfo"
+          affector="BirthGuid"
+          setaffector="BirthGuid"
+          datainsert="InsertPatientBirthRecords"
+          appendinsert="PatientId=[PatientId],PatientVisit=[PatientVisitGuid]"/>
+        <control type="button" name="btnSaveAbortionRecord" color="green" icon="cloud-upload" 
+          label="Guardar" span="2" offset="4"
+          reveal="[BirthGuid]=+[Birth_PregnancyTermination]=1" 
+          action="save|close|new" 
+          acctsvc="true"
+          capture="grpBirthRecordInfo"
+          affector="BirthGuid"
+          setaffector="BirthGuid"
+          datainsert="InsertPatientBirthRecords"
+          appendinsert="PatientId=[PatientId],PatientVisit=[PatientVisitGuid]"
+          provoke="dgrBirthRecords"/>
+        <control type="button" name="btnUpdateBirthRecord" label="Actualizar"  span="2" icon="cloud-upload" offset="4"
+          reveal="[BirthGuid]!"
+          action="save|close|new" acctsvc="true"
+          capture="grpBirthRecordInfo"
+          affector="none"
+          dataupdate="UpdatePatientBirthRecords"
+          appendupdate="BirthGuid=[BirthGuid]"
+          provoke="dgrBirthRecords"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo de Atención" span="3"/>
+        <control type="buttongroup" name="Birth_PregnancyTermination" span="3" 
+          edit="true"
+          source="1,2" required="true"
+          sourcelabels="ABORTO,PARTO"/>
+        <control type="button" name="btnPartograma" label="Partograma"  span="2" icon="edit" offset="4"
+              reveal="[BirthGuid]!" action="redirect" target="mdlPartograma"/>
+      </row>
+      <row name="rowAbortionType" reveal="[Birth_PregnancyTermination]=1">
+        <control type="label" label="Tipo Aborto" span="3"/>
+        <control type="select" name="Birth_BirthType" span="3" 
+          edit="true" required="true"
+          source="1,2,3"
+          sourcelabels="LUI,AMEU,MEDICAMENTO"/>
+      </row>
+      <row name="rowBirthType" reveal="[Birth_PregnancyTermination]=2">
+        <control type="label" label="Tipo de Parto" span="3"/>
+        <control type="select" name="Birth2_BirthType" span="3"
+          required="true" 
+          edit="true"
+          source="1,2,3,4"
+          sourcelabels="Esponteneo,Instrumentado,Cesárea,Ectópico"/> 
+           <control type="label" label="Cuenta de Fetos" span="3"/>
+        <control type="integer" name="Birth_FetalCount" span="1" edit="true" 
+          required="true" default="[VisitInfo_FetusCount]"/>     
+      </row>
+      <row>
+        <control type="label" label="SDG" span="3"/>
+        <control type="integer" name="Birth_WeeksPregnant" span="1" 
+          edit="true" required="true" default="[VisitInfo_WeeksPregnant]" min="0" max="120"/>
+        <control type="label" label="Semanas" span="1" align="left"/>
+        <control type="integer" name="Birth_DaysPregnant" span="1"
+          edit="true" required="true" default="[VisitInfo_DaysPregnant]" min="0" max="6"/>
+        <control type="label" label="Dias" span="1" align="left"/>
+      </row>
+      <row name="rowMotherPosition" reveal="[Birth_PregnancyTermination]=2">
+        <control type="label" label="Posición de la Madre" span="3"/>
+        <control type="select" name="MothersPosition" span="3" edit="true" required="true"
+          source="Decúbito Supino,Decúbito Lateral,Cuclillas,Cuadrupedia,Sentada,De pie"/> 
+        <control type="label" label="Episiotomía" span="3"/>
+        <control type="select" name="Epistomy" span="3" edit="true" required="true"
+          source="No se realiza,Linea Media,Media Lateral Izquierda,Media Lateral Derecha"/>   
+      </row>
+      <row name="rowPerineum" reveal="[Birth_PregnancyTermination]=2">
+        <control type="label" label="Periné" span="3"/>
+        <control type="select" name="Perineum" span="3" edit="true" required="true"
+          source="Indemne,Desgarro 1er Grado,Desgarro 2do Grado,Desgarro 3er Grado,Desgarro 4to Grado"/> 
+        <control type="label" label="Revisión de Instrumental" span="3"/>
+        <control type="buttongroup" name="Instrumental" span="3" edit="true" required="true"
+          source="True,False" sourcelabels="Sí,No"/>   
+      </row>
+      <row>
+        <control type="label" label="Tipo de Anestesia" span="3"/>
+        <control type="select" name="AnesthesiaType" edit="true" span="3"
+          source="Neuroaxial,Óxido nitroso,Alalgesia endovenoso,General,Local,No farmacológicas"/>
+      </row>
+      <row name="rowAccompaniment" reveal="[Birth_PregnancyTermination]=2">
+        <control type="label" label="Acompañamiento en el Parto" span="3"/>
+        <control type="select" name="Accompaniment" span="3" edit="true" required="true"
+          source="Progenitor,Figura Significativa,Sin Acompañante"/>  
+        <control type="label" label="Tiempo de Acompañamiento" span="3"/>
+        <control type="select" name="CompanionTime" span="3" edit="true"
+          source="1,2"
+          sourcelabels="Durante de parto,Sólo en el expulsivo"/>  
+      </row>
+      <row>
+        <control type="label" label="Método Anticonceptivo" span="3"/>
+        <control type="select" name="BirthControl" span="3" edit="true"
+          source="1,2,3,4,5,6,7,8,9,10,11,12"
+          sourcelabels="DIU con Cobre
+            ,DIU con Levonorgestrel
+            ,Oral Combinado
+            ,Oral Progestágeno
+            ,Inyectable Combinado
+            ,Inyectable Progestágeno
+            ,Implante Etonogestrel (3 años)
+            ,Implante Levonorgestrel (5 años)
+            ,Anillo de Progestágeno
+            ,Métodos de barrera
+            ,Esterilización quirúrgica
+            ,Alta sin método anticonceptivo"/> 
+        <control type="label" label="Tiempo" span="3"/>
+        <control type="select" name="BirthControlTiming" span="3" edit="true"
+          source="1,2,3,4"
+          sourcelabels="Post Aborto,Intracesárea,Post Parto, Post IVE"/>
+      </row>
+      <row>
+        <control type="label" label="Complicaciones" span="3"/>
+        <control type="select" name="Complications" span="9" edit="true" searchable="multiple"
+          source="1,2,3,4,5,6,7,8,9,A,B,C"
+          sourcelabels="Hemorragia post parto Inercia
+            ,Hemorragia post parto	Restos
+            ,Hemorragia post parto	Trauma
+            ,Hemorragia post parto	Desgarros III y IV
+            ,Hemorragia post parto	Alteraciones de la coagulación
+            ,Preeclampsia severa
+            ,Eclampsia
+            ,Sepsis o infección sistémica grave
+            ,Otro Complicaciones
+            ,Manejo quirúrgico de la inercia uterina
+            ,Histerectomía obstétrica
+            ,Transfusión"/>
+      </row>
+      <row>
+        <control type="label" label="Notas" span="3"/>
+        <control type="textarea" name="BirthNotes" rows="1" edit="true" span="9"/>
+      </row>
+      <row name="rowBirthDeliveries" reveal="[BirthGuid]!+[Birth_PregnancyTermination]=2">
+        <control type="datagrid" label="Recien Nacidos" name="grdBirthDeliveries" cols="12" rows="3"
+          action="redirect"
+          target="mdlNewBirth"
+          acctsvcreq="true"
+          datarequest="GetNewbornBirthRecords"
+          appendrequest="BirthGuid=[BirthGuid]"
+          source="DateTimeOfBirth,MedicalRecordNumber,Ordinal,PatientFirstName,PatientMiddleName,PatientLastName,DeliveryType,DeliveryResult"
+          sourcelabels="Fecha y Hora,Número de Ficha,Cuenta,Nombre,Primer Apellido,Segundo Apellido,Tipo de Parto,Resultado"
+          align="|left|left|left|left|left"
+          format="datetime"
+          sort="DateTimeOfBirth=desc"
+          key="NewbornGuid"
+          onselectset="NewbornGuid=[[NewbornGuid]]"
+          onselect="NewbornGuid">
+          <control type="button" name="RecordNewBirth" label="Añadir Nuevo" icon="plus"
+            reveal="[clcNewOrdinal]≤[Birth_FetalCount]"
+            action="redirect"
+            target="mdlNewBirth"
+            preset="Birth_PatientFirstName=concat|Hijo [clcNewOrdinal] de [Mother_PatientFirstName],
+              Birth_Ordinal=[clcNewOrdinal],
+              Newborn_PrimaryIdNumber=[Mother_AccountNumber],
+              Newborn2_PrimaryIdNumber=[Mother_AccountNumber],
+              Newborn_PatientLastName=[Mother_PatientMiddleName],
+              BirthMother_AccountNumber=[Mother_AccountNumber],
+              BirthMother_PatientFirstName=[Mother_PatientFirstName],
+              BirthMother_PatientMiddleName=[Mother_PatientMiddleName],
+              BirthMother_PatientLastName=[Mother_PatientLastName],
+              BirthMother_PatientNameSuffix=[Mother_PatientNameSuffix]"/>
+        </control>
+      </row>
+      <row showif="never">
+        <control type="calc" name="clcNewOrdinal" source="Length(grdBirthDeliveries)+1"/>
+      </row>
+    </group>
+  </section>
+  <!-- Tabmodal to enter/edit newborn records -->
+  <section type="tabmodal" name="mdlNewBirth" title="Recien Nacido" badge="none">
+    <group>
+      <row>
+        <control type="hidden" name="NewbornGuid"
+          acctsvcreq="true"
+          datarequest="GetNewbornBirthRecords"
+          appendrequest="NewbornGuid=[NewbornGuid]"
+          inject="NewbornPatientInfo"
+          set="BirthMother_AccountNumber=[Mother_AccountNumber],
+              BirthMother_PatientFirstName=[Mother_PatientFirstName],
+              BirthMother_PatientMiddleName=[Mother_PatientMiddleName],
+              BirthMother_PatientLastName=[Mother_PatientLastName],
+              BirthMother_PatientNameSuffix=[Mother_PatientNameSuffix]"/>
+      </row>
+    </group>
+    <group name="NewbornPatientInfo">
+      <subset bgcolor="white">
+      <row>
+       <control type="hidden" name="Birth_FinancialClass"/>
+        <control type="hidden" name="Birth_FonasaSection"/>
+        <control type="hidden" name="Birth_PrimaryId"/>
+        <control type="hidden" name="Birth_PrimaryIdNumber"/>
+        <control type="hidden" name="Birth_OtherFinancialClasses"/>
+        <control type="hidden" name="Birth_Nationality"/>
+        <control type="hidden" name="Birth_Birthplace"/>
+        <control type="hidden" name="Birth_IndigenousCheck"/>
+        <control type="hidden" name="Birth_IndigenousStatus"/>
+        <control type="hidden" name="Birth_AfricanDescent"/>
+        <control type="hidden" name="Birth_FamilyGuid"/>
+      </row>
+      <row>
+        <control type="label" label="" span="2"/>
+				<control type="label" label="Número" span="1" align="left"/>
+				<control type="label" label="Nombres" span="3" align="left"/>
+				<control type="label" label="Primer Apellido" span="3" align="left"/>
+				<control type="label" label="Segundo Apellido" span="3" align="left"/>
+			</row>
+			<row>
+        <control type="label" label="" span="2"/>
+				<control type="text" name="Birth_Ordinal" span="1" readonly="true"/>
+				<control type="text" name="Birth_PatientFirstName"  span="3"  edit="true" required="true"/>
+				<control type="text" name="Birth_PatientMiddleName"  span="3" edit="true" required="true"/>
+				<control type="text" name="Birth_PatientLastName"  span="3" edit="true" default="[Consult_PatientMiddleName]"/>
+			</row>
+      <row>
+        <control type="label" label="Fecha y Hora Nacimiento" span="3" />
+        <control type="datetime" name="Newborn_DateTimeOfBirth" span="3" 
+          default="now" edit="[NewbornGuid]=" required="true"/>
+        <control type="label" label="Sexo Biológico" span="3" />
+        <control type="select" name="Newborn_PatientSex" span="2" required="true" edit="true"
+          source="Male,Female,Intersex,Indeterminate,Unknown" explicit="true"
+          sourcelabels="1 Hombre,2 Mujer,3 Intersex,93 No Informado,99 Desconocido"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo de Parto" span="3"/>
+        <control type="select" name="Newborn_DeliveryType" span="3" edit="true"
+          source="Parto Vaginal,
+            Parto Instrumental (Forceps o Vacuum),
+            Cesárea Electiva,
+            Cesárea de Urgencia,
+            Parto extrahospitalario,
+            No se realiza Parto"/>   
+        <control type="label" label="Presentación" span="3"/>
+        <control type="select" name="Newborn_Presentation" span="3" edit="true"
+          source="Cefálica,Podálica,Transversal"/> 
+      </row>
+      <row>
+        <control type="label" label="Posición al expulsivo" span="3"/>
+        <control type="select" name="Newborn_DeliveryPosition" span="3" edit="true"
+          source="1,2" sourcelabels="Litomía,Otras posiciones"/>
+        <control type="label" label="Libertad de movimiento" span="3"/>
+        <control type="buttongroup" name="Newborn_FreeMovement" span="3" edit="true"
+          source="True,False" sourcelabels="Sí,No"/> 
+      </row>
+      <row name="rowCesarianDelivery" reveal="[Newborn_DeliveryType]=Cesárea Electiva|Cesárea de Urgencia">
+        <control type="label" label="Clasificación Robson" span="3"/>
+        <control type="select" name="Newborn_RobsonClass" span="9" edit="true"
+          source="1,2.1,2,2,3,4,5.1,5.2,6,7,8,9,10"
+          sourcelabels="Grupo 1: Nulíparas(,) embarazo único(,) cefálica(,) ≥37 semanas en trabajo de parto espontáneo.
+            ,Grupo 2.1: Nulíparas(,) embarazo único(,) cefálica(,) ≥37 semanas(,) cesárea programada o con inducción de trabajo de parto Total cesáreas.
+            ,Grupo 2.2: Nulíparas(,) embarazo único(,) cefálica(,) ≥37 semanas(,) cesárea programada o con inducción de trabajo de parto Por requerimiento materno.
+            ,Grupo 3: Multípara(,) sin cesárea previa(,) embarazo único(,) cefálica(,) ≥37 semanas en trabajo de parto espontáneo.
+            ,Grupo 4: Multípara(,) sin cesárea previa(,) embarazo único(,) cefálica(,) ≥37 semanas(,) cesárea programada o con inducción de trabajo de parto. 	
+            ,Grupo 5: multíparas con al menos 1 cesárea previa(,) embarazo unico(,) cefálica(,) ≥37 semanas.
+            ,Grupo 5.1: multíparas con al menos 1 cesárea previa(,) embarazo unico(,) cefálica(,) ≥37 semanas con 1 cesárea previa.
+            ,Grupo 5.2: multíparas con al menos 1 cesárea previa(,) embarazo unico(,) cefálica(,) ≥37 semanas con 2 o más cesareas previas.
+            ,Grupo 6: Nulíparas(,) embarazo único(,) podálica.
+            ,Grupo 7: Multíparas(,) embarazo único(,) podálica(,) con 1 o más cesáreas previas.
+            ,Grupo 8: Todas las mujeres con embarazo múltiple(,) incluidas las que tienen 1 o más cesáreas previas.
+            ,Grupo 9: Embarazo único(,) transverso y oblicuo(,) incluidas las que tienen una o mas cesáreas previas.
+            ,Grupo 10: Todas las mujeres con embarazo único(,) cefálica(,) menor 37 semanas(,) incluidas las que tienen 1 o más cesáreas."/>
+      </row>
+      <row>
+        <control type="label" label="Inducidos" span="3"/>
+        <control type="select" name="Newborn_Inducement" span="3" edit="true"
+          source="Espontáneo,Mecánica,Farmacológica"/>   
+        <control type="label" label="Régimen hídrico amplio" span ="3"/>
+        <control type="buttongroup" name="BroadWater" span="3"
+          source="True,False" sourcelabels="Sí,No" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Resultado de Parto" span="3"/>
+        <control type="select" name="Newborn_DeliveryResult" span="3" edit="true"
+          source="Nacido Vivo,Aborto,Mortinato,Mortineonatos"/>   
+        <control type="label" label="Lugar de Parto" span="3"/>
+        <control type="select" name="Newborn_DeliveryPlace" span="3" edit="true"
+          source="Hospital,Prehospitalario,Fuera de la Red,En Domicilio con profesional,En Domicillo sin profesional"/> 
+      </row>
+      <row name="rowGriefSupport" reveal="[Newborn_DeliveryResult]=Aborto|Mortinato|Mortineonatos">
+        <control type="label" label="Integral duelo perinatal" span="3"/>
+        <control type="select" name="Newborn_GriefSupport" span="5" edit="true" searchable="multiple"
+          source="1,2,3,4"
+          sourcelabels="Atención en Sala Diferenciada,Entrega de recuerdos de maternidad/paternidad,
+          Con acompañamiento psicosocial,Padre o familiar significativo"/>   
+      </row>
+      <row>
+        <control type="label" span="3" label="Peso al Nacer(GR)"/>
+        <control type="double" name="Newborn_Weight" span="3" edit="true"/>
+        <control type="label" span="3" label="Talla al Nacer(CM)"/>
+        <control type="integer" name="Newborn_Height" span="3" edit="true"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Circunferencia Craneana"/>
+        <control type="integer" name="Newborn_CranialCircumference" span="1" edit="true"/>
+        <control type="label" label="Adecuación" span="2"/>
+        <control type="buttongroup" name="Newborn_Adequacy" span="6" edit="true"
+          source="RN Pretérmino,RN Término,RN Postérmino"/> 
+      </row>
+      <row>
+        <control type="label" span="3" label="Apgar 1 Min"/>
+        <control type="integer" name="Newborn_Apgar1Min" span="1" edit="true"/>
+        <control type="label" span="2" label="Apgar 5 Min"/>
+        <control type="integer" name="Newborn_Apgar5Min" span="1" edit="true"/>
+        <control type="label" span="2" label="Apgar 10 Min"/>
+        <control type="integer" name="Newborn_Apgar10Min" span="1" edit="true"/>
+        <control type="button" name="btnSilverman" label="Silverman" span="2" icon="plus"
+          action="redirect" target="mdlSilverman"/>
+      </row>
+      <row>
+        <control type="label" label="Piel A Piel más 30 Min. con la Madre" span="5"/>
+        <control type="buttongroup" name="Newborn_MotherContact" span="2" 
+          source="True,False" sourcelabels="Sí,No" edit="true"/>
+        <control type="label" label="Padre" span="1"/>
+        <control type="buttongroup" name="Newborn_FatherContact" span="2" 
+          source="True,False" sourcelabels="Sí,No" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Lactancia materna en los primeros 60 minutos de vida" span="5"/>
+        <control type="buttongroup" name="Newborn_BreastFed" span="2" 
+          source="True,False" sourcelabels="Sí,No" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Malformaciones" span="3"/>
+        <control type="buttongroup" name="Newborn_Malformations" span="3" edit="true"
+          source="True,False" sourcelabels="Sí,No"/>   
+        <control type="label" label="CU Arterias" span="2"/>
+        <control type="integer" name="Newborn_Arteries" span="1" edit="true"/>
+        <control type="label" label="CU Venas" span="2"/>
+        <control type="integer" name="Newborn_Arteries" span="1" edit="true"/>
+      </row>
+      <row name="rowMalformationText" reveal="[Newborn_Malformations]=True">
+        <control type="label" label="" span="3"/>
+        <control type="text" name="Newborn_MalformationText" span="9" edit="true"/>  
+      </row>
+      <row>
+        <control type="label" label="Líquido Amniótico" span="3"/>
+        <control type="text" name="Newborn_AmnioticFluid" span="3" edit="true"/>  
+        <control type="label" label="Cordon Umbilical (CU)" span="3"/>
+				<control type="text" name="UmbilicalCord"  span="3" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Causa de no Apego" span="3"/>
+				<control type="text" name="Newborn_NonAttachmentCause" span="3" edit="true" 
+          required="[Newborn_Attachment]%No Se Realiza Apego"/>
+        <control type="label" span="3" label="Tiempo de Apego"/>
+        <control type="integer" name="Newborn_AttachmentTime" span="3" edit="true"/>
+      </row>
+    </subset>
+    <subset bgcolor="white">
+      <row>
+        <control type="label" label="Fecha y Hora" span="3" />
+        <control type="datetime" name="Newborn_PlacentaDateTime" span="3" 
+          default="now" edit="true" required="true"/>
+        <control type="label" label="Método de extracción" span="3"/>
+        <control type="select" name="Newborn_ExtractionMethod" span="3" edit="true"
+          source="Fisiológico,Dirigido,Corregido,Manual" searchable="multiple"/> 
+      </row>
+      <row>
+        <control type="label" label="Uso de Oxitocina Profiláctica" span="3"/>
+        <control type="buttongroup" name="Newborn_ProphylacticOxygen" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No"/>  
+        <control type="label" span="3" label="Peso de la Placenta"/>
+        <control type="double" name="Newborn_PlacentaWeight" span="3" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Condición de Placenta" span="3"/>
+        <control type="select" name="Newborn_PlacentaCondition" span="3" edit="true"
+          source="Completa,Incompleta"/>   
+        <control type="label" span="2" label="Comentario"/>
+        <control type="text" name="Newborn_PlacentaComment" span="4" edit="true"/>
+      </row>
+    </subset>
+    <subset bgcolor="white">
+      <row>
+        <control type="label" label="Vitamina K" span="3"/>
+        <control type="buttongroup" name="Newborn_VitaminK" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No"/>  
+        <control type="label" label="Sitio de Punción" span="3"/>
+        <control type="text" name="Newborn_VitaminKPunctureSite"  span="3" edit="[Newborn_VitaminK]=True"
+          when="[Newborn_VitaminK]=False;"/>
+      </row>
+      <row>
+        <control type="label" label="Vacuna BCG" span="3"/>
+        <control type="buttongroup" name="Newborn_BCGVaccine" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No"/>  
+        <control type="label" label="Sitio de Punción" span="3"/>
+        <control type="text" name="Newborn_BCGvaccinePunctureSite"  span="3" edit="[Newborn_BCGVaccine]=True"
+          when="[Newborn_BCGVaccine]=False;"/>
+      </row>
+      <row>
+        <control type="label" label="Vacuna Hepatitis B" span="3"/>
+        <control type="buttongroup" name="Newborn_HepatitisBVaccine" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No"/>  
+        <control type="label" label="Sitio de Punción" span="3"/>
+        <control type="text" name="Newborn_HepatitisBVaccinePunctureSite"  span="3" edit="[Newborn_HepatitisBVaccine]=True"
+          when="[Newborn_HepatitisBVaccine]=False;"/>
+      </row>
+      <row>
+        <control type="label" label="Profilaxis Ocular" span="3"/>
+        <control type="buttongroup" name="Newborn_OcularProfilaxis" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No"/>  
+        <control type="label" label="Reanimation" span="3"/>
+        <control type="select" name="Newborn_Resuscitation" span="3" edit="true"
+        source="Básica,Avanzada,Ninguna"/> 
+      </row>
+      <row>
+        <control type="label" label="EHI Grado II y III" span="3"/>
+        <control type="buttongroup" name="Newborn_EHIGrade" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No"/>  
+      </row>
+      <row>
+        <control type="label" label="Examen PKU" span="3"/>
+        <control type="buttongroup" name="Newborn_ExamPKU" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No" set="[Newborn_ExamPKU]=False;Newborn_PKUExamDate="/>  
+        <control type="label" label="Fecha PKU" span="3" />
+        <control type="datetime" name="Newborn_PKUExamDate" span="3" edit="[Newborn_ExamPKU]=True"
+          required="[Newborn_ExamPKU]=True"/>
+      </row>
+      <row>
+        <control type="label" label="Examen TSH" span="3"/>
+        <control type="buttongroup" name="Newborn_ExamTSH" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No" set="[Newborn_ExamTSH]=False;Newborn_TSHExamDate="/>  
+        <control type="label" label="Fecha TSH" span="3" />
+        <control type="datetime" name="Newborn_TSHExamDate" span="3" edit="[Newborn_ExamTSH]=True"
+          required="[Newborn_ExamTSH]=True"/>
+      </row>
+      <row>
+        <control type="label" label="Examen IRT" span="3"/>
+        <control type="buttongroup" name="Newborn_ExamIRT" span="3" edit="true"
+        source="True,False" sourcelabels="Sí,No" set="[Newborn_ExamIRT]=False;Newborn_IRTExamDate="/> 
+        <control type="label" label="Fecha IRT" span="3" />
+        <control type="datetime" name="Newborn_IRTExamDate" span="3" edit="[Newborn_ExamIRT]=True"
+          required="[Newborn_ExamIRT]=True"/>
+      </row>
+      <row>
+        <control type="label" label="Comentarios" span="3"/>
+        <control type="text" name="Newborn_Comments"  span="9" edit="true"/>
+      </row>
+      </subset>
+    </group>
+    <group>
+      <row>
+        <control type="hidden" name="Newborn_PatientId"/>
+        <control type="modalbutton" name="btnInsertNewbornPatient" label="Guardar"
+          reveal="[NewbornGuid]=" color="green"
+          action="save"
+          capture="NewbornPatientInfo"
+          affector="Newborn_PatientId"
+          setaffector="RecordUniqueId"
+          datainsert="InsertPatient"
+          appendinsert="PatientDOB=[Newborn_DateTimeOfBirth],ReadyToSendToBrowse=true"
+          provoke="btnInsertNewbornRecord"/>
+        <control type="modalbutton" name="btnUpdateNewbornPatient" label="Actualizar"
+          reveal="[NewbornGuid]!"
+          action="save|close|new"
+          capture="NewbornPatientInfo"
+          affector="none"
+          acctsvc="true"
+          dataupdate="UpdateNewbornBirthRecords"
+          appendupdate="NewbornGuid=[NewbornGuid]"
+          provoke="dgrBirthRecords"/>
+      </row>
+      <row showif="never">
+        <!-- button to insert newborn record -->
+        <control type="button" name="btnInsertNewbornRecord" action="save"
+          acctsvc="true"
+          capture="NewbornPatientInfo"
+          affector="none"
+          datainsert="InsertNewbornBirthRecords"
+          appendinsert="BirthGuid=[BirthGuid],PatientId=[Newborn_PatientId]"
+          provoke="btnInsertNewbornMotherContact"/>
+        <!-- button to insert mother's contact information -->
+        <control type="button" name="btnInsertNewbornMotherContact" action="save|close|new"
+          affector="none"
+          datainsert="InsertPatientSupportContacts"
+          appendinsert="PatientId=[Newborn_PatientId],
+            Active=true,
+            ContactRelationship=Madre,
+            NationalID=[Consult_AccountNumber],
+            PatientGuarantor=true,
+            FirstName=[Consult_PatientFirstName],
+            MiddleName=[Consult_PatientMiddleName],
+            LastName=[Consult_PatientLastName],
+            HomeTelephone=[Consult_PatientPhoneNumber],
+            MobileTelephone=[Consult_PatientSecondNumber],
+            EmailAddress=[Consult_PatientEmail],
+            StreetAddress1=[Mother_StreetAddressLine1],
+            StreetAddress2=[Mother_StreetAddressLine2],
+            City=[Mother_City],
+            CountryCode=[Mother_CountryCode],
+            Country=[Mother_Country],
+            Province=[Mother_Province],
+            ProvinceText=[Mother_ProvinceText],
+            State=[Mother_State],
+            StateCode=[Mother_StateCode]"
+          provoke="btnInsertNewBornRegistration,grdBirthDeliveries"/>
+        <!-- Button to insert the patient registration -->
+        <control type="button" name="btnInsertNewBornRegistration"
+            action="save" affector="none"
+            acctsvc="true"
+            datainsert="InsertFacilityRegistration"
+            appendinsert="PatientId=[Newborn_PatientId],
+              Active=true,
+              DateTimeRegistered=(now),
+              FacilityRegistered=(facilityData.OpenErpDb),
+              Sector=,
+              RegistrationType=1"
+            provoke="btnUpdateNewBornWithRegistration"/>
+        <!-- button to update facility registration to patient record -->
+        <control type="button" name="btnUpdateNewBornWithRegistration"
+          action="save" affector="none"
+          dataupdate="UpdatePatient"
+          appendupdate="PatientId=[Newborn_PatientId],
+            MemberUnit=(facilityData.OpenErpDb),
+            Sector=,
+            AgreementDate=(now),
+            PrimaryPayorRelationship=1"/>
+      </row>
+    </group>
+  </section>
+</partial>

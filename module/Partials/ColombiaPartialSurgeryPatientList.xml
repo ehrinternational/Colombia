@@ -12,11 +12,6 @@
       append="LocationId=(facilityData.LocationId)" 
       source="DepartmentName,DepartmentGuid"
       provoke="[[DepartmentGuid]]!(user.Department);SaveLastDepartment,PatientList"/>
-    <control type="buttongroup" name="ListFilter" span="5" mode="auto" 
-      source="Esperando,Preoperatorio,Cirugía,Recuperación"
-      default="Esperando"
-      action="trigger"
-      trigger="PatientList"/>
     <!-- Subpartial to scan patient with button or gun -->
     <partial link="./Partial/SubPartials/SubPartialScanPatientWithGunOpenVisits.xml"/>
   </row>
@@ -29,13 +24,12 @@
   </row>
   <!-- Display a list of patients in surgery department -->
   <row>
-      <control type="datagrid" label="Pacientes de Cirugía" name="PatientList"
+      <control type="datagrid" label="Pacientes del Departameno" name="PatientList"
         action="redirect" 
         target="PatientTabModal"
         searchable="true"
-        rows="25"
+        rows="20"
         fitrows="true"
-        gridfilter="ListFilter|HospitalService"
         rowcolor="TriageLevel|1=green;2=yellow;3=red"
         acctsvcreq="true"
         datarequest="GetAdmittedSurgeryPatients"

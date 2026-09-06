@@ -15,13 +15,13 @@
             translate="Status"
             format="|datetime"
             onselectset="PatientSurgeryGuid=[[SurgeryGuid]]"
-            onselect="SurgeryEcdForms"/>
+            onselect="dgrSurgeryEcdForms2"/>
           <control type="hidden" name="PatientSurgeryGuid"/>
         </row>
         <row>
-          <control type="datagrid" label="Documentos de Cirugías" name="SurgeryEcdForms"
+          <control type="datagrid" label="Documentos de Cirugías" name="dgrSurgeryEcdForms2"
             span="12" rows="15"
-            rowcolor="CompletedRowGuid|!green"
+            rowcolor="CompletedRowGuid|!green;default=orange"
             acctsvcreq="true"
             datarequest="GetFormTemplatesWithCompletedForms"
             appendrequest="Type=SurgicalNote,SurgeryGuid=[PatientSurgeryGuid]"

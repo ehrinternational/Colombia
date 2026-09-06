@@ -1,0 +1,41 @@
+<partial>
+  <section type="tabmodal" name="tmdPatientBirthRecords" title="Registros de Parto/Abortos" badge="none" trigger="dgrBirthRecords">
+    <template name="tmpBirthType" type="markup">
+      [IF ${[[PregnancyTermination]]}=2+${[[BirthType]]}=1]Parto Espontaneo[/IF]
+      [IF ${[[PregnancyTermination]]}=2+${[[BirthType]]}=2]Parto Instrumentado[/IF]
+      [IF ${[[PregnancyTermination]]}=2+${[[BirthType]]}=3]Parto Cesárea[/IF]
+      [IF ${[[PregnancyTermination]]}=2+${[[BirthType]]}=4]Parto Ectópico[/IF]
+      [IF ${[[PregnancyTermination]]}=1+${[[BirthType]]}=1]Aborto LUI[/IF]
+      [IF ${[[PregnancyTermination]]}=1+${[[BirthType]]}=2]Aborto AMEU[/IF]
+      [IF ${[[PregnancyTermination]]}=1+${[[BirthType]]}=3]Aborto Medicamento[/IF]
+    </template>
+    <group>
+      <row>
+        <!-- Patient birth records -->
+        <control type="datagrid" label="Registros de Partos/Abortos" name="dgrBirthRecords"
+          rows="5" span="12"
+          action="redirect"
+          target="mdlBirthRecord" 
+          acctsvcreq="true"
+          datarequest="GetPatientBirthRecords"
+          appendrequest="patientId=[PatientId]"
+          source="DateOfBirth,WeeksPregnant,BirthTYpe,FetalCount"
+          sourcelabels="Fecha y Hora,Gestación,Tipo,Productos"
+          align="||left||"
+          format="datetime|0|template=tmpBirthType"
+          sort="DateOfBirth=desc"
+          key="BirthGuid"
+          onselectset="BirthGuid=[[BirthGuid]]"
+          onselect="BirthGuid">
+          <!-- Add new birth record -->
+          <control type="button" name="btnNewBirthRecord" label="Añadir Nuevo" 
+            reveal="[PatientId]!+[PatientVisitGuid]!"
+            icon="plus"
+            action="redirect"
+            trigger="btnUpdateBirthVisitInfo,GetBirthMotherInfo"
+            target="mdlBirthRecord"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

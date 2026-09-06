@@ -107,8 +107,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" mode="auto"
-          source="Diets,Problems,Nursing,Vitals,Physicians,Studies,Medication,Surgery,Services,Documents" 
-          sourcelabels="Dietas,Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Procedimientos,Servicios,Documentos" 
+          source="Diets,Problems,Nursing,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Services,Documents" 
+          sourcelabels="Dietas,Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Servicios,Documentos" 
           span="11" 
           default="Diets" 
           value="Diets"  
@@ -140,6 +140,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationActiveAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinationsNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersNoEdit.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

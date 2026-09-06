@@ -22,7 +22,8 @@
       <row>
           <control type="select" name="NurseDepartmentGuidLookup"
             span="4" acctsvc="true" explicit="true" edit="true" searchable="true"
-            filter="AdmissionType=true"
+            filter="AdmissionType=true,[DefaultDepartmentType]!;DepartmentName%[DefaultDepartmentType]"
+            default="true"
             datasource="GetDepartmentsActive" 
             append="LocationId=(facilityData.LocationId)" 
             source="DepartmentNumber|DepartmentName,DepartmentGuid"

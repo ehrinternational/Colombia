@@ -1,9 +1,9 @@
 <partial>
  <!-- Insurance payers with new and update -->
- <section type="tabmodal" name="mdlPayerList" title="Beneficios del Paciente" badge="none">
+ <section type="tabmodal" name="mdlPayerList" title="Convenios del Paciente" badge="none">
     <group>
       <row>
-        <control type="datagrid" label="Beneficios del Paciente" name="PatientPayers"
+        <control type="datagrid" label="Convenios del Paciente" name="PatientPayers"
           span="12" rows="5" 
           fitrows="true"
           datarequest="GetPatientPayers"

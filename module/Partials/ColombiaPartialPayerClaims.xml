@@ -1,6 +1,6 @@
 <partial>
   <!-- Billing payer claims modal -->
-  <section type="tabmodal" title="Beneficios de la Atención" name="mdlNewClaims" trigger="Clm_PayerGuid" badge="none" >
+  <section type="tabmodal" title="Convenios de la Atención" name="mdlNewClaims" trigger="Clm_PayerGuid" badge="none" >
     <group showif="never">
       <row>
         <!-- get a payer claim and display -->
@@ -38,7 +38,7 @@
                 readonly="true" span="3" default="Pending" />
             </row>
             <row>
-              <control type="label" label="Plan de Beneficios" span="3"/>
+              <control type="label" label="Plan de Convenios" span="3"/>
               <control type="select" name="Clm_PayerGuid" span="9" edit="[Clm_Status]=Pending"
                 filter="[ClaimGuid]=;Active=true" required="true"
                 acctsvcreq="true" 

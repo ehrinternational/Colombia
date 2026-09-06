@@ -1,0 +1,96 @@
+<partial>
+  <row>
+    <!-- Admit patient with no current visit -->
+    <control type="button" name="btnAdmitButton" label="Admitir"
+      span="12"
+      reveal="[PatientId]!+[HasOpenVisit]=false"
+      color="orange"
+      action="save" 
+      confirm="Por favor confirme que quiere ingresar a este paciente."
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="btnCompletePatientAdmit"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnCompletePatientAdmit"
+      action="save"
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      datainsert="InsertPatientVisitAllFields"
+      appendinsert="CopyDiagnosis=true,LocationId=(facilityData.LocationId),patientId=[PatientId],visitType=[DefaultAdmitType],departmentGuid=[GetAdmittingDepartment],hospitalService=Esperando,ambulatoryStatus=Inpatient
+      ,preAdmit=0,admitDateTime=(dateTimeNow),payerName=[Consult_PatientNameSuffix],PayerRFC=[Consult_RFC],PayerPostalCode=[Consult_PrimaryPayorZipCode],PayerAddress=[Consult_PrimaryPayorAddLineOne]"
+      set="HasOpenVisit=true,PatientVisit=[PatientVisitGuid]"
+      provoke="ERProblemList"/>
+  </row>
+  <!-- Partial Hospital Visit Buttons -->
+  <row name="rowSendText" reveal="[PatientCellPhone]!">
+    <control type="button" name="btnSendTextMessage2"  
+      span="12" icon="envelope" label="Texto"
+      preset="Send_PhoneNumber=[PatientCellPhone],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages2"
+      action="redirect" target="mdlSendTextMessage"/>
+  </row>
+  <row name="rowSendEmail" reveal="[Consult_PatientEmail]!">
+    <control type="button" name="btnSendEmailMessage2"
+      span="12" icon="envelope" label="Email"
+      preset="Send_EmailAddress=[Consult_PatientEmail],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages1"
+      action="redirect" target="mdlSendEmailMessage"/>
+  </row>
+  <row>
+    <!-- Assign a patient room -->
+    <control type="button" name="btnAssignPatientBed" span="12"
+      reveal="[HasOpenVisit]=true"
+      icon="cloud-upload" color="orange"
+      label="Asignar Cama"
+      trigger="FindWardList"
+      action="redirect"
+      target="mdlFindRoom"/>
+  </row>
+  <row>
+    <!-- Partial Emergency Nurse Visit Burttons -->
+    <control type="button" 
+      name="btnAssignPhysician"
+      reveal="[HasOpenVisit]=true"
+      span="12" icon="user-md" 
+      label="Asignar Médico"
+      color="orange"
+      action="redirect"
+      preset="mdlAssign_PatientId=[PatientId],mdlAssign_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlAssignPhysician"/>  
+  </row>
+  <row>
+    <!-- Button to transfer patient to chemotherapy consulting -->
+    <control type="button" name="btnTransferPatientToChemoConsult" label="Consulta" span="12" icon="move"
+      reveal="[PatientId]!+[PatientVisitGuid]!+[ChemoConsultDepartmentLookup]!"
+      color="orange" action="save|close|new"
+      affector="none" 
+      confirm="Por favor, confirme que desea transferir a este paciente a Consulta Quimioterapia."
+      dataupdate="UpdatePatientVisitAllFields"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid],departmentGuid=[ChemoConsultDepartmentLookup],HospitalService=Esperando"
+      provoke="PatientList"/>
+  </row> 
+  <row>
+      <!-- Transfer patient to another department -->
+      <control type="button" name="btnTransferPatient"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      span="12" icon="hospital" label="Transferir"
+      color="orange" action="redirect"
+      preset="Transfer_DepartmentGuid=[DepartmentGuidLookup]"
+      target="mdlTransferPatient"/>
+  </row>
+  <row>
+    <!-- Discharge patient button -->
+    <control type="button" name="btnDischargePatient"
+      reveal="[HasOpenVisit]=true"
+      span="12" icon="home" label="Cerrar Visita"
+      preset="Discharge_DischargeDisposition=[mdlAdmit_DischargeDisposition],Discharge_Note=[mdlAdmit_DischargeCondition]"
+      color="green" action="redirect"
+      target="mdlDischargePatient"/>
+  </row> 
+</partial>

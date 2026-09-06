@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XML for Views version 1.0-->
+<module name="Convenios" type="onload" trigger="dgrPayerContracts">
+  <facet name="FileName" value="ContractManagement"/>
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
+  <section type="tab" name="tabPayerContracts" title="Empresas">
+    <group>
+      <row>
+        <control type="buttongroup" name="btgContractStatus" edit="true" span="3"
+          source="Pending,Active,Completed,Canceled" default="Pending"
+          sourcelabels="Pendiente,Activo,Caducada,Cancelado"
+          provoke="dgrPayerContracts"/>
+        <control type="label" label="Empresa" span="1"/>
+        <control type="select" name="PayerGuid" span="4" searchable="true"
+          acctsvc="true"
+          datasource="GetPayers"
+          append="Active=true"
+          source="PayerName,PayerGuid"
+          set="[Ctc_PayerId]=[[PayerId]],[Ctc_PayerName]=[[PayerName]]"
+          provoke="dgrPayerContracts"/>
+        <control type="label" label="Fecha de caducidad" span="2"/>
+        <control type="date" name="selEndDate" span="2" trigger="dgrPayerContracts"/>
+      </row>
+      <row>      
+        <control type="datagrid" label="Convenios" name="dgrPayerContracts" rows="20" span="12"
+          idle="[btgContractStatus]="
+          acctsvcreq="true"
+          datarequest="GetInsuranceContracts"
+          appendrequest="Status=[btgContractStatus],[PayerGuid]!;PayerGuid=[PayerGuid],[selEndDate]!;EndDate=[selEndDate]"
+          source="StartDate,EndDate,ContractCode,ContractName,ContractType"
+          sourcelabels="Inicio,Final,Código,Nombre de Convenio,Tipo de Convenio"
+          align="||left|left|left|left|left|left"
+          format="date|date"
+          sort="EndDate=desc"
+          key="ContractGuid"
+          action="redirect"
+          target="mdlContracts"
+          onselectset="[ContractGuid]=[[ContractGuid]]"
+          onselect="ContractGuid">
+          <control type="button" name="btnNewContract" label="Añadir Nuevo" icon="plus"
+            compare="[PayerGuid]!|Seleccione una Empresa para crear un nuevo convenio."
+            action="redirect"
+            target="mdlContracts"/>
+        </control>
+      </row>
+    </group>
+  </section>  
+  <partial link="Partials/ColombiaPartialContractsModal.xml"/>
+</module>

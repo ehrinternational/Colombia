@@ -1,229 +1,115 @@
 <partial>
   <!-- Contract tabmodal -->
-  <section type="tabmodal" title="Contrato de Empressa" name="mdlContracts" badge="none" size="medium">
+  <section type="tabmodal" title="Convenio" name="mdlContracts" badge="none" >
     <group showif="never">
       <row>
         <control type="hidden" name="ContractGuid"
-          datarequest="GetCommercialContracts"
+          acctsvcreq="true"
+          datarequest="GetInsuranceContracts"
           appendrequest="ContractGuid=[ContractGuid]"
-          inject="grpContractInfo"/>
+          inject="grpContractInfo"
+          provoke="ContractButtonGroupSelect"/>
       </row>
     </group>
     <group name="grpContractInfo">
-      <columns>
-        <column span="6">
-          <row>
-            <control type="select" name="Ctc_ContractType" edit="true" span="7" 
-              source="1,2,3" sourcelabels="1 CONTRATO,2 CARTA DE COMPROMISO,3 CONVENIO PRESTACION SERVICIOS" 
-              required="true" default="1" explicit="true"/>
-              <control type="label" span="1" label="NIT"/>
-              <control type="text" name="Ctc_ContractId" span="3" edit="true"
-                regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{1,25}$"/>
-          </row>
-          <row>
-            <control type="label" span="6" label="Tipo de Beneficio" align="left"/>
-            <control type="label" span="6" label="Linea Negocio" align="left"/>
-          </row>
-          <row>
-            <control type="select" name="Ctc_InsuranceType" edit="true" span="6" 
-              source="1,2,3,4,5,6,7,8,9,10,11,12" 
-              sourcelabels="1 PBS,2 NO PBS,3 PREPAGADA,4 INTERMEDIACIÓN,5 SALUD,
-              6 PREVENCIÓN,7 INTERMEDIACIÓN,8 PÓLIZA DE SALUD,9 ACCIDENTES PERSONALES,
-              10 PÓLIZA JUVENIL,11 INTERMEDIACIÓN,12 SOAT" 
-              required="true"/>
-            <control type="select" name="Ctc_LineType" edit="true" span="6" 
-              source="1,2,3,4,5,6,7,8,9,10,11,12" 
-              sourcelabels="LN-CUENTAS_MEDICAS_PBS,LN-CUENTAS_MEDICAS_NO_PBS,
-              LN-PREPAGADA,LN-INTERMEDIACION,LN-CUENTAS_MEDICAS_SALUD,LN-PREVENCION,
-              LN-INTERMEDIACION,LN-CUENTAS_MEDICAS,LN-ACCIDENTES_PERSONALES,
-              LN-JUVENIL,LN-INTERMEDIACION,LN-SOAT" 
-              required="true"/>
-          </row>
-          <row>
-            <control type="label" span="4" label="Número de Convenio"/>       
-            <control name="Ctc_ContractNumber" type="text" span="4" edit="true"
-              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{1,25}$" />
-            <control type="checkbox" name="Ctc_POSGroup" edit="true" span="4" 
-              label="Grupo No Pos" source="True,False"/>
-          </row>
-          <row>
-            <control type="label" span="4" label="Número del Plan" align="left"/>
-            <control type="label" span="4" label="Fecha" align="left"/>
-            <control type="label" span="4" label="Código Entidad" align="left"/>
-          </row>
-          <row>
-            <control type="text" span="4" name="PlanNumber" edit="true"
-              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,25}$" />
-            <control type="date" span="4" name="PlanDate"  edit="true"/>
-            <control type="text" span="4" name="EntityCode" edit="true"
-              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,25}$" />
-          </row>
-          <row>
-            <control type="label" span="4" label="Nombre del Convenio"/>
-            <control type="text" span="8" name="PlanName" edit="true"
-              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
-          </row>
-          <row>
-            <control type="label" span="5" label="Nombre del Convenio DIAN"/>
-            <control type="text" span="7" name="DIANPlanName" rows="1"
-            regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$"  />
-          </row>
-           <row>
-            <control type="label" span="4" label="Dirección Facturación"/>
-            <control type="textarea" span="8" name="BillAddress" rows="1" edit="true"
-              regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
-          </row>
-          <row>
-            <control type="checkbox" name="PlanPromote" span="5" label="Prórroga Automatica" 
-              edit="true" source="True,False"/>
-            <control type="checkbox" name="PlanLiq" span="4" label="Liq Honorarios" 
-              edit="true" source="True,False"/>
-            <control type="text" span="2" name="LiqPercent" edit="true" format="0.000"/>
-            <control type="label" label="%" span="1" align="left"/>
-          </row>
-          <row>        
-            <control type="label" span="4" label="Tipo de Convenio"/>
-            <control type="select" name="Ctc_CoverageType" edit="true" span="8" 
-              source="EPS,ARS,ARP,PARTICULAR,CAJA DE COMPENSACION,CONVENIO EMPRESARIAL,
-              COMPANIA DE SEGUROS,MEDICINA PREPAGADA,IPS,PAGO DIRECTO,VINCULADOS,OTRAS POLIZAS EN SALUD,
-              REGIMEN DE EXCEPCIÓN,FONDO NACIONAL DE SALUD,PLAN COMPLEMENTARIO" required="true"/>
-          </row>
-          <row>        
-            <control type="label" span="4" label="Convenio Público"/>
-            <control type="buttongroup" name="Ctc_PlanPublic" span="6" sourcelabels="Público,No Público" 
-            edit="true" source="True,False"/>
-          </row>
-          <row>
-            <control type="checkbox" name="Ctc_PendingRevision" edit="true" span="6" 
-              label="Pendiente Renovación" source="True,False" required="true"/>
-          </row>
-        </column>
-        <column span="6">
-           <row>
-            <control type="label" span="4" label="Vigencia" align="left"/>
-            <control type="label" span="4" label="Desde" align="left"/>
-            <control type="label" span="4" label="Hasta" align="left"/>
-          </row>
-          <row>
-            <control type="checkbox" name="Ctc_Active" edit="true" span="4" 
-              label="Vigente" source="True,False"/>
-            <control type="date" name="Ctc_StartDate" span="4" edit="true"/>
-            <control type="date" name="Ctc_EndDate" span="4" edit="true"/>
-          </row>
-          <row>        
-            <control type="label" span="3" label="Motivo de"/>
-            <control type="select" name="Ctc_ActiveReason" edit="true" span="9" searchable="true" 
-              source="00,01,02,03,04,05,06,07,08,09,10" 
-              sourcelabels="00 SIN INFORMACION,01 ACUERDO MUTUO,02 INCUMPLIMIENTO EN PAGOS,03 INCUMPLIMIENTO OBLIGACIONES CONTRACTUALES,
-              04 CAPACIDAD FINANCIERA INSUFICIENTE,05 CESION A TERCERO,06 INTERVENCION ENTIDAD DE VIGILACIA Y CONTROL,
-              07 SUSPENSION LICENCIA SANITARIA,08 SUSPENSION LICENCIA DE FUNCIONAMIENTO,09 INCOMPATIBILIDAD O INHABILIDAD PARA CONTRATAR,
-              10 DISOLUCION DE SOCIEDAD CONTRATANTE"
-              required="true" />
-          </row>
-          <row>        
-            <control type="label" span="8" label="Valor Impuesto Timbre del Convenio" align="left"/>
-            <control type="button" name="btnNewInsuranceContract" label="Guardar" icon="cloud-upload" edit="true" span="4" color="green"
-              reveal="[ContractGuid]="
-              confirm="Por favor, confirme que desea insertar este nuevo convenio."
-              action="save|close|new"
-              capture="grpContractInfo"
-              affector="none"
-              datainsert="InsertInsuranceContract"/>
-            <control type="button" name="btnUpdateInsuranceContract" label="Actualizar" icon="refresh" edit="true" span="4" 
-              reveal="[ContractGuid]!"
-              confirm="Por favor, confirme que desea actualizar este convenio."
-              action="save|close|new"
-              capture="grpContractInfo"
-              affector="none"
-              dataupdate="UpdateInsuranceContract"
-              appendupdate="ContractGuid=[ContractGuid]"/>
-          </row>
-          <row>
-            <control type="checkbox" name="Ctc_ContractMaximum" edit="true" span="4" 
-              label="Topes por Convenio" source="True,False"/>
-            <control type="label" span="2" label="Valor"/>
-            <control type="text" span="2" name="Ctc_MaxValue" edit="true" format="0,0.00" default="0.00"/>
-          </row>
-          <row>        
-            <control type="checkbox" name="Ctc_TaxTimbre" edit="true" span="8" 
-              label="Impuesto de Timbre" source="True,False"/>
-          </row>
-          <row>        
-            <control type="label" span="4" label="Contratante" badge="%"/>
-            <control type="text" span="2" name="Ctc_Contratante" edit="true" format="0.0000" default="0.0000"/>
-            <control type="label" span="4" label="Contratista(IPS)" badge="%"/>
-            <control type="text" span="2" name="Ctc_Contrtista" edit="true" format="0.0000" default="0.0000"/>
-          </row>
-          <row>        
-            <control type="checkbox" name="Ctc_NightCharge" edit="true" span="12" 
-              label="Paga Recargos Nocturnos y de Dias Festivos" source="True,False"/>
-          </row>
-          <row>        
-            <control type="checkbox" name="Ctc_ValueVariable" edit="true" span="8" 
-              label="Valor Variable en Liq de Prestaciones" source="True,False"/>
-             <control type="button" name="Ctc_Historical" edit="true" span="4" label="Histórico" 
-              action="redirect" target=""/>
-          </row>
-          <row>        
-            <control type="checkbox" name="Ctc_AuthorizationFee" edit="true" span="8" 
-              label="Valor Derecho de Autoirizaciones" source="True,False"/>
-            <control type="button" name="Ctc_Professionals" edit="true" span="4" label="Profesionales" 
-              action="redirect" target=""/>
-          </row>
-          <row>        
-            <control type="checkbox" name="Ctc_FOSYGA" edit="true" span="8" 
-              label="Convenio FOSYGA" source="True,False"/>
-            <control type="button" name="Ctc_Auditing" edit="true" span="4" label="Auditores" 
-              action="redirect" target=""/>
-          </row>
-           <row>        
-            <control type="checkbox" name="Ctc_ExternalIPSCare" edit="true" span="12" 
-              label="Habilitar para Atención IPS Externa" source="True,False"/>
-           </row>
-        </column>
-      </columns>
-      <row>        
-        <control type="label" span="4" label="Modelo Tarifario de Medicamentos"/>
-        <control type="select" name="Ctc_MedicineTariff" edit="true" span="6" 
-          source="catalog" required="true"/>
+      <row bgcolor="white">
+        <control type="label" span="3" label="NIT"/>
+        <control type="text" name="Ctc_PayerId" span="2" readonly="true" persist="true"/>
+        <control type="label" span="1" label="Empressa"/>
+        <control type="text" name="Ctc_PayerName" span="6" readonly="true" persist="true"/>
       </row>
-      <row>        
-        <control type="label" span="4" label="Modalidades de Contratación y pago"/>
-        <control type="select" name="Ctc_Modalities" edit="true" span="6" searchable="true"
-          source="1,2,3,4,5,6,7,11,12" required="true" 
-          sourcelabels="1 PAGO INDIVIDUAL POR CASO/CONJUNTO INTEGRAL DE ATENCIONES/PAQUETE/CANASTA,
-          2 OTRA MODALIDAD (GRUPOS RELACIONADOS POR DIAGNÓSTICO),
-          3 OTRA MODALIDAD (INTEGRAL POR GRUPO DE RIESGO),
-          4 OTRA MODALIDAD (PAGO POR CONTACTO POR ESPECIALIDAD),
-          5 OTRA MODALIDAD (PAGO POR ESCENARIO DE ATENCIÓN),
-          6 OTRA MODALIDAD (PAGO POR TIPO DE SERVICIO),
-          7 PAGO GLOBAL PROSPECTIVO,
-          11 PAGO POR CAPACITACIÓN,
-          12 PAGO POR EVENTO"/>
+      <row>
+        <control type="label" span="3" label="Estatus"/>
+        <control type="select" name="Ctc_Status" edit="true" span="3"
+          source="Pending,Active,Completed,Canceled" default="Pending"
+          sourcelabels="Pendiente,Activo,Caducada,Cancelado"/>
+        <control type="button" name="btnSaveNewContract" icon="cloud-upload" label="Continuar" color="green" offset="4" span="2"
+          reveal="[ContractGuid]="
+          capture="grpContractInfo"
+          action="save"
+          acctsvc="true"
+          confirm="Por favor, confirme que desea insertar este nuevo contrato."
+          affector="ContractGuid"
+          setaffector="ContractGuid"
+          datainsert="InsertInsuranceContracts"
+          appendinsert="PayerGuid=[PayerGuid]"/>
+        <control type="button" name="btnUpdateContract" icon="cloud-upload" label="Actualizar" offset="4" span="2"
+          reveal="[ContractGuid]!"
+          capture="grpContractInfo"
+          action="save|close|new"
+          acctsvc="true"
+          confirm="Por favor, confirme que desea actualizar este contrato."
+          affector="ContractGuid"
+          setaffector="ContractGuid"
+          dataupdate="UpdateInsuranceContracts"
+          appendupdate="ContractGuid=[ContractGuid]"/>
       </row>
-      <row>        
-        <control type="label" span="5" label="Clasificación Normativa:    Tipo de Entidad Aseguradora"/>
-        <control type="select" name="Ctc_EntityType" edit="true" span="4" 
-          source="00,CCF,EAS,ENTE,EOC,EPS,EPSI,ESS,SINC" required="true" searchable="true"
-          sourcelabels="00 SIN INFORMACION,CCF CAJAS DE COMPENSACION FAMILIAR,
-          EAS ENTIDADES ADAPATADAS DE SALUD,ENTE ENTIDADES TERRITORIALES,
-          EOC EMPRESAS OBLIGADAS A COMPENSAR,EPS EMPRESA PROMOTORA DE SALUD Y EPS SUBSIDIADAS,
-          EPSI EMPRESAS PROMOTORAS DE SALUD INDIGENAS,ESS EMPRESAS SOLIDARIAS DE SALUD,
-          SINC SIN CLASIFICACION" />
-         <control type="label" span="1" label="Régimen"/>
-        <control type="select" name="Ctc_Regimen" edit="true" span="2" 
-          source="0,C,E,N,P,S,V" required="true"
-          sourcelabels="0-SIN INFORMACION,C-CONTRIBUTIVO,E-ESPECIAL,N-NO ASEGURADO,
-          P-EXCEPCION,S-SUBSIDIADO,V-VINCULADO"/>
+      <row>
+        <control type="label" span="3" label="Tipo de Contrato"/>
+        <control type="select" name="Ctc_ContractType" span="3" edit="true" searchable="true"
+          source="1,2,3,4" required="true" default="1"
+          sourcelabels="Pago por Evento,Capitación,Paquete / Grupo Relacionado por Diagnóstico (GRD),Pago Clobal Prospectivo (PGP)"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Número de Contrato"/>
+        <control type="text" name="Ctc_ContractNumber" span="2" edit="true" required="true"/>
+        <control type="label" span="1" label="Nombre"/>
+        <control type="text" name="Ctc_PlanName" span="6" edit="true" required="true"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Régimen de Aseguramiento"/>
+        <control type="select" name="Ctc_InsuranceType" span="3" edit="true" searchable="true"
+          source="1,2,3,4,5" required="true"
+          sourcelabels="01 Régimen Contributivo,02 Régimen Subsidiado,03 Planes Voluntarios de Salud / Prepagada,04 SOAT,05 Régimen Especial / Excepción"/>
+        <control type="label" span="3" label="Número de Convenio"/>       
+        <control name="Ctc_ContractNumber" type="text" span="3" edit="true"
+          regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{1,25}$" />
+      </row>
+      <row>
+        <control type="label" span="3" label="Fecha de Inicio"/>
+        <control type="date" name="Ctc_StartDate" span="3" edit="true" required="true"/>
+        <control type="label" span="3" label="Fecha de Terminación"/>
+        <control type="date" name="Ctc_EndDate" span="3" edit="true"  required="true"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Linea de Negocio"/>
+        <control type="select" name="Ctc_LineType" edit="true" span="3" 
+          source="1,2,3,4" 
+          sourcelabels="01 PBS,
+          02 No PBS,
+          03 Voluntario/Comercial,
+          04 SOAT" 
+          required="true"/>
+        <control type="buttongroup" name="Ctc_EntityType" span="3" edit="true" offset="3"
+          source="Direct,Broker" sourcelabels="Directo,Intermediado" default="Direct"/>
+      </row>
+      <row>
+        <control type="checkbox" name="PlanLiq" span="2" label="Liq Honorarios"  offset="3"
+          edit="true" source="True,False"/>
+        <control type="text" span="1" name="LiqPercent" edit="true" format="0.000"/>
+        <control type="label" label="%" span="1" align="left"/>
+        <control type="checkbox" name="PlanPromote" span="3" label="Prórroga Automatica" offset="2"
+          edit="true" source="True,False"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Nivel Complejidad"/>
+        <control type="select" name="Ctc_CoverageType" edit="true" span="3" 
+          source="1,2,3,4" 
+          sourcelabels="Nivel I,Nivel II,Nivel III,Nivel IV" 
+          required="true"/>
+      </row>
+      <row>
+         <control type="label" span="3" label="Nota de Convenio"/>
+         <control type="textarea" name="ContractNotes" span="9" rows="2" edit="true"/>
       </row>
     </group>
-    <!-- reveal="[ContractGuid]!"-->
+    <!-- ?? reveal="[ContractGuid]!"-->
     <group name="grpContractRelatedTables" >
       <row>
         <control type="buttongroup" name="ContractButtonGroupSelect" edit="true" mode="auto" span="8"
-          source="Plans,Components,Documents" 
+          source="Plans,Tariffs,Documents" 
           sourcelabels="Planes,Tarifas,Documentos" 
-          default="Plans"   
+          default="Plans"
           provoke="ContractGridList|options"/>
       </row>
       <row>
@@ -236,30 +122,31 @@
             datarequest="GetInsurancePlans" 
             appendrequest="ContractGuid=[ContractGuid]"
             datainsert="InsertInsurancePlans" 
-            appendinsert="ContractGuid=[ContractGuid]"
+            appendinsert="ContractGuid=[ContractGuid],PayerGuid=[PayerGuid]"
             dataupdate="UpdateInsurancePlans"
-            source="Active,StartDate,EndDate,PlanCode,PlanCategory,PlanName,LastUpdatedByFullName"
-            sourcelabels="Activo,Fecha Inicio,Fecha Fin,Código,Tipo,Nombre,Actualizado por"
-            align="|left|left|left|left|left|left"
+            source="Active,StartDate,EndDate,PlanCode,Category,PlanName"
+            sourcelabels="Activo,Fecha Inicio,Fecha Fin,Código,Tipo,Nombre"
+            align="|left|left|left|left|left"
             format="boolean|date|date"
             sort="PlanName=asc"
             key="PlanGuid"/>
-          <control type="datagrid"  name="dgrComponents" option="Components" label="Tarifas" rows="10"
-            modalname="mdlContractComponents"
+          <control type="datagrid"  name="dgrExceptions" option="Tariffs" label="Tarifas" rows="10"
+            action="redirect"
+            target="mdlContractExceptions"
             searchable="true"
-            acctsvc="true"
             acctsvcreq="true"
-            datarequest="GetContractComponents" 
-            append="ContractGuid=[ContractGuid]"
-            datainsert="InsertContractComponents" 
-            appendinsert="ContractGuid=[ContractGuid]"
-            dataupdate="UpdateContractComponents"
-            source="Active,TariffType,ComponentType,CatalogueType,EnteredByFullName,UpdateByFullName"
-            sourcelabels="Activo,Tipo Tarifa,Categoria,Catalogo,Entragado por,Actualizado por"
+            datarequest="GetContractExceptions" 
+            source="DateTimeEntered,DateTimeLastUpdated,ExceptionType,SubType,PriceTable,CUPSCode"
+            sourcelabels="Fecha Entregada,Fecha Modificado,Tipo,Categoria,Catalogo,CUPS"
             align="|left|left|left|left"
-            format="boolean"
-            sort="ComponentName=asc"
-            key="ComponentGuid"/>
+            format="datetime|datetime|template=tmpExceptionType|template=tmpSubtype|template=tmpPriceTable"
+            sort="DateTimeEntered=desc"
+            key="ExceptionGuid"
+            onselectset="ExceptionGuid=[[ExceptionGuid]]"
+            onselect="ExceptionGuid">
+          <control type="button" name="btnNewContractTariff" icon="plus" label="Añadir Nuevo" 
+            action="redirect" target="mdlContractExceptions"/>
+          </control>
           <!-- Scanned images for contract -->
           <control type="datagrid" label="Documentos Escaneados" name="dgrScannedForms" option="Documents"
             rows="10"
@@ -314,61 +201,124 @@
       </row>
     </group>
   </section> 
-  <!-- modal for contract components --> 
-  <section type="modal" name="mdlContractComponents" title="Tarifas del Contrato" badge="none" size="small">
-    <group>
+  <!-- modal for contract Exceptions --> 
+  <section type="tabmodal" name="mdlContractExceptions" title="Tarifas" badge="none" provoke="dgrExceptions">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="ExceptionGuid"
+          acctsvcreq="true"
+          datarequest="GetContractExceptions"
+          appendrequest="ExceptionGuid=[ExceptionGuid]"
+          inject="grpExceptionInfo"/>
+      </row>
+    </group>
+    <group name="grpExceptionInfo">
         <row>
           <control type="label" span="3" label="Activo"/>
-          <control type="buttongroup" name="Ctc_Active" source="True,False" sourcelabels="Sí,No" 
+          <control type="buttongroup" name="Ctx_Active" source="True,False" sourcelabels="Sí,No" 
             span="3" edit="true" default="True"/>
         </row>
         <row>
-          <control type="label" span="3" label="Tipo de Tarifa"/>
-          <control name="Ctc_TariffType" type="select" span="3" edit="true" required="true" explicit="true"
-            source="Global,Category,CUPS"
-            sourcelabels="Global,Categoria,CUPS" />
+          <control type="label" span="3" label="Fecha Inicio"/>
+          <control name="Ctx_StartDate" type="date" span="3" edit="true" required="true"
+            default="[Ctc_StartDate]"/>
+          <control type="label" span="3" label="Fecha Final"/>
+          <control name="Ctx_EndDate" type="date" span="3" edit="true" required="true"
+          default="[Ctc_EndDate]"/>
         </row>
-        <row name="rowComponentCategory" reveal="[Ctc_TariffType]=Category">
-          <control type="label" span="3" label="Categoria"/>
-          <control name="Ctc_ComponentType" type="select" span="5" edit="true" required="true" explicit="true"
-             source="CIRUJANO,ANESTESIÓLOGO,ASISTENTE,SALA,MATERIALES,MEDICAMENTOS,LABORATORIO,IMAGENOLOGÍA,GENERAL"/>
-        </row>  
-        <row name="rowComponentCUPS" reveal="[Ctc_TariffType]=CUPS">
-          <control type="label" span="3" label="CUPS"/>
-          <control name="Ctc_CUPSGuid" type="typeahead" span="9" edit="true" required="true" explicit="true"
-            datarequest="GetCUPSBySearchTerm"
-            term="SearchTerm"
-            source="CUPSCode|CUPSName,CUPSCode"/>
-        </row>  
         <row>
-          <control type="label" span="3" label="Catalog de Tarifa"/>
-          <control name="Ctc_CatalogueType" type="select" span="5" edit="true" required="true" explicit="true"
-            source="SOAT,ISS_2001,ISS_2004,PROPRIETARY,PARTICULAR"/>
+          <control type="label" span="3" label="Tiempo de Servicio"/>
+          <control name="Ctx_Shiftype" type="select" span="3" edit="true" required="true" explicit="true"
+            source="1,2,3,4" default="1"
+            sourcelabels="1 Todos,2 Diurno,3 Nocturno,4 Festivo" />
+          <control type="label" span="3" label="Ubicación"/>
+          <control name="Ctx_ServiceGroup" type="select" span="3" edit="true" required="true" explicit="true"
+            source="00,01,02,03,04,05" default="03"
+            sourcelabels="00 Todo,01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
+            03 Internación,04 Quirúrgico,05 Atención inmediata" />
         </row>
-        <row name="rowISSRate" reveal="[Ctc_CatalogueType]%ISS">
-          <control type="label" span="3" label="UVR Value COP"/>       
-          <control name="Ctc_IssUvrValueCop" type="text" span="2" edit="true" required="true"
-            regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
+        <row>
+          <control type="label" span="3" label="Sede (opcional)"/>
+          <control type="select" name="Ctx_HospitalGuid" span="9" edit="true" default="true"
+              acctsvc="true"
+              datasource="GetHospitalByGroupId"
+              append="GroupId=(facilityData.GroupId)"
+              source="HospitalName,HospitalGuid"/>
         </row>
-        <row name="rowISSRate2" reveal="[Ctc_CatalogueType]%ISS">
-          <control type="label" span="3" label="UVR Rate COP"/>
-          <control name="Ctc_ContractUvrRateCop" type="text" span="2" edit="true" required="true"
-            regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
+        <row>
+          <control type="label" span="3" label="Tipo de Tarifa"/>
+          <control name="Ctx_ExceptionType" type="select" span="3" edit="true" required="true" explicit="true"
+            source="1,2,3,4,5,6,7"
+            sourcelabels="1 Quirurgico,2 CUPS,3 Medicamentos,4 Inmunizaciones,5 laboratorio,6 imagenologia,7 general"/>
+            <control type="label" span="3" label="Categoria de Quirurgico"/>
+            <control name="Ctx_SubType" type="select" span="3" required="[Ctx_ExceptionType]=1" explicit="true"
+            source="1,2,3,4,5" edit="[Ctx_ExceptionType]=1"
+            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
+            when="[Ctx_ExceptionType]!1;"/>
         </row>
-        <row name="rowSOATModifier" reveal="[Ctc_CatalogueType]%SOAT">
-          <control type="label" span="3" label="Modificador SOAT"/>       
-          <control name="Ctc1_CommericalModifier" type="text" span="2" edit="true" required="true"
-            regex="^\d{1,5}(?:\.\d{1,4})?$" format="0.0000"/>
+        <row name="rowComponentCUPS" reveal="[Ctx_ExceptionType]=2">
+          <control type="label" span="3" label="CUPS"/>
+          <control name="Ctx_CUPSCode" type="typeahead" span="9" edit="true" required="true"
+            acctsvc="true"
+            datasource="GetCUPSBySearchTerm"
+            term="CupsName"
+            source="CUPSName,CUPSCode"/>
         </row>
-         <row name="rowProprietaryModifier" reveal="[Ctc_CatalogueType]=PROPRIETARY|PARTICULAR">
-          <control type="label" span="3" label="Cantidad Proprietary"/>       
-          <control name="Ctc2_CommericalModifier" type="text" span="2" edit="true" required="true"
-            regex="^\d{1,10}(?:\.\d{1,2})?$" format="0.00"/>
+        <row>
+          <control type="label" span="3" label="Tipo de Tarifa"/>
+          <control name="Ctx_PriceType" type="buttongroup" span="3" edit="true" required="true"
+          source="1,2" default="1"
+          sourcelabels="Catalogo,Valor Fijo"/>
+          <control type="label" span="3" label="Catalogo"/>
+          <control name="Ctx_PriceTable" type="select" span="3" edit="[Ctx_PriceType]=1" required="[Ctx_PriceType]=1"
+            source="1,2,3"
+            sourcelabels="SOAT,ISS_2001,ISS_2004"
+            when="[Ctx_PriceType]=2;"/>
+        </row>
+        <row name="rowPriceModifier" reveal="[Ctx_PriceType]=1">
+          <control type="label" span="3" label="Modificador" badge="%"/>       
+          <control name="Ctx_PriceModifier" type="text" span="3" edit="true" required="true" format="0.00"/>
+        </row>
+        <row name="rowFlatRate" reveal="[Ctx_PriceType]=2">
+          <control type="label" span="3" label="Valor Fijo" badge="$"/>
+          <control name="Ctx_PriceValue" type="text" span="3" edit="true" required="true" format="0.00"/>
+        </row>
+        <!-- ??
+        confirmsvc="true"
+            confirmrequest="ConfirmContractException"
+            appendconfirm="ContractGuid=[ContractGuid],StartDate=[Ctx_StartDate],
+            EndDate=Ctx_EndDate,ShiftType=[Ctx_Shiftype],ServiceGroup=[Ctx_ServiceGroup],HospitalGuid=[Ctx_HospitalGuid],
+            ExceptionType=[Ctx_ExceptionType],SubType=[Ctx_SubType],CUPSCode=[Ctx_CUPSCode]"
+            confirmresponse="ReturnValue=Valid|Ya existe una tarifa coincidente con estos parámetros. Modifique dicha tarifa o desactive la tarifa coincidente."
+        
+        confirmsvc="true"
+            confirmrequest="ConfirmContractException"
+            appendconfirm="ContractGuid=[ContractGuid],ExceptionGuid=[ExceptionGuid],StartDate=[Ctx_StartDate],
+            EndDate=Ctx_EndDate,ShiftType=[Ctx_Shiftype],ServiceGroup=[Ctx_ServiceGroup],HospitalGuid=[Ctx_HospitalGuid],
+            ExceptionType=[Ctx_ExceptionType],SubType=[Ctx_SubType],CUPSCode=[Ctx_CUPSCode]"
+            confirmresponse="ReturnValue=Valid|Ya existe una tarifa coincidente con estos parámetros. Modifique dicha tarifa o desactive la tarifa coincidente."
+
+        -->
+        <row>
+          <control type="modalbutton" name="mbtNewContractException" label="Guardar" icon="cloud-upload" color="green"
+            reveal="[ExceptionGuid]="
+            capture="grpExceptionInfo"
+            acctsvc="true"
+            action="save|close|new"
+            datainsert="InsertContractExceptions" 
+            appendinsert="ContractGuid=[ContractGuid]"/>
+          <control type="modalbutton" name="mbtUpdateContractException" label="Actualizar" icon="cloud-upload"
+            reveal="[ExceptionGuid]!"
+            capture="grpExceptionInfo"
+            acctsvc="true"
+            action="save|close|new"
+            dataupdate="UpdateContractExceptions" 
+            appendupdate="ExceptionGuid=[ExceptionGuid]"/>
         </row>
     </group>
   </section>
   <!-- Contract plans modal -->
-  <section type="modal" name="mdlContractPlans" title="Planes del Contrato" badge="none">
+  <section type="modal" name="mdlContractPlans" title="Plan" badge="none">
     <group>
         <row>
           <control type="label" span="3" label="Activo"/>
@@ -378,17 +328,17 @@
           <control type="label" span="3" label="Folio"/>
           <control name="Pln_PlanNumber" type="text" span="2" readonly="true"/>
         </row>
-         <row>
+        <row>
           <control type="label" span="3" label="Fecha Inicio"/>
-          <control name="Pln_StartDate" type="date" span="3" edit="true" required="true"/>
+          <control name="Pln_StartDate" type="date" span="3" edit="true" required="true" default="Ctc_StartDate"/>
           <control type="label" span="3" label="Fecha Final"/>
-          <control name="Pln_EndDater" type="date" span="3" edit="true" required="true"/>
+          <control name="Pln_EndDate" type="date" span="3" edit="true" required="true"  default="Ctc_EndDate"/>
         </row>
         <row>
           <control type="label" span="3" label="Código"/>
           <control name="Pln_PlanCode" type="text" span="3" edit="true" required="true"
           regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,25}$" />
-          <control type="label" span="3" label="Tipo de Plan"/>
+          <control type="label" span="3" label="Categoría"/>
           <control name="Pln_Category" type="select" span="3" edit="true" required="true" explicit="true"
             source="EPS_POS,PREPAGADA,SOAT,ARL_ATEP,POLIZA_PRIVADA"/>
         </row>  
@@ -398,35 +348,39 @@
           regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
         </row> 
         <row>
-          <control type="label" span="3" label="Copago"/>
-          <control name="Pln_Copay" type="text" span="3" edit="true" format="0.00"/>
-          <control type="label" span="4" label="Max de Gastos de Bolsillo" />
-          <control name="Pln_MaxOutOfPocket" type="text" span="2" edit="true" format="0.00"/>
+          <control type="label" span="3" label="Copago Officina"/>
+          <control name="Pln_CopayOutpatient" type="text" span="3" edit="true" format="0.00"  required="true"/>
+          <control type="label" span="4" label="Copago Hospital"/>
+          <control name="Pln_CopayInpatient" type="text" span="2" edit="true" format="0.00"  required="true"/>
         </row> 
         <row>
           <control type="label" span="3" label="Coaseguro Cirugía" badge="%"/>
-          <control name="Pln_MedicalCoinsurance" type="text" span="3" edit="true" format="0.0000"/>
+          <control name="Pln_MedicalCoinsurance" type="text" span="3" edit="true" format="0.0000"  required="true"/>
           <control type="label" span="4" label="Coaseguro Comercial" badge="%"/>
-          <control name="Pln_Coinsurance" type="text" span="2" edit="true" format="0.0000"/>
+          <control name="Pln_Coinsurance" type="text" span="2" edit="true" format="0.0000"  required="true"/>
         </row> 
         <row>
           <control type="label" span="3" label="Cap Tope"/>
-          <control name="Pln_HasTopeCap" type="buttongroup" span="3" 
+          <control name="Pln_HasTopeCap" type="buttongroup" span="3"  required="true"
             source="True,False" 
             sourcelabels="Sí,No" edit="true"/>
           <control type="label" span="4" label="Max Tope por Evento"/>
-          <control name="Pln_MaxTopeEvent" type="text" span="2" edit="true" format="0.00"/>
+          <control name="Pln_MaxTopeEvent" type="text" span="2" edit="true" format="0.00"  required="true"/>
         </row> 
         <row>
           <control type="label" span="3" label="Max Tope Anual"/>
-          <control name="Pln_MaxTopeAnnual" type="text" span="3" edit="true" format="0.00"/>
+          <control name="Pln_MaxTopeAnnual" type="text" span="3" edit="true" format="0.00"  required="true"/>
           <control type="label" span="4" label="Deducible Anual"/>
-          <control name="Pln_DeductibleAnnual" type="text" span="2" edit="true" format="0.00"/>
+          <control name="Pln_DeductibleAnnual" type="text" span="2" edit="true" format="0.00"  required="true"/>
         </row> 
+        <row>
+          <control type="label" span="3" label="Max Pago Paciente" />
+          <control name="Pln_MaxOutOfPocket" type="text" span="3" edit="true" format="0.00"  required="true"/>
+        </row>
         <row>
           <control type="label" span="3" label="Requiere Autorización"/>
           <control name="Pln_RequiresAuthorization" type="buttongroup" span="3" edit="true"
-            source="True,False" sourcelabels="Sí,No"/>
+            source="True,False" sourcelabels="Sí,No" required="true"/>
           <control type="label" span="3" label="Cobertura de Anulación" />
           <control name="Pln_CoverageOverride" type="text" span="3" edit="true"/>
         </row> 

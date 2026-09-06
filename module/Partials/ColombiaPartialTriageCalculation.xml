@@ -1,0 +1,198 @@
+﻿<partial>
+  <!-- Calculates the Esmergency Status of a patient and updates the TriageLevel field -->
+  <!-- This module was initiated for Hospital Sedna but can be used for others -->
+  <!-- Buttons are used in the module to initiate and display the TriageLevel -->
+  <section type="tabmodal" badge="none" name="mdlTriageCalculation" title="Cálculo de Triage">
+    <group showif="never">
+      <row>
+        <!-- Read the existing Triage values and inject into the fields -->
+        <control type="hidden" name="GetTriageFields"
+          acctsvcreq="true"
+          datarequest="GetLastTriageCalculationByPatientVisitId"
+          appendrequest="PatientVisitId=[Triage_PatientVisitGuid]"
+          inject="grpTriageInfo"
+          />
+
+        <!-- Calculate triage levels from vital signs -->
+        <control type="hidden" name="Triage_PatientId"/>
+        <control type="hidden" name="Triage_PatientVisitGuid"/>
+      </row>
+    </group>
+    <group name="grpTriageInfo">
+      <subset bgcolor="white">
+      <row>
+        <control type="header" span="10" align="left">Signos Vitales</control>
+      </row>
+      <row>
+        <control type="label" label="Presión arterial sistólica" badge="mmHg" span="4"/>
+        <control type="text" name="SBPText" span="1" edit="true"/>
+        <control type="label" label="Presión arterial diastólica" badge="mmHg" span="4"/>
+        <control type="text" name="DBPText" span="1" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Frecuencia cardiaca" badge="lpm" span="4"/>
+        <control type="text" name="CRTText" span="1" edit="true"/>
+        <control type="label" label="Frecuencia respiratoria" badge="rpm" span="4"/>
+        <control type="text" name="RRTText" span="1" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Temperatura" badge="°C" span="4"/>
+        <control type="text" name="TMPText" span="1" edit="true" required="true"/>
+        <control type="label" label="Saturación de oxígeno" badge="%" span="4"/>
+        <control type="text" name="SO2Text" span="1" edit="true" required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Glucemia capilar" badge="mg/dl" span="4"/>
+        <control type="text" name="BLGText" span="1" edit="true"/>
+      </row>
+    </subset>
+    <subset bgcolor="white">
+      <row>
+        <control type="header">Evaluar</control>
+      </row>
+      <row>
+        <control type="label" align="left" label="1.- Escala de coma de Glasgow." span="5"/>
+        <control type="text" name="GLSText" span="1" edit="true" required="true"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="2.- Paro cardiorrespiratorio presenciado." span="5"/>
+        <control type="buttongroup" name="PCP" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4"/>
+        <control type="button" name="PCPMarkup" span="3" color="blue" label="Código Azul" action="trigger"
+          icon="warning-sign" reveal="[PCP]=1"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="3.- Paciente que a su llegada viene en RCP." span="5"/>
+        <control type="buttongroup" name="RCP" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4"/>
+        <control type="button" name="RCPMarkup" span="3" color="blue" label="Código Azul" action="trigger"
+          icon="warning-sign" reveal="[RCP]=1"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="4.- Pérdida del estado de alerta o paciente inconsciente." span="5"/>
+        <control type="buttongroup" name="PAI" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4" />
+        <control type="button" name="PAIMarkup" span="3" color="blue" label="Código Azul" action="trigger"
+          icon="warning-sign" reveal="[PAI]=1"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="5.- Alteración neurológica aguda(focalidad neurológica y/o crisis convulsivas)." span="5"/>
+        <control type="buttongroup" name="ANA" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4" />
+        <control type="button" name="ANAMarkup" span="3" color="purple" label="Código Stroke" action="trigger"
+          icon="warning-sign" reveal="[ANA]=1"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="6.- Cefalea basado en EVA." span="4"/>
+        <control type="buttongroup" name="CBE" span="8" source="1,2,3,4" sourcelabels="Severo de 8 a 10,Moderado de 3 a 7,Leve de 1 a 2,No " edit="true" default="4"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="7.- Dificultad respiratoria aguda y/o en reposo." span="4"/>
+        <control type="buttongroup" name="DRA" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="8.- Dolor torácico basado en EVA." span="4"/>
+        <control type="buttongroup" name="DTB" span="8" source="1,2,3,4" sourcelabels="Severo de 8 a 10,Moderado de 3 a 7,Leve de 1 a 2,No" edit="true" default="4" />
+      </row>
+      <row name="rowDTBCode" reveal="DTB=1">
+        <control type="label" label=" " span="4"/>
+        <control type="button" name="btnCodeBlue5" action="trigger" span="2" color="orange" label="Código SICA" icon="warning" />
+      </row>
+      <row>
+        <control type="label" align="left" label="9.- Dolor abdominal basado en EVA." span="4"/>
+        <control type="buttongroup" name="DAB" span="8" source="1,2,3,4" sourcelabels="Severo de 8 a 10,Moderado de 3 a 7,Leve de 1 a 2,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" align="left" label="10.- Deshidratación clínica." span="4"/>
+        <control type="buttongroup" name="DYC" span="8" source="1,2,3,4" sourcelabels="Severa,Moderada,Leve,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" align="left" label="11.- Hemorragia activa." span="4"/>
+        <control type="buttongroup" name="HEM" span="8" source="1,2,3,4" sourcelabels="Severa,Moderada,Leve,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" align="left" label="12.- Quemadura por Escaldadura (% superficie corporal total)" span="4"/>
+        <control type="buttongroup" name="QPE" span="8" source="1,2,3,4" sourcelabels="20 al 100%,10 a 19%,1 a 9%,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" align="left" label="13.- Quemadura eléctrica" span="4"/>
+        <control type="buttongroup" name="QEL" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" align="left" label="14.- Intoxicación (alcohol, agentes químicos, sustancias de abuso, etc.)" span="4"/>
+        <control type="buttongroup" name="TIN" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" align="left" label="15.- Trauma músculo-esquelético." span="4"/>
+        <control type="buttongroup" name="TME" span="8" source="1,2,3,4" sourcelabels="Fractura expuesta,Fractura cerrada,Contusión simple,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" label="(CON deformidad y CON herida en la piel)" span="4"/>
+        <control type="label" label="(CON deformidad y SIN herida en la piel)" span="4"/>
+        <control type="label" label="(SIN deformidad y SIN herida en la piel)" span="4"/>
+      </row>
+      <row>
+        <control type="label" align="left" label="16.- Trauma por herida por arma de fuego y/o explosivos." span="4"/>
+        <control type="buttongroup" name="TFE" span="4" source="1,4" sourcelabels="Sí,No" edit="true" default="4" />
+      </row>
+      <row>
+        <control type="label" align="left" label="17.- Trauma por herida por arma punzocortante." span="4"/>
+        <control type="buttongroup" name="THA" span="8" source="1,2,4" sourcelabels="Cabeza-cuello-tórax y abdomen,Extremidades torácicas y pélvicas,No" edit="true" default="4" />
+      </row>
+      <row showif="never">
+        <control type="text" name="SBP"
+          when="[SBPText]≥180;1,[SBPText]≥160;2,[SBPText]≥140;3,[SBPText]≥90;4,[SBPText]≥0;1,[SBPText]=;4"/>
+        <control type="text" name="DBP"
+          when="[DBPText]≥110;1,[DBPText]≥101;2,[DBPText]≥91;3,[DBPText]≥60;4,[DBPText]≥0;1,[DBPText]=;4"/>
+        <control type="text" name="CRT" 
+        when="[CRTText]≥150;1,[CRTText]≥121;2,[CRTText]≥100;3,[CRTText]≥60;4,[CRTText]≥51;3,[CRTText]≥41;2,[CRTText]≥0;1,[CRTText]=;4"/>
+        <control type="text" name="TMP" 
+        when="[TMPText]≥40;1,[TMPText]≥38;2,[TMPText]≥37.6;3,[TMPText]≥36;4,TMPText]≥34;3,[TMPText]≥30;2,[TMPText]≥0;1,[TMPText]=;4"/>
+        <control type="text" name="RRT" 
+        when="[RRTText]≥31;1,[RRTText]≥25;2,[RRTText]≥19;3,[RRTText]≥13;4,[RRTText]≥11;3,[RRTText]≥9;2,[RRTText]≥0;1,[RRTText]=;4"/>
+        <control type="text" name="SO2" 
+        when="[SO2Text]≥90;4,[SO2Text]≥85;3,[SO2Text]≥81;2,[SO2Text]≥0;1"/>
+        <control type="text" name="BLG" 
+        when="[BLGText]≥600;1,[BLGText]≥251;2,[BLGText]≥121;3,[BLGText]≥80;4,[BLGText]≥71;3,[BLGText]≥61;2,[BLGText]≥0;1,[BLGText]=;4"/>
+        <control type="text" name="GLS"
+        when="[GLSText]≥15;4,[GLSText]≥13;3,[GLSText]≥9;2,[GLSText]≥0;1,[GLSText]=;4"/>
+      </row>
+    </subset>
+    <subset bgcolor="white">
+      <row>
+        <!-- Triage Level -->
+        <control type="label" label="Triage Final" span="2"/>
+        <!-- TMP,SO2,BLG,GLS,PCP,RCP,PAI,ANA,CBE,DRA,DTB,DAB,DYC,HEM,QPE,QEL,TIN,TME,TFE,THA -->
+        <control type="calc" name="Triage_TriageLevel" span="1"
+          source="(Math.min(SBP,DBP,CRT,RRT,TMP,SO2,BLG,GLS,PCP,RCP,PAI,ANA,CBE,DRA,DTB,DAB,DYC,HEM,QPE,QEL,TIN,TME,TFE,THA))"/>
+        <control type="button" name="btnTriageMarkup1" span="3" color="red" label="Triage Rojo" action="trigger"
+          icon="warning-sign" reveal="[Triage_TriageLevel]=1"/>
+        <control type="button" name="btnTriageMarkup2" span="3" color="yellow" label="Triage Amarillo" action="trigger"
+          icon="warning-sign" reveal="[Triage_TriageLevel]=2"/>
+        <control type="button" name="btnTriageMarkup3" span="3" color="green" label="Triage Verde" action="trigger"
+          icon="warning-sign" reveal="[Triage_TriageLevel]=3"/>
+        <control type="button" name="btnTriageMarkup4" span="4" color="green" label="Urgencia Sentida" action="trigger"
+          icon="warning-sign" reveal="[Triage_TriageLevel]=4"/>
+      </row>
+      <row>
+        <!-- Update the triagelevel field in the patient visit record and set the TriageLevel on patient chart -->
+        <control type="modalbutton" name="btnUpdateTriageTriageLevel" icon="cloud-upload" label="Guardar" color="green"
+          action="save" 
+          affector="none"
+          capture="grpTriageInfo"
+          acctsvc="true"
+          datainsert="InsertTriageCalculation"
+          appendinsert="patientVisitId=[Triage_PatientVisitGuid],PatientId=[Triage_PatientId]"
+          set="TriageLevel=[Triage_TriageLevel]"
+          provoke="btnUpdateTriageLevel"/>
+      </row>
+      <row showif="never">
+        <!-- Update the triage level on the patient visit -->
+        <control type="button" name="btnUpdateTriageLevel"
+          action="save|close|new"
+          acctsvc="true"
+          dataupdate="UpdatePatientVisitNoDepartmentTracking"
+          appendupdate="patientVisitUniqueId=[Triage_PatientVisitGuid],TriageLevel=[Triage_TriageLevel]"
+          provoke="PatientList"
+          emit="trigger|PatientList"/>
+      </row>
+    </subset>
+    </group>
+  </section>
+</partial>

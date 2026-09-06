@@ -110,9 +110,8 @@
           provoke="ButtonGroupSelect2"/>
         <control type="buttongroup" name="ButtonGroupSelect" 
           edit="true" mode="auto" span="11" default="Nursing"
-          source="Nursing,Problems,Vitals,Physicians,Studies,Medication,Surgery,Documents,Programs" 
-          sourcelabels="Enfermería,Diagnósticos,Vitales,Médicos,Estudios,
-          Medicamentos,Procedimientos,Documentos,Programas" 
+          source="Nursing,Problems,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Documents,Programs" 
+          sourcelabels="Enfermería,Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Documentos,Programas" 
           provoke="ERGridList|options"/>
       </row>
       <row name="rowMedicalDataGrids" reveal="[ShowDataGrids]=Medical">
@@ -144,8 +143,9 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationAdministrationsHistory.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinationsNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialOutpatientMedicationsNoEdit.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

@@ -17,13 +17,9 @@
           explicit="true"
           filter="Active=true" readonly="true"/>
         <control type="label" label="Tipo de llegada" span="2"/>
-        <control type="select" name="mdlAdmit_AdmitSource" span="4" 
-          datasource="GetLookupAdmitSourcesByFacility" 
-          source="AdmitSource,AdmitSource"
-          readonly="true" sort="AdmitSource=asc"
-          required="true" 
-          explicit="true"
-          filter="Active=true"/>
+       <control type="select" name="mdlAdmit_AdmitSource" span="3" required="true" explicit="true"
+          source="Medical,Emergency,AutoAccident,OccAccident,OccDisease,Elective"
+          sourcelabels="Médico,Urgente,Accidente Auto,Accidente Laboral,Médico Laboral,Electiva"/>
       </row>
       <row>
         <control type="label" label="Tipo de Caso" span="2"/>

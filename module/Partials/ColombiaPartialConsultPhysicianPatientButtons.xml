@@ -1,0 +1,136 @@
+<partial>
+  <!-- Partial Emergency Physician Buttons -->
+  <row name="rowPatientPhoto" reveal="[PatientId]!">
+    <!--Patient photo-->
+    <control type="image"
+      format="jpg=circle" 
+      name="Admit_ProfilePhoto"
+      default="null"
+      span="12" />
+  </row>
+  <!-- Button to show/hide patient info -->
+  <row name="rowShowHide" reveal="[PatientId]!">
+    <control type="buttongroup" name="btngrpShow"
+      span="12" edit="true"
+      source="Open,Close"
+      color="grey,grey"
+      sourcelabels="Abrir,Cerrar"
+      default="Close"/>
+  </row>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,
+        Search_PatientFirstName=[Consult_PatientFirstName],
+        Search_PatientMiddleName=[Consult_PatientMiddleName],
+        Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row name="rowUpdateButton" reveal="[PatientId]!">
+    <control type="button" 
+      name="Consult_PatientUpdate"
+      reveal="[HasOpenVisit]=true" 
+      span="12" 
+      label="Actualizar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="btnUpdatePatientVisit"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnUpdatePatientVisit"
+      action="save|close|new"
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row name="rowUpdateButtonNoClose" reveal="[PatientId]!">
+    <control type="button" 
+      name="Consult_PatientUpdateNoClose" 
+      span="12" 
+      label="Guardar sin cerrar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="save"
+      action="save"
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[PatientVisitGuid]!;btnUpdatePatientVisitNoClose"
+      success="Esta paciente ha sido actualizada"/>
+  </row>
+   <row showif="never">
+    <control type="button" name="btnUpdatePatientVisitNoClose"
+      action="save"
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <control type="button" name="btnConsultReports"
+      reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Admitting,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+  <row>
+    <control type="button"
+      name="btnConsultDocumentRequest"
+      label="Expediente Fisico" color="orange"
+      reveal="[PatientId]!"
+      span="12" icon="plus"
+      preset="DocumentPatientId=[PatientId],Document_PatientVisit=[PatientVisitGuid]"
+      trigger="DocumentPatientId,Document_PatientVisit"
+      action="redirect"
+      target="mdlDocumentRequest"/>
+  </row>
+  <row>
+    <control type="button"  name="LoadOrderECD" label="Reacción Adversa"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      color="red" span="12"
+      onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+      action="redirect|url" 
+      target="ecd/index.html" 
+      usesource="login"
+      append="ecdGuid=717F59A3-BF7D-444C-BE46-F200419F2EF7-1300379,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+      provoke="EREcdForms"/>
+  </row>
+  <row name="rowViewPatientChartFromCART" reveal="(facilityData.HospitalShortName)%COI+[SourcePatientId]!+[SourceFacilityId]!">
+    <control type="button" name="btnDisplayChartFromCART"
+      span="12" icon="search" label="Ficha de CART"
+      preset="Review_AliasFacility=[SourceFacilityId],Review_PatientId=[SourcePatientId]"
+      trigger="Review_PatientId"
+      action="redirect" target="ReviewPatientTabModal"/>
+  </row>
+  <row name="rowViewPatientChartFromCOI" reveal="(facilityData.HospitalShortName)%CART+(facilityData.HospitalShortName)¡COI+[SourcePatientId]!+[SourceFacilityId]!">
+    <control type="button" name="btnDisplayChartFromCOI"
+      span="12" icon="search" label="Ficha de COI"
+      preset="Review_AliasFacility=[SourceFacilityId],Review_PatientId=[SourcePatientId]"
+      trigger="Review_PatientId"
+      action="redirect" target="ReviewPatientTabModal"/>
+  </row>
+</partial>

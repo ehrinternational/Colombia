@@ -10,65 +10,75 @@
         </row>
       </group>
       <group name="grpPlanDetails" bgcolor="white" title="Detalles del Plan">
+        <group>
         <row>
           <control type="label" span="3" label="Activo"/>
-          <control name="Pld_IsActive" type="buttongroup" span="3" readonly="true" sourcelabels="Sí,No"
+          <control name="Pln_IsActive" type="buttongroup" span="3" readonly="true" 
+            sourcelabels="Sí,No"
             source="True,False" default="True"/>
           <control type="label" span="3" label="Folio"/>
-          <control name="Pld_PlanNumber" type="text" span="2" readonly="true"/>
+          <control name="Pln_PlanNumber" type="text" span="2" readonly="true"/>
         </row>
         <row>
           <control type="label" span="3" label="Fecha Inicio"/>
-          <control name="Pld_StartDate" type="date" span="3" readonly="true" />
+          <control name="Pln_StartDate" type="date" span="3" readonly="true" required="true" default="Ctc_StartDate"/>
           <control type="label" span="3" label="Fecha Final"/>
-          <control name="Pld_EndDater" type="date" span="3" readonly="true" />
+          <control name="Pln_EndDate" type="date" span="3" readonly="true" required="true"  default="Ctc_EndDate"/>
         </row>
         <row>
           <control type="label" span="3" label="Código"/>
-          <control name="Pld_PlanCode" type="text" span="3" readonly="true"/>
-          <control type="label" span="3" label="Tipo de Plan"/>
-          <control name="Pld_Category" type="select" span="3" readonly="true"  explicit="true"
+          <control name="Pln_PlanCode" type="text" span="3" readonly="true" required="true"
+          regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,25}$" />
+          <control type="label" span="3" label="Categoría"/>
+          <control name="Pln_Category" type="select" span="3" readonly="true" required="true" explicit="true"
             source="EPS_POS,PREPAGADA,SOAT,ARL_ATEP,POLIZA_PRIVADA"/>
         </row>  
         <row>
           <control type="label" span="3" label="Nombre"/>
-          <control name="Pld_PlanName" type="text" span="9" readonly="true" />
+          <control name="Pln_PlanName" type="text" span="9" readonly="true" required="true"
+          regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
         </row> 
         <row>
-          <control type="label" span="3" label="Copago"/>
-          <control name="Pld_Copay" type="text" span="3" readonly="true" format="0.00"/>
-          <control type="label" span="4" label="Max de Gastos de Bolsillo" />
-          <control name="Pld_MaxOutOfPocket" type="text" span="2" readonly="true" format="0.00"/>
+          <control type="label" span="3" label="Copago Officina"/>
+          <control name="Pln_CopayOutpatient" type="text" span="3" readonly="true" format="0.00"  required="true"/>
+          <control type="label" span="4" label="Copago Hospital"/>
+          <control name="Pln_CopayInpatient" type="text" span="2" readonly="true" format="0.00"  required="true"/>
         </row> 
         <row>
           <control type="label" span="3" label="Coaseguro Cirugía" badge="%"/>
-          <control name="Pld_MedicalCoinsurance" type="text" span="3" readonly="true" format="0.0000"/>
+          <control name="Pln_MedicalCoinsurance" type="text" span="3" readonly="true" format="0.0000"  required="true"/>
           <control type="label" span="4" label="Coaseguro Comercial" badge="%"/>
-          <control name="Pld_Coinsurance" type="text" span="2" readonly="true" format="0.0000"/>
+          <control name="Pln_Coinsurance" type="text" span="2" readonly="true" format="0.0000"  required="true"/>
         </row> 
         <row>
           <control type="label" span="3" label="Cap Tope"/>
-          <control name="Pld_HasTopeCap" type="buttongroup" span="3" source="True,False" default="False" 
+          <control name="Pln_HasTopeCap" type="buttongroup" span="3"  required="true"
+            source="True,False" 
             sourcelabels="Sí,No" readonly="true"/>
           <control type="label" span="4" label="Max Tope por Evento"/>
-          <control name="Pld_MaxTopeEvent" type="text" span="2" readonly="true" format="0.00"/>
+          <control name="Pln_MaxTopeEvent" type="text" span="2" readonly="true" format="0.00"  required="true"/>
         </row> 
         <row>
           <control type="label" span="3" label="Max Tope Anual"/>
-          <control name="Pld_MaxTopeAnnual" type="text" span="3" readonly="true" format="0.00"/>
+          <control name="Pln_MaxTopeAnnual" type="text" span="3" readonly="true" format="0.00"  required="true"/>
           <control type="label" span="4" label="Deducible Anual"/>
-          <control name="Pld_DeductibleAnnual" type="text" span="2" readonly="true" format="0.00"/>
+          <control name="Pln_DeductibleAnnual" type="text" span="2" readonly="true" format="0.00"  required="true"/>
         </row> 
         <row>
+          <control type="label" span="3" label="Max Pago Paciente" />
+          <control name="Pln_MaxOutOfPocket" type="text" span="3" readonly="true" format="0.00"  required="true"/>
+        </row>
+        <row>
           <control type="label" span="3" label="Requiere Autorización"/>
-          <control name="Pld_RequiresAuthorization" type="buttongroup" span="3" readonly="true"
-            source="True,False" sourcelabels="Sí,No" default="False"/>
-          <control type="label" span="3" label="Convenio de Anulación" />
-          <control name="Pld_CoverageOverride" type="text" span="3" readonly="true"/>
+          <control name="Pln_RequiresAuthorization" type="buttongroup" span="3" readonly="true"
+            source="True,False" sourcelabels="Sí,No" required="true"/>
+          <control type="label" span="3" label="Cobertura de Anulación" />
+          <control name="Pln_CoverageOverride" type="text" span="3" readonly="true"/>
         </row> 
         <row>
           <control type="label" span="3" label="Notas" />
-          <control name="Pld_Notes" type="text" span="9" readonly="true"/>
+          <control name="Pln_Notes" type="text" span="9" readonly="true"
+          regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$"/>
         </row>
     </group>
   </section>

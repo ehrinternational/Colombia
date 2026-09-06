@@ -1,0 +1,47 @@
+<partial>
+    <row>
+      <control type="button" name="btnTimeline"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+    </row>
+    <row>
+      <!-- Transfer patient to another department -->
+      <control type="button" name="btnTransferPatient"
+      reveal="[HasOpenVisit]=true+[PatientVisitGuid]!"
+      span="12" icon="hospital" label="Transferir"
+      color="orange" action="redirect"
+      preset="Transfer_DepartmentGuid=[DepartmentGuidLookup]"
+      target="mdlTransferPatient"/>
+    </row>
+    <row>
+      <control type="button"
+        name="Consult_btnDocumentRequest"
+        label="Expediente Fisico" color="orange"
+        reveal="[PatientId]!"
+        span="12" icon="plus"
+        preset="DocumentPatientId=[PatientId],Document_PatientVisit=[PatientVisitGuid]"
+        trigger="DocumentPatientId,Document_PatientVisit"
+        action="redirect"
+        target="mdlDocumentRequest"/>
+    </row>
+    <row name="rowReadyForDischargeButtons" reveal="HasOpenVisit=true">
+    <control type="button" name="btnAltaMedica"
+      reveal="ReadyForDischarge=true"
+      span="12" icon="home" label="Alta Médica"
+      color="green" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+    <control type="button" name="btnNoAltaMedica"
+      reveal="ReadyForDischarge=false"
+      span="12" icon="home" label="Alta Médica"
+      color="grey" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+  </row>
+</partial>

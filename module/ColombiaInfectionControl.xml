@@ -105,7 +105,7 @@
     <group name="VisitInfo">
       <columns>
         <column span="10">
-          <partial link="Partials/ColombiaPartialInfectionControlVisitInfo.xml"/>
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
         </column>
       </columns>
     </group>
@@ -143,9 +143,8 @@
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
           edit="true" mode="auto" 
-          source="Nursing,Problems,Vitals,Physicians,Studies,Medication,Surgery,Documents" 
-          sourcelabels="Enfermería,Diagnósticos,Vitales,Médicos,Estudios,
-          Medicamentos,Procedimientos,Documentos" 
+          source="Nursing,Problems,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Documents" 
+          sourcelabels="Enfermería,Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Documentos" 
           span="11" 
           default="Nursing" 
           value="Nursing"  
@@ -179,6 +178,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationActiveAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEditPrintPrescription.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>

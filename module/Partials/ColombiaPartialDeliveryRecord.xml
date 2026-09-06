@@ -1,0 +1,258 @@
+<partial><!--Used By Colombia FSFB-->
+
+  <!-- ================================================================
+       REGISTRO DE PARTO
+       Mapea 1:1 contra el API entregado:
+         GetPatientBirthRecords    (facility, birthGuid, patientId, patientVisit)
+         InsertPatientBirthRecords (sin birthGuid — lo genera el SP)
+         UpdatePatientBirthRecords (con birthGuid)
+
+       ATENCIÓN — ClinicalGeniusSupplyChainEntities.
+       Aunque el dato es clínico, el API declara estas funciones sobre
+       ClinicalGeniusSupplyChainEntities. Por tanto acctsvc="true" y
+       acctsvcreq="true" son OBLIGATORIOS. Si se omiten, la petición se
+       dirige a ClinicalGeniusEHR y la rejilla queda vacía sin error.
+
+       CAMPOS ENTEROS CODIFICADOS del API: BirthType, Complications,
+       BirthControl, BirthControlTiming, PregnancyTermination,
+       CompanionTime. Se resuelven con GetLookupBirthCodes
+       (SP nuevo, catálogo → acctsvc="true"), agrupado por CodeGroup.
+       ================================================================ -->
+
+  <section type="tab" name="DeliveryRecordTab" title="Registro de Aborto/Parto" reveal="[PatientId]!">
+
+    <template name="tmpBirthTypeTemplate" type="markup" align="left">
+      [IF ${[[BirthType]]}=1]Vaginal espontáneo[/IF]
+      [IF ${[[BirthType]]}=2]Vaginal instrumentado[/IF]
+      [IF ${[[BirthType]]}=3]Cesárea programada[/IF]
+      [IF ${[[BirthType]]}=4][b]Cesárea urgente[/b][/IF]
+      [IF ${[[BirthType]]}=5]Parto en agua[/IF]
+    </template>
+
+    <template name="tmpBirthStatusTemplate" type="markup" align="center">
+      [IF ${[[Status]]}=Open][icon color=orange]exclamation-sign[/icon] Abierto[/IF]
+      [IF ${[[Status]]}=Closed][icon color=green]ok[/icon] Cerrado[/IF]
+      [IF ${[[Status]]}=Cancelled][icon color=grey]remove[/icon] Anulado[/IF]
+    </template>
+
+    <group name="grpDeliveryRecordList">
+      <row>
+        <control type="datagrid" name="grdDeliveryRecords" label="Registros de Parto"
+            span="12" rows="6" fitrows="true" searchable="true"
+            modalname="mdlDeliveryRecord"
+            acctsvc="true" acctsvcreq="true"
+            datarequest="GetPatientBirthRecords"
+            appendrequest="patientId=[PatientId],patientVisit=[PatientVisitGuid],facility=(facility)"
+            datainsert="InsertPatientBirthRecords"
+            appendinsert="patientId=[PatientId],patientVisit=[PatientVisitGuid],facility=(facility),status=Open"
+            dataupdate="UpdatePatientBirthRecords"
+            appendupdate="birthGuid=[Obs_BirthGuid],patientId=[PatientId],patientVisit=[PatientVisitGuid],facility=(facility)"
+            idle="[PatientId]=|reset"
+            source="DateOfBirth,BirthType,WeeksPregnant,DaysPregnant,FetalCount,AnesthesiaType,Instrumental,Status"
+            sourcelabels="Fecha y Hora del Parto,Tipo,Sem.,Días,Fetos,Anestesia,Instrumentado,Estado"
+            align="left|left|center|center|center|left|center|center"
+            format="datetime||0|0|0||boolean|"
+            sort="DateOfBirth=desc"
+            key="BirthGuid"
+            onselectset="Obs_BirthGuid=[[BirthGuid]]"
+            onselect="Obs_BirthGuid">
+
+          <control type="button" name="btnDeliveryNew" label="Nuevo Registro de Parto" icon="plus"
+              color="green"
+              reveal="[PatientVisitGuid]!"
+              action="redirect|view" target="mdlDeliveryRecord"
+              append="size=large"
+              set="Obs_BirthGuid="
+              provoke="grdDeliveryRecords"/>
+
+          <control type="button" name="btnDeliveryNote" label="Nota de Parto (ECD)" icon="file"
+              reveal="[Obs_BirthGuid]!"
+              action="redirect|url" target="ecd/index.html"
+              append="ecdGuid=[Del_Note_EcdGuid],patientid=[PatientId],patientvisit=[PatientVisitGuid],birthguid=[Obs_BirthGuid],size=large"/>
+
+          <control type="button" name="btnDeliveryPrint" label="Imprimir" icon="print"
+              action="print" preset="Report_Type=DeliveryRecord"
+              append="birthguid=[Obs_BirthGuid],patientid=[PatientId]"/>
+        </control>
+      </row>
+
+      <!-- ecdGuid de la nota ampliada de parto -->
+      <row name="rowDeliveryEcdGuids" showif="never">
+        <control type="text" name="Del_Note_EcdGuid" default="ECD-NOTA-PARTO-COL"/>
+      </row>
+    </group>
+  </section>
+
+  <!-- ================================================================
+       MODAL — todos los campos del contrato InsertPatientBirthRecords
+       ================================================================ -->
+  <section type="modal" name="mdlDeliveryRecord" title="Registro de Parto" size="large"
+      enteredby="EnteredBy" updatedby="UpdatedBy"
+      dtentered="DateTimeEntered" dtupdated="DateTimeUpdated">
+
+    <group name="grpDeliveryRecord" capture="grpDeliveryRecord">
+
+      <!-- ===== Evento ===== -->
+      <subset name="subDeliveryEvent" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Datos del parto[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Fecha y hora del parto" span="3"/>
+          <control type="datetime" name="DateOfBirth" span="3" edit="true" required="true"
+              default="(dateTimeNow)"/>
+          <control type="label" label="Tipo de parto" span="3"/>
+          <control type="select" name="BirthType" span="3" edit="true" explicit="true" required="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=BirthType"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Semanas de gestación" span="3"/>
+          <control type="integer" name="WeeksPregnant" span="2" edit="true" min="20" max="44" required="true"/>
+          <control type="label" label="Días" span="2"/>
+          <control type="integer" name="DaysPregnant" span="1" edit="true" min="0" max="6"/>
+          <control type="label" label="Número de fetos" span="2"/>
+          <control type="integer" name="FetalCount" span="2" edit="true" min="1" max="6" required="true"
+              default="1"/>
+        </row>
+        <row>
+          <control type="label" label="Terminación del embarazo" span="3"/>
+          <control type="select" name="PregnancyTermination" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=PregnancyTermination"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Instrumentado" span="3"/>
+          <control type="checkbox" name="Instrumental" span="3" edit="true"/>
+        </row>
+      </subset>
+
+      <!-- ===== Atención del parto ===== -->
+      <subset name="subDeliveryCare" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Atención del parto[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Posición de la madre" span="3"/>
+          <control type="select" name="MothersPosition" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=MothersPosition"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Tipo de anestesia" span="3"/>
+          <control type="select" name="AnesthesiaType" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=AnesthesiaType"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Episiotomía" span="3"/>
+          <control type="select" name="Epistomy" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=Episiotomy"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Estado del periné / desgarro" span="3"/>
+          <control type="select" name="Perineum" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=Perineum"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Complicaciones" span="3"/>
+          <control type="select" name="Complications" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=Complications"
+              source="CodeDescription,CodeValue"/>
+          <!-- RobsonClass NO es campo de PatientBirthRecords en el API:
+               solo existe en NewbornBirthRecords. Se captura alli. -->
+        </row>
+      </subset>
+
+      <!-- ===== Parto humanizado (Res. 3280/2018, IAMII) ===== -->
+      <subset name="subDeliveryHumanised" bgcolor="lightblue">
+        <row>
+          <control type="label" label="[b]Atención humanizada y respetuosa[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Acompañante" span="3"/>
+          <control type="text" name="Accompaniment" span="3" edit="true"
+              placeholder="Parentesco o nombre"/>
+          <control type="label" label="Tiempo de acompañamiento" span="3"/>
+          <control type="select" name="CompanionTime" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=CompanionTime"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Adecuación cultural" span="3"/>
+          <control type="checkbox" name="CulturalCare" span="3" edit="true"
+              tooltip="Prácticas culturales respetadas durante la atención"/>
+          <!-- FreeMovement, DeliveryPosition y GriefSupport pertenecen a la
+               entidad Newborn del API, no a PatientBirthRecords. Se capturan
+               en ColombiaPartialNewbornRecord.xml. -->
+        </row>
+      </subset>
+
+      <!-- ===== Anticoncepción post-evento obstétrico ===== -->
+      <subset name="subDeliveryContraception" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Anticoncepción post-evento obstétrico[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Método" span="3"/>
+          <control type="select" name="BirthControl" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=BirthControl"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Momento de aplicación" span="3"/>
+          <control type="select" name="BirthControlTiming" span="3" edit="true" explicit="true"
+              acctsvc="true"
+              datarequest="GetLookupBirthCodes"
+              filter="CodeGroup=BirthControlTiming"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Otro método (especifique)" span="3"/>
+          <control type="text" name="OtherBirthControl" span="9" edit="true"/>
+        </row>
+      </subset>
+
+      <row>
+        <control type="label" label="Notas del parto" span="3"/>
+        <control type="textarea" name="BirthNotes" span="9" edit="true" rows="4"/>
+      </row>
+
+      <row>
+        <control type="label" label="Estado del registro" span="3"/>
+        <control type="select" name="Status" span="3" edit="true" explicit="true"
+            acctsvc="true"
+            datarequest="GetLookupBirthCodes"
+            filter="CodeGroup=BirthStatus"
+            source="CodeDescription,CodeValue"
+            default="Open"/>
+      </row>
+
+      <!-- ===== Botones ===== -->
+      <row>
+        <control type="modalbutton" showif="add" name="mbtDeliveryInsert"
+            label="Guardar Registro" color="green" modaltask="insert|add"
+            provoke="grdDeliveryRecords,grdNewbornsForBirth"/>
+      </row>
+      <row>
+        <control type="modalbutton" showif="edit" name="mbtDeliveryUpdate"
+            label="Actualizar Registro" color="green" modaltask="update|next"
+            provoke="grdDeliveryRecords,grdNewbornsForBirth"/>
+      </row>
+
+    </group>
+  </section>
+
+</partial>

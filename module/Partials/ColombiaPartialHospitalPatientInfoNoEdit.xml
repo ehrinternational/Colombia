@@ -55,9 +55,9 @@
         <control type="label" label="Estado Nacimiento" span ="3"/>
         <control type="select" name="Consult_BirthPlace" span="3" readonly="true"
           idle="Consult_Nationality=" 
-          datasource="GetStatesProvincesByCountryCode"
+          datarequest="GetStatesProvincesByCountryCode"
           source="Name,Code" explicit="true"
-          append="countryCode=[Consult_Nationality]"
+          appendrequest="countryCode=[Consult_Nationality]"
           set="LastCountry=[Consult_Nationality],Consult_BirthPlaceKey=[[CATALOG_KEY]]"/>
         <control type="hidden" name="Consult_BirthPlaceKey"/>
       </row>

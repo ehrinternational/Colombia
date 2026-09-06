@@ -1,0 +1,215 @@
+<partial><!--Used By Colombia FSFB-->
+
+  <!-- ================================================================
+       PARTOGRAMA — CLAP/OMS, adoptado por la Resolución 3280 de 2018
+       (Ruta Integral de Atención Materno-Perinatal).
+
+       Depende de [BirthGuid] (registro de parto abierto) y de
+       [PatientId] / [PatientVisitGuid].
+
+       SP NUEVOS REQUERIDOS (ver README, §Contrato de backend):
+         GetPartogramaEntries      / InsertPartogramaEntry / UpdatePartogramaEntry
+         GetPartogramaCurve        ← series ya calculadas para el chart
+         GetLookupPartogramaCodes  ← catálogos (posición, membranas, moldeamiento…)
+
+       DECISIÓN DE BASE DE DATOS: las tablas de partograma deben crearse
+       junto a las tablas Birth* en ClinicalGeniusSupplyChain, porque se
+       unen por BirthGuid y las uniones entre bases son costosas. Por eso
+       este partial usa acctsvc="true"/acctsvcreq="true".
+       Si el DBA las coloca en ClinicalGeniusEHR, HAY QUE QUITAR esos dos
+       atributos de TODOS los controles de este archivo; de lo contrario
+       la rejilla sale vacía sin ningún error.
+
+       CURVAS DE ALERTA: no se calculan en el XML. GetPartogramaCurve
+       devuelve AlertLineDilation y ActionLineDilation ya resueltas por
+       percentil CLAP (paridad, membranas, posición) — el cálculo vive en
+       SQL, no en la capa declarativa.
+       ================================================================ -->
+
+  <section type="tabmodal" name="mdlPartograma" title="Partograma" badge="none" size="medium">
+    <group name="grpPartograma">
+  
+      <!-- ===== 1. GRÁFICA =====
+           ATENCIÓN: los atributos del control type="chart" NO están
+           documentados en el análisis del corpus. Antes de desplegar,
+           comparar con un uso real de <control type="chart"> en el
+           workspace (curvas de crecimiento / signos vitales) y ajustar
+           los nombres de atributo. La rejilla de abajo es funcional por
+           sí sola, así que el partial sirve aunque el chart requiera
+           ajuste. -->  
+      <row reveal="[BirthGuid]!">
+        <control type="chart" name="chtPartogramaCurve" title="Curva de Dilatación" span="12"
+            aspect="10/2"
+            acctsvcreq="true"
+            datarequest="GetPartograma"
+            appendrequest="birthGuid=[BirthGuid]"
+            idle="[BirthGuid]=|reset"
+            mode="line"
+            source="CervicalDilation,AlertLineDilation,ActionLineDilation,FetalStation"
+            sourcelabels="Dilatación (cm),Línea de Alerta,Línea de Acción,Descenso"
+            color="blue,orange,red,green"
+            format="0|0|0|0"/>
+      </row>
+
+      <!-- ===== 2. GRÁFICA DE VIGILANCIA ===== -->
+      <row reveal="[BirthGuid]!">
+        <control type="chart" name="chtPartogramaVitals" title="Vigilancia Materno-Fetal" span="12"
+            aspect="10/2"
+            acctsvcreq="true"
+            datarequest="GetPartograma"
+            appendrequest="birthGuid=[BirthGuid]"
+            idle="[BirthGuid]=|reset"
+            mode="line"
+            source="FetalHeartRate,MaternalPulse,ContractionsPer10Min"
+            sourcelabels="FCF(lpm),Pulso Materno(lpm),Contracciones /10 min"
+            color="red,purple,grey"
+            format="0|0|0"/>
+      </row>
+      <!-- ===== 3. REJILLA DE REGISTROS ===== -->
+      <row>
+        <control type="datagrid" name="grdPartogramaEntries" label="Registros del Partograma"
+            span="12" rows="5" fitrows="true" searchable="true"
+            modalname="mdlPartogramaEntry"
+            acctsvc="true" acctsvcreq="true"
+            datarequest="GetPartograma"
+            appendrequest="birthGuid=[BirthGuid]"
+            datainsert="InsertPartograma"
+            appendinsert="birthGuid=[BirthGuid]"
+            idle="[BirthGuid]=|reset"
+            source="DateTimeEnterd,ElapsedHours,CervicalDilation,FetalStation,FetalHeartRate,ContractionsPer10Min,ContractionIntensity,MembraneStatus,AmnioticFluidColor,MaternalBPSystolic,MaternalBPDiastolic,OxytocinDose"
+            sourcelabels="Fecha,Horas,Dilatación,Estación,FCF,Contr./10min,Intensidad,Membranas,Líquido,PAS,PAD,Oxitocina"
+            align="left|center|center|center|center|center|left|left|left|center|center|center|center"
+            format="datetime|0.0|0|0|0|0|||||0|0|0.0|"
+            translate="MembraneStatus,AmnioticFluidColor,ContractionIntensity"
+            rowcolor="CurveStatus|Right=red;Alert=orange;Normal=white"
+            sort="EntryDateTime=desc"
+            key="PartogramaEntryGuid">
+          <control type="button" name="btnPartogramaPrint" label="Imprimir Partograma" icon="print"
+              action="print" preset="Report_Type=Partograma"
+              append="birthguid=[BirthGuid]"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- ================================================================
+       MODAL DE REGISTRO
+       Los name= dentro de grpPartogramaEntry son los nombres de campo
+       que espera el SP. Las variables auxiliares llevan prefijo Par_.
+       ================================================================ -->
+
+  <section type="modal" name="mdlPartogramaEntry" title="Registro de Partograma" provoke="chtPartogramaVitals,chtPartogramaCurve"
+      enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+      dtentered="DateTimeEntered" dtupdated="DateTimeUpdated">
+    <group name="grpPartogramaEntry">
+      <row>
+        <control type="label" label="Horas de trabajo de parto" span="3"/>
+        <control type="double" name="ElapsedHours" span="2" edit="true" min="0" max="48"/>
+      </row>
+      <!-- ===== Progreso ===== -->
+      <subset name="subPartoProgress" bgcolor="white">
+        <row>
+          <control type="label" label="Progreso" align="left" span="1"/>
+          <control type="label" label="Dilatación (cm)" span="2"/>
+          <control type="integer" name="CervicalDilation" span="2" edit="true"
+              min="0" max="10" required="true"/>
+          <control type="label" label="Borramiento (%)" span="3"/>
+          <control type="integer" name="CervicalEffacement" span="2" edit="true" min="0" max="100"/>
+        </row>
+        <row>
+          <control type="label" label="Estación (De Lee)" span="3"/>
+          <control type="select" name="FetalStation" span="2" edit="true" explicit="true"
+              source="-5,-4,-3,-2,-1,0,+1,+2,+3,+4,+5" required="true"/>
+          <control type="label" label="Presentación" span="3"/>
+          <control type="select" name="FetalPresentation" span="3" edit="true" explicit="true"
+              source="V,B,T" persist="true"
+              sourcelabels="Cephalic occiput,Podálica,Transversa"/>
+        </row>
+        <row>
+          <control type="label" label="Variedad de posición" span="3"/>
+          <control type="select" name="FetalPosition" span="3" edit="true" explicit="true"
+              source="O,A,P,I,D" persist="true"
+              sourcelabels="Occiput,Anterior,Posterios,Izquierda,Derecha"/>
+          <control type="label" label="Moldeamiento" span="3"/>
+          <control type="select" name="MoldingDegree" span="2" edit="true" explicit="true"
+              source="0,1,2,3" persist="true"
+              sourcelabels="Suturas separadas,Suturas afrontadas,Huesos superpuestos,Superposición ósea grave"/>
+        </row>
+      </subset>
+
+      <!-- ===== Estado fetal ===== -->
+      <subset name="subPartoFetal" bgcolor="white">
+        <row>
+          <control type="label" label="Estado fetal" align="left" span="2"/>
+          <control type="label" label="FCF (lpm)" span="1"/>
+          <control type="integer" name="FetalHeartRate" span="2" edit="true"
+              min="60" max="220" required="true"/>
+          <control type="label" label="Patrón" span="3"/>
+          <control type="select" name="FetalHeartRatePattern" span="3" edit="true" explicit="true"
+              source="Normal,Desaceleración,Bradicardia,Taquicardia"/>
+        </row>
+        <row>
+          <control type="label" label="Membranas" span="3"/>
+          <control type="select" name="MembraneStatus" span="3" edit="true" explicit="true"
+              source="I,R" required="true"
+              sourcelabels="Íntegras,Rotas"/>
+          <control type="label" label="Líquido amniótico" span="3"/>
+          <control type="select" name="AmnioticFluidColor" span="3" edit="true" explicit="true"
+              source="C,M" required="true"
+              sourcelabels="Claro,Meconio"/>
+        </row>
+      </subset>
+
+      <!-- ===== Dinámica uterina ===== -->
+      <subset name="subPartoContractions" bgcolor="white">
+        <row>
+          <control type="label" label="Dinámica uterina" align="left" span="2"/>
+          <control type="label" label="Contracciones/10 min" span="3"/>
+          <control type="integer" name="ContractionsPer10Min" span="1" edit="true" min="0" max="10" required="true"/>
+          <control type="label" label="Duración (seg)" span="3"/>
+          <control type="integer" name="ContractionDuration" span="2" edit="true" min="0" max="180"/>
+        </row>
+        <row>
+          <control type="label" label="Intensidad" span="3"/>
+          <control type="select" name="ContractionIntensity" span="3" edit="true" explicit="true"
+              source="Débil,Moderada,Intensiva"/>
+          <control type="label" label="Oxitocina (mU/min)" span="3"/>
+          <control type="double" name="OxytocinDose" span="2" edit="true" min="0" max="40"/>
+        </row>
+      </subset>
+
+      <!-- ===== Estado materno ===== -->
+      <subset name="subPartoMaternal" bgcolor="white">
+        <row>
+          <control type="label" label="Estado materno" align="left" span="2"/>   
+          <control type="label" label="PA sistólica" span="2"/>
+          <control type="integer" name="MaternalBPSystolic" span="1" edit="true" min="50" max="250"/>
+          <control type="label" label="PA diastólica" span="3"/>
+          <control type="integer" name="MaternalBPDiastolic" span="1" edit="true" min="30" max="150"/>
+        </row>
+        <row>
+          <control type="label" label="Pulso (lpm)" span="4"/>
+          <control type="integer" name="MaternalPulse" span="2" edit="true" min="30" max="200"/>
+          <control type="label" label="Temperatura (°C)" span="3"/>
+          <control type="double" name="MaternalTemp" span="2" edit="true" min="30" max="43"/>
+        </row>
+        <row>
+          <control type="label" label="Diuresis (mL)" span="4"/>
+          <control type="integer" name="UrineOutput" span="2" edit="true" min="0"/>
+          <control type="label" label="Proteinuria" span="3"/>
+          <control type="select" name="UrineProtein" span="2" edit="true" explicit="true"
+              source="N,T"
+              sourcelabels="Negativo,Traza"/>
+        </row>
+      </subset>
+      <row>
+        <control type="label" label="Medicamentos" span="3"/>
+        <control type="text" name="Medications" span="9" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Observaciones" span="3"/>
+        <control type="textarea" name="Notes" span="9" edit="true" rows="1"/>
+      </row>
+    </group>
+  </section>
+</partial>

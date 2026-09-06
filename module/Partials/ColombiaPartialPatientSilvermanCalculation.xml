@@ -1,0 +1,98 @@
+<partial>
+  <!-- This tabmodal calculates the Silverman status of a patient and updates the PatientESI field -->
+  <section type="tabmodal" badge="none" name="mdlSilverman" title="Escala de Silverman-Anderson" trigger="grdSilvermanHistory">
+    <group name="SilvermanInfo">
+      <row>
+        <control type="label" label="Movimientos Toraco-abdominales" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Slv_ESIPain" span="12" edit="true" 
+          source="0,1,2"
+          sourcelabels="0 puntos: Sincronizados. El tórax y el abdomen se elevan y caen juntos de manera uniforme.,
+          1 punto: Retraso en la inspiración. El tórax se retrasa o no se mueve al mismo tiempo que el abdomen.,
+          2 puntos: Bamboleo (sube y baja). El tórax y el abdomen se mueven en direcciones opuestas (respiración paradójica)."
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Tiraje Intercostal (Depresión de los espacios entre las costillas)" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Slv_ESIB" span="12" edit="true" 
+          source="0,1,2" 
+          sourcelabels="0 puntos: Ausente.,
+          1 punto: Leve. Se nota un ligero hundimiento de la piel entre las costillas al respirar.,
+          2 puntos: Marcado. El hundimiento entre las costillas es profundo y muy evidente."
+          required="true"/>
+      </row>
+       <row>
+        <control type="label" label="Retracción Xifoidea" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Slv_ESIC" span="12" edit="true" 
+          source="0,1,2" 
+          sourcelabels="0 puntos: Ausente.,
+          1 punto: Leve. Apenas visible el hundimiento de la piel justo debajo del esternón.,
+          2 puntos: Marcada. Hundimiento profundo y muy marcado debajo del esternón."
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Aleteo Nasal" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Slv_ESID" span="12" edit="true" 
+          source="0,1,2" 
+          sourcelabels="0 puntos: Ausente.,
+          1 punto: Leve. Apertura mínima o ligera de las fosas nasales al inhalar.,
+          2 puntos: Marcado. Las fosas nasales se abren de par en par con cada respiración."
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Quejido Espiratorio" align="left" span="12"/>
+        <control type="buttonvertgroup" name="Slv_ESIAlert" span="12" edit="true" 
+          source="0,1,2" 
+          sourcelabels="0 puntos: Ausente.,
+          1 punto: Leve. El sonido de quejido solo se escucha al usar un estetoscopio.,
+          2 puntos: Marcado. El quejido se escucha claramente a simple vista, sin necesidad de estetoscopio."
+          required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Total Puntos" span="2"/>
+        <control type="calc" name="Slv_ESIRisk" span="1" format="0"
+          source="Slv_ESIPain+Slv_ESIB+Slv_ESIC+Slv_ESID+Slv_ESIAlert"/>
+        <!-- Insert the Silverman record -->
+        <control type="button" name="btnInsertPatientSilverman" span="2" color="green" icon="cloud-upload" label="Guardar"
+          reveal="[Slv_ESIRisk]«4"
+          action="save|close|new"
+          affector="none"
+          capture="SilvermanInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=Silverman,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+        <control type="button" name="btnInsertPatientSilverman2" span="2" color="orange" icon="cloud-upload" label="Guardar"
+          reveal="[Slv_ESIRisk]«7+[Slv_ESIRisk]»3"
+          action="save|close|new"
+          affector="none"
+          capture="SilvermanInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=Silverman,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+        <control type="button" name="btnInsertPatientSilverman3" span="2" color="red" icon="cloud-upload" label="Guardar"
+          reveal="[Slv_ESIRisk]»6"
+          action="save|close|new"
+          affector="none"
+          capture="SilvermanInfo"
+          acctsvc="true"
+          dataupdate="InsertPatientESI"
+          appendupdate="PatientId=[PatientId],ESIType=Silverman,Active=true"
+          set="ESIRisk=[Calc_ESIRisk]"/>
+      </row>
+      <row>
+        <control type="datagrid" name="grdSilvermanHistory" label="Historial de Estratificación"
+          span="12" rows="5"
+          acctsvcreq="true"
+          rowcolor="ESIRisk|0=green;1=green;2=green;3=green;4=orange;5=orange;6=orange;7=red;8=red;9=red;10=red"
+          datarequest="GetPatientESI"
+          appendrequest="PatientId=[PatientId],ESIType=Silverman"
+          source="DateTimeEntered,ESIRisk,EnteredByFullName"
+          sourcelabels="Fecha de Estratificación,Estratificación,Enviado por"
+          sort="DateTimeEntered=desc"
+          format="datetime|"
+          key="PatientESIGuid"/>
+      </row>
+    </group>
+  </section>
+</partial>

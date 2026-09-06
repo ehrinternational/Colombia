@@ -1,0 +1,108 @@
+<partial>
+  <row name="rowUpdateButton" reveal="[PatientId]!">
+    <control type="button" name="Consult_PatientUpdate"
+      reveal="[HasOpenVisit]=true" 
+      span="12" 
+      label="Actualizar"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      icon="cloud-upload"
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="btnUpdatePatientVisit"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="btnUpdatePatientVisit"
+      action="save|close|new"
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      acctsvc="true"
+      dataupdate="UpdatePatientVisitNoDepartmentTracking"
+      appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+      provoke="PatientList"/>
+  </row>
+  <row>
+    <control type="button" name="LoadOrderECD" label="Indicaciones" color="green" span="12" icon="user-md"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+      action="redirect|url" 
+      target="ecd/index.html" 
+      usesource="login"
+      append="ecdGuid=25954F78-A7AB-4D83-AD0D-E539F95442D4,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+      provoke="EREcdForms"/>
+  </row>
+  <row>
+    <control type="button" name="LoadEvolutionNoteECD" label="Nota de Evolución" color="green" span="12" icon="user-md"
+      reveal="[PatientId]!+[PatientVisitGuid]!"
+      onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+      action="redirect|url" 
+      target="ecd/index.html" 
+      usesource="login"
+      append="ecdGuid=7a5221b6-66f1-4e3f-85cc-64eeeca3a56d,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+      provoke="EREcdForms"/>
+  </row>
+  <row>
+    <control type="button" name="btnReports"
+      reveal="[PatientId]!"
+      span="12"
+      icon="print" label="Informes"
+      preset="Report_PatientId=[PatientId],Report_Type=Patient,Report_PatientFirstName=[Consult_PatientFirstName],Report_PatientMiddleName=[Consult_PatientMiddleName],Report_PatientLastName=[Consult_PatientLastName]"
+      trigger="ReportList,Report_VisitId"
+      action="redirect" target="mdlReports"/>
+  </row>
+  <row>
+        <control type="button" name="btnNewSurgeryRequest" span="12" label="Solicitud Cirugía"
+          reveal="[PatientId]!"
+          action="redirect"
+          target="NewSurgeryRequestModal"
+          preset="SurgeryRequest_PatientId=[PatientId]"
+          trigger="SurgeryRequest_PatientId"/>
+    </row>
+    <row>
+      <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
+        span="12" icon="envelope" label="Email"
+        preset="bmd_PatientId=[PatientId],
+        bmd_PatientFirstName=[Consult_PatientFirstName],
+        bmd_PatientMiddleName=[Consult_PatientMiddleName],
+        bmd_PatientLastName=[Consult_PatientLastName],
+        bmd_EmailAddress=[Consult_PatientEmail]"
+        trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+        action="redirect" target="mdlSendWYSIWYGEmail"/>
+    </row>
+    <row>
+      <control type="button" name="btnInitiateTextMessage" 
+        reveal="[PatientId]!"
+        span="12" icon="envelope" label="Enviar Texto"
+        trigger="grdPhysicianMessages2"
+        preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
+        action="redirect" target="mdlSendTextMessage"/>
+    </row>
+    <row>
+      <control type="button"  name="btnLoadAdverseReactionECD" label="Reacción Adversa"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        color="red" span="12"
+        onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+        action="redirect|url" 
+        target="ecd/index.html" 
+        usesource="login"
+        mode="window"
+        append="ecdGuid=03098ec0-ad84-43bb-b607-af6662654988,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+        provoke="EREcdForms"/>
+    </row>
+    <row>
+      <control type="button" name="btnPatientBirthRecords" 
+        reveal="[PatientId]!+[Consult_PatientSex]=Female+[Consult_AgeInYears]»8"
+        span="12" icon="search" label="Abortos/Partos"
+        action="redirect" target="tmdPatientBirthRecords"/>
+    </row>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+    <row showif="never">
+      <control type="timediff" name="clcPatientAgeInYears" source="[Consult_PatientDOB],(now),years"/>
+      <control type="timediff" name="clcPatientAgeInMonths" source="[Consult_PatientDOB],(now),months"/>
+    </row>
+</partial>

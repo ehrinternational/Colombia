@@ -32,7 +32,8 @@
           datarequest="GetPatientAllFields"
           appendrequest="PatientId=[PatientId]"
           set="Surgery_PatientId=[PatientId]"
-          inject="SurgSchPatientInfo"/>
+          inject="SurgSchPatientInfo"
+          provoke="Surgery_PatientPayerGuid"/>
         <control type="button" name="btnCloseSurgeryTabModal" action="close|new" provoke="SurgeryTimes"/>
       </row>
     </group>
@@ -107,6 +108,7 @@
     <partial target="MedicationDetailModal" link="./Partial/Modals/PartialMedicationDetailModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientPayersListModal.xml"/>
     <!-- Surgery Modals -->
+    <partial link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
     <partial link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
     <partial link="Partials/ColombiaPartialCalendarScheduleSurgeryOrder.xml"/>
     <partial link="./Partial/Modals/PartialSurgeryTeamModal.xml"/>

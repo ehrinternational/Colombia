@@ -64,10 +64,8 @@
     <!-- Go Modals -->
     <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
     <!-- General Modals -->
-    <partial link="(facilityData.HospitalCountry)=MEX;./Partial/Modals/PartialPatientPayersModalForMexico.xml"/>
-    <partial link="(facilityData.HospitalCountry)!MEX;./Partial/Modals/PartialPatientPayersModalNotMexico.xml"/>
-    <partial link="(facilityData.HospitalCountry)=MEX;./Partial/Modals/PartialPatientPayersListModalForMexico.xml"/>
-    <partial link="(facilityData.HospitalCountry)!MEX;./Partial/Modals/PartialPatientPayersListModalNotMexico.xml"/>
+     <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
+    <partial link="./Partial/Modals/PartialPatientPayersListModalNotMexico.xml"/>
     <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
     <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
     <partial link="./Partial/Modals/PartialSurgeryTemplateListModal.xml"/>

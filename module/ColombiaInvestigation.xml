@@ -117,117 +117,7 @@
     <group name="VisitInfo">
       <columns>
         <column span="10">
-          <row>
-            <control type="label" label="Origen de llegada" span="3"/>
-            <control type="select" name="mdlAdmit_AdmitSource" span="3" 
-              datasource="GetLookupAdmitSourcesByFacility" 
-              source="AdmitSource,AdmitSource"
-              default="true"
-              explicit="true"
-              filter="Active=true"/>
-            <control type="label" label="Tipo de llegada" span="3"/>
-            <control type="select" name="mdlAdmit_BedStatus" span="3" 
-              source="Voluntario,Emergencia"
-              explicit="true"/>
-          </row>
-          <row>
-            <control type="label" label="Tipo de Admisión" span="2"/>
-            <control type="select" name="mdlAdmit_AdmitType" span="4" 
-              namefield="mdlAdmit_AdmissionType"
-              datasource="GetLookupAdmissionTypesActive" 
-              source="AdmissionType,AdmissionTypeGuid" 
-              explicit="true"/>
-            <control type="label" label="Modo de llegada" span="2"/>
-            <control type="select" name="mdlAdmit_AmbulanceID" 
-              acctsvc="true"
-              datasource="GetLookupAmbulanceId"
-              source="AmbulanceId,AmbulanceId"
-              explicit="true"
-              span="4" edit="true"/>
-          </row>
-          <row name="rowAttendingDoctor"> 
-            <control type="label" label="Médico de Guardia" span="2"/>
-            <control type="select" name="ReferringDoctor"
-              searchable="true"
-              acctsvc="true" datasource="GetUsersByAttributes" append="LocationId=(facilityData.LocationId),role=Physician"
-              source="UserFirstMiddleLast,UserId"
-              span="4" explicit="true" />
-            <control type="label" label="Motivo de Consulta" span="2"/>
-            <control type="textarea" name="mdlAdmit_EdChiefComplaint" 
-              span="4" rows="1"  />
-          </row>
-          <row>
-            <control type="label" label="Médico Tratante" span="3"/>
-            <control type="text" name="AttendingDoctorFullName" span="3" readonly="true"/>
-            <control type="label" label="Especialidad" span="2"/>
-            <control type="text" name="AttendingMedicalSpecialty" span="4" readonly="true"/>
-          </row>
-          <row>
-            <control type="label" label="Caso-Médico legal" span="3"/>
-            <control type="buttongroup" name="mdlAdmit_LawEnforcement" span="3" source="True,False" sourcelabels="Sí,No"/>
-            <control type="label" label="Folio de Notificación" span="3"/>
-            <control type="text" name="mdlAdmit_FolioNumber" span="3"/>
-          </row>
-          <row>
-            <control type="label" label="Fecha y Hora Alta" span="3"/>
-            <control type="datetime" name="DischargeDateTime" readonly="true" span="3"/>
-          </row>
-          <row>
-            <control type="label" label="Disposición de Alta" span="3"/>
-            <control type="text" name="DischargeDisposition" readonly="true" span="4"/>
-          </row>
-          <row>
-            <control type="label" label="Nota de Alta" span="3"/>
-            <control type="textarea" name="Note" span="9" rows="1" readonly="true"/>
-          </row>
-          <row>
-            <control type="label" label="" span="2"/>
-            <control type="label" label="Aprobado" align="left" span="3"/>
-            <control type="label" label="Aprobado por" align="left" span="4"/>
-            <control type="label" label="Fecha Aprobado" align="left" span="3"/>
-          </row>
-          <row>
-            <control type="label" label="Ortopedia" span="2"/>
-            <control type="buttongroup" name="ApprovedByOrtho" span="3"
-              source="True,False" sourcelabels="Sí,No" readonly="true"
-              set="[OrthoApprover]=;OrthoApprover=(userName),[OrthoApprover]=;OrthoApprovedDateTime=(now)"
-              provoke="btnUpdatePatientVisit"/>
-            <control type="select" name="OrthoApprover" span="4"
-              searchable="true" readonly="true" 
-              source="UserFirstMiddleLast,UserId" 
-              acctsvc="true" 
-              datasource="GetUsersByAttributes" 
-              append="LocationId=(facilityData.LocationId),role=Physician"/>
-            <control type="datetime" name="OrthoApprovedDateTime" span="3" readonly="true"/>
-          </row>
-          <row>
-            <control type="label" label="Anestesia" span="2"/>
-            <control type="buttongroup" name="ApprovedByAnesthesia" span="3"
-              source="True,False" sourcelabels="Sí,No" readonly="true"
-              set="[AnesthesiaApprover]=;AnesthesiaApprover=(userName),[AnesthesiaApprover]=;AnesthesiaApprovedDateTime=(now)"
-              provoke="btnUpdatePatientVisit"/>
-            <control type="select" name="AnesthesiaApprover" span="4"
-              searchable="true" readonly="true" 
-              source="UserFirstMiddleLast,UserId" 
-              acctsvc="true" 
-              datasource="GetUsersByAttributes" 
-              append="LocationId=(facilityData.LocationId),role=Physician"/>
-            <control type="datetime" name="AnesthesiaApprovedDateTime" span="3" readonly="true"/>
-          </row>
-          <row>
-            <control type="label" label="Pediatria" span="2"/>
-            <control type="buttongroup" name="ApprovedByPediatrics" span="3"
-              source="True,False" sourcelabels="Sí,No" readonly="true"
-              set="[PediatricsApprover]=;PediatricsApprover=(userName),[PediatricsApprover]=;PediatricsApprovedDateTime=(now)"
-              provoke="btnUpdatePatientVisit"/>
-            <control type="select" name="PediatricsApprover" span="4"
-              searchable="true" readonly="true" 
-              source="UserFirstMiddleLast,UserId" 
-              acctsvc="true" 
-              datasource="GetUsersByAttributes" 
-              append="LocationId=(facilityData.LocationId),role=Physician"/>
-            <control type="datetime" name="PediatricsApprovedDateTime" span="3" readonly="true"/>
-          </row>
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
         </column>
         <column span="2">
             <row>
@@ -254,8 +144,8 @@
       <row>
         <control type="buttongroup" 
           name="ButtonGroupSelect" 
-          source="Problems,Allergy,Vitals,Diets,Nursing,Physicians,Studies,Medication,Documents"
-          sourcelabels="Diagnóstico,Alergias,Vitales,Dietas,Enfermera,Médicos,Estudios,Medicamentos,Documentos" 
+          source="Problems,Allergy,Vitals,Diets,Nursing,Physicians,Studies,Medication,Vaccines,Documents"
+          sourcelabels="Diagnóstico,Alergias,Vitales,Dietas,Enfermera,Médicos,Estudios,Medicamentos,Inmunizaciones,Documentos" 
           span="12" mode="auto" 
           default="Problems"  
           action="trigger" 

@@ -1,6 +1,6 @@
 <partial>
   <!-- New contacts modal-->
-  <section type="modal" title="Contacto del Paciente" name="mdlNewContacts" badge="none" size="small">
+  <section type="modal" title="Contacto del Paciente" name="mdlNewContacts" badge="none" size="small" trigger="Contact_Country">
     <group>
       <row>
        <control type="label" label="Activo" span ="4"/>
@@ -116,7 +116,7 @@
           searchable="true"
           required="true"
           sort="CountrySpanish=asc"
-          datasource="GetCountries" 
+          datarequest="GetCountries" 
           source="CountrySpanish,Code"
           provoke="Contact_State"/>  
       </row>

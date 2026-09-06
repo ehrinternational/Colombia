@@ -95,8 +95,8 @@
           provoke="ButtonGroupSelect2"/>
         <control type="buttongroup" name="ButtonGroupSelect" 
           edit="true" mode="auto" span="11"
-          source="Problems,Nursing,Vitals,Physicians,Studies,Medication,Surgery,Documents,Diets" 
-          sourcelabels="Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Procedimientos,Documentos,Dietas" 
+          source="Problems,Nursing,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Documents,Diets" 
+          sourcelabels="Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Documentos,Dietas" 
           default="Problems"  
           provoke="ERGridList|options"/>
       </row>
@@ -123,6 +123,7 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationsCompleted.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinationsNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditReviseWithNoVisit.xml"/>
           <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEditForPriorVisit.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>

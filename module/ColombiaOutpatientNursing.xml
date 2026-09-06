@@ -169,15 +169,14 @@
           provoke="ButtonGroupSelect2"/>
         <control type="buttongroup" name="ButtonGroupSelect" 
           edit="true" mode="auto" span="11" default="Nursing"
-          source="Nursing,Problems,Vitals,Diets,Physicians,Studies,Medication,Surgery,Services,Documents,Orthotics" 
-          sourcelabels="Enfermería,Diagnósticos,Vitales,Dietas,Médicos,Estudios,Medicamentos,Procedimientos,Servicios,Documentos,Ortesis" 
+          source="Nursing,Problems,Vitals,Diets,Physicians,Studies,Medication,Vaccines,Surgery,Services,Documents,Orthotics" 
+          sourcelabels="Enfermería,Diagnósticos,Vitales,Dietas,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Servicios,Documentos,Ortesis" 
           provoke="ERGridList|options"/>
       </row>
       <row name="rowMedicalDataGrids" reveal="[ShowDataGrids]=Medical">
           <control name="ERGridList" affector="ButtonGroupSelect" type="options" span="12">
           <partial link="./Partial/Grids/PartialNursingOrdersWithNewAndManage.xml"/>
           <partial link="./Partial/Grids/PartialNursingOrdersCompleted.xml"/>
-          
           <partial link="./Partial/Grids/PartialInterdisciplinaryNotesForPatientWithAddNewNursingType.xml"/>
           <partial link="./Partial/Grids/PartialPatientLines.xml"/>
           <partial link="./Partial/Grids/PartialDiagnosisActiveForPatientNoAdd.xml"/>
@@ -205,8 +204,9 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationCompletedAdministrations.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationAdministrationsHistory.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationNoEditPrintPrescription.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="./Partial/Grids/PartialOutpatientMedicationsNoEdit.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
            <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

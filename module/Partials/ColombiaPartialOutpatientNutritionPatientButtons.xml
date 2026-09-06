@@ -70,7 +70,7 @@
           patientId=[PatientId],
           visitType=[DefaultAdmitType],
           hospitalService=Esperando,
-          ambulatoryStatus=Outpatient,
+          
           preAdmit=0,admitDateTime=(now),
           locationId=(facilityData.LocationId),
           readyForDischarge=false"

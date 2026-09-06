@@ -72,7 +72,7 @@
         </row>
       </group>
   </section>
-  <section type="tabmodal" name="mdlCallPatient" title="Llamar al Paciente" badge="none" size="medium">
+  <section type="tabmodal" name="mdlCallPatient" title="Llamar al Paciente" badge="none" size="medium" trigger="Call_Nationality">
     <group>
       <row showif="never">
         <control type="hidden" name="CallPatientId"
@@ -124,13 +124,13 @@
             <control type="select" name="Call_Nationality" span="3" readonly="true"
               default="(facilityData.HospitalCountry)" persist="true"
               sort="CountrySpanish=asc"
-              datasource="GetCountries" 
+              datarequest="GetCountries" 
               source="CountrySpanish,Code"
               trigger="[LastCountry]![Call_Nationality];Call_BirthPlace"/>
             <control type="label" label="Estado Nacimiento" span ="3"/>
             <control type="select" name="Call_BirthPlace" span="3" readonly="true"
               idle="Call_Nationality=" 
-              datasource="GetStatesProvincesByCountryCode"
+              datarequest="GetStatesProvincesByCountryCode"
               source="Name,Code" explicit="true"
               append="countryCode=[Call_Nationality]"
               set="LastCountry=[Call_Nationality],Call_BirthPlaceKey=[[CATALOG_KEY]]"/>

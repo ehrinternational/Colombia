@@ -42,9 +42,10 @@
 
   <row>
     <control type="label" label="Fecha Nacimiento" span="2" />
-    <control type="date" name="Consult_PatientDOB" span="3" required="true" edit="true" compare="≤now"/>
+    <control type="date" name="Consult_PatientDOB" span="2" required="true" edit="true" compare="≤now"/>
+     <control type="label" label="Edad" span="2" />
     <control type="text" name="Consult_PatientAge" span="2" readonly="true"/>
-    <control type="label" label="Hora Nacimiento" span="3" />
+    <control type="label" label="Hora Nacimiento" span="2" />
     <control type="time" name="Consult_TimeOfBirth" span="2" edit="true"/>
   </row>
   <row showif="never">
@@ -190,7 +191,7 @@
       source="01,02,03,04,05,06"
       sourcelabels="01 Discapacidad física,02 Discapacidad visual,03 Discapacidad auditiva,04 Discapacidad intelectual,05 Discapacidad psicosocial,06 Sordoceguera"/>
   </row>   
-  <row>
+  <row name="rowEthnic" reveal="FileName%Admitting|Social">
     <control type="label" label="Grupo étnico" span="2"/>
     <control type="select" name="Consult_IndigenousStatus" span="3" required="true" edit="true"
       source="0,1,2,2,3,5,6" searchable="true"
@@ -201,32 +202,29 @@
       source="1,2,3,4,5,6,7,8,14,9,10,11,12,13"
       sourcelabels="1 PREESCOLAR,2 BÁSICA PRIMARIA,3 BÁSICA SECUNDARIA,4 MEDIA TÉCNICA (BACHILLER TÉC),5 TÉCNICA PROFESIONAL,6 NINGUNO,7 SIN INFORMACION,8 ESPECIALIZACIÓN,14 PROFESIONAL,9 MAESTRÍA,10 DOCTORADO,11 MEDIA ACADÉMICA O CLÁSICA,12 NORMALISTA,13 TECNOLÓGICA"/>
   </row>
-  <row>
+  <row name="rowMarital" reveal="FileName%Admitting|Social">
     <control type="label" label="Estado Civil" span="2" />
     <control type="select" name="Consult_PtMaritalStatus" span="3" edit="[Consult_AgeInYears]»13;"
       source="1,2,3,4,5"
       sourcelabels="1 Soltero,2 Casado,3 Unión Libre,4 Divorciado,5 Viudo"
       when="[Consult_AgeInYears]«18;1,[Consult_AgeInYears]«14;"/>
-  </row>
-  <!-- ?? Change this to datasource once the call exists -->
-  <row>
-    <control type="label" label="Profesión" span="3"/>
-    <control type="select" name="Consult_Profession" span="9" edit="true"
+    <control type="label" label="Profesión" span="1"/>
+    <control type="select" name="Pym_EmployerName" span="6" edit="true"
       searchable="true"
-      acctsvcreq="true"
-      datarequest="GetColombiaProfessions"
-      source="Profession,Code"/>
+      acctsvc="true"
+      datasource="GetCoProfessions"
+      source="PROFESIONNOMBRE,PROFESIONCODIGO"/>
   </row>
-  <!--  ?? Change this to datasource once call is in place-->
-  <row name="rowOccupation" reveal="FileName%Admitting">
+  <row name="rowOccupation" reveal="FileName%Admitting|Social">
     <control type="label" label="Ocupacion" span="2"/>
-    <control type="select" name="Consult_Occupation" span="10" edit="true"
-      acctsvcreq="true"
-      datarequest="GetColombiaOccupations"
-      source="Occupation,Code"/>
+    <control type="select" name="Pym_OccupationCode" span="10" edit="true"  required="true"
+      searchable="true"
+      acctsvc="true"
+      datasource="GetCoOccupations"
+      source="OCUPACIONNOMBRE,OCUPACIONCODIGO"/>
   </row>
   <row name="rowCRMStatus" reveal="FileName%Admitting|Social">
-    <control type="label" label="Estatus CRM" span="3" />
+    <control type="label" label="Estatus CRM" span="2" />
     <control type="select" name="Consult_CRMStatus" span="3" readonly="true"
       acctsvc="true" explicit="true"
       filter="Active=true"
@@ -240,7 +238,7 @@
       action="redirect" target="mdlUpdateCRMStatus"/>
     <!-- Select the facility the patient is assigned to -->
     <control type="label" label="Establecimiento" span="2"/>
-    <control type="select" name="Select_Sector" span="3" default="(facilityData.HospitalGuid)" edit="true"
+    <control type="select" name="Select_Sector" span="4" default="(facilityData.HospitalGuid)" edit="true"
       required="true"
       acctsvc="true"
       datasource="GetHospitalByGroupId"

@@ -1,0 +1,235 @@
+<partial><!--Used By Colombia FSFB-->
+
+  <!-- ================================================================
+       CONTROL PRENATAL — Resolución 3280 de 2018
+       (Ruta Integral de Atención Materno-Perinatal)
+       Clonado del patrón de ColombiaPartialProgramTracking.xml.
+
+       ── ATENCIÓN, ES LA EXCEPCIÓN DE ESTE MÓDULO ────────────────────
+       A diferencia del resto de partials de 3.3, el control prenatal
+       NO se apoya en las tablas Birth* y debe vivir en
+       ClinicalGeniusEHR. Por eso aquí NO hay acctsvc.
+       Añadir acctsvc="true" a estos controles produciría exactamente
+       el mismo síntoma que omitirlo en los otros: rejilla vacía y
+       ningún error.
+       ────────────────────────────────────────────────────────────────
+
+       SP NUEVOS REQUERIDOS (ClinicalGeniusEHR):
+         GetObstetricHistory   / UpdateObstetricHistory
+         GetPrenatalControls   / InsertPrenatalControl / UpdatePrenatalControl
+         GetLookupPrenatalCodes
+       ================================================================ -->
+
+  <section type="tab" name="PrenatalControlTab" title="Control Prenatal" reveal="[PatientId]!">
+
+    <template name="tmpPrenatalRiskTemplate" type="markup" align="center">
+      [IF ${[[RiskClassification]]}=Alto][icon color=red]warning-sign[/icon] Alto[/IF]
+      [IF ${[[RiskClassification]]}=Bajo][icon color=green]ok[/icon] Bajo[/IF]
+    </template>
+
+    <template name="tmpPrenatalBPTemplate" type="markup" align="center">
+      [IF ${[[BPSystolic]]}≥140][icon color=red]warning-sign[/icon] [b]${[[BPSystolic]]}/${[[BPDiastolic]]}[/b][/IF]
+      [IF ${[[BPSystolic]]}«140]${[[BPSystolic]]}/${[[BPDiastolic]]}[/IF]
+    </template>
+
+    <group name="grpObstetricHistory" capture="grpObstetricHistory">
+
+      <!-- ===== Antecedentes obstétricos ===== -->
+      <subset name="subObstetricHistory" bgcolor="lightblue">
+        <row>
+          <control type="label" label="[b]Antecedentes obstétricos[/b]" span="12"/>
+        </row>
+        <row name="rowObstetricHistoryLoad" showif="never">
+          <control type="text" name="Pre_HistoryLoader"
+              datarequest="GetObstetricHistory"
+              appendrequest="patientId=[PatientId]"
+              inject="grpObstetricHistory"
+              idle="[PatientId]=|reset"/>
+        </row>
+        <row>
+          <control type="label" label="Gestaciones" span="2"/>
+          <control type="integer" name="Gestations" span="1" edit="true" min="0" max="20"/>
+          <control type="label" label="Partos" span="1"/>
+          <control type="integer" name="Para" span="1" edit="true" min="0" max="20"/>
+          <control type="label" label="Cesáreas" span="1"/>
+          <control type="integer" name="Cesareans" span="1" edit="true" min="0" max="10"/>
+          <control type="label" label="Abortos" span="1"/>
+          <control type="integer" name="Abortions" span="1" edit="true" min="0" max="20"/>
+          <control type="label" label="Vivos" span="1"/>
+          <control type="integer" name="LiveChildren" span="1" edit="true" min="0" max="20"/>
+        </row>
+        <row>
+          <control type="label" label="FUM" span="2"/>
+          <control type="date" name="LastMenstrualPeriod" span="2" edit="true"
+              provoke="EstimatedDueDate"/>
+          <control type="label" label="FPP" span="2"/>
+          <control type="date" name="EstimatedDueDate" span="2" edit="true"
+              tooltip="Calculada por el SP a partir de la FUM o de la ecografía temprana"/>
+          <control type="label" label="Edad gestacional actual" span="2"/>
+          <control type="text" name="Pre_CurrentGestationalAge" span="2" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Clasificación del riesgo" span="2"/>
+          <control type="select" name="BaselineRiskClassification" span="3" edit="true" explicit="true"
+              datarequest="GetLookupPrenatalCodes"
+              filter="CodeGroup=RiskClassification"
+              source="CodeDescription,CodeValue"
+              tooltip="Riesgo basal de la gestación (Res. 3280 de 2018). El riesgo por control se registra en cada control."/>
+          <control type="label" label="Curso de preparación para la maternidad" span="4"/>
+          <control type="checkbox" name="PreparationCourse" span="1" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Factores de riesgo" span="2"/>
+          <control type="textarea" name="RiskFactors" span="10" edit="true" rows="2"/>
+        </row>
+        <row>
+          <control type="modalbutton" name="mbtSaveObstetricHistory" label="Guardar Antecedentes"
+              color="green" action="save"
+              capture="grpObstetricHistory"
+              affector="none"
+              dataupdate="UpdateObstetricHistory"
+              appendupdate="patientId=[PatientId],updatedBy=(userName)"
+              provoke="grdPrenatalControls"/>
+        </row>
+      </subset>
+    </group>
+
+    <!-- ===== Rejilla de controles ===== -->
+    <group name="grpPrenatalControlList">
+      <row>
+        <control type="datagrid" name="grdPrenatalControls" label="Controles Prenatales"
+            span="12" rows="10" fitrows="true" searchable="true"
+            modalname="mdlPrenatalControl"
+            datarequest="GetPrenatalControls"
+            appendrequest="patientId=[PatientId]"
+            datainsert="InsertPrenatalControl"
+            appendinsert="patientId=[PatientId],enteredBy=(userName),facility=(facility)"
+            dataupdate="UpdatePrenatalControl"
+            appendupdate="prenatalControlGuid=[Pre_PrenatalControlGuid],patientId=[PatientId],updatedBy=(userName)"
+            idle="[PatientId]=|reset"
+            source="ControlNumber,ControlDate,GestationalWeeks,MaternalWeight,BPSystolic,BPDiastolic,FundalHeight,ControlFetalHeartRate,ControlPresentation,Hemoglobin,ControlUrineProtein,RiskClassification,NextAppointment,Provider"
+            sourcelabels="N°,Fecha,Sem.,Peso (kg),PAS,PAD,Altura Uterina,FCF,Presentación,Hb,Proteinuria,Riesgo,Próxima Cita,Profesional"
+            align="center|left|center|right|center|center|right|center|left|right|left|center|left|left"
+            format="0|date|0|0.0|0|0|0.0|0||0.0|||date|"
+            translate="ControlPresentation,ControlUrineProtein,RiskClassification"
+            rowcolor="RiskClassification|Alto=orange"
+            sort="ControlNumber=desc"
+            key="PrenatalControlGuid"
+            onselectset="Pre_PrenatalControlGuid=[[PrenatalControlGuid]]"
+            onselect="Pre_PrenatalControlGuid">
+
+          <control type="button" name="btnPrenatalNew" label="Nuevo Control" icon="plus" color="green"
+              action="redirect|view" target="mdlPrenatalControl"
+              append="size=medium"
+              set="Pre_PrenatalControlGuid="
+              provoke="grdPrenatalControls"/>
+
+          <control type="button" name="btnPrenatalRefresh" label="Actualizar" icon="refresh"
+              action="trigger" provoke="grdPrenatalControls"/>
+
+          <control type="button" name="btnPrenatalPrint" label="Carné Materno" icon="print"
+              action="print" preset="Report_Type=PrenatalCard"
+              append="patientid=[PatientId]"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- ================================================================
+       MODAL — control prenatal
+       ================================================================ -->
+  <section type="modal" name="mdlPrenatalControl" title="Control Prenatal" size="medium"
+      enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+      dtentered="DateTimeEntered" dtupdated="DateTimeUpdated">
+
+    <group name="grpPrenatalControl" capture="grpPrenatalControl">
+
+      <row>
+        <control type="label" label="Número de control" span="3"/>
+        <control type="integer" name="ControlNumber" span="1" edit="true" min="1" max="20" required="true"/>
+        <control type="label" label="Fecha" span="2"/>
+        <control type="date" name="ControlDate" span="3" edit="true" required="true" default="(now)"/>
+      </row>
+      <row>
+        <control type="label" label="Edad gestacional (semanas)" span="3"/>
+        <control type="integer" name="GestationalWeeks" span="2" edit="true" min="4" max="44" required="true"/>
+        <control type="label" label="Días" span="2"/>
+        <control type="integer" name="GestationalDays" span="1" edit="true" min="0" max="6"/>
+      </row>
+
+      <subset name="subPrenatalVitals" bgcolor="white">
+        <row>
+          <control type="label" label="[b]Examen físico[/b]" span="12"/>
+        </row>
+        <row>
+          <control type="label" label="Peso (kg)" span="3"/>
+          <control type="double" name="MaternalWeight" span="2" edit="true" min="30" max="200"/>
+          <control type="label" label="IMC" span="2"/>
+          <control type="double" name="BMI" span="2" edit="true" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="PA sistólica" span="3"/>
+          <control type="integer" name="BPSystolic" span="2" edit="true" min="50" max="250"/>
+          <control type="label" label="PA diastólica" span="2"/>
+          <control type="integer" name="BPDiastolic" span="2" edit="true" min="30" max="150"/>
+        </row>
+        <row>
+          <control type="label" label="Altura uterina (cm)" span="3"/>
+          <control type="double" name="FundalHeight" span="2" edit="true" min="0" max="50"/>
+          <control type="label" label="FCF (lpm)" span="2"/>
+          <control type="integer" name="ControlFetalHeartRate" span="2" edit="true" min="60" max="220"/>
+        </row>
+        <row>
+          <control type="label" label="Presentación" span="3"/>
+          <control type="select" name="ControlPresentation" span="3" edit="true" explicit="true"
+              datarequest="GetLookupPrenatalCodes" filter="CodeGroup=Presentation"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Movimientos fetales" span="3"/>
+          <control type="checkbox" name="FetalMovements" span="2" edit="true"/>
+        </row>
+        <row>
+          <control type="label" label="Edema" span="3"/>
+          <control type="select" name="Edema" span="3" edit="true" explicit="true"
+              datarequest="GetLookupPrenatalCodes" filter="CodeGroup=Edema"
+              source="CodeDescription,CodeValue"/>
+          <control type="label" label="Proteinuria" span="3"/>
+          <control type="select" name="ControlUrineProtein" span="2" edit="true" explicit="true"
+              datarequest="GetLookupPrenatalCodes" filter="CodeGroup=UrineProtein"
+              source="CodeDescription,CodeValue"/>
+        </row>
+        <row>
+          <control type="label" label="Hemoglobina (g/dL)" span="3"/>
+          <control type="double" name="Hemoglobin" span="2" edit="true" min="3" max="20"/>
+          <control type="label" label="Riesgo" span="2"/>
+          <control type="select" name="RiskClassification" span="3" edit="true" explicit="true"
+              datarequest="GetLookupPrenatalCodes" filter="CodeGroup=RiskClassification"
+              source="CodeDescription,CodeValue"/>
+        </row>
+      </subset>
+
+      <row>
+        <control type="label" label="Profesional" span="3"/>
+        <control type="text" name="Provider" span="4" edit="true" default="(fullname)"/>
+        <control type="label" label="Próxima cita" span="2"/>
+        <control type="date" name="NextAppointment" span="3" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Conducta y observaciones" span="3"/>
+        <control type="textarea" name="ControlNotes" span="9" edit="true" rows="3"/>
+      </row>
+
+      <row>
+        <control type="modalbutton" showif="add" name="mbtPrenatalInsert"
+            label="Guardar Control" color="green" modaltask="insert|add"
+            provoke="grdPrenatalControls"/>
+      </row>
+      <row>
+        <control type="modalbutton" showif="edit" name="mbtPrenatalUpdate"
+            label="Actualizar Control" color="green" modaltask="update|next"
+            provoke="grdPrenatalControls"/>
+      </row>
+
+    </group>
+  </section>
+
+</partial>

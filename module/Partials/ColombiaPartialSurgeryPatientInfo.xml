@@ -1,12 +1,12 @@
 <partial>
   <row>
-    <control type="hidden" name="HasOpenVisit"/>
-    <control type="hidden" name="DateTimeOfDeath"/>
-    <control type="hidden" name="PatientVisit"/>
-    <control type="hidden" name="HasOpenCharges"/>
-    <control type="hidden" name="HasOpenPayments"/>
-    <control type="hidden" name="HasPatientPayer"/>
-    <control type="hidden" name="PatientFullName"/>
+    <control type="hidden" name="Spi_HasOpenVisit"/>
+    <control type="hidden" name="Spi_DateTimeOfDeath"/>
+    <control type="hidden" name="Spi_PatientVisit"/>
+    <control type="hidden" name="Spi_HasOpenCharges"/>
+    <control type="hidden" name="Spi_HasOpenPayments"/>
+    <control type="hidden" name="Spi_HasPatientPayer"/>
+    <control type="hidden" name="Spi_PatientFullName"/>
   </row>
   <row>
       <control type="label" label="Nombre" align="left" span="3"/>
@@ -15,73 +15,73 @@
       <control type="label" label="Segundo Apellido" align="left" span="3"/>
   </row>
   <row>
-    <control type="text" name="Consult_PatientFirstName" span="3" readonly="true"/>
-    <control type="text" name="Consult_PatientNameSuffix" span="3" readonly="true"/>
-    <control type="text" name="Consult_PatientMiddleName" span="3" readonly="true"/>
-    <control type="text" name="Consult_PatientLastName" span="3" readonly="true"/>
+    <control type="text" name="Spi_PatientFirstName" span="3" readonly="true"/>
+    <control type="text" name="Spi_PatientNameSuffix" span="3" readonly="true"/>
+    <control type="text" name="Spi_PatientMiddleName" span="3" readonly="true"/>
+    <control type="text" name="Spi_PatientLastName" span="3" readonly="true"/>
   </row>
   <row>
     <control type="label" label="Expediente" span="2"/>
-    <control type="text" name="Consult_MedicalRecordNumber" span="2" readonly="true"/> 
+    <control type="text" name="Spi_MedicalRecordNumber" span="2" readonly="true"/> 
   <control type="label" label="Nacionalidad" span="2"/>
-    <control type="select" name="Consult_Nationality" span="2" readonly="true"
+    <control type="select" name="Spi_Nationality" span="2" readonly="true"
       default="(facilityData.HospitalCountry)"
       sort="CountrySpanish=asc"
       datasource="GetCountries" 
       source="CountrySpanish,Code"/>   
     <control type="label" label="Sangre" span="2" />
-    <control type="select" name="Consult_BloodType" span="2" readonly="true"
+    <control type="select" name="Spi_BloodType" span="2" readonly="true"
       source="A+,A-,B+,B-,O+,O-,AB+,AB-,Desconoce"/>
   </row>
   <row>
     <control type="label" label="Fecha Nacimiento" span="2"/>
-    <control type="date" name="Consult_PatientDOB" span="3" readonly="true"/>
-    <control type="text" name="Consult_PatientAge" span="2" readonly="true"/>
+    <control type="date" name="Spi_PatientDOB" span="3" readonly="true"/>
+    <control type="text" name="Spi_PatientAge" span="2" readonly="true"/>
     <control type="label" label="Hora Nacimiento" span="3" />
-    <control type="time" name="Consult_TimeOfBirth" span="2" readonly="true"/>
+    <control type="time" name="Spi_TimeOfBirth" span="2" readonly="true"/>
   </row>
   <row showif="never">
-    <control type="timediff" name="Consult_AgeInHours" span="1" source="[Consult_PatientDOB],(now),hours"/>
-    <control type="timediff" name="Consult_AgeInDays" span="1" source="[Consult_PatientDOB],(now),days"/>
-    <control type="timediff" name="Consult_AgeInMonths" span="1" source="[Consult_PatientDOB],(now),months"/>
-    <control type="timediff" name="Consult_AgeInYears" span="1" source="[Consult_PatientDOB],(now),years"/>
+    <control type="timediff" name="Spi_AgeInHours" span="1" source="[Spi_PatientDOB],(now),hours"/>
+    <control type="timediff" name="Spi_AgeInDays" span="1" source="[Spi_PatientDOB],(now),days"/>
+    <control type="timediff" name="Spi_AgeInMonths" span="1" source="[Spi_PatientDOB],(now),months"/>
+    <control type="timediff" name="Spi_AgeInYears" span="1" source="[Spi_PatientDOB],(now),years"/>
   </row>
   <row>
     <control type="label" label="Sexo" span="2" />
-    <control type="select" name="Consult_PatientSex" span="2" readonly="true" 
+    <control type="select" name="Spi_PatientSex" span="2" readonly="true" 
       source="Male,Female,Indeterminate" explicit="true"
       sourcelabels="Masculino,Femenino,Indeterminado"/>
     <control type="label" label="Id Genero" span="2"/>
-    <control type="select" name="Consult_PatientGenderId" span="2" readonly="true"
-      required="[Consult_AgeInYears]»17"
+    <control type="select" name="Spi_PatientGenderId" span="2" readonly="true"
+      required="[Spi_AgeInYears]»17"
       source="0,1,2,3,4,5"
       sourcelabels="0 Sin información,1	Masculino,2	Femenino,3	Transgénero,4	Neutro,5	No lo declareara"
-      when="[Consult_AgeInYears]«5;"/>
+      when="[Spi_AgeInYears]«5;"/>
     <control type="label" label="Orientación" span="2"/>
-    <control type="select" name="Consult_PatientGenderIdText" span="2" readonly="true"
-      required="[Consult_AgeInYears]»17"
+    <control type="select" name="Spi_PatientGenderIdText" span="2" readonly="true"
+      required="[Spi_AgeInYears]»17"
       source="1,2,3,4,5"
       sourcelabels="1	Lesbiana,2	Bisexual,3	Transexual,4	Intersexual,5	Heterosexual"
-      when="[Consult_AgeInYears]«5;"/>
+      when="[Spi_AgeInYears]«5;"/>
   </row>
   <row>
     <control type="label" label="Teléfono Primario" span="2"/>
-    <control type="text" name="Consult_PtPhoneNumber" span="2"  
+    <control type="text" name="Spi_PtPhoneNumber" span="2"  
       readonly="true"/>
     <control type="label" label="Segundo" span="1"/>
-    <control type="text" name="Consult_PatientCellPhone" span="2"  
+    <control type="text" name="Spi_PatientCellPhone" span="2"  
       readonly="true"/>    
     <control type="label" label="Correo Electrónico" span="2"/>
-    <control type="text" name="Consult_PatientEmail" span="3" readonly="true" />
+    <control type="text" name="Spi_PatientEmail" span="3" readonly="true" />
   </row>
   <row>
     <control type="label" label="Discapacidades" span="2"/>
-    <control type="buttongroup" name="Consult_HasDisabilities" span="2" readonly="true"
+    <control type="buttongroup" name="Spi_HasDisabilities" span="2" readonly="true"
       source="True,False"
       sourcelabels="SI,NO"/> 
     <control type="label" label="Tipo Discapacidad" span="2"/>
-    <control type="select" name="Consult_Disabilities" span="6" readonly="true"
-      edit="[Consult_HasDisabilities]=True" searchable="multiple"
+    <control type="select" name="Spi_Disabilities" span="6" readonly="true"
+      edit="[Spi_HasDisabilities]=True" searchable="multiple"
       source="01,02,03,04,05,06"
       sourcelabels="01 Discapacidad física,02 Discapacidad visual,03 Discapacidad auditiva,04 Discapacidad intelectual,05 Discapacidad psicosocial,06 Sordoceguera"/>
   </row>   

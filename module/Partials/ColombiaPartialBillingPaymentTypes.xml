@@ -1,0 +1,80 @@
+<partial>
+  <section type="tab" title="Tipos de Pagos">
+    <group>
+      <row>        
+        <control type="datagrid" label="Tipos de Pagos" name="dgrpaymenttypes" span="12" rows="20"
+          modalname="NewPaymentType"
+          searchable="true"
+          acctsvc="true" acctsvcreq="true"
+          datasource="GetPaymentTypesAll"
+          datainsert="InsertPaymentType"
+          dataupdate="UpdatePaymentType"
+          source="Active,PaymentTypeCode,Description,DebitAccountDescription,CreditAccountDescription"
+          sourcelabels="Activo,Código,Descripción,Cuenta de Débito,Cuenta de Crédito"
+          align="|left|left|left|left"
+          format="boolean||||"
+          sort="PaymentTypeCode=asc"
+          key="PaymentTypeGuid">
+        </control>  
+      </row>
+    </group>
+  </section>
+  <!-- Modal to enter/edit payment types -->
+  <section type="modal" name="NewPaymentType" title="Tipos de Pagos"
+           enteredby="EnteredByFullName" updatedby="UpdatedByFullName" 
+           dtentered="DateTimeEntered" dtupdated="DateTimeUpdated">
+    <group name="NewPaymentTypeGroup">
+      <row>
+        <control type="label" span="4" label="Activo"/>
+        <control type="buttongroup" span="2" name="PaymentType_Active" required="true" default="True" edit="true"
+          sourcelabels="Sí,No" source="True,False" />
+      </row>
+       <row>
+        <control type="label" span="4" label="Código"/>
+        <control type="text" name="PaymentTypeCode" required="true" span="4" edit="true" />
+      </row>
+      <row>
+        <control type="label" span="4" label="Descripción"/>
+        <control type="text" name="PaymentType_Description" span="4" required="true" edit="true" />
+      </row>     
+      <row>
+        <control type="label" span="4" label="Cuenta de Débito"/>
+        <control type="select" span="5" name="DebitAccount"
+            source="AccountNumber|LongName,LedgerAccountGuid"     
+            sort="AccountNumber"       
+            datasource="GetLedgerAccounts"
+            append="PostingAccount=true"
+            acctsvc="true"
+            edit="true" />
+      </row>  
+      <row>
+        <control type="label" span="4" label="Cuento de Crédito"/>
+        <control type="select" span="5" name="CreditAccount"
+            source="AccountNumber|LongName,LedgerAccountGuid"    
+            sort="AccountNumber"        
+            datasource="GetLedgerAccounts"
+            append="PostingAccount=true"
+            acctsvc="true"
+            edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="PaymentType_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+        </row>
+        <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="PaymentType_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>          
+    </group>
+  </section>
+</partial>

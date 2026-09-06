@@ -136,8 +136,8 @@
           provoke="ButtonGroupSelect2"/>
         <control type="buttongroup" name="ButtonGroupSelect" span="11"
           edit="true" mode="auto" default="Problems"
-          source="Problems,Vitals,Physicians,Studies,Medication,Surgery,Services,Documents,Orthotics" 
-          sourcelabels="Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Procedimientos,Servicios,Documentos,Ortesis" 
+          source="Problems,Vitals,Physicians,Studies,Medication,Vaccines,Surgery,Services,Documents,Orthotics" 
+          sourcelabels="Diagnósticos,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Procedimientos,Servicios,Documentos,Ortesis" 
           provoke="ERGridList|options"/>
       </row>
       <row name="rowMedicalDataGrids" reveal="[ShowDataGrids]=Medical">
@@ -158,12 +158,13 @@
           <partial link="./Partial/Grids/PartialInpatientMedicationsWithNewAndAdminister.xml"/>
           <partial link="./Partial/Grids/PartialInpatientMedicationsCompleted.xml"/>
           <partial link="./Partial/Grids/PartialHomeMedicationWithNewAndEdit.xml"/>
+          <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="./Partial/Grids/PartialOutpatientMedicationsWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialImagingOrdersWithNewEditAndExternalLab.xml"/>
           <partial link="./Partial/Grids/PartialImagingOrderHistoryWithExternalLabs.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialScannedImagingDocumentsInWindow.xml"/>
-          <partial link="./Partial/Grids/PartialProcedureOrdersWithNewAndEdit.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>

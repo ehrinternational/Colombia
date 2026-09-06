@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Farmacia de Quimioterapia" type="onload" trigger="PharmacyMedicationList">
+  <facet name="FileName" value="ChemotherapyPharmacy"/>
+  <facet name="InventoryLocationType" value="Treatment"/>
+  <facet name="DefaultInventoryLocation"/>
+   <!-- Import templates -->
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
+  <!-- Display a list of medications that are attached to appointments -->
+  <partial link="Partials/ColombiaPartialMedicationTemplatesPharmacyList.xml"/>
+  <!-- List chemotherapy protocols for approval -->
+  <partial link="./Partial/Lists/PartialChemotherapyProtocolsListByApprovalStatus.xml"/>
+  <!-- Inventory stock items for location -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockItemsByLocation.xml"/>
+  <!-- Inventory stock requests -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockRequests.xml"/>
+  <!-- Charge inventory items to patients -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESPatientChargeStockItems.xml"/>
+  <!-- Inventory count -->
+  <partial link="../../ERPSpanish/module/Partials/PartialESCountStockItemsByLocation.xml"/>
+  <!-- Inventory count items-->
+  <partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
+  <!-- Patient tab modal -->
+  <section type="tabmodal" name="PatientTabModal" title="Información del Paciente" badge="none">
+    <group name="GuidStorage" showif="never">
+      <row>
+        <!-- Read the patient record -->
+        <control type="hidden" 
+          name="PatientId"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          inject="PatientInfo"
+          provoke="ButtonGroupSelect"/>
+        <control type="select" name="DefaultLocation"
+          acctsvc="true" default="true" 
+          filter="LocationName=Central de Mezclas"
+          source="LocationName,LocationGuid"
+          datasource="GetInventoryLocationsForThisFacility"
+          append="LocationId=(facilityData.LocationId)"/> 
+        <!-- Close the patient tab modal screen -->
+        <control type="button" name="ClosePatientTabModal" action="close|new"/>
+      </row>
+    </group>
+    <!-- Patient information and physician buttons -->
+    <group name="PatientInfo">
+      <columns>
+        <column span="10">
+          <partial link="Partials/ColombiaPartialHospitalPatientInformation.xml"/>
+        </column>
+        <column span="2">
+          <partial link="Partials/ColombiaPartialPharmacyPatientButtons.xml"/>
+        </column>
+      </columns>
+    </group> 
+    <!-- Patient datagrids -->
+    <group name="PatientGridGroup">
+      <row>
+        <control type="buttongroup" 
+          name="ButtonGroupSelect" 
+          edit="true" 
+          source="Problems,Vitals,Studies,Medication,Protocols,Appointments" 
+          sourcelabels="Diagnósticos,Vitales,Estudios,Medicamentos,Esquemas,Citas" 
+          span="12" 
+          default="Problems"   
+          provoke="ERGridList,ERPastProblemList,ERAllergyList,ERVitalSigns,ERNeuroVitalSigns,ERBloodSugarVitalSigns,ERLabOrders,ERMedicationAdminComplete,ERHomeMedications,ERChemoProtocols,CTCAEList,Appointments"/>
+      </row>
+      <row>
+        <control name="ERGridList" affector="ButtonGroupSelect" type="options" span="12">
+          <partial link="./Partial/Grids/PartialDiagnosisHistoryForPatient.xml"/>
+          <partial link="./Partial/Grids/PartialAllergiesNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialVitalSignsWithNewAndGraphFor30Days.xml"/>
+          <partial link="./Partial/Grids/PartialLabOrdersWithScannedResultsNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialinpatientMedicationCompletedAdministrationsNoVisit.xml"/>
+          <partial link="./Partial/Grids/PartialHomeMedicationNoEditNoVisit.xml"/>
+          <partial link="./Partial/Grids/PartialChemoProtocolsNoEdit.xml"/>
+          <partial link="./Partial/Grids/PartialAdverseMedicationEvents.xml"/>
+          <partial link="./Partial/Grids/PartialAppointmentListForPatientNoEdit.xml"/>
+        </control>
+       </row>
+     </group>
+   </section>
+  <partial link="./Partial/Modals/PartialChemotherapyProtocolModal2.xml"/>
+  <partial link="./Partial/Modals/PartialLabOrdersWithScanResultsModalNoEdit.xml"/>
+  <partial link="./Partial/Admin/PartialReportModals.xml"/>
+  <partial link="../../ERPSpanish/module/Partials/PartialESLocationStockHistory.xml"/>
+  <partial link="../../ERPSpanish/module/Partials/PartialESViewPatientCharges.xml"/>
+  <partial link="../../ERPSpanish/module/Partials/PartialESInventoryPatientCharges.xml"/>
+  <partial link="../../ERPSpanish/module/Partials/PartialESStockItemLocationModal.xml"/>
+  <partial link="../../ERPSpanish/module/Partials/PartialESInventoryDecrement.xml"/>
+  <partial link="./Partial/Modals/PartialPatientChargesModal.xml"/>
+
+</module>
