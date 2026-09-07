@@ -14,6 +14,10 @@
   <partial link="./Partial/Calendars/PartialCalendarImagingWithModalitiesSetup.xml"/>
   <!-- Surgery calendar setup -->
   <partial link="Partials/ColombiaPartialCalendarSurgerySetup.xml"/>
+  <!-- Surgery calendar setup -->
+  <partial link="Partials/ColombiaPartialCalendarChemotherapySetup.xml"/>
+  <!-- Surgery calendar setup -->
+  <partial link="Partials/ColombiaPartialCalendarDialysisSetup.xml"/>
   <!-- Lab calendar setup -->
   <partial link="./Partial/Calendars/PartialCalendarLabSetup.xml"/>
   <!-- Calendar services setup -->

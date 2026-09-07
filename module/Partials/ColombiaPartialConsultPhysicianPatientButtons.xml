@@ -8,15 +8,6 @@
       default="null"
       span="12" />
   </row>
-  <!-- Button to show/hide patient info -->
-  <row name="rowShowHide" reveal="[PatientId]!">
-    <control type="buttongroup" name="btngrpShow"
-      span="12" edit="true"
-      source="Open,Close"
-      color="grey,grey"
-      sourcelabels="Abrir,Cerrar"
-      default="Close"/>
-  </row>
   <!-- Partial hospital admit buttons -->
   <row name="rowAdmitSearchButton" reveal="[PatientId]=">
     <control type="label" label=" " span="12"/>

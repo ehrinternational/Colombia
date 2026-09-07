@@ -1,0 +1,244 @@
+﻿<partial>
+<!-- Partial Calendar Dialysis Appointment Modal -->
+	<section type="tabmodal" badge="none" name="mdlDialysisAppointment" title="Cita de Quimioterapia">
+		<group showif="never">
+      <row>
+				<control type="hidden" name="DialysisApt_Source" persist="true"/>
+        <!-- Get the appointment information from the appointment record (existing appointment) -->
+        <control type="hidden"
+          name="DialysisApt_AppointmentGuid"
+          datarequest="GetSchedulerAppointmentsByAppointmentGuid"
+          appendrequest="AppointmentGuid=[DialysisApt_AppointmentGuid]"
+          inject="DialysisApt_AppointmentInfo"
+					set="DialysisApt_PatientId=[[PatientId]],Existing_OrderGuid=[[OrderGuid]]"
+          provoke="DialysisApt_PatientId"/>
+        <!-- Get the patient information and insert into the form -->
+				<control type="hidden" name="DialysisApt_PatientId"
+					datarequest="GetPatientAllFields"
+					appendrequest="PatientId=[DialysisApt_PatientId]"
+					inject="DialysisApt_PatientInfo"
+					set="DefaultPatientId="
+					provoke="Existing_OrderGuid!;GetProtocolCycleDay^DialysisApt_OrderGuid"/>
+				<control type="hidden" name="GetProtocolCycleDay"
+					acctsvcreq="true"
+					datarequest="GetChemotherapyProtocolCycleDays"
+					appendrequest="DayGuid=[Existing_OrderGuid]"
+					set="DialysisApt_CycleDayText=[[CycleDayText]],DialysisApt_Description=[[Description]],DialysisApt_CycleDayStatus=[[Status]],ProtocolDuration=[[ProtocolDuration]],CycleStartDate=[[CycleStartDate]]"/>
+				<control type="hidden" name="DialysisApt_CycleDayStatus"/>
+				<control type="hidden" name="Existing_OrderGuid"/>
+				<control type="button" name="btnCloseDialysisAppointmentModal" action="close|new" provoke="DialysisAppointmentTimes"/>
+	  	</row>
+			<!-- Process return from search -->
+			<row>
+        <control type="hidden" name="NewDialysisAptSearch"
+					set="DialysisApt_PatientId=[PatientSearchResults]"
+					provoke="DialysisApt_PatientId"/>
+      </row>
+		</group>
+		<group name="DialysisApt_PatientInfo">	
+			<columns>
+				<column span="10">
+					<row>
+						<control type="label" label="Nombre/Expediente" span="4" align="left"/>
+						<control type="label" label="Apellido Paterno" span="4" align="left"/>
+						<control type="label" label="Apellido Materno" span="4" align="left"/>
+					</row>
+					<row>
+						<control type="text" name="DialysisApt_PatientFirstName" span="4" edit="[DialysisApt_PatientId]="
+							action="trigger" trigger="btnNewDialysisPatientSearch" required="true"/>
+						<control type="text" name="DialysisApt_PatientMiddleName" span="4" edit="[DialysisApt_PatientId]="
+							action="trigger" trigger="btnNewDialysisPatientSearch" required="true"/>
+						<control type="text" name="DialysisApt_PatientLastName" span="4" edit="[DialysisApt_PatientId]="
+							action="trigger" trigger="btnNewDialysisPatientSearch"/> 
+				</row>
+				<row>
+					<control type="label" label="Expediente" span="2"/>
+					<control type="text" name="DialysisApt_MedicalRecordNumber" span="2" readonly="true"/>
+					<control type="label" label="Nacimiento" span="2"/>
+					<control type="date" name="DialysisApt_PatientDOB" span="3" edit="[DialysisApt_PatientId]=" required="true"/>
+					<control type="label" label="Sexo" span="1" />
+					<control type="select" name="DialysisApt__PatientSex" span="2" edit="[DialysisApt_PatientId]=" 
+						source="Male,Female" sourcelabels="Masculino,Femenino" required="true"/>
+				</row>
+				<row>
+					<control type="label" label="Celular" span="2" />
+					<control type="text" name="DialysisApt_PatientCellPhone" span="3" edit="[DialysisApt_PatientId]="/>
+					<control type="label" label="email" span="1"/>
+					<control type="text" name="DialysisApt_PatientEmail" span="6" edit="[DialysisApt_PatientId]="/>
+				</row>
+			</column>
+			<column span="2">
+				<row name="rowNewAptDialysisPatientPhoto" reveal="[DialysisApt_PatientId]!+[DialysisApt_ProfilePhoto]!">
+						<!--Patient photo-->
+						<control type="image"
+							format="jpg=circle" 
+							name="DialysisApt_ProfilePhoto"
+							span="12" />
+				</row>
+				<row>
+					<control type="button" name="btnNewDialysisPatientSearch"
+							label="Buscar" span="12" icon="search" color="grey"
+							reveal="[DialysisApt_PatientId]="
+							preset="PatientSearched=true,PatientSearchSource=40,Search_PatientFirstName=[DialysisApt_PatientFirstName],Search_PatientMiddleName=[DialysisApt_PatientMiddleName],Search_PatientLastName=[DialysisApt_PatientLastName]"
+							trigger="Search_FindPatient"
+							action="redirect" target="mdlFindPatients"/>
+				</row>
+				<row>
+					<!-- Insert a new patient record  -->
+					<control type="button"   
+						name="btnSaveNewDialysisPatient"
+						reveal="[PatientSearched]=true+[DialysisApt_PatientId]="
+						span="12"
+						label="Nuevo Paciente"
+						affector="DialysisApt_PatientId"
+						setaffector="RecordUniqueId"
+						capture="DialysisApt_PatientInfo" 
+						action="save"
+						confirm="Por favor confirme que quiere generar a este paciente nuevo."
+						datainsert="InsertPatient"
+						provoke="DialysisApt_PatientId"/>
+				</row>
+			</column>
+		</columns>
+	</group>
+	<group name="DialysisApt_AppointmentInfo">
+		<columns>
+			<column span="10">
+				<row>
+					<control type="hidden" name="DialysisApt_OrderType"/>
+				</row>
+				<row>
+					<!-- Select the calendar for the appointment (editable directly only for extraordinary appointments) -->
+					<!-- (Other appointmens are scheduled by selecting a time from a calndar view.) -->
+					<control type="label" label="Calendario" span="2" />
+					<control type="select" name="DialysisApt_AppointmentTypeGuid" namefield="NewAptCalendarName"
+						explicit="true" required="true" readonly="true" span="4"
+						datasource="GetSchedulerAppointmentTypesByFacility" 
+						append="LocationId=(facilityData.LocationId)" 
+						source="CalendarName,CalendarGuid"
+						set="DialysisRoomType=[[Service]]"
+						provoke="DialysisApt_RoomGuid"/>
+					<control type="label" label="Sillón" span="2"/>
+					<control type="select" name="DialysisApt_RoomGuid" explicit="true" span="4" edit="true" required="true"
+            datarequest="GetRoomsAndBedsForThisFacility"
+						appendrequest="LocationId=(facilityData.LocationId)"
+						source="RoomAndBedNumber,RoomGuid"
+            filter="RoomTypeGuid=[DialysisRoomType],Active=true"/>
+					<control type="hidden" name="DialysisRoomType"/>
+				</row>
+				<row>
+					<!-- The datetime of the appointment (editable directly only for extraordinary appointments) -->
+					<control type="label" label="Programado" span="2" />
+					<control type="datetime" name="DialysisApt_Start" 
+						span="4" edit="true" required="true" when="«01:00;08:00"/>
+					<control type="label" label="Duración" badge="min" span="4" persist="true"/>
+					<control type="integer" name="DialysisApt_Duration" when="=1440;15" span="2" edit="true" required="true"/>
+				</row>
+				<row>
+					<!-- The provider for the appointment -->
+					<control type="label" label="Médico" span="2" />
+					<control type="select" name="DialysisApt_ProviderId" span="4" 
+						namefield="NewAptProvider" 
+						sort="UserFirstMiddleLast=asc"
+						acctsvc="true" datasource="GetUsersByAttributes" 
+						append="LocationId=(facilityData.LocationId),role=Physician" 
+						source="UserFirstMiddleLast,UserId" 
+						edit="true"/>
+					<control type="label" label="Estatus" span="2"/>
+					<control type="select" name="DialysisApt_Status" span="4"
+						source="Scheduled,Confirmed,No Show,Completed,Canceled"
+						sourcelabels="Programado,Confirmado,Ausente,Completado,Cancelado"
+						readonly="true" default="Scheduled"/>
+				</row>
+				<row>
+					<!-- Reason for the appointment -->
+					<control type="label" label="Motivo" span="2"/>
+					<control type="text" name="DialysisApt_Subject" edit="true" required="true" span="10"/>
+				</row>
+				</column>
+				<column span="2">
+					<row>
+						<control type="button" name="btnConfirmDialysisAppointment"
+							reveal="DialysisApt_AppointmentGuid!"
+							span="12" action="save|close|new" color="green"
+							icon="check-sign" label="Confirmar"
+							affector="none"
+							dataupdate="UpdateSchedulerAppointments"
+							appendupdate="appointmentGuid=[DialysisApt_AppointmentGuid],status=Confirmed,txtMessage=[ConfirmTextMessageDialysis],sendMessage=[TextingEnabled]"
+							provoke="DialysisAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+					</row>
+					<row>
+						<!-- Button to complete an appointment (shown only in edit mode)-->
+						<control type="button" name="btnCompleteDialysisAppointment"
+								reveal="DialysisApt_AppointmentGuid!"
+								span="12" action="save|close|new" color="yellow"
+								icon="cloud-upload" label="Completar"
+								confirm="Por favor, confirme que desea completar esta cita."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[DialysisApt_AppointmentGuid],Status=Completed"
+								provoke="DialysisAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+						</row>
+						<row>
+							<!-- Button to set an appointment to No Show (shown only in edit mode) -->
+							<control type="button" name="btnNoShowDialysisAppointment"
+								reveal="DialysisApt_AppointmentGuid!"
+								span="12" action="save|close|new" color="orange"
+								icon="cloud-upload" label="Ausente"
+								confirm="Por favor, confirme que desea cambiar el estatus de esta cita a ausente."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[DialysisApt_AppointmentGuid],status=No Show,txtMessage=[CancelTextMessageDialysis],sendMessage=[TextingEnabled]"
+								provoke="DialysisAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+						</row>
+						<row name="rowCancelDialysisAppointment" reveal="(facilityData.HospitalName)¡COI|CART">
+							<!-- Button to cancel an appointment (shown only in edit mode) -->
+							<control type="button" name="btnCancelDialysisAppointment"
+								reveal="DialysisApt_AppointmentGuid!"
+								span="12" action="save|close|new" color="red"
+								icon="cloud-upload" label="Cancelar"
+								confirm="Por favor, confirme que desea cancelar esta cita."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[DialysisApt_AppointmentGuid],status=Canceled,txtMessage=[CancelTextMessageDialysis],sendMessage=[TextingEnabled]"
+								provoke="DialysisAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+						</row>
+						<row name="rowCancelDialysisAppointment2" reveal="(facilityData.HospitalName)%COI|CART">
+							<!-- Button to cancel an appointment (shown only in edit mode) -->
+							<control type="button" name="btnCancelDialysisAppointment2"
+								reveal="[DialysisApt_AppointmentGuid]!+[DialysisApt_Status]=Scheduled|Confirmed"
+								preset="ApptCOI_AppointmentToCancel=[DialysisApt_AppointmentGuid],ApptCOI_CalendarToProvoke=Dialysis"
+								span="12" action="redirect" color="red" target="mdlReasonToCancelCOIAppointments"
+								icon="remove" label="Cancelar"/>
+						</row>
+				</column>
+		</columns>
+	</group>	
+  <!-- Save Dialysis appointments -->
+	<group>
+		<row>
+      <!-- Save a newappointment -->
+		  <control type="modalbutton" name="SaveNewDialysisAppointment"  color="green" icon="cloud-upload" label="Guardar"
+        reveal="[DialysisApt_AppointmentGuid]="
+			  action="save|close|new"
+			  affector="DialysisApt_AppointmentGuid"
+				setaffector="AppointmentGuid"
+			  capture="DialysisApt_AppointmentInfo"
+			  datainsert="InsertSchedulerAppointments"
+				compare="[DialysisApt_PatientId]!|Por favor seleccione un paciente para esta cita."
+			  appendinsert="Active=true,reschedule=false,PatientId=[DialysisApt_PatientId]"
+			  provoke="DialysisAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+			<!-- Update appointment -->
+			<control type="modalbutton" name="btnUpdateDialysisAppointment" label="Actualizar" icon="cloud-upload"
+        reveal="[DialysisApt_AppointmentGuid]!"
+				action="save|close|new" 
+				confirm="Por favor confirme que quiere actualizar esta cita"
+				affector="none"
+				capture="DialysisApt_AppointmentInfo"
+				dataupdate="UpdateSchedulerAppointments"
+				appendupdate="appointmentGuid=[DialysisApt_AppointmentGuid],txtMessage=[UpdateTextMessageDialysis],sendMessage=[TextingEnabled]"
+				provoke="DialysisAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+      </row>
+		</group>
+  </section>
+</partial>

@@ -44,7 +44,7 @@
     <group name="PatientInfo">
       <columns>
         <column span="10">
-          <partial link="Partials/ColombiaPartialHospitalPatientInformation.xml"/>
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
         </column>
         <column span="2">
           <partial link="Partials/ColombiaPartialPharmacyPatientButtons.xml"/>

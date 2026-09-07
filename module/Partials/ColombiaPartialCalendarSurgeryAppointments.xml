@@ -2,9 +2,6 @@
   <!-- Partial to manage patient surgeries -->
   <!-- Surgeries include the appointment information within the surgery record. -->
   <!-- A calendar view is shown and the user can select the calendar, view, and surgery room (Sala) -->
-  <template name="SurgeryRescheduleTextMessage">
-    Su cita con el Dr. ${[NewAptProvider]} para el día @DateTime ha sido programada para ser reprogramada. Será contactado para encontrar otro momento. Favor de comunicarse al ${(facilityData.HospitalPhone)} para reprogramar su cita.
-  </template>
   <template name="dayMonthTemplate" type="markup">
       [span size=12 color=darkgrey] 
       [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]

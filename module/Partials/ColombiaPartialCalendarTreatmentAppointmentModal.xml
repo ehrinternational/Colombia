@@ -1,0 +1,281 @@
+﻿<partial>
+<!-- Partial Calendar Treatment Appointment Modal -->
+<!-- Enter and edit patient appointments -->
+	<section type="tabmodal" badge="none" name="mdlTreatmentAppointment" title="Cita de Quimioterapia">
+		<group showif="never">
+      <row>
+				<control type="hidden" name="TreatmentApt_Source" persist="true"/>
+        <!-- Get the appointment information from the appointment record (existing appointment) -->
+        <control type="hidden"
+          name="TreatmentApt_AppointmentGuid"
+          datarequest="GetSchedulerAppointmentsByAppointmentGuid"
+          appendrequest="AppointmentGuid=[TreatmentApt_AppointmentGuid]"
+          inject="TreatmentApt_AppointmentInfo"
+					set="TreatmentApt_PatientId=[[PatientId]],Existing_OrderGuid=[[OrderGuid]]"
+          provoke="TreatmentApt_PatientId"/>
+        <!-- Get the patient information and insert into the form -->
+				<control type="hidden" name="TreatmentApt_PatientId"
+					datarequest="GetPatientAllFields"
+					appendrequest="PatientId=[TreatmentApt_PatientId]"
+					inject="TreatmentApt_PatientInfo"
+					set="DefaultPatientId="
+					provoke="Existing_OrderGuid!;GetProtocolCycleDay^TreatmentApt_OrderGuid"/>
+				<control type="hidden" name="GetProtocolCycleDay"
+					acctsvcreq="true"
+					datarequest="GetChemotherapyProtocolCycleDays"
+					appendrequest="DayGuid=[Existing_OrderGuid]"
+					set="TreatmentApt_CycleDayText=[[CycleDayText]],TreatmentApt_Description=[[Description]],TreatmentApt_CycleDayStatus=[[Status]],ProtocolDuration=[[ProtocolDuration]],CycleStartDate=[[CycleStartDate]]"/>
+				<control type="hidden" name="TreatmentApt_CycleDayStatus"/>
+				<control type="hidden" name="Existing_OrderGuid"/>
+				<control type="button" name="btnCloseTreatmentAppointmentModal" action="close|new" provoke="TreatmentAppointmentTimes"/>
+	  	</row>
+			<!-- Process return from search -->
+			<row>
+        <control type="hidden" name="NewTreatmentAptSearch"
+					set="TreatmentApt_PatientId=[PatientSearchResults]"
+					provoke="TreatmentApt_PatientId"/>
+      </row>
+		</group>
+		<group name="TreatmentApt_PatientInfo">	
+			<columns>
+				<column span="10">
+					<row>
+						<control type="label" label="Nombre/Expediente" span="4" align="left"/>
+						<control type="label" label="Apellido Paterno" span="4" align="left"/>
+						<control type="label" label="Apellido Materno" span="4" align="left"/>
+					</row>
+					<row>
+						<control type="text" name="TreatmentApt_PatientFirstName" span="4" edit="[TreatmentApt_PatientId]="
+							action="trigger" trigger="btnNewTreatmentPatientSearch" required="true"/>
+						<control type="text" name="TreatmentApt_PatientMiddleName" span="4" edit="[TreatmentApt_PatientId]="
+							action="trigger" trigger="btnNewTreatmentPatientSearch" required="true"/>
+						<control type="text" name="TreatmentApt_PatientLastName" span="4" edit="[TreatmentApt_PatientId]="
+							action="trigger" trigger="btnNewTreatmentPatientSearch"/> 
+				</row>
+				<row>
+					<control type="label" label="Expediente" span="2"/>
+					<control type="text" name="TreatmentApt_MedicalRecordNumber" span="2" readonly="true"/>
+					<control type="label" label="Nacimiento" span="2"/>
+					<control type="date" name="TreatmentApt_PatientDOB" span="3" edit="[TreatmentApt_PatientId]=" required="true"/>
+					<control type="label" label="Sexo" span="1" />
+					<control type="select" name="TreatmentApt__PatientSex" span="2" edit="[TreatmentApt_PatientId]=" 
+						source="Male,Female" sourcelabels="Masculino,Femenino" required="true"/>
+				</row>
+				<row>
+					<control type="label" label="Celular" span="2" />
+					<control type="text" name="TreatmentApt_PatientCellPhone" span="3" edit="[TreatmentApt_PatientId]="/>
+					<control type="label" label="email" span="1"/>
+					<control type="text" name="TreatmentApt_PatientEmail" span="6" edit="[TreatmentApt_PatientId]="/>
+				</row>
+			</column>
+			<column span="2">
+				<row name="rowNewAptTreatmentPatientPhoto" reveal="[TreatmentApt_PatientId]!+[TreatmentApt_ProfilePhoto]!">
+						<!--Patient photo-->
+						<control type="image"
+							format="jpg=circle" 
+							name="TreatmentApt_ProfilePhoto"
+							span="12" />
+				</row>
+				<row>
+					<control type="button" name="btnNewTreatmentPatientSearch"
+							label="Buscar" span="12" icon="search" color="grey"
+							reveal="[TreatmentApt_PatientId]="
+							preset="PatientSearched=true,PatientSearchSource=40,Search_PatientFirstName=[TreatmentApt_PatientFirstName],Search_PatientMiddleName=[TreatmentApt_PatientMiddleName],Search_PatientLastName=[TreatmentApt_PatientLastName]"
+							trigger="Search_FindPatient"
+							action="redirect" target="mdlFindPatients"/>
+				</row>
+				<row>
+					<!-- Insert a new patient record  -->
+					<control type="button"   
+						name="btnSaveNewTreatmentPatient"
+						reveal="[PatientSearched]=true+[TreatmentApt_PatientId]="
+						span="12"
+						label="Nuevo Paciente"
+						affector="TreatmentApt_PatientId"
+						setaffector="RecordUniqueId"
+						capture="TreatmentApt_PatientInfo" 
+						action="save"
+						confirm="Por favor confirme que quiere generar a este paciente nuevo."
+						datainsert="InsertPatient"
+						provoke="TreatmentApt_PatientId"/>
+				</row>
+			</column>
+		</columns>
+	</group>
+	<group name="TreatmentApt_AppointmentInfo">
+		<columns>
+			<column span="10">
+				<row>
+					<control type="hidden" name="TreatmentApt_OrderType"/>
+				</row>
+				<row>
+					<!-- Select the calendar for the appointment (editable directly only for extraordinary appointments) -->
+					<!-- (Other appointmens are scheduled by selecting a time from a calndar view.) -->
+					<control type="label" label="Calendario" span="2" />
+					<control type="select" name="TreatmentApt_AppointmentTypeGuid" namefield="NewAptCalendarName"
+						explicit="true" required="true" readonly="true" span="4"
+						datasource="GetSchedulerAppointmentTypesByFacility" 
+						append="LocationId=(facilityData.LocationId)" 
+						source="CalendarName,CalendarGuid"
+						provoke="TreatmentApt_RoomGuid"/>
+					<control type="label" label="Sillón" span="2"/>
+					<control type="select" name="TreatmentApt_RoomGuid" explicit="true" span="4" edit="true" required="true"
+            datarequest="GetRoomsAndBedsForThisFacility"
+						appendrequest="LocationId=(facilityData.LocationId)"
+						source="RoomAndBedNumber,RoomGuid"
+            filter="RoomTypeGuid=[ChemoRoomType],Active=true"/>
+				</row>
+				<row>
+					<!-- The datetime of the appointment (editable directly only for extraordinary appointments) -->
+					<control type="label" label="Programado" span="2" />
+					<control type="datetime" name="TreatmentApt_Start" 
+						span="4" edit="true" required="true" when="«01:00;08:00"/>
+					<control type="label" label="Duración" badge="min" span="4" persist="true"/>
+					<control type="integer" name="TreatmentApt_Duration" when="=1440;15" span="2" edit="true" required="true"/>
+				</row>
+				
+				<row>
+					<!-- The provider for the appointment -->
+					<control type="label" label="Médico" span="2" />
+					<control type="select" name="TreatmentApt_ProviderId" span="4" 
+						namefield="NewAptProvider" 
+						required="(facilityData.HospitalName)%COI|CART"
+						sort="UserFirstMiddleLast=asc"
+						acctsvc="true" datasource="GetUsersByAttributes" 
+						append="LocationId=(facilityData.LocationId),role=Physician" 
+						source="UserFirstMiddleLast,UserId" 
+						edit="true"/>
+					<control type="label" label="Estatus" span="2"/>
+					<control type="select" name="TreatmentApt_Status" span="4"
+						source="Scheduled,Confirmed,No Show,Completed,Canceled"
+						sourcelabels="Programado,Confirmado,Ausente,Completado,Cancelado"
+						readonly="true" default="Scheduled"/>
+				</row>
+				<!-- Select a day to schedule for a new appointment -->
+				<row name="rowProtocolDays" reveal="[Existing_OrderGuid]=">
+					<control type="label" label="Tratamiento" span="2"/>
+					<control type="select" name="TreatmentApt_OrderGuid" span="4"
+						acctsvcreq="true" sort="CycleDayText=asc" 
+						default="true" filter="Status=Active" edit="true" explicit="true"
+						source="CycleNumber|DayNumber|Description,DayGuid"
+						datarequest="GetChemotherapyProtocolCycleDays"
+						appendrequest="PatientId=[TreatmentApt_PatientId]"
+						set="ProtocolDuration=[[ProtocolDuration]],CycleStartDate=[[CycleStartDate]]"/>
+				</row>
+				<!-- Display a day for an existing appointment -->
+				<row name="rowExistingCycleDay" reveal="[Existing_OrderGuid]!" >
+					<control type="label" label="Tratamiento" span="2"/>
+					<control type="text" name="TreatmentApt_CycleDayText" span="4" readonly="true"/>
+					<control type="text" name="TreatmentApt_Description" span="6" readonly="true"/>
+				</row>
+				<row>
+					<control type="label" label="Duración de Esquema" span="4"/>
+					<control type="text" name="ProtocolDuration" span="1" readonly="true"/>
+					<control type="label" label="Inicio de Ciclo" span="3"/>
+					<control type="date" name="CycleStartDate" span="4" readonly="true"/>
+				</row>
+				<row>
+					<!-- Reason for the appointment -->
+					<control type="label" label="Motivo" span="2"/>
+					<control type="text" name="TreatmentApt_Subject" edit="true" required="true" span="10"/>
+				</row>
+				</column>
+				<column span="2">
+					<row>
+						<control type="button" name="btnConfirmTreatmentAppointment"
+							reveal="TreatmentApt_AppointmentGuid!"
+							span="12" action="save|close|new" color="green"
+							icon="check-sign" label="Confirmar"
+							affector="none"
+							dataupdate="UpdateSchedulerAppointments"
+							appendupdate="appointmentGuid=[TreatmentApt_AppointmentGuid],status=Confirmed,txtMessage=[ConfirmTextMessageTreatment],sendMessage=[TextingEnabled]"
+							provoke="TreatmentAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+					</row>
+					<row>
+						<!-- Button to complete an appointment (shown only in edit mode)-->
+						<control type="button" name="btnCompleteTreatmentAppointment"
+								reveal="TreatmentApt_AppointmentGuid!"
+								span="12" action="save|close|new" color="yellow"
+								icon="cloud-upload" label="Completar"
+								confirm="Por favor, confirme que desea completar esta cita."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[TreatmentApt_AppointmentGuid],Status=Completed"
+								provoke="TreatmentAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+						</row>
+						<row>
+							<!-- Button to set an appointment to No Show (shown only in edit mode) -->
+							<control type="button" name="btnNoShowTreatmentAppointment"
+								reveal="TreatmentApt_AppointmentGuid!"
+								span="12" action="save|close|new" color="orange"
+								icon="cloud-upload" label="Ausente"
+								confirm="Por favor, confirme que desea cambiar el estatus de esta cita a ausente."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[TreatmentApt_AppointmentGuid],status=No Show,txtMessage=[CancelTextMessageTreatment],sendMessage=[TextingEnabled]"
+								provoke="TreatmentAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+						</row>
+						<row name="rowCancelTreatmentAppointment" reveal="(facilityData.HospitalName)¡COI|CART">
+							<!-- Button to cancel an appointment (shown only in edit mode) -->
+							<control type="button" name="btnCancelTreatmentAppointment"
+								reveal="TreatmentApt_AppointmentGuid!"
+								span="12" action="save|close|new" color="red"
+								icon="cloud-upload" label="Cancelar"
+								confirm="Por favor, confirme que desea cancelar esta cita."
+								affector="none"
+								dataupdate="UpdateSchedulerAppointments"
+								appendupdate="appointmentGuid=[TreatmentApt_AppointmentGuid],status=Canceled,txtMessage=[CancelTextMessageTreatment],sendMessage=[TextingEnabled]"
+								provoke="TreatmentAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+						</row>
+						<row name="rowCancelTreatmentAppointment2" reveal="(facilityData.HospitalName)%COI|CART">
+							<!-- Button to cancel an appointment (shown only in edit mode) -->
+							<control type="button" name="btnCancelTreatmentAppointment2"
+								reveal="[TreatmentApt_AppointmentGuid]!+[TreatmentApt_Status]=Scheduled|Confirmed"
+								preset="ApptCOI_AppointmentToCancel=[TreatmentApt_AppointmentGuid],ApptCOI_CalendarToProvoke=Treatment"
+								span="12" action="redirect" color="red" target="mdlReasonToCancelCOIAppointments"
+								icon="remove" label="Cancelar"/>
+						</row>
+				</column>
+		</columns>
+	</group>	
+  <!-- Save Treatment appointments -->
+	<group>
+		<row>
+      <!-- Save a newappointment -->
+		  <control type="modalbutton" name="SaveNewTreatmentAppointment"
+        reveal="[TreatmentApt_AppointmentGuid]="
+			  action="save|close|new"
+			  color="green"
+			  affector="TreatmentApt_AppointmentGuid"
+				setaffector="AppointmentGuid"
+			  icon="cloud-upload"
+			  label="Guardar"
+			  capture="TreatmentApt_AppointmentInfo"
+			  datainsert="InsertSchedulerAppointments"
+				compare="[TreatmentApt_PatientId]!|Por favor seleccione un paciente para esta cita."
+			  appendinsert="Active=true,reschedule=false,PatientId=[TreatmentApt_PatientId],txtMessage=[NewTextMessageTreatment],sendMessage=[TextingEnabled]"
+			  provoke="btnUpdateCycleDayStatus,TreatmentAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+			<!-- Update appointment -->
+			<control type="modalbutton" name="btnUpdateTreatmentAppointment"
+        reveal="[TreatmentApt_AppointmentGuid]!"
+				span="3" size="large"
+				action="save|close|new" 
+				confirm="Por favor confirme que quiere actualizar esta cita"
+				affector="none"
+				capture="TreatmentApt_AppointmentInfo"
+				label="Actualizar" 
+				icon="cloud-upload"
+				dataupdate="UpdateSchedulerAppointments"
+				appendupdate="appointmentGuid=[TreatmentApt_AppointmentGuid],txtMessage=[UpdateTextMessageTreatment],sendMessage=[TextingEnabled]"
+				provoke="TreatmentAppointmentTimes,Appointments,grdPatientAppointmentList"/>
+      </row>
+			<row showif="never">
+				<control type="button" name="btnUpdateCycleDayStatus"
+					action="save|close|new"
+					acctsvc="true"
+					dataupdate="UpdateChemotherapyProtocolCycleDays"
+					appendupdate="DayGuid=[TreatmentApt_OrderGuid],Status=Scheduled,ScheduledDateTime=[TreatmentApt_Start],AppointmentGuid=[TreatmentApt_AppointmentGuid]"/>
+			</row>
+		</group>
+  </section>
+</partial>

@@ -12,11 +12,11 @@
     target="mdlReports"/>
   <headerbutton name="btnTreatmentCalendar"
     icon="calendar" label="Tratamiento"
-    trigger="TreatmentAppointmentTimes"
+    trigger="TreatmentAppointmentTimes|resource"
     preset="DefaultPatientId=[PatientId],DefaultOrderGuid="
     action="redirect" target="mdlTreatmentAppointments"/>
-  <!-- Display a list of radio oncology admitted patients-->
-  <partial link="./Partial/Lists/PartialRadioOncologyPatientsByDepartment.xml"/>
+ <!-- Hospitalized patient list -->
+  <partial link="Partials/ColombiaPartialHospitalizedPatientListNoQueues.xml"/>
   <!-- PatientTabModal is the patient chart -->
   <section type="tabmodal" badge="none" name="PatientTabModal" title="Información del Paciente" size="medium">
     <group showif="never">
@@ -52,7 +52,7 @@
     <group name="PatientInfo">
       <columns>
         <column span="10">
-           <partial link="Partials/ColombiaPartialHospitalPatientInformation.xml"/>
+           <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
         </column>
         <column span="2">
           <partial link="Partials/ColombiaPartialConsultPhysicianPatientButtons.xml"/>
@@ -63,7 +63,7 @@
     <group name="VisitInfo" reveal="[PatientId]!+[PatientVisitGuid]!">
       <columns>
         <column span="10">
-          <partial link="Partials/ColombiaPartialHospitalVisitInformation.xml"/>
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
         </column>
         <column span="2">
           <partial link="Partials/ColombiaPartialTreatmentPhysicianVisitButtons.xml"/>
@@ -139,6 +139,6 @@
 	<partial link="./Partial/Messaging/PartialSendEmailMessageToPatient.xml"/>
   <!-- Global partials Calendars -->
   <partial link="./Partial/Calendars/PartialCalendarCancelCOIAppointments.xml"/>
-  <partial link="./Partial/Calendars/PartialCalendarTreatmentAsModal.xml"/>
-  <partial link="./Partial/Calendars/PartialCalendarTreatmentAppointmentModal.xml"/>
+  <partial link="Partials/ColombiaPartialCalendarTreatmentAsModal.xml"/>
+  <partial link="Partials/ColombiaPartialCalendarTreatmentAppointmentModal.xml"/>
 </module>

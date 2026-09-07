@@ -42,7 +42,7 @@
           44 Atención de población materno perinatal,
           56 Evento adverso en salud"/>
     </row>
-    <row name="rowServiceGroup" reveal="[FileName]¡Admitting">
+    <row name="rowServiceGroup" reveal="[FileName]¡Admitting|Scheduling">
       <control type="label" label="Grupo Servicios" span="2"/>
       <control type="select" name="mdlAdmit_ServiceGroup" span="4" searchable="true" required="true" edit="true"
         source="01,02,03,04,05" default="03"
@@ -60,7 +60,7 @@
         07 Telemedicina no interactiva,
         08 Telemedicina - Telexperticia"/>
     </row> 
-    <row name="rowFinalidadConsulta" reveal="[FileName]¡Admitting">
+    <row name="rowFinalidadConsulta" reveal="[FileName]¡Admitting|Scheduling">
         <control type="label" label="Finalidad Consulta" span="2"/>
         <control type="select" name="mdlAdmit_FinalConsult" span="4" searchable="true" required="true" edit="true"
           source="10,11,12,13,14,15,16,17,18,19,21,22,23,24,25,26,27,28,31,41,42,43,44" 

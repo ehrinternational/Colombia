@@ -17,60 +17,11 @@
     action="redirect" target="mdlReports"/>
   <headerbutton name="btnTreatmentCalendar"
     icon="calendar" label="Tratamiento"
-    trigger="TreatmentAppointmentTimes"
+    trigger="TreatmentAppointmentTimes|resource"
     preset="DefaultPatientId=,DefaultOrderGuid="
     action="redirect" target="mdlTreatmentAppointments"/>
-  <!-- Admitted patient list -->
-  <section name="tabAdmittedPatients" type="tab" title="Pacientes por Departamento" trigger="PatientList">
-    <group>
-      <row>
-          <control type="select" 
-            span="4"
-            name="DepartmentGuidLookup"
-            acctsvc="true"
-            explicit="true"
-            edit="true"
-            filter="DepartmentName%Sala"
-            datasource="GetDepartmentsActive" 
-            append="LocationId=(facilityData.LocationId)" 
-            source="DepartmentName,DepartmentGuid"
-            provoke="PatientList"/>
-      </row>
-      <row>
-        <control type="datagrid" label="Pacientes por Departamento" 
-          name="PatientList"
-          persist="true"
-          action="redirect" 
-          target="PatientTabModal"
-          searchable="true"
-          edit="only"
-          span="12"
-          rows="25"
-          fitrows="true"
-          gridfilter="ListFilter|HospitalService"
-          datarequest="GetPatientListWithOpenVisitsByFacility"
-					rowcolor="ReadyForDischarge|True=green"
-          idle="[DepartmentGuidLookup]=|reset"
-          appendrequest="DepartmentGuid=[DepartmentGuidLookup]" 
-          source="ProfilePhoto,ReadyForDischarge,AdmitDateTime,MedicalRecordNumber,PatientFullName,PatientDOB,PatientAge,PatientSex,HospitalService,AttendingDoctorFullName,OpenRoom"
-          sourcelabels="Foto,Alta,Admitido,Expediente,Nombre,Nacimiento,Edad,Sexo,Servicio,Médico Tratante,Consultorio"
-          align="|||left|left|left|left|left|left|left"
-          translate="PatientSex"
-          format="image=circle|boolean|datetime_short|||date"
-          sort="AdmitDateTime=asc"
-          key="RecordUniqueId"
-          onselectset="PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisitId]]"
-          onselect="PatientId,PatientVisitGuid"> 
-          <control type="button" name="btnSearchForPatients"
-						reveal="[DepartmentGuidLookup]!"
-						action="redirect" icon="folder-open" label="Buscar Pacientes"
-						target="mdlInitiateFindPatients"/>
-					<control type="button" name="RefreshAppointments2" label="Actualizar"
-						icon="refresh" action="trigger" trigger="PatientList"/>
-        </control>
-        </row>
-      </group>
-  </section>
+  <!-- Hospitalized patient list -->
+  <partial link="Partials/ColombiaPartialHospitalizedPatientListNoQueues.xml"/>
   <!-- Nurse version of Bed Map -->
   <partial link="./Partial/Beds/PartialBedMapSupervisor.xml"/>
   <!-- Nursing orders for nurse based on bed assignment -->
@@ -159,7 +110,7 @@
     <group name="PatientInfo">
       <columns>
         <column span="10">
-          <partial link="Partials/ColombiaPartialHospitalPatientInformation.xml"/>
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
         </column>
         <column span="2">
           <partial link="Partials/ColombiaPartialHospitalNursePatientButtons.xml"/>
@@ -225,8 +176,8 @@
    </section>
     <!-- Calendars -->
     <partial link="./Partial/Calendars/PartialCalendarCancelCOIAppointments.xml"/>
-    <partial link="./Partial/Calendars/PartialCalendarTreatmentAsModal.xml"/>
-    <partial link="./Partial/Calendars/PartialCalendarTreatmentAppointmentModal.xml"/>
+    <partial link="Partials/ColombiaPartialCalendarTreatmentAsModal.xml"/>
+    <partial link="Partials/ColombiaPartialCalendarTreatmentAppointmentModal.xml"/>
     <!-- General modals -->
     <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
     <partial link="./Partial/Admin/PartialInitiatePatientSearchModalAllPatients.xml"/>

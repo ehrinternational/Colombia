@@ -1,0 +1,158 @@
+<partial>
+  <section type="tabmodal" name="mdlTreatmentAppointments" title="Citas de Quimioterapia" size="large" badge="none">
+    <!-- Template for month and week views that shows only the patient name-->
+        <template name="dayGridMonthTemplateTreatment" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            [IF ${[[OrderGuid]]}=][icon color=red]warning-sign[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} [br]
+            ${[[RoomName]]}[/span] 
+        </template>
+         <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridWeekTemplateTreatment" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            [IF ${[[OrderGuid]]}=][icon color=red]warning-sign[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]}[br]
+            [/span]
+        </template>
+        <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridDayTemplateTreatment" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            [IF ${[[OrderGuid]]}=][icon color=red]warning-sign[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} 
+            [/span]
+        </template>
+        <!-- Template for agenda (list) view that shows the provider, description, and location-->
+        <template name="listMonthTemplateTreatment" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            [IF ${[[OrderGuid]]}=][icon color=red]warning-sign[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} ${[[RoomName]]}
+            [/span]
+        </template>
+        <template name="ToolTipGridDayTreatmentTemplate" type="markup">
+            [div size=12 align=left] 
+            [b format=time]${[[StartDateTime]]}[/b] - [b format=time]${[[EndDateTime]]}[/b][br]
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF] 
+            [IF ${[[OrderGuid]]}=][icon color=red]warning-sign[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]}[br]
+            ${[[RoomName]]}[br]
+            ${[[Subject]]}
+            [/div]
+        </template>
+        <!-- Template for bacground scheduler times records-->
+        <template name="BackgroundTemplateTreatment" type="markup">
+            [span size=12 color=darkred] 
+            [IF ${[[Type]]}=Block][b format=datetime]${[[StartDateTime]]}[/b] - [b format=datetime]${[[EndDateTime]]}[/b][br][/IF]
+            [IF ${[[Type]]}!Block][b format=time]${[[StartDateTime]]}[/b] - [b format=time]${[[EndDateTime]]}[/b][br][/IF]
+            [IF ${[[ExceptionNotes]]}!]${[[ExceptionNotes]]}[br][/IF]
+            [IF ${[[Reason]]}!]${[[Reason]]}[/IF]
+            [/span]
+        </template>
+    <group showif="never">
+      <row>
+        <control type="hidden" name="TreatmentCalendarEditMode" default="true"/>
+        <control type="hidden" name="MultipleTreatmentCalendars" default="false"/>
+        <control type="hidden" name="TreatmentDrop_Source"/>
+        <control type="hidden" name="TreatmentDrop_AppointmentGuid"/>
+        <control type="hidden" name="TreatmentDrop_OrderGuid"/>
+        <control type="hidden" name="TreatmentDrop_StartTime"/>
+        <control type="hidden" name="TreatmentDrop_EndTime"/>
+        <control type="hidden" name="TreatmentDrop_ResourceGuid"/>
+        <control type="hidden" name="TreatmentDrop_PatientFirstMiddleLast"/>
+      </row>
+      <row>
+        <control type="button" name="btnUpdateTreatmentDrop"
+          action="save"
+          affector="none" 
+          dataupdate="UpdateSchedulerAppointments"
+				  appendupdate="roomGuid=[TreatmentDrop_ResourceGuid],appointmentGuid=[TreatmentDrop_AppointmentGuid],start=[TreatmentDrop_StartTime],end=[TreatmentDrop_EndTime],calculateDuration=true"
+          provoke="TreatmentDrop_OrderGuid!;RescheduleCycleDay"/>
+        <control type="button" name="RescheduleCycleDay"
+          acctsvc="true"
+					dataupdate="UpdateChemotherapyProtocolCycleDays"
+					appendupdate="DayGuid=[TreatmentDrop_OrderGuid],ScheduledDateTime=[TreatmentDrop_StartTime]"/>
+        <control type="button" name="btnUpdateTreatmentResize"
+          action="save"
+          affector="none" 
+          dataupdate="UpdateSchedulerAppointments"
+				  appendupdate="appointmentGuid=[TreatmentDrop_AppointmentGuid],start=[TreatmentDrop_StartTime],end=[TreatmentDrop_EndTime],calculateDuration=true"/>
+      </row>
+    </group>
+  	<group>
+      <row>
+        <!-- Buttongroup to select status (Active=scheduled and confirmed, Completed=completed and No Show, All=all but canceled -->
+        <control type="buttongroup" name="btngrpSelectStatusTreatment"
+          span="5" default="Active" mode="auto"
+          source="Active,Completed,No Show,Canceled"
+          sourcelabels="Activo,Completado,Ausente,Cancelado"
+          trigger="TreatmentAppointmentTimes|resource"/>
+        <!-- Select the calendar to view -->
+        <control type="select" 
+				  name="calAppointmentTypeGuidTreatment" span="3"
+				  datasource="GetSchedulerAppointmentTypesByFacility" 
+          append="CalendarType=Chemotherapy,LocationId=(facilityData.LocationId)" 
+				  source="CalendarName,CalendarGuid" 
+          explicit="true"
+				  default="true"
+					sort="CalendarName=asc"
+          set="ChemoRoomType=[[Service]]"
+				  provoke="TreatmentAppointmentTimes|resource"/>
+        <control type="hidden" name="ChemoRoomType"/>
+      </row>
+			<row>
+          <!-- Display Treatment calendar -->
+          <control type="calendar" name="TreatmentAppointmentTimes"
+            span="12" aspect="10/5"
+            headerleft="prevYear,nextYear prev,next today"
+            headercenter="title"
+            headerright="dayGridMonth,resourceTimeGridDay,listDay"
+            navlinking="true"
+            slotduration="00:15"
+            duration="00:30"
+            businesshours="1,2,3,4,5=06:00-20:00"
+            default="resourceTimeGridDay"
+            resource="RoomAndBedNumber,RoomGuid"
+            dataresource="GetRoomsAndBedsForThisFacility"
+            appendresource="LocationId=(facilityData.LocationId)"
+            resourcefilter="Active=true,RoomTypeGuid=[ChemoRoomType]"
+            eventcolor="Type|Background=lightblue;Block=grey;Scheduled=yellowgreen;Confirmed=darkgreen;Completed=orange;Canceled=red"
+            source="tooltip=ToolTipGridDayTreatmentTemplate,dayGridMonth=dayGridMonthTemplateTreatment,resourceTimeGridDay=timeGridDayTemplateTreatment,listDay=listMonthTemplateTreatment"
+            bgsource="dayGridMonth=BackgroundTemplateTreatment,timeGridWeek=BackgroundTemplateTreatment,timeGridDay=BackgroundTemplateTreatment,listDay=BackgroundTemplateTreatment"
+            bgevent="Status|Background=true"
+            editable="AppointmentGuid!"
+            editduration="AppointmentGuid!"
+            idle="[calAppointmentTypeGuidTreatment]=|reset"
+            acctsvcreq="true"
+            datarequest="GetSchedulerExceptionsByDateRange"
+            appendrequest="nameSearch=[txtTreatmentPatientSearch],calendarGuid=[calAppointmentTypeGuidTreatment],status=[btngrpSelectStatusTreatment]"
+            map="start=StartDateTime,end=EndDateTime,title=rowguid,resourceId=RoomGuid"
+          	daterange="start=start,end=end"
+            key="key"
+            action="redirect"
+            target="[TreatmentCalendarEditMode]=true;mdlTreatmentAppointment"
+            selectable="true"
+            selectabletarget="[btngrpSelectStatusTreatment]=Active+[TreatmentCalendarEditMode]=true;mdlTreatmentAppointment"
+            onselectableset="TreatmentApt_OrderGuid=[DefaultOrderGuid],TreatmentApt_OrderType=[DefaultOrderType],TreatmentApt_PatientId=[DefaultPatientId],TreatmentApt_Source=1,PatientSearched=false,TreatmentApt_Subject=Tratamiento Quimioterapia,TreatmentApt_AppointmentTypeGuid=[calAppointmentTypeGuidTreatment],TreatmentApt_Start=[[start]],TreatmentApt_End=[[end]],TreatmentApt_Duration=[[duration]],TreatmentApt_Status=Scheduled,TreatmentApt_RoomGuid=[[resourceId]]"
+            onselectable="[TreatmentApt_PatientId]!+[TreatmentCalendarEditMode]=true;TreatmentApt_PatientId"
+            onselectset="TreatmentApt_Source=1,TreatmentApt_AppointmentGuid=[[AppointmentGuid]],TreatmentApt_AppointmentTypeGuid=[calAppointmentTypeGuidTreatment],TreatmentApt_Start=[[start]]"
+            onselect="[TreatmentApt_AppointmentGuid]!+[TreatmentCalendarEditMode]=true;TreatmentApt_AppointmentGuid"
+            droptarget="none"
+            ondropset="TreatmentDrop_Source=1,TreatmentDrop_AppointmentTypeGuid=[calAppointmentTypeGuidTreatment],TreatmentDrop_AppointmentGuid=[[AppointmentGuid]],TreatmentDrop_OrderGuid=[[OrderGuid]],TreatmentDrop_StartTime=[[StartDateTime]],TreatmentDrop_EndTime=[[EndDateTime]],TreatmentDrop_PatientFirstMiddleLast=[[PatientFirstMiddleLast]],TreatmentDrop_ResourceGuid=[[RoomGuid]]"
+            ondrop="[btngrpSelectStatusTreatment]=Active+[TreatmentCalendarEditMode]=true;btnUpdateTreatmentDrop^TreatmentAppointmentTimes|resource"
+            resizetarget="none"
+            onresize="[btngrpSelectStatusTreatment]=Active+[TreatmentCalendarEditMode]=true;btnUpdateTreatmentResize^TreatmentAppointmentTimes|resource"
+            onresizeset="TreatmentDrop_Source=1,TreatmentDrop_AppointmentTypeGuid=[calAppointmentTypeGuidTreatment],TreatmentDrop_AppointmentGuid=[[AppointmentGuid]],TreatmentDrop_StartTime=[[StartDateTime]],TreatmentDrop_EndTime=[[EndDateTime]],TreatmentDrop_PatientFirstMiddleLast=[[PatientFirstMiddleLast]]">
+          <!-- Button to refresh the calendar -->
+          <control type="button" name="btnRefreshTreatmentCalendar"
+            icon="refresh" label="Actualizar" action="trigger" trigger="TreatmentAppointmentTimes|resource"/>
+          <control type="text" name="txtTreatmentPatientSearch" action="trigger" trigger="TreatmentAppointmentTimes|resource"/>
+          <control type="button" name="btntxtTreatmentPatientSearch" icon="search" label="" action="trigger" provoke="TreatmentAppointmentTimes|resource"/>
+          <control type="button" name="btnCleartxtTreatmentPatientSearch" icon="remove" label="" action="trigger" set="txtTreatmentPatientSearch="   provoke="TreatmentAppointmentTimes|resource"/>
+          </control>
+      </row>
+		</group>
+  </section>
+</partial>

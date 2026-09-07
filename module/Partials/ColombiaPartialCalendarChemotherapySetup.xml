@@ -1,0 +1,298 @@
+﻿<partial>
+  <!-- Template for day view that shows the provider, description, and location-->
+    <template name="ChemotherapyToolTipTemplate" type="markup">
+        [div size=12 align=left] 
+        [icon size=2x]stethoscope[/icon] ${[[MedicalSpecialtyName]]}[br]
+        [icon size=2x]user-md[/icon] ${[[ProviderFirstMiddleLast]]}[br]
+        [IF ${[[ExceptionNotes]]}!][icon size=2x color=yellow]edit[/icon] ${[[ExceptionNotes]]}[/IF]
+        [/div]
+    </template>
+    <template name="ChemotherapyTimeWeekTemplate" type="markup">
+        [span size=14 color=darkgrey] 
+        ${[[MedicalSpecialtyName]]}[br]
+        ${[[ProviderFirstMiddleLast]]}[br]
+        ${[[ExceptionNotes]]}
+        [/span]
+    </template>
+    <template name="ChemotherapytimeMonthTemplate" type="markup">
+        [span size=14 color=darkgrey] 
+        ${[[MedicalSpecialtyName]]}
+        [/span]
+    </template>
+  <!-- A calendar view is shown and the user can select the calendar and view -->
+  <section type="tab" name="tabChemotherapyCalendarSetup" title="Calendarios de Quimioterapia" trigger="dgrChemotherapyCalendars">
+   <group>
+    <row>
+        <control type="datagrid" name="dgrChemotherapyCalendars" label="Calendarios de Quimioterapia"
+          span="12" rows="20"
+          action="redirect"
+          searchable="true"
+          target="mdlChemotherapyCalendarSetup"
+				  datarequest="GetSchedulerAppointmentTypesByFacility" 
+          appendrequest="LocationId=(facilityData.LocationId),CalendarType=Chemotherapy" 
+				  source="Active,StartDate,EndDate,Location,CalendarName,CalendarDescription,EnteredByFullName,UpdatedByFullName,DateTimeUpdated" 
+					sourcelabels="Activo,Fecha de Inicio,Fecha Final,Ubicación,Nombre,Descripción,Introducido por,Editado por,Editado en "
+          format="boolean|date|date||||||date"
+          align="|left|left|left|left|left|left|left|left"
+					sort="CalendarName=asc"
+          key="CalendarGuid"
+          onselectset="ChemotherapySetup_CalendarGuid=[[CalendarGuid]]"
+          onselect="ChemotherapySetup_CalendarGuid">
+        <control type="button" name="btnNewChemotherapyCalendar"
+          label="Añadir Nuevo" icon="plus"
+          action="redirect" target="mdlChemotherapyCalendarSetup"/>
+        <control type="button" name="btnChemotherapyCalendarRefresh"
+          label="Actualizar" icon="refresh"
+          action="trigger" provoke="dgrChemotherapyCalendars"/>
+        </control>
+      </row>
+		</group>
+  </section>
+  <!-- Tabmodal to enter and edit Chemotherapy calendars  -->
+  <section type="tabmodal" name="mdlChemotherapyCalendarSetup" badge="none" title="Calendario de Quimioterapia">
+		<group showif="never">
+			<row>
+        <control type="text" name="ChemotherapySetup_CalendarGuid"
+					datarequest="GetSchedulerAppointmentTypesByAppointmentTypeGuid"
+					appendrequest="appointmentGuid=[ChemotherapySetup_CalendarGuid]"
+					inject="ChemotherapySetup_CalendarInfo"
+          provoke="ChemotherapySchedulerTimes|resource"/>
+        <control type="text" name="ChemotherapyDropTime_SchedulerExceptionGuid"/>
+        <control type="text" name="ChemotherapyDropTime_StartTime"/>
+        <control type="text" name="ChemotherapyDropTime_EndTime"/>
+        <control type="text" name="ChemotherapyDropTime_SchedulerRoomGuid"/>
+				<control type="button" name="btnUpdateChemotherapyDropTime"
+					action="save"
+					affector="none"
+					acctsvc="true"
+					dataupdate="UpdateSchedulerExceptions"
+					appendupdate="schedulerExceptionGuid=[ChemotherapyDropTime_SchedulerExceptionGuid],StartDateTime=[ChemotherapyDropTime_StartTime],EndDateTime=[ChemotherapyDropTime_EndTime],SchedulerRoomGuid=[ChemotherapyDropTime_SchedulerRoomGuid]"/>
+			</row>
+		</group>
+    <group name="ChemotherapySetup_CalendarInfo">
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" name="ChemotherapySetup_Active"
+					default="True" source="True,False" sourcelabels="Sí,No" span="3" edit="true"/>
+        <control type="button" name="ChemotherapySetup_UpdateCalendar"
+					icon="cloud-upload" span="2"
+					label="Actualizar" offset="4"
+					reveal="[ChemotherapySetup_CalendarGuid]!"
+					action="save|close|new"
+					affector="none"
+					capture="ChemotherapySetup_CalendarInfo"
+					dataupdate="UpdateSchedulerAppointmentTypes"/>
+        <control type="button" name="ChemotherapySetup_SaveCalendar"
+          icon="cloud-upload" span="2" color="green"
+          reveal="[ChemotherapySetup_CalendarGuid]="
+          label="Guardar" offset="4"
+          action="save"
+          affector="ChemotherapySetup_CalendarGuid"
+          setaffector="CalendarGuid"
+          capture="ChemotherapySetup_CalendarInfo"
+          datainsert="InsertSchedulerAppointmentTypes"
+          appendinsert="CalendarType=Chemotherapy"
+          provoke="ChemotherapySchedulerTimes"/>
+          <!-- Note: the update call uses AppointmentTypeGuid NOT CalendarGuid! -->
+          <control type="hidden" name="ChemotherapySetup_AppointmentTypeGuid"/>
+			</row>
+      <row>
+				<control type="label" label="Nombre del Calendario" span="3"/>
+				<control type="text" name="ChemotherapySetup_CalendarName"
+					span="8" required="true" edit="true" />
+			</row>
+      <row>
+				<control type="label" label="Descripción" span="3"/>
+				<control type="text" name="ChemotherapySetup_CalendarDescription"
+					span="8" edit="true" />
+			</row>
+      <row>
+				<control type="label" label="Ubicación Id" span="3"/>
+				<control type="text" name="ChemotherapySetup_LocationId" span="2" edit="true"/>
+        <control type="label" label="Tipo de Habitación" span="3"/>
+				<control type="select" name="ChemotherapySetup_Service" span="3" edit="true" required="true"
+          acctsvc="true"
+          datasource="GetRoomTypesActive"
+          source="RoomTypeName,RoomTypeGuid"
+          provoke="ChemotherapySchedulerTimes|resource"/>
+			</row>
+			<row>
+				<!-- Date controls to search by a range of dates (DateTimeEntered) -->
+				<control type="label" label="Rango de Fechas" span="3"/>
+				<control type="date" span="3" name="ChemotherapySetup_StartDate"
+				required="true" edit="true"/>
+				<control type="date" span="3" name="ChemotherapySetup_EndDate"
+					required="true" edit="true" compare="»[ChemotherapySetup_StartDate]"/>
+			</row>
+		</group>
+	  <group name="grpChemotherapyDays" reveal="ChemotherapySetup_CalendarGuid!">
+      <row>
+        <control type="calendar" name="ChemotherapySchedulerTimes"
+            span="12"
+            aspect="10/6"
+            headerleft="prevYear,nextYear prev,next today"
+            headercenter="title"
+            headerright="dayGridMonth,resourceTimeGridDay,listDay"
+            resource="RoomAndBedNumber,RoomGuid"
+            dataresource="GetRoomsAndBedsForThisFacility"
+            appendresource="LocationId=(facilityData.LocationId)"
+            resourcefilter="RoomTypeGuid=[ChemotherapySetup_Service]"
+            default="resourceTimeGridDay"
+            navlinking="true"
+            slotduration="00:15"
+            duration="00:15"
+            eventcolor="Type|Background=blue;Block=grey"
+            source="tooltip=ChemotherapyToolTipTemplate,dayGridMonth=ChemotherapyTimeWeekTemplate,resourceTimeGridDay=ChemotherapyTimeWeekTemplate,timeGridWeek=ChemotherapyTimeWeekTemplate,listDay=ChemotherapyTimeWeekTemplate"
+            edit="true"
+            editable="rowguid!"
+            editduration="rowguid!"
+            idle="[ChemotherapySetup_CalendarGuid]=|reset"
+            acctsvcreq="true"
+            datarequest="GetSchedulerExceptionsByDateRange"
+            appendrequest="calendarGuid=[ChemotherapySetup_CalendarGuid]"
+            map="start=StartDateTime,end=EndDateTime,title=rowguid,resourceId=SchedulerRoomGuid"
+            daterange="start=start,end=end"
+            key="key"
+            action="redirect"
+            target="mdlChemotherapySetupModal"
+            onselectset="mdlChemotherapySetup_SchedulerExceptionGuid=[[SchedulerExceptionGuid]]"
+            onselect="mdlChemotherapySetup_SchedulerExceptionGuid"
+            droptarget="none"
+            ondropset="ChemotherapyDropTime_SchedulerExceptionGuid=[[SchedulerExceptionGuid]],ChemotherapyDropTime_StartTime=[[start]],ChemotherapyDropTime_EndTime=[[end]],ChemotherapyDropTime_SchedulerRoomGuid=[[resourceId]]"
+            ondrop="btnUpdateChemotherapyDropTime"
+            resizetarget="none"
+            onresizeset="ChemotherapyDropTime_SchedulerExceptionGuid=[[SchedulerExceptionGuid]],ChemotherapyDropTime_StartTime=[[start]],ChemotherapyDropTime_EndTime=[[end]],ChemotherapyDropTime_SchedulerRoomGuid=[[resourceId]]"
+            onresize="btnUpdateChemotherapyDropTime"
+					  selectable="true"
+					  selectabletarget="mdlChemotherapySetupModal"
+					  onselectableset="mdlChemotherapySetup_StartDateTime=[[start]],mdlChemotherapySetup_EndDateTime=[[end]],mdlChemotherapySetup_SchedulerRoomGuid=[[resourceId]]">
+            <!-- Button to refresh the calendar -->
+            <control type="button" name="ChemotherapybtnRefreshCalendar"
+              icon="refresh" label="Actualizar" action="trigger" trigger="ChemotherapySchedulerTimes|resource"/>
+          </control>
+			</row>
+		</group>
+	</section>
+
+	<!-- Enter/Edit Calendar Exceptions -->
+  <section type="tabmodal" badge="none" name="mdlChemotherapySetupModal" title="Horarios de Quimioterapias" size="small">
+    <group name="mdlChemotherapySetup_GuidStorage">
+      <row>
+        <control type="hidden" name="mdlChemotherapySetup_SchedulerExceptionGuid"
+          acctsvcreq="true"
+          datarequest="GetSchedulerExceptionsByGuid"
+          appendrequest="schedulerExceptionGuid=[mdlChemotherapySetup_SchedulerExceptionGuid]"
+          inject="mdlChemotherapySpcInfo"/>
+      </row>
+    </group>
+    <group name="mdlChemotherapySpcInfo">
+      <row>
+        <control type="label" label="Tipo de Horario" span="4"/>
+				<control type="buttongroup" name="mdlChemotherapySetup_Type" default="Background"
+          source="Background,Block" sourcelabels="Horario,Bloquear" span="4" edit="true"/>
+				<control type="hidden" name="mdlChemotherapySetup_Active" default="True"/>
+        <control type="hidden" name="mdlChemotherapySetup_CalendarGuid"/>
+			</row>
+      <row>
+        <control type="label" label="Fecha/Hora de Inicio" span="4"/>
+        <control type="datetime" name="mdlChemotherapySetup_StartDateTime" required="true" span="4"  edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha/Hora Fin" span="4"/>
+        <control type="datetime" name="mdlChemotherapySetup_EndDateTime" required="true" span="4"  edit="true"
+					compare="»[mdlChemotherapySetup_StartDateTime]"/>
+      </row>
+      <row name="rowChemotherapyRepeat" reveal="[mdlChemotherapySetup_SchedulerExceptionGuid]=">
+        <control type="label" label="Repetir Cada" span="4"/>
+        <control type="select" name="mdlChemotherapySetup_RepeatDays" span="4" default="0" edit="true"
+          persist="true"
+          source="0,7,14,21,28" sourcelabels="No Repetir,Semana,Dos Semanas,Tres Semanas,Cuatro Semanas"/>
+      </row>
+      <row name="rowChemotherapyRepeatUntil" reveal="[mdlChemotherapySetup_RepeatDays]!0">
+        <control type="label" label="Hasta la Fecha" span="4"/>
+        <control type="date" name="mdlChemotherapySetup_RepeatUntil" span="4" compare="»[mdlChemotherapySetup_StartDateTime]"  required="true" edit="true" persist="true"/>
+      </row>
+      <row name="rowSpecialty" reveal="[mdlChemotherapySetup_Type]=Background">
+				<control type="label" label="Especialidad" span="4"/>
+				<control type="select" name="mdlChemotherapySetup_MedicalSpecialtyGuid" span="6"
+          acctsvc="true" 
+					datasource="GetMedicalSpecialties" 
+					source="Specialty,MedicalSpecialtyGuid" 
+          sort="Specialty=asc"
+					persist="true" default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row name="rowAnesthesiologist" reveal="[mdlChemotherapySetup_Type]=Background">
+				<control type="label" label="Anestesiólogo" span="4"/>
+				<control type="select" name="mdlChemotherapySetup_ProviderId" span="6" 
+					acctsvc="true" datasource="GetUsersByAttributes" append="LocationId=(facilityData.LocationId),role=Physician"
+          searchable="true" 
+					source="UserFirstMiddleLast,UserId" 
+					persist="true"
+          default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row>
+				<control type="label" label="Ubicación" span="4"/>
+				<control type="select" name="mdlChemotherapySetup_SchedulerRoomGuid" span="6" 
+          datasource="GetRoomsAndBedsForThisFacility" 
+          append="LocationId=(facilityData.LocationId)"
+					source="RoomAndBedNumber,RoomGuid"
+          filter="RoomType%Quirófano,Active=true"
+          sort="RoomAndBedNumber=asc" required="true"
+					persist="true" default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row name="rowChemotherapyExceptionNotes" reveal="[mdlChemotherapySetup_Type]=BackGround">
+				<control type="label" label="Notas" span="4"/>
+				<control type="textarea" name="mdlChemotherapySetup_ExceptionNotes"
+          span="6" rows="1" edit="true"/>
+      </row>
+      <row name="rowChemotherapyReasonToBlock" reveal="[mdlChemotherapySetup_Type]=Block">
+        <control type="label" label="Motivo para Bloquear" span="4"/>
+        <control type="textarea" name="mdlChemotherapySetup2_ExceptionNotes"
+          span="6" rows="1" edit="true" required="true"/>
+			</row> 
+		</group>
+		<group>
+      <row>
+        <control type="modalbutton" name="btnSaveChemotherapyException"
+          reveal="[mdlChemotherapySetup_SchedulerExceptionGuid]="
+          label="Generar"
+          color="green"
+          icon="cloud-upload"
+          action="save|close"
+          affector="none"
+          capture="mdlChemotherapySpcInfo"
+          acctsvc="true"
+          datainsert="InsertSchedulerExceptions"
+					appendinsert="calendarGuid=[ChemotherapySetup_CalendarGuid]"
+          provoke="ChemotherapySchedulerTimes|resource"/>
+        <control type="modalbutton" name="btnUpdateChemotherapyException"
+          reveal="[mdlChemotherapySetup_SchedulerExceptionGuid]!"
+          label="Actualizar"
+          color="grey"
+          icon="cloud-upload"
+          action="save|close|new"
+          affector="none"
+          capture="mdlChemotherapySpcInfo"
+          acctsvc="true"
+          dataupdate="UpdateSchedulerExceptions"
+          appendupdate="schedulerExceptionGuid=[mdlChemotherapySetup_SchedulerExceptionGuid]"
+          provoke="ChemotherapySchedulerTimes|resource"/>
+				<control type="modalbutton" name="btnRemoveChemotherapyException"
+          reveal="[mdlChemotherapySetup_SchedulerExceptionGuid]!"
+          label="Eliminar"
+          color="red"
+          icon="remove"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+					confirm="Por favor, confirma que deseas eliminar este horario"
+          dataupdate="UpdateSchedulerExceptions"
+          appendupdate="schedulerExceptionGuid=[mdlChemotherapySetup_SchedulerExceptionGuid],active=false"
+          provoke="ChemotherapySchedulerTimes|resource"/>
+      </row>
+    </group>
+  </section>
+</partial>

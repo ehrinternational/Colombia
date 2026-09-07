@@ -17,10 +17,11 @@
     action="redirect" target="mdlReports"/>
   <headerbutton name="btnTreatmentCalendar"
     icon="calendar" label="Tratamiento"
-    trigger="TreatmentAppointmentTimes"
+    trigger="TreatmentAppointmentTimes|resource"
     action="redirect" target="mdlTreatmentAppointments"/>
-  <!-- Display list of admitted patients -->
-  <partial link="./Partial/Lists/PartialAdmittedPatientsChemotherapySchedulingWithPhoto.xml"/>
+  <!-- Hospitalized patient list -->
+  <!-- Display list of admitted patients for a selected department -->
+  <partial link="Partials/ColombiaPartialHospitalizedPatientListByDepartment.xml"/>
   <!-- Display a list of appointments for a date range -->
   <partial link="./Partial/Lists/PartialTreatmentAppointmentListAdmitAndEdit.xml"/>
   <!--Tabmodal for admitting/reviewing hospital patients-->
@@ -73,7 +74,7 @@
     <group name="PatientInfo">
       <columns>
         <column span="10">
-          <partial link="Partials/ColombiaPartialHospitalPatientInformation.xml"/>
+          <partial link="Partials/ColombiaPartialPatientInfo.xml"/>
         </column>
         <column span="2">
           <partial link="Partials/ColombiaPartialChemotherapySchedulingButtons.xml"/>
@@ -83,7 +84,7 @@
     <group name="VisitInfo" reveal="[PatientId]!">
       <columns>
         <column span="10">
-          <partial link="Partials/ColombiaPartialHospitalVisitInformation.xml"/>
+          <partial link="Partials/ColombiaPartialHospitalVisitInfo.xml"/>
         </column>
         <column span="2">
           <partial link="Partials/ColombiaPartialHospitalAdmitVisitButtons.xml"/>
@@ -122,8 +123,8 @@
   </section>
     <!-- Calendars -->
     <partial link="./Partial/Calendars/PartialCalendarCancelCOIAppointments.xml"/>
-    <partial link="./Partial/Calendars/PartialCalendarTreatmentAsModal.xml"/>
-    <partial link="./Partial/Calendars/PartialCalendarTreatmentAppointmentModal.xml"/>
+    <partial link="Partials/ColombiaPartialCalendarTreatmentAsModal.xml"/>
+    <partial link="Partials/ColombiaPartialCalendarTreatmentAppointmentModal.xml"/>
     <partial link="./Partial/Calendars/PartialCalendarPhysiciansAsResourcesAsTabModal.xml"/>
     <partial link="./Partial/Calendars/PartialCalendarPhysiciansAppointmentModal.xml"/>
     <!-- Surgery quote modals -->

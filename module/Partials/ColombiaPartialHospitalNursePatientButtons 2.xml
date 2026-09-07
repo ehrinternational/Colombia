@@ -10,14 +10,6 @@
       span="12" />
     </row>
     <row>
-      <control type="buttongroup" name="btngrpShow"
-        span="12" edit="true"
-        source="Open,Close"
-        color="grey,grey"
-        sourcelabels="Abrir,Cerrar"
-        default="Close"/>
-    </row>
-    <row>
     <control type="button" name="btnReports"
       reveal="[PatientId]!"
       span="12"

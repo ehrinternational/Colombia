@@ -23,10 +23,9 @@
   <section type="tab" name="tabSurgeryCalendarSetup" title="Calendarios de Cirugías" trigger="dgrSurgeryCalendars">
    <group>
     <row>
-        <control type="datagrid" 
-				  name="dgrSurgeryCalendars"
-          label="Calendarios de Cirugías"
+        <control type="datagrid" name="dgrSurgeryCalendars" label="Calendarios de Cirugías"
           span="12" rows="20"
+          filter="CalendarType=Surgery"
           action="redirect"
           searchable="true"
           target="mdlSurgeryCalendarSetup"
@@ -34,7 +33,6 @@
           appendrequest="LocationId=(facilityData.LocationId)" 
 				  source="Active,StartDate,EndDate,Location,CalendarName,CalendarDescription,EnteredByFullName,UpdatedByFullName,DateTimeUpdated" 
 					sourcelabels="Activo,Fecha de Inicio,Fecha Final,Ubicación,Nombre,Descripción,Introducido por,Editado por,Editado en "
-          filter="CalendarType=Surgery"
           format="boolean|date|date||||||date"
           align="|left|left|left|left|left|left|left|left"
 					sort="CalendarName=asc"

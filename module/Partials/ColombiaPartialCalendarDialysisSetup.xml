@@ -1,0 +1,298 @@
+﻿<partial>
+  <!-- Template for day view that shows the provider, description, and location-->
+    <template name="DialysisToolTipTemplate" type="markup">
+        [div size=12 align=left] 
+        [icon size=2x]stethoscope[/icon] ${[[MedicalSpecialtyName]]}[br]
+        [icon size=2x]user-md[/icon] ${[[ProviderFirstMiddleLast]]}[br]
+        [IF ${[[ExceptionNotes]]}!][icon size=2x color=yellow]edit[/icon] ${[[ExceptionNotes]]}[/IF]
+        [/div]
+    </template>
+    <template name="DialysisTimeWeekTemplate" type="markup">
+        [span size=14 color=darkgrey] 
+        ${[[MedicalSpecialtyName]]}[br]
+        ${[[ProviderFirstMiddleLast]]}[br]
+        ${[[ExceptionNotes]]}
+        [/span]
+    </template>
+    <template name="DialysistimeMonthTemplate" type="markup">
+        [span size=14 color=darkgrey] 
+        ${[[MedicalSpecialtyName]]}
+        [/span]
+    </template>
+  <!-- A calendar view is shown and the user can select the calendar and view -->
+  <section type="tab" name="tabDialysisCalendarSetup" title="Calendarios de Diálisis" trigger="dgrDialysisCalendars">
+   <group>
+    <row>
+        <control type="datagrid" name="dgrDialysisCalendars" label="Calendarios de Diálisis"
+          span="12" rows="20"
+          action="redirect"
+          searchable="true"
+          target="mdlDialysisCalendarSetup"
+				  datarequest="GetSchedulerAppointmentTypesByFacility" 
+          appendrequest="LocationId=(facilityData.LocationId),CalendarType=Dialysis" 
+				  source="Active,StartDate,EndDate,Location,CalendarName,CalendarDescription,EnteredByFullName,UpdatedByFullName,DateTimeUpdated" 
+					sourcelabels="Activo,Fecha de Inicio,Fecha Final,Ubicación,Nombre,Descripción,Introducido por,Editado por,Editado en "
+          format="boolean|date|date||||||date"
+          align="|left|left|left|left|left|left|left|left"
+					sort="CalendarName=asc"
+          key="CalendarGuid"
+          onselectset="DialysisSetup_CalendarGuid=[[CalendarGuid]]"
+          onselect="DialysisSetup_CalendarGuid">
+        <control type="button" name="btnNewDialysisCalendar"
+          label="Añadir Nuevo" icon="plus"
+          action="redirect" target="mdlDialysisCalendarSetup"/>
+        <control type="button" name="btnDialysisCalendarRefresh"
+          label="Actualizar" icon="refresh"
+          action="trigger" provoke="dgrDialysisCalendars"/>
+        </control>
+      </row>
+		</group>
+  </section>
+  <!-- Tabmodal to enter and edit Dialysis calendars  -->
+  <section type="tabmodal" name="mdlDialysisCalendarSetup" badge="none" title="Calendario de Diálisis">
+		<group showif="never">
+			<row>
+        <control type="text" name="DialysisSetup_CalendarGuid"
+					datarequest="GetSchedulerAppointmentTypesByAppointmentTypeGuid"
+					appendrequest="appointmentGuid=[DialysisSetup_CalendarGuid]"
+					inject="DialysisSetup_CalendarInfo"
+          provoke="DialysisSchedulerTimes|resource"/>
+        <control type="text" name="DialysisDropTime_SchedulerExceptionGuid"/>
+        <control type="text" name="DialysisDropTime_StartTime"/>
+        <control type="text" name="DialysisDropTime_EndTime"/>
+        <control type="text" name="DialysisDropTime_SchedulerRoomGuid"/>
+				<control type="button" name="btnUpdateDialysisDropTime"
+					action="save"
+					affector="none"
+					acctsvc="true"
+					dataupdate="UpdateSchedulerExceptions"
+					appendupdate="schedulerExceptionGuid=[DialysisDropTime_SchedulerExceptionGuid],StartDateTime=[DialysisDropTime_StartTime],EndDateTime=[DialysisDropTime_EndTime],SchedulerRoomGuid=[DialysisDropTime_SchedulerRoomGuid]"/>
+			</row>
+		</group>
+    <group name="DialysisSetup_CalendarInfo">
+			<row>
+				<control type="label" label="Activo" span="3"/>
+				<control type="buttongroup" name="DialysisSetup_Active"
+					default="True" source="True,False" sourcelabels="Sí,No" span="3" edit="true"/>
+        <control type="button" name="DialysisSetup_UpdateCalendar"
+					icon="cloud-upload" span="2"
+					label="Actualizar" offset="4"
+					reveal="[DialysisSetup_CalendarGuid]!"
+					action="save|close|new"
+					affector="none"
+					capture="DialysisSetup_CalendarInfo"
+					dataupdate="UpdateSchedulerAppointmentTypes"/>
+        <control type="button" name="DialysisSetup_SaveCalendar"
+          icon="cloud-upload" span="2" color="green"
+          reveal="[DialysisSetup_CalendarGuid]="
+          label="Guardar" offset="4"
+          action="save"
+          affector="DialysisSetup_CalendarGuid"
+          setaffector="CalendarGuid"
+          capture="DialysisSetup_CalendarInfo"
+          datainsert="InsertSchedulerAppointmentTypes"
+          appendinsert="CalendarType=Dialysis"
+          provoke="DialysisSchedulerTimes"/>
+          <!-- Note: the update call uses AppointmentTypeGuid NOT CalendarGuid! -->
+          <control type="hidden" name="DialysisSetup_AppointmentTypeGuid"/>
+			</row>
+      <row>
+				<control type="label" label="Nombre del Calendario" span="3"/>
+				<control type="text" name="DialysisSetup_CalendarName"
+					span="8" required="true" edit="true" />
+			</row>
+      <row>
+				<control type="label" label="Descripción" span="3"/>
+				<control type="text" name="DialysisSetup_CalendarDescription"
+					span="8" edit="true" />
+			</row>
+      <row>
+				<control type="label" label="Ubicación Id" span="3"/>
+				<control type="text" name="DialysisSetup_LocationId" span="2" edit="true"/>
+        <control type="label" label="Tipo de Habitación" span="3"/>
+				<control type="select" name="DialysisSetup_Service" span="3" edit="true" required="true"
+          acctsvc="true"
+          datasource="GetRoomTypesActive"
+          source="RoomTypeName,RoomTypeGuid"
+          provoke="DialysisSchedulerTimes|resource"/>
+			</row>
+			<row>
+				<!-- Date controls to search by a range of dates (DateTimeEntered) -->
+				<control type="label" label="Rango de Fechas" span="3"/>
+				<control type="date" span="3" name="DialysisSetup_StartDate"
+				required="true" edit="true"/>
+				<control type="date" span="3" name="DialysisSetup_EndDate"
+					required="true" edit="true" compare="»[DialysisSetup_StartDate]"/>
+			</row>
+		</group>
+	  <group name="grpDialysisDays" reveal="DialysisSetup_CalendarGuid!">
+      <row>
+        <control type="calendar" name="DialysisSchedulerTimes"
+            span="12"
+            aspect="10/6"
+            headerleft="prevYear,nextYear prev,next today"
+            headercenter="title"
+            headerright="dayGridMonth,resourceTimeGridDay,listDay"
+            resource="RoomAndBedNumber,RoomGuid"
+            dataresource="GetRoomsAndBedsForThisFacility"
+            appendresource="LocationId=(facilityData.LocationId)"
+            resourcefilter="RoomTypeGuid=[DialysisSetup_Service]"
+            default="resourceTimeGridDay"
+            navlinking="true"
+            slotduration="00:15"
+            duration="00:15"
+            eventcolor="Type|Background=blue;Block=grey"
+            source="tooltip=DialysisToolTipTemplate,dayGridMonth=DialysisTimeWeekTemplate,resourceTimeGridDay=DialysisTimeWeekTemplate,timeGridWeek=DialysisTimeWeekTemplate,listDay=DialysisTimeWeekTemplate"
+            edit="true"
+            editable="rowguid!"
+            editduration="rowguid!"
+            idle="[DialysisSetup_Service]=|reset"
+            acctsvcreq="true"
+            datarequest="GetSchedulerExceptionsByDateRange"
+            appendrequest="calendarGuid=[DialysisSetup_CalendarGuid]"
+            map="start=StartDateTime,end=EndDateTime,title=rowguid,resourceId=SchedulerRoomGuid"
+            daterange="start=start,end=end"
+            key="key"
+            action="redirect"
+            target="mdlDialysisSetupModal"
+            onselectset="mdlDialysisSetup_SchedulerExceptionGuid=[[SchedulerExceptionGuid]]"
+            onselect="mdlDialysisSetup_SchedulerExceptionGuid"
+            droptarget="none"
+            ondropset="DialysisDropTime_SchedulerExceptionGuid=[[SchedulerExceptionGuid]],DialysisDropTime_StartTime=[[start]],DialysisDropTime_EndTime=[[end]],DialysisDropTime_SchedulerRoomGuid=[[resourceId]]"
+            ondrop="btnUpdateDialysisDropTime"
+            resizetarget="none"
+            onresizeset="DialysisDropTime_SchedulerExceptionGuid=[[SchedulerExceptionGuid]],DialysisDropTime_StartTime=[[start]],DialysisDropTime_EndTime=[[end]],DialysisDropTime_SchedulerRoomGuid=[[resourceId]]"
+            onresize="btnUpdateDialysisDropTime"
+					  selectable="true"
+					  selectabletarget="mdlDialysisSetupModal"
+					  onselectableset="mdlDialysisSetup_StartDateTime=[[start]],mdlDialysisSetup_EndDateTime=[[end]],mdlDialysisSetup_SchedulerRoomGuid=[[resourceId]]">
+            <!-- Button to refresh the calendar -->
+            <control type="button" name="DialysisbtnRefreshCalendar"
+              icon="refresh" label="Actualizar" action="trigger" trigger="DialysisSchedulerTimes|resource"/>
+          </control>
+			</row>
+		</group>
+	</section>
+
+	<!-- Enter/Edit Calendar Exceptions -->
+  <section type="tabmodal" badge="none" name="mdlDialysisSetupModal" title="Horarios de Diálisiss" size="small">
+    <group name="mdlDialysisSetup_GuidStorage">
+      <row>
+        <control type="hidden" name="mdlDialysisSetup_SchedulerExceptionGuid"
+          acctsvcreq="true"
+          datarequest="GetSchedulerExceptionsByGuid"
+          appendrequest="schedulerExceptionGuid=[mdlDialysisSetup_SchedulerExceptionGuid]"
+          inject="mdlDialysisSpcInfo"/>
+      </row>
+    </group>
+    <group name="mdlDialysisSpcInfo">
+      <row>
+        <control type="label" label="Tipo de Horario" span="4"/>
+				<control type="buttongroup" name="mdlDialysisSetup_Type" default="Background"
+          source="Background,Block" sourcelabels="Horario,Bloquear" span="4" edit="true"/>
+				<control type="hidden" name="mdlDialysisSetup_Active" default="True"/>
+        <control type="hidden" name="mdlDialysisSetup_CalendarGuid"/>
+			</row>
+      <row>
+        <control type="label" label="Fecha/Hora de Inicio" span="4"/>
+        <control type="datetime" name="mdlDialysisSetup_StartDateTime" required="true" span="4"  edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha/Hora Fin" span="4"/>
+        <control type="datetime" name="mdlDialysisSetup_EndDateTime" required="true" span="4"  edit="true"
+					compare="»[mdlDialysisSetup_StartDateTime]"/>
+      </row>
+      <row name="rowDialysisRepeat" reveal="[mdlDialysisSetup_SchedulerExceptionGuid]=">
+        <control type="label" label="Repetir Cada" span="4"/>
+        <control type="select" name="mdlDialysisSetup_RepeatDays" span="4" default="0" edit="true"
+          persist="true"
+          source="0,7,14,21,28" sourcelabels="No Repetir,Semana,Dos Semanas,Tres Semanas,Cuatro Semanas"/>
+      </row>
+      <row name="rowDialysisRepeatUntil" reveal="[mdlDialysisSetup_RepeatDays]!0">
+        <control type="label" label="Hasta la Fecha" span="4"/>
+        <control type="date" name="mdlDialysisSetup_RepeatUntil" span="4" compare="»[mdlDialysisSetup_StartDateTime]"  required="true" edit="true" persist="true"/>
+      </row>
+      <row name="rowSpecialty" reveal="[mdlDialysisSetup_Type]=Background">
+				<control type="label" label="Especialidad" span="4"/>
+				<control type="select" name="mdlDialysisSetup_MedicalSpecialtyGuid" span="6"
+          acctsvc="true" 
+					datasource="GetMedicalSpecialties" 
+					source="Specialty,MedicalSpecialtyGuid" 
+          sort="Specialty=asc"
+					persist="true" default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row name="rowAnesthesiologist" reveal="[mdlDialysisSetup_Type]=Background">
+				<control type="label" label="Anestesiólogo" span="4"/>
+				<control type="select" name="mdlDialysisSetup_ProviderId" span="6" 
+					acctsvc="true" datasource="GetUsersByAttributes" append="LocationId=(facilityData.LocationId),role=Physician"
+          searchable="true" 
+					source="UserFirstMiddleLast,UserId" 
+					persist="true"
+          default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row>
+				<control type="label" label="Ubicación" span="4"/>
+				<control type="select" name="mdlDialysisSetup_SchedulerRoomGuid" span="6" 
+          datasource="GetRoomsAndBedsForThisFacility" 
+          append="LocationId=(facilityData.LocationId)"
+					source="RoomAndBedNumber,RoomGuid"
+          filter="RoomType%Quirófano,Active=true"
+          sort="RoomAndBedNumber=asc" required="true"
+					persist="true" default="true" edit="true"
+					explicit="true"/>
+			</row>
+      <row name="rowDialysisExceptionNotes" reveal="[mdlDialysisSetup_Type]=BackGround">
+				<control type="label" label="Notas" span="4"/>
+				<control type="textarea" name="mdlDialysisSetup_ExceptionNotes"
+          span="6" rows="1" edit="true"/>
+      </row>
+      <row name="rowDialysisReasonToBlock" reveal="[mdlDialysisSetup_Type]=Block">
+        <control type="label" label="Motivo para Bloquear" span="4"/>
+        <control type="textarea" name="mdlDialysisSetup2_ExceptionNotes"
+          span="6" rows="1" edit="true" required="true"/>
+			</row> 
+		</group>
+		<group>
+      <row>
+        <control type="modalbutton" name="btnSaveDialysisException"
+          reveal="[mdlDialysisSetup_SchedulerExceptionGuid]="
+          label="Generar"
+          color="green"
+          icon="cloud-upload"
+          action="save|close"
+          affector="none"
+          capture="mdlDialysisSpcInfo"
+          acctsvc="true"
+          datainsert="InsertSchedulerExceptions"
+					appendinsert="calendarGuid=[DialysisSetup_CalendarGuid]"
+          provoke="DialysisSchedulerTimes|resource"/>
+        <control type="modalbutton" name="btnUpdateDialysisException"
+          reveal="[mdlDialysisSetup_SchedulerExceptionGuid]!"
+          label="Actualizar"
+          color="grey"
+          icon="cloud-upload"
+          action="save|close|new"
+          affector="none"
+          capture="mdlDialysisSpcInfo"
+          acctsvc="true"
+          dataupdate="UpdateSchedulerExceptions"
+          appendupdate="schedulerExceptionGuid=[mdlDialysisSetup_SchedulerExceptionGuid]"
+          provoke="DialysisSchedulerTimes|resource"/>
+				<control type="modalbutton" name="btnRemoveDialysisException"
+          reveal="[mdlDialysisSetup_SchedulerExceptionGuid]!"
+          label="Eliminar"
+          color="red"
+          icon="remove"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+					confirm="Por favor, confirma que deseas eliminar este horario"
+          dataupdate="UpdateSchedulerExceptions"
+          appendupdate="schedulerExceptionGuid=[mdlDialysisSetup_SchedulerExceptionGuid],active=false"
+          provoke="DialysisSchedulerTimes|resource"/>
+      </row>
+    </group>
+  </section>
+</partial>

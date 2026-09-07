@@ -1,0 +1,154 @@
+<partial>
+  <section type="tab" name="mdlDialysisAppointments" title="Calendario de Diálisis" size="large" badge="none" trigger="DialysisAppointmentTimes|resource">
+    <!-- Template for month and week views that shows only the patient name-->
+        <template name="dayGridMonthTemplateDialysis" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} [br]
+            ${[[RoomName]]}[/span] 
+        </template>
+         <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridWeekTemplateDialysis" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]}[br]
+            [/span]
+        </template>
+        <!-- Template for day view that shows the provider, description, and location-->
+        <template name="timeGridDayTemplateDialysis" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} 
+            [/span]
+        </template>
+        <!-- Template for agenda (list) view that shows the provider, description, and location-->
+        <template name="listMonthTemplateDialysis" type="markup">
+            [span size=12 color=darkgrey] 
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF]
+            ${[[PatientFirstMiddleLast]]} ${[[RoomName]]}
+            [/span]
+        </template>
+        <template name="ToolTipGridDayDialysisTemplate" type="markup">
+            [div size=12 align=left] 
+            [b format=time]${[[StartDateTime]]}[/b] - [b format=time]${[[EndDateTime]]}[/b][br]
+            [IF ${[[Status]]}=Confirmed][icon color=green]ok[/icon][/IF] 
+            ${[[PatientFirstMiddleLast]]}[br]
+            ${[[RoomName]]}[br]
+            ${[[Subject]]}
+            [/div]
+        </template>
+        <!-- Template for bacground scheduler times records-->
+        <template name="BackgroundTemplateDialysis" type="markup">
+            [span size=12 color=darkred] 
+            [IF ${[[Type]]}=Block][b format=datetime]${[[StartDateTime]]}[/b] - [b format=datetime]${[[EndDateTime]]}[/b][br][/IF]
+            [IF ${[[Type]]}!Block][b format=time]${[[StartDateTime]]}[/b] - [b format=time]${[[EndDateTime]]}[/b][br][/IF]
+            [IF ${[[ExceptionNotes]]}!]${[[ExceptionNotes]]}[br][/IF]
+            [IF ${[[Reason]]}!]${[[Reason]]}[/IF]
+            [/span]
+        </template>
+    <group showif="never">
+      <row>
+        <control type="hidden" name="DialysisCalendarEditMode" default="true"/>
+        <control type="hidden" name="MultipleDialysisCalendars" default="false"/>
+        <control type="hidden" name="DialysisDrop_Source"/>
+        <control type="hidden" name="DialysisDrop_AppointmentGuid"/>
+        <control type="hidden" name="DialysisDrop_StartTime"/>
+        <control type="hidden" name="DialysisDrop_EndTime"/>
+        <control type="hidden" name="DialysisDrop_ResourceGuid"/>
+        <control type="hidden" name="DialysisDrop_PatientFirstMiddleLast"/>
+      </row>
+      <row>
+        <control type="button" name="btnUpdateDialysisDrop"
+          action="save"
+          affector="none" 
+          dataupdate="UpdateSchedulerAppointments"
+				  appendupdate="roomGuid=[DialysisDrop_ResourceGuid],appointmentGuid=[DialysisDrop_AppointmentGuid],start=[DialysisDrop_StartTime],end=[DialysisDrop_EndTime],calculateDuration=true"/>
+        <control type="button" name="btnUpdateDialysisResize"
+          action="save"
+          affector="none" 
+          dataupdate="UpdateSchedulerAppointments"
+				  appendupdate="appointmentGuid=[DialysisDrop_AppointmentGuid],start=[DialysisDrop_StartTime],end=[DialysisDrop_EndTime],calculateDuration=true"/>
+      </row>
+    </group>
+  	<group>
+      <row>
+        <!-- Buttongroup to select status (Active=scheduled and confirmed, Completed=completed and No Show, All=all but canceled -->
+        <control type="buttongroup" name="btngrpSelectStatusDialysis"
+          span="5" default="Active" mode="auto"
+          source="Active,Completed,No Show,Canceled"
+          sourcelabels="Activo,Completado,Ausente,Cancelado"
+          trigger="DialysisAppointmentTimes|resource"/>
+        <!-- Select the calendar to view -->
+        <control type="select" 
+				  name="calAppointmentTypeGuidDialysis" span="3"
+				  datasource="GetSchedulerAppointmentTypesByFacility" 
+          append="CalendarType=Dialysis,LocationId=(facilityData.LocationId)" 
+				  source="CalendarName,CalendarGuid" 
+          explicit="true"
+				  default="true"
+					sort="CalendarName=asc"
+          set="DialysisRoomType=[[Service]]"
+				  provoke="DialysisAppointmentTimes|resource"/>
+        <control type="hidden" name="DialysisRoomType"/>
+      </row>
+			<row>
+          <!-- Display Dialysis calendar -->
+          <control type="calendar" name="DialysisAppointmentTimes"
+            span="12" aspect="10/5"
+            headerleft="prevYear,nextYear prev,next today"
+            headercenter="title"
+            headerright="dayGridMonth,resourceTimeGridDay,listDay"
+            navlinking="true"
+            slotduration="00:15"
+            duration="00:30"
+            businesshours="1,2,3,4,5=06:00-20:00"
+            default="resourceTimeGridDay"
+            resource="RoomAndBedNumber,RoomGuid"
+            dataresource="GetRoomsAndBedsForThisFacility"
+            appendresource="LocationId=(facilityData.LocationId)"
+            resourcefilter="Active=true,RoomTypeGuid=[DialysisRoomType]"
+            eventcolor="Type|Background=lightblue;Block=grey;Scheduled=yellowgreen;Confirmed=darkgreen;Completed=orange;Canceled=red"
+            source="tooltip=ToolTipGridDayDialysisTemplate,dayGridMonth=dayGridMonthTemplateDialysis,resourceTimeGridDay=timeGridDayTemplateDialysis,listDay=listMonthTemplateDialysis"
+            bgsource="dayGridMonth=BackgroundTemplateDialysis,timeGridWeek=BackgroundTemplateDialysis,timeGridDay=BackgroundTemplateDialysis,listDay=BackgroundTemplateDialysis"
+            bgevent="Status|Background=true"
+            editable="AppointmentGuid!"
+            editduration="AppointmentGuid!"
+            idle="[calAppointmentTypeGuidDialysis]=|reset"
+            acctsvcreq="true"
+            datarequest="GetSchedulerExceptionsByDateRange"
+            appendrequest="nameSearch=[txtDialysisPatientSearch],calendarGuid=[calAppointmentTypeGuidDialysis],status=[btngrpSelectStatusDialysis]"
+            map="start=StartDateTime,end=EndDateTime,title=rowguid,resourceId=RoomGuid"
+          	daterange="start=start,end=end"
+            key="key"
+            action="redirect"
+            target="mdlDialysisAppointment"
+            selectable="true"
+            selectabletarget="[btngrpSelectStatusDialysis]=Active;mdlDialysisAppointment"
+            onselectableset="DialysisApt_PatientId=[DefaultPatientId],DialysisApt_Source=1,
+              PatientSearched=false,DialysisApt_Subject=Diálisis,
+              DialysisApt_AppointmentTypeGuid=[calAppointmentTypeGuidDialysis],
+              DialysisApt_Start=[[start]],DialysisApt_End=[[end]],
+              DialysisApt_Duration=[[duration]],DialysisApt_Status=Scheduled,
+              DialysisApt_RoomGuid=[[resourceId]]"
+            onselectable="[DialysisApt_PatientId]!;DialysisApt_PatientId"
+            onselectset="DialysisApt_Source=1,DialysisApt_AppointmentGuid=[[AppointmentGuid]],
+              DialysisApt_AppointmentTypeGuid=[calAppointmentTypeGuidDialysis],
+              DialysisApt_Start=[[start]]"
+            onselect="[DialysisApt_AppointmentGuid]!+DialysisApt_AppointmentGuid"
+            droptarget="none"
+            ondropset="DialysisDrop_Source=1,DialysisDrop_AppointmentTypeGuid=[calAppointmentTypeGuidDialysis],DialysisDrop_AppointmentGuid=[[AppointmentGuid]],DialysisDrop_StartTime=[[StartDateTime]],DialysisDrop_EndTime=[[EndDateTime]],DialysisDrop_PatientFirstMiddleLast=[[PatientFirstMiddleLast]],DialysisDrop_ResourceGuid=[[RoomGuid]]"
+            ondrop="[btngrpSelectStatusDialysis]=Active+btnUpdateDialysisDrop^DialysisAppointmentTimes|resource"
+            resizetarget="none"
+            onresize="[btngrpSelectStatusDialysis]=Active+btnUpdateDialysisResize^DialysisAppointmentTimes|resource"
+            onresizeset="DialysisDrop_Source=1,DialysisDrop_AppointmentTypeGuid=[calAppointmentTypeGuidDialysis],DialysisDrop_AppointmentGuid=[[AppointmentGuid]],DialysisDrop_StartTime=[[StartDateTime]],DialysisDrop_EndTime=[[EndDateTime]],DialysisDrop_PatientFirstMiddleLast=[[PatientFirstMiddleLast]]">
+          <!-- Button to refresh the calendar -->
+          <control type="button" name="btnRefreshDialysisCalendar"
+            icon="refresh" label="Actualizar" action="trigger" trigger="DialysisAppointmentTimes|resource"/>
+          <control type="text" name="txtDialysisPatientSearch" action="trigger" trigger="DialysisAppointmentTimes|resource"/>
+          <control type="button" name="btntxtDialysisPatientSearch" icon="search" label="" action="trigger" provoke="DialysisAppointmentTimes|resource"/>
+          <control type="button" name="btnCleartxtDialysisPatientSearch" icon="remove" label="" action="trigger" set="txtDialysisPatientSearch="   provoke="DialysisAppointmentTimes|resource"/>
+          </control>
+      </row>
+		</group>
+  </section>
+</partial>

@@ -7,14 +7,6 @@
       name="Admit_ProfilePhoto" 
       span="12" />
   </row>
-  <row name="rowbtngrpShow" reveal="[PatientId]!">
-    <control type="buttongroup" name="btngrpShow"
-      span="12" edit="true"
-      source="Open,Close"
-      color="grey,grey"
-      sourcelabels="Abrir,Cerrar"
-      default="Close"/>
-  </row>
   <row>
     <!--Print patient label-->
     <control type="button"
