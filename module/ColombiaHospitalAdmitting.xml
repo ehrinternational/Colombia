@@ -91,7 +91,7 @@
     <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
-    <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
+    <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModal.xml"/>
     <partial target="mdlNewClaims" link="Partials/ColombiaPartialAdmittingPayerClaims.xml"/>
     <partial target="mdlDisplayPlan" link="Partials/ColombiaPartialDisplayPlanDetails.xml"/>
     <partial target="mdlPatientPrograms" link="Partials/ColombiaPartialProgramTracking.xml"/>

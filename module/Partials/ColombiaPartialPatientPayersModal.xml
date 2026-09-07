@@ -1,6 +1,6 @@
 <partial>
   <!-- New patient payers modal -->
-  <section type="tabmodal" title="Convenio del Paciente" name="mdlPatientPayers" badge="none">
+  <section type="tabmodal" title="Convenio del Paciente" name="mdlPatientPayers" badge="none"  trigger="Length(PPL_PlanGuid)=0;PPL_PlanGuid">
     <group showif="never">
       <row>
         <control type="hidden" name="PatientPayerGuid"
@@ -44,21 +44,22 @@
       </row>
       <row>
         <control type="label" span="3" label="Suscriptor"/>
-        <control type="text" name="PPL_Subscriber" edit="true" span="9" required="true"
+        <control type="text" name="PPL_Subscriber" edit="true" span="6" required="true"
         regex="^[a-zA-ZñÑäëïöüÄËÏÖÜ ,]{0,200}$"/>
       </row>
      
       <row>
         <control type="label" span="3" label="Convenio"/>    
-        <control name="PPL_PlanGuid" type="select" explicit="true" span="9" edit="true" searchable="true" required="true"
-          sort="PlanName"  nameField="PPL_PlanName"
+        <control name="PPL_PlanGuid" type="select" explicit="true" span="6" edit="true" searchable="true" required="true"
+          sort="PlanName"  nameField="PPL_PlanName" persist="true"
           acctsvcreq="true"
           datarequest="GetInsurancePlans" 
           appendrequest="Active=true"
-          source="PlanName,PlanGuid"
-          set="[PPL_PlanCategory]=[[Category]],[Pld_PlanFolio]=[[PlanNumber]],[PPL_PlanActive]=[[Active]]"
-          provoke="GetPayerInfoForPlan"/>
+          source="PlanName,PlanGuid"/>
       </row>
+      <!--
+      set="[PPL_PlanCategory]=[[Category]],[Pld_PlanFolio]=[[PlanNumber]],[PPL_PlanActive]=[[Active]]"
+      provoke="GetPayerInfoForPlan"
       <row name="rowPlanCategory" reveal="[PPL_PlanGuid]!">
         <control type="label" span="3" label="Categoría"/>
         <control type="text" name="PPL_PlanCategory" readonly="true" span="2"/>
@@ -84,10 +85,10 @@
               11 ENTIDADES GUBERNAMENTALES,
               04 PERSONA NATURAL,
               13 CONVENIO ESPECIAL"/>
-      </row>
+      </row> -->
       <row>
         <control type="label" span="3" label="Notas"/>
-        <control type="textarea" name="PPL_Notes" edit="true" span="9" rows="1"
+        <control type="textarea" name="PPL_Notes" edit="true" span="8" rows="1"
           regex="^[a-zA-Z0-9 ,.;/%$#!?¿*()´-]{0,500}$"/>
       </row>
     </group>

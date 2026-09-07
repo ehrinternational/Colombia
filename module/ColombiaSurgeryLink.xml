@@ -64,7 +64,7 @@
     <!-- Go Modals -->
     <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
     <!-- General Modals -->
-     <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
+     <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModal.xml"/>
     <partial link="./Partial/Modals/PartialPatientPayersListModalNotMexico.xml"/>
     <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
     <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>

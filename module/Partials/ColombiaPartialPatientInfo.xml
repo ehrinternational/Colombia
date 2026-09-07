@@ -248,7 +248,10 @@
   </row>
   <row>
     <control type="label" label="Nombre Responsable" span="3"/>
-    <control type="text" name="Consult_PrimaryPayorFirstName" span="9" edit="true" 
+    <control type="text" name="Consult_PrimaryPayorFirstName" span="3" edit="true" 
       regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,120}$"/>
+    <control type="label" label="Régimen Contributivo" span="3"/>
+    <control type="select" name="Consult_FinancialClass" span="3" edit="true" required="true"
+      source="A,B,C" sourcelabels="Rango A (Menor a 2 SMLMV),Rango B (Entre 2 y 5 SMLMV),Rango C (Mayor a 5 SMLMV)"/>
   </row>
 </partial>

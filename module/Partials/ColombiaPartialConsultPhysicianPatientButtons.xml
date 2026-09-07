@@ -1,14 +1,5 @@
 <partial>
-  <!-- Partial Emergency Physician Buttons -->
-  <row name="rowPatientPhoto" reveal="[PatientId]!">
-    <!--Patient photo-->
-    <control type="image"
-      format="jpg=circle" 
-      name="Admit_ProfilePhoto"
-      default="null"
-      span="12" />
-  </row>
-  <!-- Partial hospital admit buttons -->
+  <!-- Partial  Physician Buttons -->
   <row name="rowAdmitSearchButton" reveal="[PatientId]=">
     <control type="label" label=" " span="12"/>
     <control type="button" name="btnAdmitSearchPatients" span="12"

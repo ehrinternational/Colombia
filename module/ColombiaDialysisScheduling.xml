@@ -8,11 +8,12 @@
       preset="Report_Type=Dialysis"
       trigger="ReportList"
       action="redirect" target="mdlReports"/>
+  <!-- Import templates -->
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
   <!-- Display list of admitted patients for a selected department -->
   <partial link="Partials/ColombiaPartialHospitalizedPatientListByDepartment.xml"/>
   <!-- Partial Surger Calendar -->
   <partial link="Partials/ColombiaPartialCalendarDialysisAsTab.xml"/>
-
   <!-- Patient tab modal-->
   <section type="tabmodal" badge="none" name="PatientTabModal" size="medium" title="Información del Paciente" edit="false" provoke="PatientList">
     <group name="AdmitGuidStorage" showif="never">
@@ -86,7 +87,7 @@
     <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
     <partial link="Partials/ColombiaPartialCalendarDialysisAppointmentModal.xml"/>
-    <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
+    <partial target="mdlPatientPayers" link="Partials/ColombiaPartialPatientPayersModal.xml"/>
     <partial target="mdlNewClaims" link="Partials/ColombiaPartialAdmittingPayerClaims.xml"/>
     <partial target="mdlDisplayPlan" link="Partials/ColombiaPartialDisplayPlanDetails.xml"/>
     <partial target="mdlPatientPrograms" link="Partials/ColombiaPartialProgramTracking.xml"/>

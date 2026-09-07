@@ -124,17 +124,17 @@
             target="mdlDialysisAppointment"
             selectable="true"
             selectabletarget="[btngrpSelectStatusDialysis]=Active;mdlDialysisAppointment"
-            onselectableset="DialysisApt_PatientId=[DefaultPatientId],DialysisApt_Source=1,
+            onselectableset="DialysisApt_PatientId=[DefaultPatientId],
               PatientSearched=false,DialysisApt_Subject=Diálisis,
               DialysisApt_AppointmentTypeGuid=[calAppointmentTypeGuidDialysis],
               DialysisApt_Start=[[start]],DialysisApt_End=[[end]],
               DialysisApt_Duration=[[duration]],DialysisApt_Status=Scheduled,
               DialysisApt_RoomGuid=[[resourceId]]"
             onselectable="[DialysisApt_PatientId]!;DialysisApt_PatientId"
-            onselectset="DialysisApt_Source=1,DialysisApt_AppointmentGuid=[[AppointmentGuid]],
-              DialysisApt_AppointmentTypeGuid=[calAppointmentTypeGuidDialysis],
-              DialysisApt_Start=[[start]]"
-            onselect="[DialysisApt_AppointmentGuid]!+DialysisApt_AppointmentGuid"
+            onselectset="[DialysisApt_AppointmentGuid]=[[AppointmentGuid]],
+              [DialysisApt_AppointmentTypeGuid]=[calAppointmentTypeGuidDialysis],
+              [DialysisApt_Start]=[[start]]"
+            onselect="DialysisApt_AppointmentGuid"
             droptarget="none"
             ondropset="DialysisDrop_Source=1,DialysisDrop_AppointmentTypeGuid=[calAppointmentTypeGuidDialysis],DialysisDrop_AppointmentGuid=[[AppointmentGuid]],DialysisDrop_StartTime=[[StartDateTime]],DialysisDrop_EndTime=[[EndDateTime]],DialysisDrop_PatientFirstMiddleLast=[[PatientFirstMiddleLast]],DialysisDrop_ResourceGuid=[[RoomGuid]]"
             ondrop="[btngrpSelectStatusDialysis]=Active+btnUpdateDialysisDrop^DialysisAppointmentTimes|resource"

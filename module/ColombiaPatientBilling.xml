@@ -868,7 +868,7 @@
   <!-- HarmoniColombia modals -->
   <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
   <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
-  <partial link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
+  <partial link="Partials/ColombiaPartialPatientPayersModal.xml"/>
   <partial link="Partials/ColombiaPartialNewSATCredit.xml"/>
   <partial link="Partials/ColombiaPartialNewSATInvoice.xml"/>
   <partial link="Partials/ColombiaPartialMoneyLaundering.xml"/>

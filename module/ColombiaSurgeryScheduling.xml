@@ -12,8 +12,8 @@
       preset="Report_Type=Surgery"
       trigger="ReportList"
       action="redirect" target="mdlReports"/>
-  <!-- This needs to use the accent once Andrew fixes the call -->
-  <facet name="SurgeryWardName" value="Quirófano"/>
+  <!-- Import templates -->
+  <partial link="Partials/ColombiaPartialTemplates.xml"/>
   <!-- Partial Surgery Request List -->
   <partial link="Partials/ColombiaPartialSurgeryRequestList.xml"/>
   <!-- Partial Surgery Calendar -->
@@ -108,7 +108,7 @@
     <partial target="MedicationDetailModal" link="./Partial/Modals/PartialMedicationDetailModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientPayersListModal.xml"/>
     <!-- Surgery Modals -->
-    <partial link="Partials/ColombiaPartialPatientPayersModalForColombia.xml"/>
+    <partial link="Partials/ColombiaPartialPatientPayersModal.xml"/>
     <partial link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
     <partial link="Partials/ColombiaPartialCalendarScheduleSurgeryOrder.xml"/>
     <partial link="./Partial/Modals/PartialSurgeryTeamModal.xml"/>
