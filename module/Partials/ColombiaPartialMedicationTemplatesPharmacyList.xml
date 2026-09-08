@@ -1,0 +1,279 @@
+﻿<partial><!--Used By Solca--><!--Used By Fucam-->  
+  <section type="tab" name="tabMedicationTemplatesList" title="Farmacia Quimioterapia" trigger="PharmacyMedicationlist">
+    <group>
+      <row>
+        <control type="date" name="StartDate" span="2" trigger="PharmacyMedicationList" default="now"/>
+        <control type="date" name="EndDate" span="2" trigger="PharmacyMedicationList" default="now"/>
+        <!-- Select list by PreparedStatus -->
+        <control type="buttongroup" name="PreparedStatus" span="6" mode="auto" default="Pending"
+          source="Pending,Ordered,Received,Dispensed,Canceled"
+          sourcelabels="Pendiente,Ordenado,Recibido,Entregado,Cancelado"
+          provoke="PharmacyMedicationList"/>
+      </row>
+      <row>
+          <control type="datagrid" label="Medicamentos Programados para Quimioterapia"
+            name="PharmacyMedicationList"
+            searchable="true"
+            rows="25"
+            acctsvcreq="true"
+            datarequest="GetMedicationOrderTemplatesByDate"
+            appendrequest="LocationId=(facilityData.LocationId),StartDate=[StartDate],EndDate=[EndDate],PreparedStatus=[PreparedStatus]"
+            source="Start,FormId,FormMedsId,MedicalRecordNumber,PatientName,PatientDOB,PatientAge,PatientSex,MedsTradeName,DesiredDoseValue,DoseUnit,MedsRoute,TreatmentGoal"
+            sourcelabels="Programado,Orden,Centre,Expediente,Nombre,Nacimiento,Edad,Sexo,Medicamento,Dosis,UDM,Vía,Observaciones"
+            translate="PatientSex"
+            align="|left|left|left|left|left|left|left|left|right|left|left|left"
+            format="datetime_short|||||date||||0.00"
+            sort="Start=asc"
+            key="TemplateGuid">
+          <!-- Button to open the patient chart -->
+          <control type="button" name="btnOpenPatientChart" icon="edit" label="Ficha del Paciente"
+            showif="feature"
+            preset="PatientId=[[PatientId]]"
+            trigger="PatientId"
+            action="redirect"
+            target="PatientTabModal"/>
+          <!-- Set the order template status to Ordered from Pending-->
+          <control type="button" name="btnSetStatusToOrderedFromPending" icon="edit" label="Ordenar" color="green"
+            reveal="[PreparedStatus]=Pending"
+            showif="feature"
+            preset="PharmacyTemplateGuid=[[TemplateGuid]],PHI_PatientId=[[PatientId]],PHI_PatientMRN=[[MedicalRecordNumber]],PHI_PatientName=[[PatientName]],
+              PHI_PatientDOB=[[PatientDOB]],PHI_PatientAge=[[PatientAge]],PHI_PatientSex=[[PatientSex]],
+              PHI_MedsTradeName=[[MedsTradeName]],PHI_DesiredDose=[[DesiredDoseValue]],
+              PHI_DoseUnit=[[DoseUnit]],PHI_MedsRoute=[[MedsRoute]],PHI_TreatmentGoal=[[TreatmentGoal]]"
+            action="redirect"
+            target="mdlPharmacyMedication"/>
+          <!-- Set the template status to Received from Ordered-->
+          <control type="button" name="btnSetStatusToReceivedFromOrdered" icon="edit" label="Recibido" color="green"
+            reveal="[PreparedStatus]=Ordered"
+            showif="feature"
+            action="save"
+            affector="none"
+            dataupdate="UpdateMedicationOrderTemplate"
+            appendupdate="TemplateGuid=[[TemplateGuid]],preparedStatus=Received"
+            provoke="PharmacyMedicationList"/>
+          <!-- Set the template status to Received from Ordered-->
+          <control type="button" name="btnReturnStatusToPending" icon="edit" label="Pendiente" color="yellow"
+            reveal="[PreparedStatus]=Ordered|Received"
+            confirm="Por favor, confirme que desea que este medicamento vuelva al estado pendiente."
+            showif="feature"
+            action="save"
+            affector="none"
+            dataupdate="UpdateMedicationOrderTemplate"
+            appendupdate="TemplateGuid=[[TemplateGuid]],preparedStatus=Pending,OrderNumber=null,OrderedFrom=null"
+            provoke="PharmacyMedicationList"/>
+          <!-- Set the order template status to Dispensed -->
+          <control type="button" name="btnSetStatusToDispensed"
+            reveal="[PreparedStatus]=Received|Pending"
+            icon="edit" label="Entregado" color="green"
+            showif="feature"
+            preset="MedDispenseGuid=[[TemplateGuid]],MezDispense_PatientId=[[PatientId]]"
+            trigger="MedDispenseGuid,MezDispense_PatientId"
+            action="redirect"
+            target="mdlMedicationDispense"/>
+          <!-- Set the order template status to Dispensed -->
+          <control type="button" name="btnEnterChargesAndInventoryForADispensedMed"
+            icon="edit" label="Cargos y Inventario" color="green"
+            reveal="[PreparedStatus]=Received|Pending"
+            showif="feature"
+            preset="MedDispenseGuid=[[TemplateGuid]],MezDispense_PatientId=[[PatientId]]"
+            trigger="MedDispenseGuid,MezDispense_PatientId"
+            action="redirect"
+            target="mdlMedicationDispense"/>
+          <control type="button" name="btnPrintChemoMedReport"
+            action="print" 
+            mode="report" 
+            label="Informe de Medicamentos" 
+            icon="print" 
+            append="id=175b02a2aaf,FacilityId=(facility),UserName=(userName),StartDate=[StartDate],EndDate=[EndDate]"/> 
+          <control type="button" name="btnRefreshPharmacyMedicationList" label="Actualizar" icon="refresh" 
+            action="trigger" trigger="PharmacyMedicationList"/>
+          </control>
+        </row>
+      </group>
+    </section>
+
+    <!-- Tabmodal to set prepared status on med order template -->
+    <section type="tabmodal" name="mdlMedicationDispense" size="small" title="Dispensar" badge="none">
+      <group>
+        <row>
+          <control type="hidden" name="MedDispenseGuid"
+            datarequest="GetMedicationOrderTemplateByTemplateGuid"
+            appendrequest="TemplateGuid=[MedDispenseGuid]"
+            inject="MedDispenseTemplateInfo,MedDispenseInfo"/>
+          <control type="hidden" name="MezDispense_PatientId"
+            datarequest="GetPatientAllFields"
+            appendrequest="PatientId=[MezDispense_PatientId]"
+            set="MezDispense_PatientVisitGuid=[[PatientVisit]],MezDispense_HasOpenVisit=[[HasOpenVisit]]"/>
+          <control type="hidden" name="MezDispense_PatientVisitGuid"/>
+          <control type="hidden" name="MezDispense_HasOpenVisit"/>
+        </row>
+      </group>
+      <group name="MedDispenseTemplateInfo">
+        <row>
+          <control type="hidden" name="DispenseInfo_PreparedStatus"/>
+        </row>
+        <row>
+          <control type="label" label="Medicamento" span="3"/>
+          <control type="text" name="DispenseInfo_MedsTradeName" span="9" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Dosis" span="3"/>
+          <control type="text" name="DispenseInfo_DesiredDoseValue" span="2" readonly="true" format="0.00"/>
+          <control type="text" name="DispenseInfo_DoseUnit" span="2" readonly="true"/>
+          <control type="label" label="Vía" span="1"/>
+          <control type="text" name="DispenseInfo_MedsRoute" span="3" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Diluent" span="3"/>
+          <control type="text" name="DispenseInfo_Diluent" span="2" readonly="true" format="0.00"/>
+          <control type="label" label="Volumen" span="2"/>
+          <control type="text" name="DispenseInfo_DiluentVolume" span="1" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Observaciones" span="3"/>
+          <control type="text" name="DispenseInfo_TreatmentGoal" span="9" readonly="true"/>
+        </row>
+      </group>
+      <group name="MedDispenseInfo">
+        <row>
+          <control type="label" label="Quien entrega" span="4" />
+          <control type="select" name="DispenseInfo_DispensedBy" span="4" 
+          acctsvc="true" datasource="GetUsersByAttributes" explicit="true"
+          append="LocationId=(facilityData.LocationId),role=Mixing Chamber" 
+          source="UserFirstMiddleLast,UserId" required="true"
+          edit="[DispenseInfo_PreparedStatus]=Ready" default="(userName)"/>
+        </row>
+        <row>
+          <control type="label" label="Quien recibe" span="4" />
+          <control type="select" name="DispenseMix_ReceivedBy" span="4" 
+          acctsvc="true" datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Nurse|Nurse Manager" 
+          source="UserFirstMiddleLast,UserId" required="true"
+          edit="[DispenseInfo_PreparedStatus]=Ready"/>
+        </row>
+        <row>
+          <control type="label" label="NIP del recibidor" span="4"/>
+          <control type="password" name="DispenseMix_ReceivedByPIN" span="4" edit="[DispenseInfo_PreparedStatus]=Ready"/>
+        </row>
+        <row>
+          <!-- Move status to Dispensed -->
+          <control type="modalbutton" name="btnUpdateDispense"
+            icon="cloud-upload" label="Entregar" color="green"
+            reveal="[DispenseInfo_PreparedStatus]=Ready"
+            action="save|close|new"
+            affector="none" 
+            capture="MedDispenseInfo"
+            confirm="Confirme que este medicamento está entregado."
+            confirmrequest="VerifyThisUsersPin"
+            appendconfirm="pin=[DispenseMix_ReceivedByPIN],userIdToVerify=[DispenseMix_ReceivedBy]"
+            confirmresponse="value=Correct Pin|Este NIP no es correcto."
+            dataupdate="UpdateMedicationOrderTemplate"
+            appendupdate="TemplateGuid=[MedDispenseGuid],PreparedStatus=Dispensed,DispensedDateTime=(now)"
+            provoke="PharmacyMedicationList"/>
+          <!-- Charge patient -->
+          <control type="modalbutton" name="btnChargePharmacyMedication"
+            icon="money" label="Cargar" color="yellowgreen"
+            action="redirect"
+            confirmrequest="GetPatientVisitByUniqueId"
+            appendconfirm="uniqueId=[MezDispense_PatientVisitGuid]"
+            confirmresponse="InvoiceStatus=Open|Esta visita está cerrada por publicación de cargos."
+            preset="NpcInfo_PatientId=[MezDispense_PatientId],NpcInfo_PatientVisitGuid=[MezDispense_PatientVisitGuid]"
+            target="NewChargesModal"/>
+          <!-- Decrement inventory -->
+          <control type="modalbutton" name="btnDecrementInventory" 
+            icon="cloud-upload" label="Inventario" 
+            trigger="Decrement_ItemMasterGuid"
+            action="redirect" target="mdlInventoryDecrement"/>
+          <!-- View charges for the patient -->
+          <control type="modalbutton" name="btnViewChargesForPatient"
+            reveal="[MezDispense_PatientVisitGuid]!"
+            icon="hand-right" label="Ver Cargos" action="redirect"
+            trigger="grdViewPatientCharges"
+            target="mdlViewPatientCharges"
+            preset="View_PatientVisit=[MezDispense_PatientVisitGuid]"/>
+        </row>
+      </group>
+    </section>
+    <!-- Tabmodal to set prepared status on med order template -->
+    <section type="tabmodal" name="mdlPharmacyMedication" title="Medicamento Ordenado" badge="none">
+      <group>
+        <row>
+          <control type="hidden" name="PharmacyTemplateGuid"/>
+          <control type="hidden" name="PHI_PatientId"/>
+        </row>
+        <row>
+          <control type="label" label="Expediente" span="2"/>
+          <control type="text" name="PHI_PatientMRN" span="3" readonly="true"/>
+          <control type="label" label="Nombre" span="1"/>
+          <control type="text" name="PHI_PatientName" span="5" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Nacimiento" span="2"/>
+          <control type="date" name="PHI_PatientDOB" span="3" readonly="true"/>
+          <control type="label" label="Edad" span="2"/>
+          <control type="text" name="PHI_PatientAge" span="3" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Sexo" span="2"/>
+          <control type="text" name="PHI_PatientSex" span="3" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Medicamento" span="2"/>
+          <control type="text" name="PHI_MedsTradeName" span="9" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Dosis" span="2"/>
+          <control type="text" name="PHI_DesiredDose" span="2" readonly="true" format="0.00"/>
+          <control type="text" name="PHI_DoseUnit" span="2" readonly="true"/>
+          <control type="label" label="Vía" span="2"/>
+          <control type="text" name="PHI_MedsRoute" span="3" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Diluent" span="3"/>
+          <control type="text" name="PHI_Diluent" span="2" readonly="true" format="0.00"/>
+          <control type="label" label="Volumen" span="2"/>
+          <control type="text" name="PHI_DiluentVolume" span="1" readonly="true"/>
+        </row>
+        <row>
+          <control type="label" label="Observaciones" span="2"/>
+          <control type="text" name="PHI_TreatmentGoal" span="9" readonly="true"/>
+        </row>
+      </group>
+      <group name="MedPharmacyInfo">
+        <row>
+          <control type="label" label="Orden" span="2"/>
+          <control type="text" name="PHI_FormId" span="3" required="true" edit="true"/>
+          <control type="label" label="Centre" span="2"/>
+          <control type="buttongroup" name="PHI_FormMedsId" span="3" mode="auto"
+            source="Atrys,Pharmatycsa" required="true" edit="true"/>
+        </row>
+        <row>
+          <control type="modalbutton" name="btnOrderPharmacyMedication"
+            icon="cloud-upload" label="Ordenado" color="green"
+            confirm="Por favor, confirme que desea pedir este medicamento sin imprimirlo."
+            action="save|close|new"
+            affector="none" 
+            capture="MedPharmacyInfo"
+            dataupdate="UpdateMedicationOrderTemplate"
+            appendupdate="TemplateGuid=[PharmacyTemplateGuid],PreparedStatus=Ordered"
+            provoke="PharmacyMedicationList"/>
+          <control type="modalbutton" name="btnOrderPharmacyMedicationAndPrint"
+            icon="cloud-upload" label="Ordenado y Imprimir" color="yellowgreen"
+            confirm="Por favor, confirme que desea solicitar este medicamento e indíquelo en el formulario de pedido."
+            action="save"
+            affector="none" 
+            capture="MedPharmacyInfo"
+            dataupdate="UpdateMedicationOrderTemplate"
+            appendupdate="TemplateGuid=[PharmacyTemplateGuid],PreparedStatus=Ordered"
+            provoke="btnPrintTemplateOrderForm"/>
+        </row>
+        <row showif="never">
+          <control type="button" name="btnPrintTemplateOrderForm" 
+              action="print" mode="report"
+              append="id=e0bc62bd3bf,FacilityId=(facility),PatientId=[PHI_PatientId],TemplateGuid=[PharmacyTemplateGuid],CurrentDateTime=(now)"
+              provoke="btnCloseTemplateOrder"/> 
+          <control type="button" name="btnCloseTemplateOrder" action="close|new" provoke="PharmacyMedicationList"/>
+        </row>
+      </group>
+    </section>
+</partial>

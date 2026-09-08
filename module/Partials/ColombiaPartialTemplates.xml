@@ -1,26 +1,47 @@
 <partial>
   <template name="tmpExceptionType" type="markup">
-    [IF ${[[ExceptionType]]}]=1]Quirurgico[/IF]
-    [IF ${[[ExceptionType]]}]=2]CUPS[/IF]
-    [IF ${[[ExceptionType]]}]=3]Medicamentos[/IF]
-    [IF ${[[ExceptionType]]}]=4]Inmunizaciones[/IF]
-    [IF ${[[ExceptionType]]}]=5]Laboratorio[/IF]
-    [IF ${[[ExceptionType]]}]=6]Imagenologia[/IF]
-    [IF ${[[ExceptionType]]}]=7]General[/IF]
+    [IF ${[[ExceptionType]]}=1]Quirurgico[/IF]
+    [IF ${[[ExceptionType]]}=2]CUPS[/IF]
+    [IF ${[[ExceptionType]]}=3]Medicamentos[/IF]
+    [IF ${[[ExceptionType]]}=4]Inmunizaciones[/IF]
+    [IF ${[[ExceptionType]]}=5]Laboratorio[/IF]
+    [IF ${[[ExceptionType]]}=6]Imagenologia[/IF]
+    [IF ${[[ExceptionType]]}=7]General[/IF]
   </template>
   <template name="tmpSubType" type="markup">
-    [IF ${[[SubType]]}]=1]Cirujano[/IF]
-    [IF ${[[SubType]]}]=2]Anestesiologo[/IF]
-    [IF ${[[SubType]]}]=3]Ayudante[/IF]
-    [IF ${[[SubType]]}]=4]Sala[/IF]
-    [IF ${[[SubType]]}]=5]Materiales[/IF]
+    [IF ${[[SubType]]}=1]Cirujano[/IF]
+    [IF ${[[SubType]]}=2]Anestesiologo[/IF]
+    [IF ${[[SubType]]}=3]Ayudante[/IF]
+    [IF ${[[SubType]]}=4]Sala[/IF]
+    [IF ${[[SubType]]}=5]Materiales[/IF]
   </template>
   <template name="tmpPriceTable" type="markup">
-    [IF ${[[SubType]]}]=1]SOAT[/IF]
-    [IF ${[[SubType]]}]=2]ISS_2001[/IF]
-    [IF ${[[SubType]]}]=3]ISS_2004[/IF]
+    [IF ${[[SubType]]}=1]SOAT[/IF]
+    [IF ${[[SubType]]}=2]ISS_2001[/IF]
+    [IF ${[[SubType]]}=3]ISS_2004[/IF]
   </template>
-
+  <template name="tmpContractType" type="markup">
+    [IF ${[[ContractType]]}=1]1 CONTRATO[/IF]
+    [IF ${[[ContractType]]}=2]2 CARTA DE COMPROMISO[/IF]
+    [IF ${[[ContractType]]}=3]3 CONVENIO PRESTACION SERVICIOS[/IF]
+  </template>
+  <template name="tmpCoverageType" type="markup">
+    [IF ${[[CoverageType]]}=1]EPS[/IF]
+    [IF ${[[CoverageType]]}=2]ARS[/IF]
+    [IF ${[[CoverageType]]}=3]ARL[/IF]
+    [IF ${[[CoverageType]]}=4]PARTICULAR[/IF]
+    [IF ${[[CoverageType]]}=5]CAJA DE COMPENSACION[/IF]
+    [IF ${[[CoverageType]]}=6]CONVENIO EMPRESARIAL[/IF]
+    [IF ${[[CoverageType]]}=7]COMPANIA DE SEGUROS[/IF]
+    [IF ${[[CoverageType]]}=8]MEDICINA PREPAGADA[/IF]
+    [IF ${[[CoverageType]]}=9]IPS[/IF]
+    [IF ${[[CoverageType]]}=10]PAGO DIRECTO[/IF]
+    [IF ${[[CoverageType]]}=11]VINCULADOS[/IF]
+    [IF ${[[CoverageType]]}=12]OTRAS POLIZAS EN SALUD[/IF]
+    [IF ${[[CoverageType]]}=13]REGIMEN DE EXCEPCION[/IF]
+    [IF ${[[CoverageType]]}=14]ADRES[/IF]
+    [IF ${[[CoverageType]]}=15]PLAN COMPLEMENTARIO[/IF]
+  </template>
   <template name="tmpTaskPriorityTemplate" type="markup">
     [IF ${[[TaskPriority]]}=][icon color=green]ok[/icon][/IF]
     [IF ${[[TaskPriority]]}=1][icon color=green]ok[/icon][/IF]

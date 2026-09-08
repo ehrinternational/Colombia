@@ -104,18 +104,6 @@
             edit="true"/>
           </row>    
         </subset>
-        <!--  
-        <subset bgcolor="white">
-          <row>
-            <control type="label" label="Responsabilidad" span="3"/>
-            <control type="select" name="Pyr_Responsable" span="8" edit="true"
-              source="0-13,R-99-PN"/>
-          </row>
-          <row>
-            <control type="label" label="Registro Mercantil" span="3"/>
-            <control type="text" name="Pyr_Registry" span="3" edit="true"/>
-          </row>
-        </subset>-->
         </column>
         <column span="2">
           <row>
@@ -256,25 +244,6 @@
             <control type="text" name="Pyr_LegalPhones" span="9" edit="true"/>
           </row>
         </subset>
-        <subset bgcolor="white">
-          <row>
-            <control type="label" label="Información Tributaria" span="5" align="left"/>
-          </row>
-          <row>
-            <control type="label" label="Régimen Tributario" span="3"/>
-            <control type="buttongroup" name="Pyr_RegTribute" span="3" edit="true"
-              source="C,S" sourcelabels="Común,Simplificado"/>
-            <control type="label" label="Tipo Contribuyente" span="3"/>
-            <control type="buttongroup" name="Pyr_Contribute" span="3" edit="true"
-              source="P,G" sourcelabels="Pequeño,Grande"/>
-          </row>
-          <row>
-            <control type="label" label="" span="3"/>
-            <control type="checkbox" name="Pyr_Exempt" span="3" edit="true" label="Exento" source="True,False"/>
-            <control type="checkbox" name="Pyr_AutoRetain" span="3" label="Auto Retenedor" edit="true" source="True,False"/>
-            <control type="checkbox" name="Pyr_AgRetain" span="3"  label="Ag Retenedor" edit="true" source="True,False"/>
-          </row>
-        </subset>
       </column>
       </columns>
       <!-- Display list of contracts and scanned documents -->
@@ -309,10 +278,11 @@
             acctsvcreq="true"
             datarequest="GetInsuranceContracts"
             appendrequest="PayerGuid=[PayerGuid]"
-            source="DocumentType,ContractCode,ContractName,Active,ContractType"
-            sourcelabels="Tipo Documento,Código,Nombre de Convenio,Vigente,Tipo de Convenio"
-            align="|left|left|left|left|left|left"
-            format="|||boolean"
+            source="Status,ContractType,ContractNumber,PlanName,CoverageType"
+            sourcelabels="Estatus,Tipo Documento,Número,Nombre de Convenio,Tipo de Convenio"
+            align="left|left|left|left|left"
+            format="|template=tmpContractType|||template=tmpCoverageType"
+            translate="Status"
             sort="StartDate=desc"
             key="ContractGuid"
             action="redirect"
