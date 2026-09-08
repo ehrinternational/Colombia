@@ -433,7 +433,7 @@
         </row> 
         <row>
           <control type="label" span="3" label="Notas" />
-          <control name="Pln_Notes" type="text" span="9" edit="true"
+          <control name="Pln_Notes" type="textarea" span="9" edit="true" rows="1"
           regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$"/>
         </row>
     </group>

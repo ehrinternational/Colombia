@@ -25,24 +25,24 @@
           28 Lesión por agresión,
           29 Lesión auto infligida,
           30 Sospecha de violencia física,
-          31 Sospecha de violencia psicológica
+          31 Sospecha de violencia psicológica,
           32 Sospecha de violencia sexual,
           33 Sospecha de negligencia y abandono,
-          40 Otra víctima de conflicto armado colombiano
+          40 Otra víctima de conflicto armado colombiano,
           27 Evento catastrófico de origen natural,
           34 Enfermedad general,
           35 Enfermedad laboral,
           41 Riesgo ambiental,
           42 Otros eventos catastróficos,
           15 IVE relacionado con peligro a la salud o vida de la mujer,
-          16 IVE por malformación congénita incompatible con la vida
+          16 IVE por malformación congénita incompatible con la vida,
           17 IVE por violencia sexual; incesto o por inseminación artificial,
           36 Promoción y mantenimiento de la salud – intervenciones individuales,
           43 Intervención colectiva,
           44 Atención de población materno perinatal,
           56 Evento adverso en salud"/>
     </row>
-    <row name="rowServiceGroup" reveal="[FileName]¡Admitting|Scheduling">
+    <row>
       <control type="label" label="Grupo Servicios" span="2"/>
       <control type="select" name="mdlAdmit_ServiceGroup" span="4" searchable="true" required="true" edit="true"
         source="01,02,03,04,05" default="03"

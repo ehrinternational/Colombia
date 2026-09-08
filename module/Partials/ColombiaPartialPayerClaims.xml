@@ -38,21 +38,13 @@
                 readonly="true" span="3" default="Pending" />
             </row>
             <row>
-              <control type="label" label="Plan de Convenios" span="3"/>
+              <control type="label" label="Convenio" span="3"/>
               <control type="select" name="Clm_PayerGuid" span="9" edit="[Clm_Status]=Pending"
                 filter="[ClaimGuid]=;Active=true" required="true"
                 acctsvcreq="true" 
                 datarequest="GetPatientPayers"
                 appendrequest="PatientId=[PatientId]"
                 source="PlanName,PatientPayerGuid"/>
-            </row>
-            <row> 
-              <control type="label" span="3" label="Pago Restante"/>
-              <control name="Pl3_RemainingOutOfPocket" type="text" span="3" edit="true" format="0.00"
-                required="[Pld_MaxOutOfPocket]»0"/>
-              <control type="label" span="3" label="Deducible Restante"/>
-              <control name="Pl3_RemainingDeductible" type="text" span="3" edit="true" format="0.00" 
-                required="[Pld_DeductibleAnnual]»0"/>
             </row>
             <row> 
               <control type="label" span="3" label="Autorización"/>
@@ -77,15 +69,9 @@
               <control type="text" name="Clm_NetTotal" format="0,000.00" default="0.00" span="3"/>
             </row>
             <row> 
-              <control type="label" label="Copago" span="2"/>
+              <control type="label" label="Cuota" span="2"/>
               <control type="text" name="Clm_Copay" format="0,000.00" span="3"/>
-              <control type="label" label="Deducible" span="2"/>
-              <control type="text" name="Clm_Deductible" format="0,000.00" default="0.00" span="3"/>
-            </row>
-            <row>
-              <control type="label" label="Coaseguro Cirugía" span="2"/>
-              <control type="text" name="Clm_MedicalCoinsurance" format="0,000.00" span="3"/>
-              <control type="label" label="Coaseguro Comercial" span="2"/>
+              <control type="label" label="Copago" span="2"/>
               <control type="text" name="Clm_MedicalCoinsurance" format="0,000.00" span="3"/>
             </row>
             <row>
@@ -97,7 +83,6 @@
           </subset>
         </column>
         <column span="2">
-          
           <row>
             <control type="button" span="12" name="btnOpenClaimStatus"
               icon="cloud-upload" label="Abierta Especial"

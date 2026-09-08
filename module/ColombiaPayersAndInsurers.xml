@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- XML for Views version 1.0-->
-<module name="Empressas" type="onload" trigger="grdPayersAndInsurers">
+<module name="Empresas" type="onload" trigger="grdPayersAndInsurers">
   <facet name="FileName" value="PayersAndInsurers"/>
   <partial link="Partials/ColombiaPartialTemplates.xml"/>
   <section type="tab" name="tabPayersAndInsurers" title="Empresas" trigger="grdPayersAndInsurers">
@@ -98,7 +98,7 @@
               09 COMPANIA NACIONAL DE SEGUROS,
               08 CAJA DE COMPENSACION FAMILIAR,
               12 EMPRESA MEDICINA PREPAGADA,
-              11 ENTIDADES GUBERNAMENTALES,
+              11 ENTIDADES GUBERNAMENTALES ADRES,
               04 PERSONA NATURAL,
               13 CONVENIO ESPECIAL" 
             edit="true"/>
