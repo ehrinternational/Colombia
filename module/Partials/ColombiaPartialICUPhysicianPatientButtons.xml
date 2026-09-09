@@ -73,14 +73,7 @@
         trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
         action="redirect" target="mdlSendWYSIWYGEmail"/>
     </row>
-    <row>
-      <control type="button" name="btnInitiateTextMessage" 
-        reveal="[PatientId]!"
-        span="12" icon="envelope" label="Enviar Texto"
-        trigger="grdPhysicianMessages2"
-        preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
-        action="redirect" target="mdlSendTextMessage"/>
-    </row>
+    
     <row>
       <control type="button"  name="btnLoadAdverseReactionECD" label="Reacción Adversa"
         reveal="[PatientId]!+[PatientVisitGuid]!"

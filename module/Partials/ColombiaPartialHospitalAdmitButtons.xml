@@ -11,7 +11,7 @@
   </row>
   <row>
     <control type="button" name="btnTakeProfilePhoto" span="12" label="Foto" icon="camera"
-      reveal="[PatientId]!+[Admit_ProfilePhoto]="
+      reveal="[PatientId]!"
       action="patientphoto" 
       append="patientId=[PatientId]" 
       provoke="btnUpdatePatientPhoto" /> 

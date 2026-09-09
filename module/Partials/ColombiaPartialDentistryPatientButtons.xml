@@ -52,14 +52,7 @@
       trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
       action="redirect" target="mdlSendWYSIWYGEmail"/>
   </row>
-  <row>
-      <control type="button" name="btnInitiateTextMessage" 
-        reveal="[PatientId]!"
-        span="12" icon="envelope" label="Enviar Texto"
-        trigger="grdPhysicianMessages2"
-        preset="Send_PhoneNumber=[Consult_PatientCellPhone],Send_PatientId=[PatientId]"
-        action="redirect" target="mdlSendTextMessage"/>
-    </row>
+  
     <row>
       <control type="button" name="btnTimeline"
         reveal="[PatientId]!+[PatientVisitGuid]!"
@@ -70,8 +63,7 @@
         target="timeline"
         append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
     </row>
-    <!-- Call the patient in the waiting room -->
-    <partial link="Partials/ColombiaPartialCallPatientButton.xml"/>
+    
     <!-- AI buttons -->
     <partial link="Partials/ColombiaPartialCLARAPhysicianButtons.xml"/>
 </partial>

@@ -166,9 +166,9 @@
           <partial link="./Partial/Grids/PartialPhysicianAssignmentsWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialConsultRequestsForPatientNoHospitals.xml"/>
           <partial link="Partials/ColombiaPartialServiceConsultRequestsForPatientWithAddAndEdit.xml"/>
-          <partial link="./Partial/Grids/PartialLabOrdersWithScannedResultsAndNew.xml"/>
+          <partial link="./Partial/Grids/PartialLabOrdersWithScannedResultsNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialLabOrderResults.xml"/>
-          <partial link="./Partial/Grids/PartialPathologyOrdersByPatient.xml"/>
+          <partial link="./Partial/Grids/PartialPathologyOrdersByPatientNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialImagingOrdersWithNewEditAndExternalLab.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>

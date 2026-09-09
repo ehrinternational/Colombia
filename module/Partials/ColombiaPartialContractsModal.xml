@@ -54,7 +54,7 @@
           sourcelabels="Pendiente,Activo,Caducada,Cancelado"/>
          <control type="label" span="3" label="Régimen"/>
         <control type="select" name="Ctc_InsuranceType" span="3" edit="true" searchable="true"
-          source="0,C,E,N,P,S,V" required="true" explicit="true"
+          source="1,2,3,4,5,6,7" required="true" explicit="true"
           sourcelabels="0 SIN INFORMACION,C CONTRIBUTIVO,E ESPECIAL,N NO ASEGURADO,
                 P EXCEPCION,S SUBSIDIADO,V VINCULADO"/>
       </row>
@@ -107,15 +107,15 @@
       </row>
       <row>
         <control type="label" span="3" label="Facturación"/>
-        <control type="select" name="Ctc_BillingCycle" span="3" edit="true" required="true" explicit="true"
+        <control type="select" name="Ctc_BillAddress" span="3" edit="true" required="true" explicit="true"
           source="1,2,3,4" default="1"
           sourcelabels="Mensual,Quincenal,Por Evento,Al Egreso"/>
         <control type="label" span="2" label="Pago"/>
-        <control type="integer" name="Ctc_PaymentDays" span="1" edit="true" default="30"/>
+        <control type="integer" name="Ctc_LineType" span="1" edit="true" default="30"/>
         <control type="label" span="1" label="días" align="left"/>
       </row>
       <row>
-        <control type="checkbox" name="Ctc_RequiresAuthorization" span="4" edit="true" offset="2"
+        <control type="checkbox" name="Ctc_AuthorizationFee" span="4" edit="true" offset="2"
           label="Requiere Autorización Previa" source="True,False"/>
         <control type="checkbox" name="Ctc_PlanPromote" span="3" edit="true"
           label="Prórroga Automática" source="True,False"/>
@@ -130,19 +130,23 @@
       </row>
       <row>
         <control type="label" span="3" label="Manual Tarifario"/>
-        <control type="select" name="Ctc_BaseTariff" edit="true" span="3" required="true" explicit="true"
+        <control type="select" name="Ctc_EntityCode" edit="true" span="3" required="true" explicit="true"
           source="SOAT,ISS_2001,ISS_2004,PROPIA,PARTICULAR"/>
-        <control type="text" name="Ctc_TariffPercent" span="1" edit="true" format="0.00"
-          regex="^\d{1,3}(?:\.\d{1,2})?$" required="[Ctc_BaseTariff]=SOAT|ISS_2001|ISS_2004"/>
+        <control type="text" name="Ctc_EntityType" span="1" edit="true" format="0.00"
+          regex="^\d{1,3}(?:\.\d{1,2})?$" required="[Ctc_EntityCode]=SOAT|ISS_2001|ISS_2004"/>
         <control type="label" span="1" label="%" align="left"/>
       </row>
       <row >
         <control type="label" span="5" label="Medicamentos:    Margen costo bajo" badge="%"/>       
-        <control name="Ctx2_LowCostMarkup" type="text" span="1" edit="true" required="true" format="0.00"
+        <control name="Ctx2_Contratante" type="text" span="1" edit="true" required="true" format="0.00"
           regex="^(?:[0-6]\.[0-9]{2}|7\.00)$"/>
         <control type="label" span="3" label="Margen costo alta" badge="%"/>       
-        <control name="Ctx2_HighCostMarkup" type="text" span="1" edit="true" required="true" format="0.00"
+        <control name="Ctx2_Contratista" type="text" span="1" edit="true" required="true" format="0.00"
         regex="^(?:[0-2](?:\.\d{1,3})?|3(?:\.[0-4]\d{0,2}|\.50{0,2})?)$"/>
+      </row>
+      <row>        
+        <control type="checkbox" name="Ctc_NightCharge" edit="true" span="9" offset="3"
+          label="Aplica Recargo Nocturno/Festivo" source="True,False"/>
       </row>
       <row>
          <control type="label" span="3" label="Observaciones"/>
@@ -191,6 +195,7 @@
             onselectset="ExceptionGuid=[[ExceptionGuid]]"
             onselect="ExceptionGuid">
           <control type="button" name="btnNewContractTariff" icon="plus" label="Añadir Nuevo" 
+            compare="[Ctc_EntityCode]!|Es necesario incluir el Manual Tarifario en el convenio para poder ingresar las tarifas."
             action="redirect" target="mdlContractExceptions"/>
           </control>
           <!-- Scanned images for contract -->
@@ -272,7 +277,7 @@
           <control name="Ctx_EndDate" type="date" span="3" edit="true" required="true"
           default="[Ctc_EndDate]"/>
         </row>
-        <row>
+        <row> 
           <control type="label" span="3" label="Tiempo de Servicio"/>
           <control name="Ctx_Shiftype" type="select" span="3" edit="true" required="true" explicit="true"
             source="1,2,3,4" default="1"
@@ -283,24 +288,17 @@
             sourcelabels="00 Todo,01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
             03 Internación,04 Quirúrgico,05 Atención inmediata" />
         </row>
-        <row>
-          <control type="label" span="3" label="Sede (opcional)"/>
-          <control type="select" name="Ctx_HospitalGuid" span="9" edit="true" default="true"
-              acctsvc="true"
-              datasource="GetHospitalByGroupId"
-              append="GroupId=(facilityData.GroupId)"
-              source="HospitalName,HospitalGuid"/>
-        </row>
-        <row>
+        <row> 
           <control type="label" span="3" label="Tipo de Tarifa"/>
           <control name="Ctx_ExceptionType" type="select" span="3" edit="true" required="true" explicit="true"
-            source="1,2,4,5"
-            sourcelabels="1 Quirurgico,2 CUPS,3 laboratorio,4 imagenologia,5 general"/>
+            source="1,2,4,5,6"
+            sourcelabels="1 Quirurgico,2 CUPS,3 Laboratorio,4 Imagenologia,5 Consultas,6 Estancias"/>
+        </row>
+        <row name="rowSurgeryCategory" reveal="[Ctx_ExceptionType]=1">
             <control type="label" span="3" label="Categoria de Quirurgico"/>
-            <control name="Ctx_SubType" type="select" span="3" required="[Ctx_ExceptionType]=1" explicit="true"
-            source="1,2,3,4,5" edit="[Ctx_ExceptionType]=1"
-            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
-            when="[Ctx_ExceptionType]!1;"/>
+            <control name="Ctx_SubType" type="select" span="3" required="true" explicit="true"
+            source="1,2,3,4,5" edit="true"
+            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"/>
         </row>
         <row name="rowComponentCUPS" reveal="[Ctx_ExceptionType]=2">
           <control type="label" span="3" label="CUPS"/>
@@ -312,14 +310,10 @@
         </row>
         <row>
           <control type="label" span="3" label="Tipo de Valor"/>
-          <control name="Ctx_PriceType" type="buttongroup" span="3" edit="true" required="true"
-          source="1,2" default="1"
-          sourcelabels="Catalogo,Valor Fijo"/>
-          <control type="label" span="3" label="Catalogo"/>
-          <control name="Ctx_PriceTable" type="select" span="3" edit="[Ctx_PriceType]=1" required="[Ctx_PriceType]=1"
-            default="[Ctc_BaseTariff]"
-            source="SOAT,ISS_2001,ISS_2004"
-            when="[Ctx_PriceType]=2;"/>
+          <control name="Ctx_PriceType" type="buttongroup" span="3" edit="[Ctc_EntityCode]=SOAT|ISS_2001|ISS_2004" required="true"
+          source="1,2"
+          sourcelabels="Catalogo,Valor Fijo"
+          when="[Ctc_EntityCode]=PROPIA|PARTICULAR;2"/>
         </row>
         <row name="rowPriceModifier" reveal="[Ctx_PriceType]=1">
           <control type="label" span="3" label="Modificador" badge="%"/>       
@@ -327,7 +321,7 @@
         </row>
         <row name="rowFlatRate" reveal="[Ctx_PriceType]=2">
           <control type="label" span="3" label="Valor Fijo" badge="$"/>
-          <control name="Ctx_PriceValue" type="text" span="3" edit="true" required="true" format="0.00"/>
+          <control name="Ctx_PriceValue" type="text" span="3" edit="true" required="true" format="0,0.00"/>
         </row>
         <!-- ??
         confirmsvc="true"

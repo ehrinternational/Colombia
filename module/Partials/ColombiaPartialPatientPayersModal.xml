@@ -20,7 +20,7 @@
       </row>
       <row>        
         <control type="label" span="3" label="Activo"/>
-        <control type="buttongroup" name="PPL_Active" readonly="true" span="2" 
+        <control type="buttongroup" name="PPL_Active" edit="true" span="2" 
           default="True" source="True,False" sourcelabels="Sí,No" />
         <control type="label" label="Ordinal" span="3" />
         <control type="select" name="Payers_Ordinal" span="2"
@@ -83,13 +83,6 @@
           setaffector="PatientPayerGuid"
           dataupdate="UpdatePatientPayer2"
           appendupdate="PatientPayerGuid=[PatientPayerGuid]"
-          provoke="grdPatientPayers"/>
-        <control type="modalbutton" name="mbtDeactivatePatientCoverage" label="Desactivar" color="red" icon="remove" span="12"
-          reveal="[PatientPayerGuid]!+[PPL_Active]=True"
-          action="save|close|new"
-          acctsvc="true"
-          dataupdate="UpdatePatientPayer2"
-          appendupdate="PatientPayerGuid=[PatientPayerGuid],Active=false"
           provoke="grdPatientPayers"/>
         <control type="modalbutton" name="mbtDisplayPlanDetails1" label="Detalles del Plan" icon="search" span="12"
           reveal="[PPL_PayerPlan]!"

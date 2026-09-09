@@ -61,7 +61,8 @@
       sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
     <control type="label" label="Numero Documento" span="3"/>
     <control type="text" name="Consult0_PtSSN" span="3" readonly="true"
-      reveal="[Consult_PrimaryIdNumber]=SI|"/>
+      reveal="[Consult_PrimaryIdNumber]=SI|"
+      when="[Consult_PrimaryIdNumber]=SI|;"/>
     <control type="text" name="Consult1_PtSSN" span="3" required="true" tooltip="11 caracteres alfanuméricos"
       reveal="[Consult_PrimaryIdNumber]=RC" edit="true"
       regex="^[a-zA-Z0-9]{11}$"/>
@@ -201,6 +202,7 @@
       searchable="true" explicit="true"
       source="1,2,3,4,5,6,7,8,14,9,10,11,12,13"
       sourcelabels="1 PREESCOLAR,2 BÁSICA PRIMARIA,3 BÁSICA SECUNDARIA,4 MEDIA TÉCNICA (BACHILLER TÉC),5 TÉCNICA PROFESIONAL,6 NINGUNO,7 SIN INFORMACION,8 ESPECIALIZACIÓN,14 PROFESIONAL,9 MAESTRÍA,10 DOCTORADO,11 MEDIA ACADÉMICA O CLÁSICA,12 NORMALISTA,13 TECNOLÓGICA"/>
+      
   </row>
   <row name="rowMarital" reveal="FileName%Admitting|Social">
     <control type="label" label="Estado Civil" span="2" />
@@ -209,19 +211,21 @@
       sourcelabels="1 Soltero,2 Casado,3 Unión Libre,4 Divorciado,5 Viudo"
       when="[Consult_AgeInYears]«18;1,[Consult_AgeInYears]«14;"/>
     <control type="label" label="Profesión" span="1"/>
-    <control type="select" name="Pym_EmployerName" span="6" edit="true"
+    <control type="select" name="Pym_EmployerName" span="6" edit="[Consult_AgeInYears]»15"
       searchable="true"
       acctsvc="true"
       datasource="GetCoProfessions"
-      source="PROFESIONNOMBRE,PROFESIONCODIGO"/>
+      source="PROFESIONNOMBRE,PROFESIONCODIGO"
+      when="[Consult_AgeInYears]«16;"/>
   </row>
   <row name="rowOccupation" reveal="FileName%Admitting|Social">
     <control type="label" label="Ocupacion" span="2"/>
-    <control type="select" name="Pym_OccupationCode" span="10" edit="true"  required="true"
+    <control type="select" name="Pym_OccupationCode" span="10" edit="[Consult_AgeInYears]»15" required="true"
       searchable="true"
       acctsvc="true"
       datasource="GetCoOccupations"
-      source="OCUPACIONNOMBRE,OCUPACIONCODIGO"/>
+      source="OCUPACIONNOMBRE,OCUPACIONCODIGO"
+      when="[Consult_AgeInYears]«16;"/>
   </row>
   <row name="rowCRMStatus" reveal="FileName%Admitting|Social">
     <control type="label" label="Estatus CRM" span="2" />
@@ -239,7 +243,7 @@
     <!-- Select the facility the patient is assigned to -->
     <control type="label" label="Establecimiento" span="2"/>
     <control type="select" name="Select_Sector" span="4" default="(facilityData.HospitalGuid)" edit="true"
-      required="true"
+      required="true" searchable="true"
       acctsvc="true"
       datasource="GetHospitalByGroupId"
       append="GroupId=(facilityData.GroupId)"
@@ -250,8 +254,13 @@
     <control type="label" label="Nombre Responsable" span="3"/>
     <control type="text" name="Consult_PrimaryPayorFirstName" span="3" edit="true" 
       regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{0,120}$"/>
-    <control type="label" label="Régimen Contributivo" span="3"/>
-    <control type="select" name="Consult_FinancialClass" span="3" edit="true" required="true"
-      source="A,B,C" sourcelabels="Rango A (Menor a 2 SMLMV),Rango B (Entre 2 y 5 SMLMV),Rango C (Mayor a 5 SMLMV)"/>
+    <control type="label" label="Régimen" span="2"/>
+    <control type="select" name="Consult_FinancialClass" span="4" edit="true" required="true"
+      source="A,B,C,S1,S2" 
+      sourcelabels="Contributivo Rango A,
+      Contributivo Rango B,
+      Contributivo Rango C,
+      Subsidiado Nivel 1,
+      Subsidiado Nivel 2"/>
   </row>
 </partial>

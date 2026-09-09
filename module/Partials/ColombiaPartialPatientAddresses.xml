@@ -111,7 +111,7 @@
           reveal="[AddressGuid]="
           action="save|close|new"
           capture="grpAddressInfo"
-          datainsert="InserPatientAddress"
+          datainsert="InsertPatientAddress"
           appendinsert="PatientId=[PatientId]"/>
         <control type="modalbutton" name="mbtUpdateAddress" label="Actualizar" icon="refresh"
           reveal="[AddressGuid]!"
