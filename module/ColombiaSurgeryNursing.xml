@@ -189,6 +189,7 @@
     <partial target="mdlSurgeryECDs" link="Partials/ColombiaPartialSurgeryECDs.xml"/>
     <partial target="mdlSurgeryViewModal" link="Partials/ColombiaPartialSurgeryTabModal.xml"/>
     <partial target="mdlPathologyOrders" link="Partials/ColombiaPartialPathologyOrders.xml"/>
+    <partial target="mdlSurgerySuppliesList" link="Partials/ColombiaPartialSurgerySuppliesModalForView.xml"/>
     <partial target="mdlMedicalDeviceWorkOrderRequest" link="Partials/ColombiaPartialBiomedicalWorkOrderRequest.xml"/>
     <partial target="mdlBuildingWorkOrderRequest" link="Partials/ColombiaPartialMaintenanceWorkOrderRequest.xml"/>
     <partial target="mdlMyBuildingWorkOrderRequests" link="Partials/ColombiaPartialMyBuildingWorkOrders.xml"/>

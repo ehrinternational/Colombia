@@ -108,6 +108,7 @@
     <partial target="MedicationDetailModal" link="./Partial/Modals/PartialMedicationDetailModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientPayersListModal.xml"/>
     <!-- Surgery Modals -->
+    <partial link="Partials/ColombiaPartialSurgerySuppliesModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientPayersModal.xml"/>
     <partial link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
     <partial link="Partials/ColombiaPartialCalendarScheduleSurgeryOrder.xml"/>

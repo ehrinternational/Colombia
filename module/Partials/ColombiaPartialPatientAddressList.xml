@@ -7,16 +7,17 @@
       target="mdlAddresses"
       datarequest="GetPatientAddresses"
       appendrequest="patientId=[PatientId]"
-      source="Active,Selected,AddressType,StreetAddressLine1,State,ProvinceText,CityOther,PostalCode"
+      source="Active,Selected,AddressType,StreetAddressLine1,State,Barangay,CityOther,PostalCode"
       sourcelabels="Activo,Primario,Tipo,Dirección,Departamento,Municipio,Localidad,Código Postal" 
       align="||left|left|left|left|left"
       translate="AddressType"
       format="boolean|primary"
       key="AddressGuid"
-      onselectset="AddressGuid=[[AddressGuid]]"
+      onselectset="[AddressGuid]=[[AddressGuid]],[Address_CountryCode]=;[Address_CountryCode]=COL"
       onselect="AddressGuid">
       <control type="button" name="btnNewPatientAddressColombia"
         icon="plus" label="Añadir Nuevo"
+        trigger="Address_CountryCode"
         action="redirect" target="mdlAddresses"/>
       </control>
 </partial>

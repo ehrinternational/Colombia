@@ -1,0 +1,71 @@
+﻿<partial>
+<section type="tabmodal" name="mdlSurgerySuppliesList" title="Suministros de Cirugía" trigger="dgrSurgerySupplies" badge="none">
+  <group>
+      <row>
+        <control type="datagrid" label="Suministros de Cirugía" name="dgrSurgerySupplies"
+          modalname="SurgerySuppliesModal" 
+          rows="10" span="12"
+          fitrows="true"
+          idle="[SurgeryGuid]=|reset"
+          datarequest="GetScheduledSurgerySupplies"
+          appendrequest="SurgeryGuid=[SurgeryGuid]"
+          datainsert="InsertScheduledSurgerySupplies"
+          appendinsert="SurgeryGuid=[SurgeryGuid]"
+          dataupdate="UpdateScheduledSurgerySupplies"
+          source="Active,ItemDescription,Quantity,UOM,Notes"
+          sourcelabels="Activo,Suministros,Cantidad,UDM,Notas"
+          align="|left|left|left|left"
+          format="boolean"
+          key="SupplyGuid"/>
+      </row>
+    </group>
+  </section>
+  <!-- Partial Surgery supplies modal -->
+  <section type="modal" name="SurgerySuppliesModal" title="Suministros de Cirugía">
+    <group>
+      <row showif="edit">
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Ssm_Active" span="3"
+          source="True,False" sourcelabels="Sí,No" default="True" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Suministro" span="3"/>
+        <control type="typeahead" name="Ssm_ItemDescription,Ssm_ItemGuid" 
+          span="6" edit="true" 
+          acctsvc="true" required="true" 
+          datasource="GetItemMasterInventoryItemsBySearchCriteria" 
+          source="ItemName,ItemGuid"
+          term="searchCriteria"
+          set="Ssm_UOM=[[ConsumedUOM]]"/>
+      </row>
+      <row>
+        <control type="label" label="Cantidad" span="3"/>
+        <control type="integer" name="Ssm_Quantity" span="1" edit="true" default="1" required="true"/>
+        <control type="label" label="UDM" span="1"/>
+        <control type="text" name="Ssm_UOM" span="1" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Notas" span="3"/>
+        <control type="textarea" name="Ssm_Notes" span="6" rows="3" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="Ssm_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="Ssm_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>
+</partial>

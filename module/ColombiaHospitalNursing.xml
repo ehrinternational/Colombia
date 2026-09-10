@@ -169,7 +169,7 @@
           <partial link="./Partial/Grids/PartialLabOrdersWithScannedResultsNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialLabOrderResults.xml"/>
           <partial link="./Partial/Grids/PartialPathologyOrdersByPatientNoEdit.xml"/>
-          <partial link="Partials/ColombiaPartialImagingOrdersWithNewEditAndExternalLab.xml"/>
+          <partial link="Partials/ColombiaPartialImagingOrdersNoEdit.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="./Partial/Grids/PartialScannedImagingDocumentsInWindow.xml"/>

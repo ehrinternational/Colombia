@@ -1,11 +1,13 @@
 <partial>
   <!-- Patient Address modal -->
-  <section type="tabmodal" name="mdlAddresses" title="Dirección del Paciente" size="small" trigger="Address_CountryCode" provoke="Addresses" badge="none">
+  <section type="tabmodal" name="mdlAddresses" title="Dirección del Paciente" size="small" provoke="grdAddresses" badge="none">
     <group>
-      <control type="hidden" name="AddressGuid" 
-        datarequest="GetPatientAddressByAddressGuid"
-        appendrequest="AddressGuid=[AddressGuid]"
-        inject="grpAddressInfo"/>
+      <row>
+        <control type="hidden" name="AddressGuid" 
+          datarequest="GetPatientAddressByAddressGuid"
+          appendrequest="AddressGuid=[AddressGuid]"
+          inject="grpAddressInfo"/>
+      </row>
     </group>
     <group name="grpAddressInfo">
       <row>
@@ -20,7 +22,7 @@
       </row>
       <row>
         <control type="label" label="Zona Residencia" span="4"/>
-        <control type="buttongroup" name="Address_Barangay" span="3" edit="true"
+        <control type="buttongroup" name="Address_County" span="3" edit="true"
           source="U,R" default="U"
           sourcelabels="Urbano,Rural"/> 
       </row>
@@ -57,48 +59,46 @@
       <row>
        <control type="label" label="País" span ="4"/>
        <control type="select" name="Address_CountryCode" span="5" edit="true" 
-          default="(facilityData.HospitalCountry)" explicit="true"
+          explicit="true" persist="true"
           namefield="Address_Country"
           searchable="true"
           required="true"
           sort="CountrySpanish=asc"
-          datarequest="GetCountries" 
+          datasource="GetCountries" 
           source="CountrySpanish,Code"
-          provoke="Address_State"/>  
+          provoke="[Address_CountryCode]!;Address_StateCode"/>  
       </row>
       <row>
        <control type="label" label="Departamento" span="4"/>
-       <control type="select" name="Address_State" span="5" namefield="Address_StateText"
+       <control type="select" name="Address_StateCode" span="5" persist="true"
+          namefield="Address_State"
           explicit="true" required="true" edit="true" searchable="true"           
-          idle="[Address_CountryCode]="
           datarequest="GetStatesProvincesByCountryCode"
           appendrequest="CountryCode=[Address_CountryCode]"
           source="Name,Code"
-          provoke="Address_Province"/>
+          provoke="[Address_StateCode]!;Address_BarangayCode"/>
       </row>
       <row>
         <control type="label" label="Municipio" span="4"/>
-         <control type="select" name="Address_Province" span="5" 
-          namefield="Address_ProvinceText"      
+         <control type="select" name="Address_BarangayCode" span="5" persist="true"
+          namefield="Address_Barangay"      
           edit="true" sort="Name" explicit="true"
           searchable="true"  
-          idle="[Address_State]="   
           acctsvcreq="true"    
           datarequest="GetColombiaMunicipalities"         
-          appendrequest="StateCode=[Address_State]"
+          appendrequest="StateCode=[Address_StateCode]"
           source="Municipality,MunicipalCode"
-          provoke="Address_City" />  
+          provoke="[Address_BarangayCode]!;Address_City" />  
       </row>  
       <row>
         <control type="label" label="Localidad" span="4"/>
          <control type="select" name="Address_City" span="5" 
           namefield="Address_CityOther"      
-          edit="true" sort="Name" explicit="true"
+          edit="true" sort="Name" explicit="true" persist="true"
           searchable="true"  
-          idle="[Address_Province]="   
           acctsvcreq="true"    
           datarequest="GetColombiaCommunes"         
-          appendrequest="MunicipalCode=[Address_Province]"
+          appendrequest="MunicipalCode=[Address_BarangayCode]"
           source="Commune,CommuneCode" />  
       </row>  
       <row>
@@ -112,13 +112,15 @@
           action="save|close|new"
           capture="grpAddressInfo"
           datainsert="InsertPatientAddress"
-          appendinsert="PatientId=[PatientId]"/>
+          appendinsert="PatientId=[PatientId]"
+          provoke="grdAddresses"/>
         <control type="modalbutton" name="mbtUpdateAddress" label="Actualizar" icon="refresh"
           reveal="[AddressGuid]!"
           action="save|close|new"
           capture="grpAddressInfo"
-          datainsert="UpdatePatientAddress"
-          appendinsert="AddressGuid=[AddressGuid]"/>
+          dataupdate="UpdatePatientAddress"
+          appendupdate="AddressGuid=[AddressGuid]"
+          provoke="grdAddresses"/>
       </row>
     </group>
   </section>  

@@ -20,7 +20,7 @@
     provoke="ERProcedures"/>
   <control type="button"  name="btnProcedureOrders" icon="plus" label="Añadir Nuevo"
     reveal="[HasOpenVisit]=true"
-    compare="{[mdlAdmit_FinalConsult]!+[mdlAdmit_ModalityAttention]!+[mdlAdmit_ServiceGroup]!}|Grupo Servicios; Modalidad Atención; y Finalidad Consulta requirido!"
+    compare="{[mdlAdmit_AmbulanceID]!+[mdlAdmit_DRGCode]!+[mdlAdmit_AdmitType]!}|Grupo Servicios; Modalidad Atención; y Finalidad Consulta requirido!"
     action="redirect|view"
     target="procedures-add"
     append="size=small,patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true,FinalConsult=[mdlAdmit_FinalConsult],

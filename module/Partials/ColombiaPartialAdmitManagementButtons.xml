@@ -68,22 +68,17 @@
       datarequest="GetDepartmentServices" 
       source="ServiceName,DepartmentServicesGuid"/>
   </row>
-  <row name="rowAdmitDepartmentAttention" reveal="[PatientId]!+[HasOpenVisit]=false">
-    <control type="label" label="Tipo de Atención" span="12"/>
-    <control type="select" name="Consult_AdmitType" span="12" 
-      namefield="Consult_AdmissionType"
-      sort="AdmissionType=asc"
-      datasource="GetLookupAdmissionTypesActive" 
-      source="AdmissionType,AdmissionTypeGuid" 
-      default="Policlínica"
-      required="true" 
-      explicit="true"
-      edit="true"/>
-  </row>
   <row name="rowAdmitDepartmentSource" reveal="[PatientId]!+[HasOpenVisit]=false">
-    <control type="label" label="Tipo de llegada" span="12"/>
-   <control type="select" name="mdlAdmit_AdmitSource" span="3" required="true" explicit="true"
-          source="Medical,Emergency,AutoAccident,OccAccident,OccDisease,Elective"
-          sourcelabels="Médico,Urgente,Accidente Auto,Accidente Laboral,Médico Laboral,Electiva"/>
+      <control type="label" label="Via Ingreso" span="12"/>
+      <control type="select" name="mdlAdmit_ArrivedByCode" span="12" edit="true"
+        source="01,02,03,04" default="03"
+        sourcelabels="01 URGENCIAS,02 REMITIDO (REFERENCIA),03 CONSULTA EXTERNA, 04 NACIMIENTO"/>
+  </row>
+  <row name="rowAdmitDepartmentAttention" reveal="[PatientId]!+[HasOpenVisit]=false">
+    <control type="label" label="Grupo Servicios" span="12"/>
+    <control type="select" name="Consult_AdmitType" span="12" edit="true"
+      source="01,02,03,04,05" default="03"
+      sourcelabels="01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
+          03 Internación,04 Quirúrgico,05 Atención inmediata"/>
   </row>
 </partial>

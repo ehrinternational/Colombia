@@ -88,11 +88,11 @@
       <row>
         <control type="label" span="3" label="Modalidad de Pago"/>
         <control type="select" name="Ctc_Modalities" span="9" edit="true" required="true" searchable="true"
-          source="1,2,3,4"
-          sourcelabels="1 PAGO INDIVIDUAL POR CASO/CONJUNTO INTEGRAL DE ATENCIONES/PAQUETE/CANASTA,
-            2 PAGO GLOBAL PROSPECTIVO,
-            3 PAGO POR CAPITACION,
-            4 PAGO POR EVENTO"/>
+          source="1,2,3,4" default="1"
+          sourcelabels="1 PAGO POR EVENTO,
+            2 PAGO INDIVIDUAL POR CASO/CONJUNTO INTEGRAL DE ATENCIONES/PAQUETE/CANASTA,
+            3 PAGO GLOBAL PROSPECTIVO,
+            4 PAGO POR CAPITACION"/>
       </row>
       <row>
         <control type="label" span="3" label="Fecha de Inicio"/>
@@ -100,6 +100,12 @@
         <control type="label" span="3" label="Fecha de Terminación"/>
         <control type="date" name="Ctc_EndDate" span="3" edit="true"  required="true"/>
       </row>
+      <row>
+        <control type="label" span="3" label="Año de Tarifario"/>
+        <control type="select" name="Ctc_TariffYear" span="3" edit="true" required="true"
+          source="2024,2025,2026,2027,2028,2029,2030,2031,2032,2033,2034,2035,2036,2037,2038,2039,2040"/>
+      </row>
+        
       <row>
         <control type="label" span="3" label="Facturación"/>
         <control type="select" name="Ctc_BillAddress" span="3" edit="true" required="true" explicit="true"
@@ -128,7 +134,7 @@
         <control type="select" name="Ctc_EntityCode" edit="[Ctc_CoverageType]!13|9|5|12|3|2" span="3" required="true" explicit="true"
           source="SOAT,ISS_2001,ISS_2004,PROPIA,PARTICULAR"
           when="[Ctc_CoverageType]=2|13;SOAT,[Ctc_CoverageType]=5|12;PROPIA,[Ctc_CoverageType]=3|9;PARTICULAR"/>
-        <control type="text" name="Ctc_EntityType" span="1" edit="true" format="0.00"
+        <control type="text" name="Ctc_AdjustmentPct" span="1" edit="true" format="0.00"
           reveal="[Ctc_EntityCode]=SOAT|ISS_2001|ISS_2004"
           regex="^\d{1,3}(?:\.\d{1,2})?$" required="true"/>
       </row>
@@ -139,6 +145,14 @@
         <control type="label" span="3" label="Margen costo alta" badge="%"/>       
         <control name="Ctx2_Contratista" type="text" span="1" edit="true" required="true" format="0.00"
         regex="^(?:[0-2](?:\.\d{1,3})?|3(?:\.[0-4]\d{0,2}|\.50{0,2})?)$"/>
+      </row>
+      <row>
+        <control type="checkbox" name="Ctc_FeesIncluded" label="Incluye Honorarios" span="3" offset="3"
+          source="True,False" edit="true"/>
+        <control type="checkbox" name="Ctc_RoomIncluded" label="Incluye Sala" span="3"
+          source="True,False" edit="true"/>
+        <control type="checkbox" name="Ctc_AnesthIncluded" label="Incluye Anest." span="3"
+          source="True,False" edit="true"/>
       </row>
       <row>        
         <control type="checkbox" name="Ctc_NightCharge" edit="true" span="9" offset="3"

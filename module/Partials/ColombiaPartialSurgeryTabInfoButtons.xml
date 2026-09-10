@@ -88,20 +88,27 @@
   </row>
   <row>
     <control type="button" name="btnViewSurgeryTeam"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed|In Process|Completed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Personal"
       action="redirect" target="tbmSurgeryTeam"/>
   </row>
   <row >
     <control type="button" name="btnViewSurgeryStockRequests"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed|In Process|Completed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Requisiciones Quirúrgico"
       action="redirect" target="tbmSurgeryStockRequests"/>
   </row>
   <row >
     <control type="button" name="btnViewSurgeryPurchaseRequests"
-      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed+[Surgery_CalendarGuid]!"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed|In Process|Completed+[Surgery_CalendarGuid]!"
       span="12" icon="edit" label="Compras Quirúrgico"
       action="redirect" target="tbmSurgeryPurchaseRequests"/>
+  </row>
+  <row >
+    <control type="button" name="btnViewSurgerySupplies"
+      reveal="[SurgeryViewGuid]!+[Surgery_Status]=Scheduled|Confirmed|In Process|Completed+[Surgery_CalendarGuid]!"
+      span="12" icon="edit" label="Suministros de Quirúrgico"
+      trigger="dgrSurgerySupplies"
+      action="redirect" target="mdlSurgerySuppliesList"/>
   </row>
 </partial>

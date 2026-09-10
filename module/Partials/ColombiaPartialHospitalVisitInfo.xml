@@ -49,7 +49,7 @@
         sourcelabels="01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
           03 Internación,04 Quirúrgico,05 Atención inmediata"/>
       <control type="label" label="Modalidad" span="2"/>
-      <control type="select" name="mdlAdmit_ProgramGuid" span="4" searchable="true" required="true" edit="true"
+      <control type="select" name="mdlAdmit_DRGCode" span="4" searchable="true" required="true" edit="true"
         source="01,02,03,04,05,06,07,08" default="01"
         sourcelabels="01 Intramural,
         02 Extramural unidad móvil,
