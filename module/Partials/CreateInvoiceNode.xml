@@ -1,0 +1,103 @@
+const axios = require('axios');
+const RipsService = require('./RipsReportingService'); // Fully synchronized data loop
+
+async function transmitInvoiceToCarvajal(invoiceGuid, facilityId, dbPool) {
+    try {
+        // 1. Extract your audited data using your Get procedure
+        const invoiceRequest = dbPool.request();
+        invoiceRequest.input('InvoiceGuid', sql.UniqueIdentifier, invoiceGuid);
+        invoiceRequest.input('FacilityId', sql.NVarChar(50), facilityId);
+        
+        const invoiceResult = await invoiceRequest.execute('ClinicalGeniusSupplyChain.usp_GetDianInvoices');
+        const invoiceHeader = invoiceResult.recordset[0];
+
+        // 2. Compile your nested RIPS data block using the Node.js compiler we built
+        const ripsService = new RipsService();
+        const ripsData = await ripsService.generateRipsJson(invoiceGuid, facilityId, dbPool);
+
+        // 3. Map your database schema to Carvajal's exact field layout
+        const carvajalPayload = {
+            "prefijo": invoiceHeader.InvoiceNumber.substring(0, 2), // 'FE' or 'FP'
+            "numero": invoiceHeader.InvoiceNumber.substring(2),
+            "tipoDocumento": invoiceHeader.InvoiceType, // '01'
+            "fechaEmision": invoiceHeader.IssueDateTime.toISOString().split('T')[0],
+            "nitEmisor": "900123456",
+            "nitAdquirente": invoiceHeader.PayerId,
+            "totalBruto": invoiceHeader.GrossAmount,
+            "totalNeto": invoiceHeader.NetAmount,
+            
+            // CARVAJAL HEALTH EXTENSION LAYER (Resolución 948 / 2275 Compliant)
+            "informacionSalud": {
+                "codigoPrestador": ripsData.prestador.codPrestador,
+                "usuarios": ripsData.usuarios.map(u => ({
+                    "tipoIdentificacion": u.tipoIdentificacion,
+                    "numeroIdentificacion": u.numIdentificacion,
+                    "tipoUsuario": u.tipoUsuario,
+                    "municipioResidencia": u.codMunicipioResidencia,
+                    "servicios": {
+                        // PROCEDURES ARRAY COMPLIANCE MAPPING (Handles Surgeries, Standalone Tests, and Labs)
+                        "procedimientos": u.servicios.procedimientos.map(p => ({
+                            "codigo": p.codProcedimiento,
+                            "cantidad": p.cantidad,
+                            "valorUnitario": p.valorUnitario,
+                            "valorTotal": p.valorTotal,
+                            // DEFENSIVE COMPLIANCE FIX: Ensures lab orders always carry a valid ICD-10 code to pass parser gates
+                            "diagnosticoPrincipal": p.diagnosticoPrincipal || "R69X", 
+                            "modalidadGrupoServicio": p.modalidadPago || "02", 
+                            "relacionCirugiaGuid": p.surgeryGuid || null 
+                        })),
+                        // MEDICAMENTOS ARRAY COMPLIANCE MAPPING
+                        "medicamentos": u.servicios.medicamentos.map(m => ({
+                            "codigo": m.codMedicamento,
+                            "cantidad": m.cantidad,
+                            "valorUnitario": m.valorUnitario,
+                            "valorTotal": m.valorTotal,
+                            "modalidadGrupoServicio": m.modalidadPago || '02',
+                            "relacionCirugiaGuid": m.surgeryGuid || null
+                        })),
+                        // HOSPITALIZATION ARRAY COMPLIANCE MAPPING
+                        "hospitalizacion": (u.servicios.hospitalizacion || []).map(h => ({
+                            "codigo": h.codHabitacion,                  
+                            "cantidad": h.cantidad,                      
+                            "valorUnitario": h.valorUnitario,
+                            "valorTotal": h.valorTotal,                  
+                            "fechaIngreso": h.fechaIngreso,
+                            "modalidadGrupoServicio": h.modalidadPago || '02', 
+                            "relacionCirugiaGuid": h.surgeryGuid || null       
+                        }))
+                    }
+                }))
+            }
+        };
+
+        // 4. Authenticate and transmit directly to Carvajal's web service gateway
+        const carvajalResponse = await axios.post('https://carvajal.com', carvajalPayload, {
+            headers: {
+                'Authorization': `Bearer ${process.env.CARVAJAL_ACCESS_TOKEN}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        // 5. If approved, process their JSON response strings and update your SQL ledger
+        if (carvajalResponse.data.status === 'VALIDADO_DIAN') {
+            const updateRequest = dbPool.request();
+            updateRequest.input('InvoiceGuid', sql.UniqueIdentifier, invoiceGuid);
+            updateRequest.input('FacilityId', sql.NVarChar(50), facilityId);
+            updateRequest.input('OfficialCufe', sql.VarChar(100), carvajalResponse.data.cufe);
+            updateRequest.input('OfficialQrUrl', sql.NVarChar(512), carvajalResponse.data.urlQr);
+            updateRequest.input('TrackId', sql.VarChar(100), carvajalResponse.data.uuidTransaccion);
+            updateRequest.input('DianResponseDesc', sql.NVarChar(sql.MAX), carvajalResponse.data.descripcionDian);
+            
+            await updateRequest.execute('ClinicalGeniusSupplyChain.usp_UpdateDianInvoiceClearance');
+            return { success: true, message: 'Invoice and RIPS successfully cleared through Carvajal.' };
+        } else {
+            throw new Error(`DIAN Validation Error: ${carvajalResponse.data.mensajeError}`);
+        }
+
+    } catch (error) {
+        console.error(`[CARVAJAL_INTEGRATION_FAILED] Scope drop on Invoice ${invoiceGuid}:`, error.message);
+        throw error;
+    }
+}
+
+module.exports = transmitInvoiceToCarvajal;

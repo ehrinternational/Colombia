@@ -38,16 +38,6 @@
           sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
       </row>
       <row>
-        <control type="label" label="Grupo SOAT" span="3"/>
-        <control type="select" name="SOATSurgicalGroup" span="1" 
-          source="1,2,3,4,5,6,7,8,9,10,11,12,13" 
-          edit="true" required="true"/>
-         <control type="label" label="Grupo ISS" span="3"/>
-        <control type="select" name="ISSSurgicalGroup" span="1" 
-          source="20,21,22,23" 
-          edit="true" required="true"/>
-      </row>
-      <row>
         <control type="label" label="Categoría" span="3"/>
         <control type="select" name="ProcedureCategory" span="3" required="true" edit="true" 
           filter="Active=true"
@@ -74,6 +64,9 @@
         <control type="textarea" name="ProcedureDescription" span="9" 
           required="true" readonly="true"  rows="2"/>
       </row>
+
+
+
        <row>
         <control type="label" label="Notas" span="3"/>
         <control type="textarea" name="AssociatedProcedureDescription" span="9" edit="true"  rows="2"/>

@@ -19,8 +19,7 @@
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid],patientId=[PatientId]"
       set="Surgery_PatientId=[PatientId]"
-      provoke="btnAssignPatientToPOs,SurgeryTimes"
-      />
+      provoke="btnAssignPatientToPOs,SurgeryTimes"/>
     <!-- Insert the patient into any purchase orders for this surgery -->
     <control type="button" name="btnAssignPatientToPOs"
       action="save" acctsvc="true"
@@ -56,6 +55,11 @@
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid]"
       provoke="SurgeryTimes"/>
+  </row>
+  
+  <row name="rowSurgeryBundle" reveal="[SurgeryGuid]!">
+    <control type="button" name="btnSurgeryBundle" span="12" label="Paquete" icon="dollar" 
+      action="redirect" target="mdlSurgeryBundle"/>
   </row>
   <row name="rowScheduleOrder" reveal="[SurgeryGuid]!+[EditMode]=Surgery+[Surgery_CalendarGuid]=">
     <control type="button" name="btnScheduleOrder" span="12" label="Agendar Solicitud" 

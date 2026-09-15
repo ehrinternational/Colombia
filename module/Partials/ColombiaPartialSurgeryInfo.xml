@@ -117,19 +117,6 @@
     required="true"
     edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant|Anesthesiologist" />
   </row>
-  <row name="rowSurgeryPatientPayer" reveal="[EditMode]!Template+[FileName]=SurgeryScheduling">
-    <control type="label" label="Plan de Convenios" span="3"/>
-    <control type="select" name="Surgery_PatientPayerGuid" span="7" edit="true"
-      filter="Active=true" required="true"
-      acctsvcreq="true" 
-      datarequest="GetPatientPayers"
-      appendrequest="PatientId=[Surgery_PatientId]"
-      source="PlanName,PatientPayerGuid"/>
-    <control type="button" name="btnPatientPayerDetails" label="Detalles" span="2" icon="search"
-      reveal="[Surgery_PatientPayerGuid]!"
-      preset="[PatientPayerGuid]=[Surgery_PatientPayerGuid]" trigger="PatientPayerGuid"
-      action="redirect" target="mdlPatientPayers"/>
-  </row>
   <row>
     <control type="label" label="Clasificación de la Herida" span="3"/>
     <control type="select" name="Surgery_WoundType" span="3" required="true"

@@ -1,0 +1,138 @@
+const sql = require('mssql');
+
+class RipsReportingService {
+    constructor() {
+        // Shared instance initialization context
+    }
+
+    /**
+     * Compiles raw relational SQL service rows into nested JSON compliant with 2026 guidelines.
+     * @param {string} invoiceGuid 
+     * @param {string} facilityId 
+     * @param {object} dbPool An active mssql ConnectionPool instance
+     */
+    async generateRipsJson(invoiceGuid, facilityId, dbPool) {
+        try {
+            // 1. Fetch RIPS Master Transaction metadata header token entries
+            const masterRequest = dbPool.request();
+            masterRequest.input('InvoiceGuid', sql.UniqueIdentifier, invoiceGuid);
+            masterRequest.input('FacilityId', sql.NVarChar(50), facilityId);
+            
+            const masterQuery = `
+                SELECT TOP 1 RipsGuid, NumFactura, CodPrestador 
+                FROM ClinicalGeniusSupplyChain.RipsTransactions WITH(NOLOCK)
+                WHERE InvoiceGuid = @InvoiceGuid AND FacilityId = @FacilityId;
+            `;
+            const masterResult = await masterRequest.query(masterQuery);
+            if (!masterResult.recordset || masterResult.recordset.length === 0) {
+                throw new Error('RIPS Transaction Token has not been hydrated yet.');
+            }
+            const ripsHeader = masterResult.recordset[0];
+
+            // 2. Extract associated user demographic files mapped row-by-row
+            const userRequest = dbPool.request();
+            userRequest.input('RipsGuid', sql.UniqueIdentifier, ripsHeader.RipsGuid);
+            const userQuery = `
+                SELECT TipoIdentificacion, NumIdentificacion, TipoUsuario, FechaNacimiento, CodSexo, CodMunicipioResidencia, ZonaTerritorioResidencia
+                FROM ClinicalGeniusSupplyChain.RipsUsuarios WITH(NOLOCK)
+                WHERE RipsGuid = @RipsGuid;
+            `;
+            const userResult = await userRequest.query(userQuery);
+
+            // 3. Extract the comprehensive service items from your modified Section 3 schema tracking tables
+            const servicesRequest = dbPool.request();
+            servicesRequest.input('RipsGuid', sql.UniqueIdentifier, ripsHeader.RipsGuid);
+            const servicesQuery = `
+                SELECT 
+                    TransactionGuid, SurgeryGuid, ServiceCategory, ModalidadPago, CodServicio, Cantidad, 
+                    ValorUnitario, ValorTotal, ConceptoRecaudo, ValorCuota, FechaPrestacion, DiagnosticoPrincipal
+                FROM ClinicalGeniusSupplyChain.RipsServicios WITH(NOLOCK)
+                WHERE RipsGuid = @RipsGuid;
+            `;
+            const servicesResult = await servicesRequest.query(servicesQuery);
+            const rawServices = servicesResult.recordset;
+
+            // 4. Reduce and categorize your dynamic sub-arrays under a unified user container array
+            const formattedUsuarios = userResult.recordset.map(user => {
+                // Initialize clean, isolated sub-arrays matching Carvajal API contract schemas
+                const procedimientos = [];
+                const medicamentos = [];
+                const hospitalizacion = [];
+
+                // Filter out raw rows matching this specific user profile partition context
+                rawServices.forEach(item => {
+                    // FIXED: Intercepts high-cost carve-out items linked to a surgery but carrying a real financial charge
+                    if (item.ServiceCategory === 'Insumos' || (item.ServiceCategory === 'Procedimientos' && item.ValorTotal > 0 && item.SurgeryGuid)) {
+                        procedimientos.push({
+                            "codProcedimiento": item.CodServicio,
+                            "cantidad": item.Cantidad,
+                            "valorUnitario": item.ValorUnitario,
+                            "valorTotal": item.ValorTotal,
+                            "diagnosticoPrincipal": item.DiagnosticoPrincipal,
+                            "modalidadPago": "02",                       // FORCE '02': Explicitly marks item as separate Pago por Evento
+                            "surgeryGuid": item.SurgeryGuid               // Maintains relational trace back to surgical session block
+                        });
+                    } else if (item.ServiceCategory === 'Procedimientos') {
+                        procedimientos.push({
+                            "codProcedimiento": item.CodServicio,
+                            "cantidad": item.Cantidad,
+                            "valorUnitario": item.ValorUnitario,
+                            "valorTotal": item.ValorTotal,
+                            "diagnosticoPrincipal": item.DiagnosticoPrincipal,
+                            "modalidadPago": item.ModalidadPago,          // Distinguishes '01' bundles vs '02' items
+                            "surgeryGuid": item.SurgeryGuid               // Ties sub-components back to bundle headers
+                        });
+                    } else if (item.ServiceCategory === 'Medicamentos') {
+                        medicamentos.push({
+                            "codMedicamento": item.CodServicio,
+                            "cantidad": item.Cantidad,
+                            "valorUnitario": item.ValorUnitario,
+                            "valorTotal": item.ValorTotal,
+                            "modalidadPago": item.ModalidadPago,
+                            "surgeryGuid": item.SurgeryGuid
+                        });
+                    } else if (item.ServiceCategory === 'Stay') {
+                        hospitalizacion.push({
+                            "codHabitacion": item.CodServicio,
+                            "cantidad": item.Cantidad,
+                            "valorUnitario": item.ValorUnitario,
+                            "valorTotal": item.ValorTotal,
+                            "fechaIngreso": item.FechaPrestacion ? item.FechaPrestacion.toISOString().split('T')[0] : null,
+                            "modalidadPago": item.ModalidadPago,
+                            "surgeryGuid": item.SurgeryGuid
+                        });
+                    }
+                });
+
+                return {
+                    "tipoIdentificacion": user.TipoIdentificacion,
+                    "numIdentificacion": user.NumIdentificacion,
+                    "tipoUsuario": user.TipoUsuario,
+                    "fechaNacimiento": user.FechaNacimiento ? user.FechaNacimiento.toISOString().split('T')[0] : null,
+                    "codSexo": user.CodSexo,
+                    "codMunicipioResidencia": user.CodMunicipioResidencia,
+                    "zonaTerritorioResidencia": user.ZonaTerritorioResidencia,
+                    "servicios": {
+                        "procedimientos": procedimientos,
+                        "medicamentos": medicamentos,
+                        "hospitalizacion": hospitalizacion
+                    }
+                };
+            });
+
+            // 5. Final payload return layout structural assembly pass
+            return {
+                "prestador": {
+                    "codPrestador": ripsHeader.CodPrestador
+                },
+                "usuarios": formattedUsuarios
+            };
+
+        } catch (error) {
+            console.error(`[RIPS_COMPILER_FAILED] Failed compiling nested structures for Invoice ${invoiceGuid}:`, error.message);
+            throw error;
+        }
+    }
+}
+
+module.exports = RipsReportingService;

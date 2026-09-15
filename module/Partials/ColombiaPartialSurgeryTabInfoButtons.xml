@@ -51,7 +51,7 @@
       confirm="Por favor confirme que quiere completar esta cirugía."
       preset="NewStatus=Completed"
       dataupdate="UpdateScheduledSurgeries"
-      appendupdate="surgeryGuid=[SurgeryViewGuid],DateTimeCompleted=(now)"
+      appendupdate="surgeryGuid=[SurgeryViewGuid],DateTimeCompleted=(now),PatientVisit=[Spi_PatientVisit]"
       provoke="[Surgery_WaitListGuid]!;btnUpdateSurgeryWaitList,btnNewStatus"/>
   </row>
   <row>

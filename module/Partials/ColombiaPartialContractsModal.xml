@@ -117,7 +117,8 @@
       </row>
       <row>
         <control type="label" span="3" label="Manual Tarifario"/>
-        <control type="select" name="Ctc_EntityCode" edit="[Ctc_CoverageType]!13|9|5|12|3|2" span="3" required="true" explicit="true"
+        <control type="select" name="Ctc_EntityCode" 
+          edit="[Ctc_CoverageType]!13|9|5|12|3|2+Length(dgrExceptions)=0+Length(dgrMedications)=0" span="3" required="true" explicit="true"
           source="SOAT,ISS_2001,ISS_2004,PROPIA,PARTICULAR"
           when="[Ctc_CoverageType]=2|13;SOAT,[Ctc_CoverageType]=5|12;PROPIA,[Ctc_CoverageType]=3|9;PARTICULAR"/>
         <control type="text" name="Ctc_AdjustmentPct" span="1" edit="true" format="0.00"
@@ -149,10 +150,10 @@
     <group name="grpContractRelatedTables" >
       <row>
         <control type="buttongroup" name="ContractButtonGroupSelect" edit="true" mode="auto" span="8"
-          source="Plans,Tariffs,Documents" 
-          sourcelabels="Planes,Tarifas,Documentos" 
-          default="Plans"
-          provoke="ContractGridList|options"/>
+          source="Plans,Tariffs,Medications,Documents" 
+          sourcelabels="Planes,Tarifas,Medicamentos,Documentos" 
+          default="Plans"/>
+          <!-- ?? provoke="ContractGridList|options"/> -->
       </row>
       <row>
         <control name="ContractGridList" affector="ContractButtonGroupSelect" type="options" span="12">
@@ -177,12 +178,13 @@
             target="mdlContractExceptions"
             searchable="true"
             acctsvcreq="true"
+            filter="Active=true,Type=General"
             datarequest="GetContractExceptions" 
-            source="DateTimeEntered,DateTimeLastUpdated,ExceptionType,SubType,PriceTable,CUPSCode"
-            sourcelabels="Fecha Entregada,Fecha Modificado,Tipo,Categoria,Catalogo,CUPS"
-            align="|left|left|left|left"
-            format="datetime|datetime|template=tmpExceptionType|template=tmpSubtype|template=tmpPriceTable"
-            sort="DateTimeEntered=desc"
+            source="StartDate,EndDate,ShiftType,Ambito,Prestacion"
+            sourcelabels="Fecha Inicio,Fecha Termino,Tiempo,Ambito,Prestación"
+            align="||left|left|left"
+            format="date|date"
+            sort="StartDate=desc"
             key="ExceptionGuid"
             onselectset="ExceptionGuid=[[ExceptionGuid]]"
             onselect="ExceptionGuid">
@@ -190,6 +192,24 @@
             reveal="[Ctc_CoverageType]!10|13"
             compare="[Ctc_EntityCode]!|Es necesario incluir el Manual Tarifario en el convenio para poder ingresar las tarifas."
             action="redirect" target="mdlContractExceptions"/>
+          </control>
+          <control type="datagrid"  name="dgrMedications" option="Medications" label="Medicamentos" rows="10"
+            action="redirect"
+            target="mdlMedExceptions"
+            searchable="true"
+            acctsvcreq="true"
+            filter="Active=true,Type=Medication"
+            datarequest="GetContractExceptions" 
+            source="StartDate,EndDate,ShiftType,Ambito,Medication"
+            sourcelabels="Fecha Inicio,Fecha Termino,Tiempo,Ambito,Medicamentos"
+            align="||left|left|left"
+            format="date|date"
+            sort="StartDate=desc"
+            key="ExceptionGuid"
+            onselectset="ExceptionGuid=[[ExceptionGuid]]"
+            onselect="ExceptionGuid">
+          <control type="button" name="btnNewMedException" icon="plus" label="Añadir Nuevo" 
+            action="redirect" target="mdlMedExceptions"/>
           </control>
           <!-- Scanned images for contract -->
           <control type="datagrid" label="Documentos Escaneados" name="dgrScannedForms" option="Documents"
@@ -245,8 +265,8 @@
       </row>
     </group>
   </section> 
-  <!-- modal for contract Exceptions --> 
-  <section type="tabmodal" name="mdlContractExceptions" title="Tarifas" badge="none" provoke="dgrExceptions">
+  <!-- modal for contract Exceptions ??provoke="dgrExceptions" --> 
+  <section type="tabmodal" name="mdlContractExceptions" title="Tarifas" badge="none" >
     <group showif="never">
       <row>
         <control type="hidden" name="ExceptionGuid"
@@ -274,15 +294,17 @@
           <control type="label" span="3" label="Tiempo de Servicio"/>
           <control name="Ctx_Shiftype" type="select" span="3" edit="true" required="true" explicit="true"
             source="1,2,3,4" default="1"
-            sourcelabels="1 Todos,2 Diurno,3 Nocturno,4 Festivo" />
+            sourcelabels="1 Todos,2 Diurno,3 Nocturno,4 Festivo"
+            set="[Ctx_Shiftype]=2|3|4;[ShiftSelected]=1^[ShiftSelected]=0"/>
           <control type="label" span="3" label="Ambito"/>
           <control name="Ctx_ServiceGroup" type="select" span="3" edit="true" required="true" explicit="true"
-            source="00,01,02,03,04,05" default="03"
+            source="00,01,02,03,04,05" default="00"
             sourcelabels="00 Todo,01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
-            03 Internación,04 Quirúrgico,05 Atención inmediata" />
+            03 Internación,04 Quirúrgico,05 Atención inmediata" 
+            set="[Ctx_ServiceGroup]=01|02|03|04;[ServiceSelected]=1^[ServiceSelected]=0"/>
         </row>
         <row name="rowExceptionType1" reveal="[Ctc_EntityCode]=SOAT|ISS_2001|ISS_2004">
-          <control type="label" span="3" label="Prestaciones"/>
+          <control type="label" span="3" label="Articulo"/>
           <control name="Ctx_ExceptionType" type="select" span="9" edit="true" required="true" explicit="true"
           reveal="[Ctc_EntityCode]=SOAT" searchable="true"
           source="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,48,49,55,56"
@@ -351,7 +373,7 @@
               ,59 Servicios Profesionales (Interconsultas; Visitas Médicas)"/>
           <control name="Ctx3_ExceptionType" type="select" span="9" edit="true" required="true" explicit="true"
             reveal="[Ctc_EntityCode]=ISS_2004" searchable="true"
-            source="01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34"
+            source="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34"
             sourcelabels="01 Sistema Nervioso
               ,02 Sistema Endocrino
               ,03 Sistema Visual
@@ -387,41 +409,56 @@
               ,34 Higiene Industrial"/>
         </row>
         <row name="rowSurgeryGroups1" reveal="[Ctc_EntityCode]=SOAT+[Ctx_ExceptionType]«20">
-          <control type="label" span="3" label="Grupos Quirurgico(SOAT)"/>
-          <control name="Ctx_SurgeryGroups" type="select" span="3" edit="true"
-            source="1,2,3,4"  sourcelabels="Grupos 1-4,Grupos 5-8,Grupos 9-11,Grupos 12-13"/>
+          <control type="label" span="3" label="Grupos Quirurgico (SOAT)"/>
+          <control name="Ctx_SurgeryGrp" type="select" span="3" edit="true"
+            source="1,2,3,4,5,6,7,8,9,10,11,12,13" 
+            sourcelabels="Grupo 1,Grupo 2,Grupo 3,Grupo 4,Grupo 5,Grupo 6,Grupo 7,Grupo 8,Grupo 9,Grupo 10,Grupo 11,Grupo 12,Grupo 13"
+            set="[Ctx_SurgeryGrp]!;SurgeryGroupSelected=1^SurgeryGroupSelected=0"/>
         </row>
         <row name="rowSurgeryGroups2" reveal="[Ctc_EntityCode]=ISS_2001+[Ctx2_ExceptionType]«19">
-          <control type="label" span="3" label="Grupos Quirurgico(ISS)"/>
-          <control name="Ctx2_SurgeryGroups" type="select" span="3" edit="true"
-            source="1,2,3,4" sourcelabels="Grupo 20,Grupo 21,Grupo 22,Grupo 23"/>
+          <control type="label" span="3" label="Grupos Quirurgico (ISS)"/>
+          <control name="Ctx2_SurgeryGrp" type="select" span="3" edit="true"
+            source="20,21,22,23" sourcelabels="Grupo 20,Grupo 21,Grupo 22,Grupo 23"
+            set="[Ctx2_SurgeryGrp]!;SurgeryGroupSelected=1^SurgeryGroupSelected=0"/>
         </row>
         <row name="rowSurgeryGroups3" reveal="[Ctc_EntityCode]=ISS_2004+[Ctx3_ExceptionType]«15">
           <control type="label" span="3" label="Grupos Quirurgico(ISS)"/>
-          <control name="Ctx3_SurgeryGroups" type="select" span="3" edit="true"
-            source="1,2,3,4" sourcelabels="Grupo 20,Grupo 21,Grupo 22,Grupo 23"/>
+          <control name="Ctx3_SurgeryGrp" type="select" span="3" edit="true"
+            source="20,21,22,23" sourcelabels="Grupo 20,Grupo 21,Grupo 22,Grupo 23"
+            set="[Ctx3_SurgeryGrp]!;SurgeryGroupSelected=1^SurgeryGroupSelected=0"/>
         </row>
         <row name="rowSurgeryCategory1" reveal="[Ctc_EntityCode]=SOAT+[Ctx_ExceptionType]«21">
             <control type="label" span="3" label="Categoria de Quirurgico"/>
             <control name="Ctx1_SubType" type="select" span="3" explicit="true"
             source="1,2,3,4,5" edit="true"
-            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"/>
+            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
+            set="[Ctx1_SubType]=1|2|3|4|5;SurgeryCategorySelected=1^SurgeryCategorySelected=0"/>
         </row>
         <row name="rowSurgeryCategory2" reveal="[Ctc_EntityCode]=ISS_2001+[Ctx2_ExceptionType]«19">
             <control type="label" span="3" label="Categoria de Quirurgico"/>
             <control name="Ctx2_SubType" type="select" span="3" explicit="true"
             source="1,2,3,4,5" edit="true"
-            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"/>
+            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
+            set="[Ctx2_SubType]=1|2|3|4|5;SurgeryCategorySelected=1^SurgeryCategorySelected=0"/>
         </row>
         <row name="rowSurgeryCategory3" reveal="[Ctc_EntityCode]=ISS_2004+[Ctx3_ExceptionType]«15">
             <control type="label" span="3" label="Categoria de Quirurgico"/>
             <control name="Ctx3_SubType" type="select" span="3" explicit="true"
             source="1,2,3,4,5" edit="true"
-            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"/>
+            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
+            set="[Ctx3_SubType]=1|2|3|4|5;SurgeryCategorySelected=1^SurgeryCategorySelected=0"/>
         </row>
         <row>
           <control type="label" span="3" label="Modificador"/>       
           <control name="Ctx_PriceModifier" type="text" span="3" edit="true" required="true" format="0.00"/>
+        </row>
+        <row>
+          <control type="hidden" name="ShiftSelected" default="0"/>
+          <control type="hidden" name="ServiceSelected"  default="0"/>
+          <control type="hidden" name="SurgeryGroupSelected"  default="0"/>
+          <control type="hidden" name="SurgeryCategorySelected"  default="0"/>
+          <control type="label" span="3" label="Categoria"/>  
+          <control type="calc" name="Ranking" source="ShiftSelected+ServiceSelected+SurgeryGroupSelected+SurgeryCategorySelected" span="1"/>
         </row>
         <row>
           <control type="modalbutton" name="mbtNewContractException" label="Guardar" icon="cloud-upload" color="green"
@@ -430,7 +467,7 @@
             acctsvc="true"
             action="save|close|new"
             datainsert="InsertContractExceptions" 
-            appendinsert="ContractGuid=[ContractGuid]"/>
+            appendinsert="ContractGuid=[ContractGuid],Type=General,Ranking"/>
           <control type="modalbutton" name="mbtUpdateContractException" label="Actualizar" icon="cloud-upload"
             reveal="[ExceptionGuid]!"
             capture="grpExceptionInfo"
@@ -438,6 +475,73 @@
             action="save|close|new"
             dataupdate="UpdateContractExceptions" 
             appendupdate="ExceptionGuid=[ExceptionGuid]"/>
+        </row>
+    </group>
+  </section>
+  <!-- modal for contract Exceptions  ?? provoke="dgrMedications" --> 
+  <section type="tabmodal" name="mdlMedExceptions" title="Medicamentos" badge="none" >
+    <group showif="never">
+      <row>
+        <control type="hidden" name="MedExceptionGuid"
+          acctsvcreq="true"
+          datarequest="GetContractExceptions"
+          appendrequest="ExceptionGuid=[MedExceptionGuid]"
+          inject="grpMedExceptionInfo"/>
+      </row>
+    </group>
+    <group name="grpMedExceptionInfo">
+        <row>
+          <control type="label" span="3" label="Activo"/>
+          <control type="buttongroup" name="Ctm_Active" source="True,False" sourcelabels="Sí,No" 
+            span="3" edit="true" default="True"/>
+        </row>
+        <row>
+          <control type="label" span="3" label="Fecha Inicio"/>
+          <control name="Ctm_StartDate" type="date" span="3" edit="true" required="true"
+            default="[Ctc_StartDate]"/>
+          <control type="label" span="2" label="Fecha Termino"/>
+          <control name="Ctm_EndDate" type="date" span="3" edit="true" required="true"
+          default="[Ctc_EndDate]"/>
+        </row>
+        <row> 
+          <control type="label" span="3" label="Tiempo de Servicio"/>
+          <control name="Ctm_Shiftype" type="select" span="3" edit="true" required="true" explicit="true"
+            source="1,2,3,4" default="1"
+            sourcelabels="1 Todos,2 Diurno,3 Nocturno,4 Festivo" />
+          <control type="label" span="2" label="Ambito"/>
+          <control name="Ctm_ServiceGroup" type="select" span="3" edit="true" required="true" explicit="true"
+            source="00,01,02,03,04,05" default="03"
+            sourcelabels="00 Todo,01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
+            03 Internación,04 Quirúrgico,05 Atención inmediata" />
+        </row>
+        <row>
+          <control type="label" span="3" label="Medicamento"/>
+          <control type="select" name="Vaccine_ItemMasterGuid" span="8" searchable="true"
+            acctsvc="true" edit="true"
+            filter="Active=true"
+            datasource="GetDrugFormularyByFacility"
+            source="DrugTradeName,FormularyItemGuid"
+            required="true"/>
+        </row>
+       <row>
+          <control type="label" span="3" label="Precio"/>       
+          <control name="Ctm_PriceModifier" type="text" span="3" edit="true" required="true" format="0.00"/>
+        </row>
+        <row>
+          <control type="modalbutton" name="mbtNewMedException" label="Guardar" icon="cloud-upload" color="green"
+            reveal="[MedExceptionGuid]="
+            capture="grpMedExceptionInfo"
+            acctsvc="true"
+            action="save|close|new"
+            datainsert="InsertContractExceptions" 
+            appendinsert="ContractGuid=[ContractGuid],Type=Medication"/>
+          <control type="modalbutton" name="mbtUpdateMedException" label="Actualizar" icon="cloud-upload"
+            reveal="[MedExceptionGuid]!"
+            capture="grpMedExceptionInfo"
+            acctsvc="true"
+            action="save|close|new"
+            dataupdate="UpdateContractExceptions" 
+            appendupdate="ExceptionGuid=[MedExceptionGuid]"/>
         </row>
     </group>
   </section>
