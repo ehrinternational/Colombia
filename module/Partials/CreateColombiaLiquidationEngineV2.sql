@@ -116,7 +116,9 @@ MasterIssFacilityArray AS (
         , (23, 4, 145.00), (23, 5, 115.00)
     ) IssArrayRows(IssSurgicalGroup, SubtypeCode, FacilityUvrPoints)
 ),
--- 3d. Flatten surgical records and inject package metadata boundaries
+-- ==========================================================================================
+-- SECTION 3d: Flatten surgical records and inject package metadata boundaries
+-- ==========================================================================================
 ProcedureList AS (
     SELECT 
         s.SurgeryGuid, 
@@ -131,7 +133,7 @@ ProcedureList AS (
         v.RowNumber, 
         v.ProcedureGuid, 
         v.SameApproach,
-        -- New Paquete Mapping Boundaries
+        -- Paquete Mapping Boundaries
         CAST(ISNULL(s.IsBundle, 0) AS BIT) AS IsBundle,
         s.ProcedureGuid AS BundleCupsCode,
         s.BundleDescription,
@@ -167,26 +169,20 @@ ProcedureList AS (
       AND v.ProcedureGuid IS NOT NULL
 ),
 
+
 -- ==========================================================================================
 -- SECTION 4: Code Mapping & Category Exception Priority Scoring
 -- ==========================================================================================
 
 ProceduresWithCodes AS (
     SELECT 
-        pl.SurgeryGuid, pl.DateTimePerformed, pl.Laterality, pl.SurgeryApproach, pl.YearOfService,
+        pl.SurgeryGuid, 
+        pl.DateTimePerformed, pl.Laterality, pl.SurgeryApproach, pl.YearOfService,
         pl.RowNumber, pl.ProcedureGuid, pl.SameApproach, pl.RowShiftType, 
         pl.SurgeonId, pl.Anesthesiologist, pl.SurgeonId2, pl.SurgeonId3,
-        -- Pass-Through your new Surgical Bundle & Inclusion parameters for downstream parsing
-        pl.IsBundle,
-        pl.BundleCupsCode,
-        pl.BundleDescription,
-        pl.BundlePrice,
-        pl.SurgeonIncluded,
-        pl.AnesthesiologistIncluded,
-        pl.AssistantIncluded,
-        pl.RoomIncluded,
-        pl.MaterialIncluded,
-        pl.MedicationIncluded,
+        pl.IsBundle, pl.BundleCupsCode, pl.BundleDescription, pl.BundlePrice,
+        pl.SurgeonIncluded, pl.AnesthesiologistIncluded, pl.AssistantIncluded,
+        pl.RoomIncluded, pl.MaterialIncluded, pl.MedicationIncluded,
         
         -- Set the manual value dynamically matching the selected year of service
         CASE WHEN ISNULL(@Manual, 'SOAT') = 'SOAT' THEN mvx.SOATValue 
@@ -217,8 +213,6 @@ ProceduresWithCodes AS (
 AllMatchingExceptions AS (
     SELECT 
         p.*, 
-        -- If this surgery is an itemized contract, apply exceptions normally.
-        -- If it is a Bundle, the price modifiers are overriden by the flat bundle rules downstream.
         ISNULL(ce.PriceModifier, 0.00) AS PriceModifier, 
         ce.ExceptionGuid,
         ROW_NUMBER() OVER (
@@ -239,9 +233,9 @@ AllMatchingExceptions AS (
         AND (ce.SurgeryGrp IS NULL OR ce.SurgeryGrp = p.SurgeryGroup) 
 ),
 ProceduresWithAppliedExceptions AS (
-    -- Filters to the single highest-priority contract exception row per procedure
     SELECT a.* FROM AllMatchingExceptions a WHERE ExceptionPriorityRank = 1 
 ),
+
 
 -- ==========================================================================================
 -- SECTION 5: Batch Surgical Billing Pillar Splitting & Factor Evaluation
@@ -295,27 +289,26 @@ SurgicalProcedureRanking AS (
     SELECT 
         f.*,
         ROW_NUMBER() OVER (
-            PARTITION BY f.SurgeryGuid, f.SubtypeCode -- Enforces strict surgical session isolation
+            PARTITION BY f.SurgeryGuid, f.SubtypeCode -- FIXED: Isoles independent operating room blocks
             ORDER BY f.ManualValue DESC, f.ProcedureGuid ASC
         ) AS ProcedureValueRank
     FROM RemoveMissingStaff f 
 ),
 
 -- 6b. Apply Colombian Multi-Surgery Discount Multipliers (Liquidación de Cirugías Múltiples)
-
 SurgicalMultipliersApplied AS (
     SELECT 
         r.*,
         CAST(
             CASE 
-                -- If this is an individual itemized procedure line, apply standard manual discount logic
+                -- Primary procedure within THIS specific surgical session block is billed at 100% face value
                 WHEN r.ProcedureValueRank = 1 THEN 1.00
                 
-                -- Same anatomical approach/incision (Vía de acceso idéntica)
+                -- Same anatomical approach/incision within this session (Vía de acceso idéntica)
                 WHEN r.SameApproach = 1 AND r.ManualValue IS NOT NULL AND @Manual = 'SOAT' THEN 0.70
                 WHEN r.SameApproach = 1 AND r.ManualValue IS NOT NULL AND @Manual LIKE 'ISS%' THEN 0.60
                 
-                -- Different anatomical approach/separate incision (Diferente vía de acceso)
+                -- Different anatomical approach/separate incision within this session (Diferente vía de acceso)
                 WHEN r.SameApproach = 0 AND r.ManualValue IS NOT NULL AND @Manual = 'SOAT' THEN 0.75
                 WHEN r.SameApproach = 0 AND r.ManualValue IS NOT NULL AND @Manual LIKE 'ISS%' THEN 0.75
                 
@@ -371,14 +364,13 @@ CatalogBaseUnits AS (
 ComplexityRanking AS (
     SELECT 
         cb.*,
-        -- FIXED: Generates an isolated complexity sequence (1 to 7) per distinct surgery session block
+        -- FIXED: Generates an isolated complexity sequence (1 to 7) per distinct surgical session block
         ROW_NUMBER() OVER (
-            PARTITION BY cb.SurgeryGuid, cb.SubtypeCode 
+            PARTITION BY cb.SurgeryGuid, cb.SubtypeCode -- FIXED: Session-aware segmentation
             ORDER BY cb.RawCatalogUnits DESC, cb.RowNumber ASC
         ) AS FinancialRank
     FROM CatalogBaseUnits cb
 ),
-
 
 -- ==========================================================================================
 -- SECTION 8: Set-Based Surgical Degradation & Bilateral Multipliers
@@ -1610,4 +1602,79 @@ SELECT
 FROM FinalImagingLiquidation f;
 
 SELECT @@ROWCOUNT AS ImagingStudiesPosted;
+GO
+
+-- ==========================================================================================
+-- SECTION 27: Embedded Inline Statutory Co-Payment Capping Registry (Topes de Copagos)
+-- ==========================================================================================
+-- Initialize parameters for cap validation checks
+DECLARE @PatientFinancialClass VARCHAR(5) = 'A',
+        @MaxAllowedCopayPerEvent DECIMAL(18,2) = 99999999.99,
+        @CurrentCalculatedVisitCopay DECIMAL(18,2) = 0.00;
+
+-- 1. Extract the patient's current FinancialClass bracket from the master profile
+SELECT TOP 1 
+    @PatientFinancialClass = pat.FinancialClass
+FROM ClinicalGeniusEhr.dbo.PatientTable pat WITH(NOLOCK)
+WHERE pat.PatientId = @PatientId;
+
+-- 2. Bind the exact maximum legal cap limit for this year of service
+-- Leverages a simple conditional lookup instead of an independent CTE for fast batch variable setting
+SET @MaxAllowedCopayPerEvent = CASE YEAR(GETDATE())
+    -- 2026 Statutory Limits
+    WHEN 2026 THEN 
+        CASE @PatientFinancialClass
+            WHEN 'A'  THEN 351210.00
+            WHEN 'B'  THEN 1406670.00
+            WHEN 'C'  THEN 2813340.00
+            WHEN 'S1' THEN 0.00
+            WHEN 'S2' THEN 110450.00
+            ELSE 351210.00
+        END
+    -- 2027 Projected Limits
+    WHEN 2027 THEN 
+        CASE @PatientFinancialClass
+            WHEN 'A'  THEN 369800.00
+            WHEN 'B'  THEN 1481200.00
+            WHEN 'C'  THEN 2962400.00
+            WHEN 'S1' THEN 0.00
+            WHEN 'S2' THEN 116300.00
+            ELSE 369800.00
+        END
+    ELSE 99999999.99 -- No cap fallback if year bounds fail
+END;
+
+-- 3. Calculate what your PayerClaims currently registers for patient liability
+SELECT TOP 1
+    @CurrentCalculatedVisitCopay = ISNULL(pyc.Copay, 0.00) + ISNULL(pyc.MedicalCoinsurance, 0.00)
+FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
+WHERE pyc.ClaimGuid = @ClaimGuid
+  AND pyc.FacilityId = @FacilityId;
+
+
+-- ==========================================================================================
+-- SECTION 28: Co-Payment Cap Correction Rule & Balance Shifting
+-- ==========================================================================================
+IF @CurrentCalculatedVisitCopay > @MaxAllowedCopayPerEvent
+BEGIN
+    -- If the patient has crossed the statutory cap threshold:
+    -- 1. Force the client-facing liability to exactly the legal maximum limit allowed.
+    -- 2. Under Decreto 1652, shift the excess balance onto the Payer's coverage calculation so the hospital gets paid.
+    
+    UPDATE pyc
+    SET pyc.Copay = CASE WHEN @PatientFinancialClass = 'S1' THEN 0.00 ELSE @MaxAllowedCopayPerEvent END,
+        pyc.MedicalCoinsurance = 0.00, -- Erase the excess variable coinsurance lines
+        -- Shift the remaining unpaid balance onto the Payer's coverage calculation so the hospital gets paid
+        pyc.PayerCoverageAmount = pyc.PayerCoverageAmount + (@CurrentCalculatedVisitCopay - @MaxAllowedCopayPerEvent),
+        pyc.LastUpdatedBy = 'CopayCappingMatrix'
+    FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc
+    WHERE pyc.ClaimGuid = @ClaimGuid
+      AND pyc.FacilityId = @FacilityId;
+      
+    SELECT 'CO-PAYMENT CAPPED: Excess shifted to insurer' AS AuditStatus;
+END
+ELSE
+BEGIN
+    SELECT 'CO-PAYMENT WITHIN LEGAL LIMITS: No shift required' AS AuditStatus;
+END;
 GO

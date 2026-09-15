@@ -18,14 +18,14 @@ BEGIN
     DECLARE @DynamicSQL NVARCHAR(MAX);
     DECLARE @WhereClauses NVARCHAR(MAX) = N'';
 
-    SET @InvoiceNumber    = NULLIF(TRIM(@InvoiceNumber), '');
-    SET @ResolutionNumber = NULLIF(TRIM(@ResolutionNumber), '');
-    SET @FacilityId       = NULLIF(TRIM(@FacilityId), ''); -- Cleans inputs
-    SET @PatientVisit     = NULLIF(TRIM(@PatientVisit), '');
-    SET @ClaimGuid        = NULLIF(TRIM(@ClaimGuid), '');
-    SET @PatientId        = NULLIF(TRIM(@PatientId), '');
-    SET @PayerId          = NULLIF(TRIM(@PayerId), '');
-    SET @InvoiceType      = NULLIF(TRIM(@InvoiceType), '');
+    SET @InvoiceNumber    = NULLIF(@InvoiceNumber, '');
+    SET @ResolutionNumber = NULLIF(@ResolutionNumber, '');
+    SET @FacilityId       = NULLIF(@FacilityId, ''); -- Cleans inputs
+    SET @PatientVisit     = NULLIF(@PatientVisit, '');
+    SET @ClaimGuid        = NULLIF(@ClaimGuid, '');
+    SET @PatientId        = NULLIF(@PatientId, '');
+    SET @PayerId          = NULLIF(@PayerId, '');
+    SET @InvoiceType      = NULLIF(@InvoiceType, '');
 
     -- 2. Construct the core immutable projection block mapping the new V2 column
     SET @DynamicSQL = N'

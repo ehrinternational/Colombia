@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Last edit by Dan 4/14/2018-->
+<module name="Laboratorios">
+   <section type="tab" title="Laboratorios Externos">
+    <group>
+      <row>
+        <control type="datagrid" label="Laboratorios Externos" name="LaboratoriesGrid"
+          rows="20"
+          modalname="NewLaboratory" span="12"
+          datasource="GetLaboratoriesByFacility"
+          datarequest="GetLaboratoriesByFacility"
+          datainsert="InsertLaboratories"
+          dataupdate="UpdateLaboratories"
+          source="Active,LabId,LabName,PathologistName,LabPhoneNumber,LabFaxNumber,LabEmailAddress"
+          sourcelabels="Activo,Código,Laboratorio,Patólogo,Teléfono,Fax,Correo Electrónico"
+          align="|left|left|left|left|left|left"
+          format="boolean"
+          sort="LabName=asc"
+          key="LabGuid">
+        <control type="button" name="btnRefreshLabs" icon="refresh" label="Actualizar" action="trigger" trigger="LaboratoriesGrid"/>
+        </control>
+      </row>
+    </group>
+  </section>
+  
+  <!--New Laboratory Modal-->
+  <section type="modal" name="NewLaboratory" title="Laboratorio Externo" 
+           enteredby="EnteredByFullName" updatedby="UpdatedByFullName" 
+           dtentered="DateTimeEntered" dtupdated="DateTimeUpdated">
+    <group name="NewLaboratoryGroup">      
+      <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Lab_Active"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="True" />
+          <control type="label" label="Código" span="1"/>
+        <control type="text" name="LabId" span="2" edit="true"  tooltip=""/>
+      </row>
+      <row>
+        <control type="label" label="Ubicación" span="3"/>
+        <control type="text" name="Lab_LocationId"
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Tipo" span="3"/>
+        <control type="select" name="Lab_LabType"
+          source="Clinical,Imaging,Pathology,Genetic"
+          sourcelabels="Clinico,Imagenologia,Patología,Genético"
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Laboratorio" span="3"/>
+        <control type="text" name="Lab_LabName" required="true"
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Patólogo" span="3"/>
+        <control type="text" name="Lab_PathologistName"
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Teléfono" span="3"/>
+        <control type="text" name="Lab_LabPhoneNumber"
+          span="2" edit="true" />
+          <control type="label" label="Fax" span="1"/>
+        <control type="text" name="Lab_LabFaxNumber"
+          span="2" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Correo Electrónico" span="3"/>
+        <control type="text" name="Lab_LabEmailAddress"
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Dirección" span="3"/>
+        <control type="text" name="Lab_LabStreetAddress" 
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Apartamento" span="3"/>
+        <control type="text" name="Lab_LabStreetAddress2" 
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Ciudad" span="3"/>
+        <control type="text" name="Lab_LabCity"
+          span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Estado" span="3"/>
+        <control type="text" name="Lab_LabState"
+          span="3" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Código Postal" span="3"/>
+        <control type="text" name="Lab_Zip"
+          span="2" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="Lab_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="Lab_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+    </row>
+    </group>
+  </section>
+
+  <section type="tab" title="Paneles de Laboratorio" name="tabLabPanels" trigger="dgrLaboratoryPanels">
+    <group>
+     <row>      
+        <control type="datagrid" label="Paneles de Laboratorio" name="dgrLaboratoryPanels"
+          rows="20" span="12"
+          searchable="true"
+          action="redirect"
+          target="mdlLaboratoryPanel"
+          datarequest="GetLabPanelsByFacilityAll"
+          source="Active,InHouse,LabPanelCode,LabPanelName,CptCode,RevCode,BasePrice"
+          sourcelabels="Activo,Laboratorio Interno,Código del Panel,Nombre del Panel,Código CPT,Código de Ingresos,Precio"
+          align="||left|left|left|left|left|right"
+          format="boolean|boolean||||||0,0.00"
+          sort="LabPanelName=asc"
+          key="LabPanelGuid"
+          onselectset="[LabPanelGuid]=[[LabPanelGuid]]"
+          onselect="LabPanelGuid">
+        <control type="button" name="btnNewLabPanel" icon="plus" label="Añadir Nuevo"
+          action="redirect" target="mdlLaboratoryPanel"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!--New Laboratory Panel Modal-->
+  <section type="tabmodal" name="mdlLaboratoryPanel" title="Panel de Laboratorio" provoke="dgrLaboratoryPanels" badge="none">
+   <group>
+    <row>
+      <control type="hidden" name="LabPanelGuid" 
+        datarequest="GetLabPanelsByLabPanelGuid"
+        appendrequest="LabPanelGuid=[LabPanelGuid]" 
+        inject="NewLaboratoryPanelGroup"
+        provoke="dgrPanelLaboratoryTests"/>
+    </row>
+   </group>
+    <group name="NewLaboratoryPanelGroup">      
+      <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="LabPanel_Active"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="True" />
+        <control type="label" label="Departamento" span="2"/>
+        <control type="select" span="4" 
+          name="DepartmentName,DepartmentGuid"
+          acctsvc="true" edit="true"
+          datasource="GetDepartmentsActive"
+          source="DepartmentName,DepartmentGuid"
+          explicit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Laboratorio Interno" span="3"/>
+        <control type="buttongroup" name="InHouse"
+          sourcelabels="Sí,No" source="True,False" 
+          span="2" edit="true" default="True" />
+        <control type="label" span="2" label="Código de Ingresos"/>  
+        <control type="select" span="4" name="RevenueCodeName,RevCode"
+          datasource="GetRevenueCodesForThisFacility" 
+          filter="Active=true"
+          acctsvc="true" 
+          edit="true"
+          source="RevenueCode|RevenueCodeDescription,RevenueCode"/>
+      </row>
+      <row>
+        <control type="label" label="Paciente Cobrable" span="3"/>
+        <control type="buttongroup" name="PatientChargeable"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Tipo de Panel" span="3"/>
+        <control type="select" name="LabPanelType" span="6"  edit="true"
+          source="Hematologic,Coagulation,Biochemical,Microbiology Bacteria and Fungi,Microbiology Parasitic,Microbiology Viral,Serologic,Immunohematology,Cytology,Histology,Pathology,Hormonal,Genetic,Urine,PROCEDURE OR DIRECT DETERMINATION C / PATIENT,FORMER. OF EXUDED DEPOSITIONS. SECREC. AND OTHER LIQ."
+          sourcelabels="Hematología,Coagulación,Bioquimicos,Microbiologicos Bacterias y Hongos,Microbiologicos Parasitos,Microbiologicos Virus,Serologico,Inmunologicos,Citología,Histología,Patología,Hormonales,Genética,Orina,PROCEDIMIENTO O DETERMINACION DIRECTA C/PACIENTE,EX. DE DEPOSICIONES EXUDADOS. SECREC. Y OTROS LIQ."/>
+      </row>
+      <row>
+        <control type="label" label="Código de Panel" span="3"/>
+        <control type="text" name="LabPanelCode" span="3" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Nombre del Panel" span="3"/>
+        <control type="text" name="LabPanelName" required="true"
+          span="8" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Precio Base" span="3"/>
+        <control type="text" name="BasePrice" span="2" format="0,0.00" default="0.00" edit="true" />
+        <control type="label" label="Precio Ambulatorio" span="4"/>
+        <control type="text" name="AltPrice1" span="2" format="0,0.00" default="0.00" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Costo" span="3"/>
+        <control type="text" name="Cost" span="2" format="0,0.00" default="0.00" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Código CPT" span="3"/>
+        <control type="text" name="CptCode" span="3" edit="true" />
+        <control type="label" label="Id Externa" span="2"/>
+        <control type="text" name="ExternalId" span="3" edit="true"  tooltip=""/>
+      </row>
+      <row>
+        <control type="label" label="Nota al pie del Panel" span="3"/>
+        <control type="textarea" name="LabReportFootNote" span="8" rows="3" edit="true" />
+      </row>
+      <row>      
+        <control type="datagrid" label="Pruebas de Panel" name="dgrPanelLaboratoryTests"
+          rows="10" span="12"
+          searchable="true"
+          filter="LabPanelGuid=[LabPanelGuid],Active=true"
+          datarequest="GetLabPanelsAndTestsByGroupId"
+          source="Active,LabTestCode,LabTestName,UnitOfMeasure,NormalRange"
+          sourcelabels="Activo,Código de Prueba,Prueba,Unidad,Rango Normal"
+          align="|left|left|left|left|left|left"
+          format="boolean||||||"
+          sort="LabTestName=asc"
+          key="LabTestGuid">
+        <control type="button" name="btnNewPanelLabTest" label="AñadirNuevo" icon="plus"
+          action="redirect" target="mdlAssignLaboratoryTest"/>
+        <control type="button" name="btnRemoveLabTestFromPanel" label="Eliminar" icon="remove"
+          action="save" showif="feature"
+          confirm="Por favor, confirme que desea eliminar esta prueba de este panel de laboratorio."
+          dataupdate="UpdateLabPanelsAndTestsByGroupId"
+          appendupdate="LabTestGuid=[[LabTestGuid]],Active=false"
+          provoke="dgrPanelLaboratoryTests"/>
+        </control>
+      </row>
+      <row>
+        <control type="modalbutton" name="btnSaveNewLabPanel" 
+          label="Guardar" color="green" icon="cloud-upload"
+          reveal="[LabPanelGuid]="
+          affector="LabPanelGuid"
+          setaffector="LabPanelGuid"
+          action="save"
+          datainsert="InsertLabPanelsByFacility"/>
+         <control type="modalbutton" name="btnUpdateLabPanel" 
+          label="Actualizar" icon="cloud-upload"
+          reveal="[LabPanelGuid]!"
+          affector="none"
+          action="save|close|new"
+          dataupdate="UpdateLabPanelsByFacility"/>
+      </row>
+    </group>
+  </section>
+  <!-- Assign a new lab test to a lab panel -->
+  <section type="tabmodal" name="mdlAssignLaboratoryTest" title="Prueba de Panel" badge="none">
+    <group>
+    <row>
+      <control type="label" label="Prueba de Laboratorio" span="3"/>
+      <control type="select" name="LabTestToAssign" span="5"
+        filter="Active=true,LabPanelGuid="
+        datasource="GetLabPanelsAndTestsByGroupId"
+        source="LabTestName,LabTestGuid"
+        inject="grpLabPanelTest"/>
+    </row>
+   </group>
+    <group name="grpLabPanelTest">
+      <row>
+        <control type="label" label="Prueba" span="3"/>
+        <control type="text" name="Pdl_LabTestName"  required="true" span="8"/>
+      </row>
+      <row>
+        <control type="label" label="Código de Prueba" span="3"/>
+        <control type="text" name="Pdl_LabTestCode" 
+          span="2" required="true"/> 
+        <control type="label" label="Unidad de Medida" span="3"/>
+        <control type="text" name="Pdl_UnitOfMeasure" span="2" />         
+      </row>
+      <row name="Pdl_NormalRangeDetails" reveal="Pdl_CustomRangeGender=False+Pdl_CustomRangeAge=False">         
+        <control type="label" label="Rango Normal" span="3"/>
+        <!-- Normal Range Textfield -->
+        <control type="text" name="Pdl_NormalRange"
+          span="2" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Rango de Sexo" span="3"/>
+        <control type="buttongroup" name="Pdl_CustomRangeGender"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="False" />        
+      </row>       
+      <row name="Pdl_MaleRangeDetails" reveal="Pdl_CustomRangeGender=True+Pdl_CustomRangeAge=False">
+        <control type="label" label="Rango Masculino" span="3"/>
+        <!-- Normal Range Male Textfield -->
+        <control type="text" name="Pdl_MaleOnlyNormalRange"
+          span="2" edit="true" />
+      </row>
+      <row name="Pdl_FemaleRangeDetails" reveal="Pdl_CustomRangeGender=True+Pdl_CustomRangeAge=False">
+        <control type="label" label="Rango Femenino" span="3"/>
+        <!-- Normal Range Femail Textfield -->
+        <control type="text" name="Pdl_FemaleOnlyNormalRange"
+          span="2" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Rango de Edad" span="3"/>
+        <control type="buttongroup" name="Pdl_CustomRangeAge"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="False" />
+      </row>
+      <row name="Pdl_PediatricRangeDetails" reveal="Pdl_CustomRangeAge=True+Pdl_CustomRangeGender=False">         
+        <control type="label" label="Rango Pediátrico" span="3"/>
+        <!-- Normal Range Kid Textfield -->
+        <control type="text" name="PediatricOnlyNormalRange"
+          span="2" edit="true" />
+      </row>
+      <row name="Pdl_AdultRangeDetails" reveal="Pdl_CustomRangeAge=True+Pdl_CustomRangeGender=False">
+        <control type="label" label="Rango Adulto" span="3"/>
+        <!-- Normal Range Adult -->
+        <control type="text" name="Pdl_AdultOnlyNormalRange"
+          span="2" edit="true" />
+        <control type="label" label="Edad de Inicio del Adulto" span="3"/>
+        <!-- Age Range Start Adult -->
+        <control type="text" name="Pdl_AdultOnlyAgeRangeStart" format="int"
+          span="1" edit="true" />
+      </row>
+
+      <row name="Pdl_MalePediatricRangeDetails" reveal="Pdl_CustomRangeAge=True+Pdl_CustomRangeGender=True">         
+        <control type="label" label="Rango Masculino Pediátrica" span="3"/>
+        <control type="text" name="Pdl_PediatricMaleNormalRange"
+          span="2" edit="true" />        
+      </row>
+      <row name="Pdl_MaleAdultRangeDetails" reveal="Pdl_CustomRangeAge=True+Pdl_CustomRangeGender=True">
+        <control type="label" label="Rango Masculino Adulto" span="3"/>
+        <control type="text" name="Pdl_AdultMaleNormalRange"
+          span="2" edit="true" /> 
+        <control type="label" label="Edad de Inicio del Adulto" span="3"/>
+        <control type="text" name="Pdl_AdultMaleAgeRangeStart" format="int"
+          span="1" edit="true" />      
+      </row>
+
+      <row divider="true" name="Pdl_FemalePediatricRangeDetails" reveal="Pdl_CustomRangeAge=True+Pdl_CustomRangeGender=True">         
+        <control type="label" label="Rango Femenino Pediátrico" span="3"/>
+        <!-- Normal Range Female Pediatric -->
+        <control type="text" name="Pdl_PediatricFemaleNormalRange"
+          span="2" edit="true" />        
+      </row>
+      <row name="Pdl_FemaleAdultRangeDetails" reveal="Pdl_CustomRangeAge=True+Pdl_CustomRangeGender=True">
+        <control type="label" label="Rango Femenino Adulto" span="3"/>
+        <control type="text" name="Pdl_AdultFemaleNormalRange"
+          span="2" edit="true" /> 
+        <control type="label" label="Edad de Inicio del Adulto" span="3"/>
+        <control type="text" name="Pdl_AdultFemaleAgeRangeStart" format="int"
+          span="1" edit="true" />      
+      </row>
+      <row>
+        <control type="modalbutton" name="mbtAddPanelLabTest" label="Añadir" color="green" icon="cloud-upload"
+          action="save|close|new"
+          affector="none"
+          capture="grpLabPanelTest"
+          datainsert="InsertLabPanelsAndTestsByGroupId"
+          appendinsert="LabPanelGuid=[LabPanelGuid],LabPanelName=[LabPanelName],LabPanelCode=[LabPanelCode],Active=true"
+          provoke="dgrPanelLaboratoryTests"/>
+      </row>
+    </group>
+  </section>
+
+  <section type="tab" title="Pruebas de Laboratorio">
+    <group>
+      <row>      
+        <control type="datagrid" label="Pruebas de Laboratorio" name="LaboratoryTestsGrid"
+          rows="20"
+          searchable="true"
+          filter="LabPanelGuid="
+          modalname="NewLaboratoryTest" span="12"
+          datasource="GetLabPanelsAndTestsByGroupId"
+          datarequest="GetLabPanelsAndTestsByGroupId"
+          datainsert="InsertLabPanelsAndTestsByGroupId"
+          dataupdate="UpdateLabPanelsAndTestsByGroupId"           
+          source="Active,LabTestCode,LabTestName,UnitOfMeasure,NormalRange"
+          sourcelabels="Activo,Código de Prueba,Prueba,Unidad,Rango Normal"
+          align="|left|left|left|left|left|left"
+          format="boolean||||||"
+          sort="LabTestName=asc"
+          key="LabTestGuid"
+          onselectset="new_LabPanelCode=[[LabPanelCode]],new_LabPanelName=[[LabPanelName]]"/>
+      </row>
+    </group>
+  </section>
+
+  <section type="modal" name="NewLaboratoryTest" title="Prueba de Laboratorio" 
+    enteredby="EnteredByFullName" updatedby="UpdatedByFullName" 
+    dtentered="DateTimeEntered" dtupdated="DateTimeUpdated">
+    <group name="NewLaboratoryTestGroup">
+      <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="LabTest_Active"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Prueba" span="3"/>
+        <control type="text" name="LabTestName"  required="true"
+          span="8" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Código de Prueba" span="3"/>
+        <control type="text" name="LabTestCode" 
+          span="2" edit="true" /> 
+        <control type="label" label="Unidad de Medida" span="3"/>
+        <control type="text" name="UnitOfMeasure" span="2" edit="true" />         
+      </row>
+      <row name="NormalRangeDetails" reveal="CustomRangeGender=False+CustomRangeAge=False">         
+        <control type="label" label="Rango Normal" span="3"/>
+        <!-- Normal Range Textfield -->
+        <control type="text" name="NormalRange"
+          span="2" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Rango de Sexo" span="3"/>
+        <control type="buttongroup" name="CustomRangeGender"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="False" />        
+      </row>       
+      <row name="MaleRangeDetails" reveal="CustomRangeGender=True+CustomRangeAge=False">
+        <control type="label" label="Rango Masculino" span="3"/>
+        <!-- Normal Range Male Textfield -->
+        <control type="text" name="MaleOnlyNormalRange"
+          span="2" edit="true" />
+      </row>
+      <row name="FemaleRangeDetails" reveal="CustomRangeGender=True+CustomRangeAge=False">
+        <control type="label" label="Rango Femenino" span="3"/>
+        <!-- Normal Range Femail Textfield -->
+        <control type="text" name="FemaleOnlyNormalRange"
+          span="2" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Rango de Edad" span="3"/>
+        <control type="buttongroup" name="CustomRangeAge"
+          sourcelabels="Sí,No" source="True,False" span="2" edit="true" default="False" />
+      </row>
+      <row name="PediatricRangeDetails" reveal="CustomRangeAge=True+CustomRangeGender=False">         
+        <control type="label" label="Rango Pediátrico" span="3"/>
+        <!-- Normal Range Kid Textfield -->
+        <control type="text" name="PediatricOnlyNormalRange"
+          span="2" edit="true" />
+      </row>
+      <row name="AdultRangeDetails" reveal="CustomRangeAge=True+CustomRangeGender=False">
+        <control type="label" label="Rango Adulto" span="3"/>
+        <!-- Normal Range Adult -->
+        <control type="text" name="AdultOnlyNormalRange"
+          span="2" edit="true" />
+        <control type="label" label="Edad de Inicio del Adulto" span="3"/>
+        <!-- Age Range Start Adult -->
+        <control type="text" name="AdultOnlyAgeRangeStart" format="int"
+          span="1" edit="true" />
+      </row>
+
+      <row name="MalePediatricRangeDetails" reveal="CustomRangeAge=True+CustomRangeGender=True">         
+        <control type="label" label="Rango Masculino Pediátrica" span="3"/>
+        <control type="text" name="PediatricMaleNormalRange"
+          span="2" edit="true" />        
+      </row>
+      <row name="MaleAdultRangeDetails" reveal="CustomRangeAge=True+CustomRangeGender=True">
+        <control type="label" label="Rango Masculino Adulto" span="3"/>
+        <control type="text" name="AdultMaleNormalRange"
+          span="2" edit="true" /> 
+        <control type="label" label="Edad de Inicio del Adulto" span="3"/>
+        <control type="text" name="AdultMaleAgeRangeStart" format="int"
+          span="1" edit="true" />      
+      </row>
+
+      <row divider="true" name="FemalePediatricRangeDetails" reveal="CustomRangeAge=True+CustomRangeGender=True">         
+        <control type="label" label="Rango Femenino Pediátrico" span="3"/>
+        <!-- Normal Range Female Pediatric -->
+        <control type="text" name="PediatricFemaleNormalRange"
+          span="2" edit="true" />        
+      </row>
+      <row name="FemaleAdultRangeDetails" reveal="CustomRangeAge=True+CustomRangeGender=True">
+        <control type="label" label="Rango Femenino Adulto" span="3"/>
+        <control type="text" name="AdultFemaleNormalRange"
+          span="2" edit="true" /> 
+        <control type="label" label="Edad de Inicio del Adulto" span="3"/>
+        <control type="text" name="AdultFemaleAgeRangeStart" format="int"
+          span="1" edit="true" />      
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="LabTest_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="LabTest_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>
+</module>

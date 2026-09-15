@@ -27,7 +27,7 @@ BEGIN
     -- ==========================================================================================
     -- DIAGNOSTIC MATRIX EXTRACTION RULE: Resolve the compliance diagnostic code per patient visit
     -- ==========================================================================================
-    SELECT TOP 1 @ResolvedPrincipalDiagnosis = TRIM(prob.ProblemCode)
+    SELECT TOP 1 @ResolvedPrincipalDiagnosis = prob.ProblemCode
     FROM ClinicalGeniusEhr.dbo.PatientProblems prob WITH(NOLOCK)
     WHERE prob.PatientVisit = @PatientVisit
       AND prob.Status = 'Active'
