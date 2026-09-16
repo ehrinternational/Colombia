@@ -1,0 +1,28 @@
+﻿<partial>
+    <control type="datagrid" label="Órdenes de Laboratorio (Haz clic para seleccionar)" name="grdLaboratoryOrders"       
+      searchable="true" rows="10" mode="batch"
+      option="Laboratory"
+      skipbatchrow="[Selected]=true" 
+      postwith="OrderGuid"
+      appendbatch="ClaimGuid=[selPatientClaims]"
+      rowcolor="Selected|true=green"
+      datarequest="GetPatientLabTestOrdersByPatientVisit"
+      appendrequest="PatientId=[PatientId],PatientVisit=[VisitSelect]"
+      source="DateTimeOrdered,ClaimNumber,Status,OrderNumber,CPTDescription,OrderInstructions,OrderedByFullName"
+      sourcelabels="Fecha,Convenio,Estatus,Orden,Pruebas de Laboratorio,Instrucciones,Ordenado por"
+      align="left|left|left|left|left|left|left"
+      format="datetime"
+      translate="Status"
+      sort="DateTimeOrdered=desc"
+      key="OrderGuid"
+      onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
+      onselect="grdLaboratoryOrders|static">
+    <control type="button" name="btnUpdateLabList"
+      label="Asignar al Convenio o Desasignar" color="green"
+      tooltip="Deje el convenio en blanco para desasignar." 
+      action="batchupdate" 
+      capture="grdLaboratoryOrders"
+      dataupdate="PatientLabTestOrders"
+      provoke="grdLaboratoryOrders"/>
+    </control>
+</partial>

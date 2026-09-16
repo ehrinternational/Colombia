@@ -1,0 +1,29 @@
+﻿<partial>
+    <control type="datagrid" label="Medicamentos Administrados (Haz clic para seleccionar)" name="grdMedicationAdministrations"       
+      searchable="true" rows="10" mode="batch"
+      option="Medication"
+      skipbatchrow="[Selected]=true" 
+      postwith="MedSchedGuid"
+      appendbatch="ClaimGuid=[selPatientClaims]"
+      acctsvcreq="true" 
+      rowcolor="Selected|true=green"
+      datarequest="GetAllMedicationAdministrationRecords"
+      appendrequest="patientVisit=[VisitSelect]"
+      source="DateTimeAdministered2,ClaimNumber,Status,MedicationName,AdministeredByFullName"
+      sourcelabels="Fecha,Convenio,Estatus,Medicamento,Administrada por"
+      align="left|left|left|left|left"
+      format="datetime"
+      translate="Status"
+      sort="DateTimeAdministered2=desc"
+      key="MedSchedGuid"
+      onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
+      onselect="grdMedicationAdministrations|static">
+    <control type="button" name="btnUpdateMedicationList"
+      label="Asignar al Convenio o Desasignar" color="green"
+      tooltip="Deje el convenio en blanco para desasignar." 
+      action="batchupdate" 
+      capture="grdMedicationAdministrations"
+      dataupdate="MedicationAdministrationRecords"
+      provoke="grdMedicationAdministrations"/>
+    </control>
+</partial>

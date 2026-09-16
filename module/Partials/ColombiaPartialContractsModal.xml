@@ -125,18 +125,6 @@
           reveal="[Ctc_EntityCode]=SOAT|ISS_2001|ISS_2004"
           regex="^\d{1,3}(?:\.\d{1,2})?$" required="true"/>
       </row>
-      <row>
-        <control type="checkbox" name="Ctc_FeesIncluded" label="Incluye Honorarios" span="4" offset="3"
-          source="True,False" edit="true"/>
-        <control type="checkbox" name="Ctc_RoomIncluded" label="Incluye Sala" span="4"
-          source="True,False" edit="true"/>
-      </row>
-      <row>
-        <control type="checkbox" name="Ctc_AnesthesiaIncluded" label="Incluye Anestesia" span="4" offset="3"
-          source="True,False" edit="true"/>
-        <control type="checkbox" name="Ctc_AssistantIncluded" label="Incluye Ayudante" span="4"
-          source="True,False" edit="true"/>
-      </row>
       <row>        
         <control type="checkbox" name="Ctc_NightCharge" edit="true" span="9" offset="3"
           label="Aplica Recargo Nocturno/Festivo" source="True,False"/>
@@ -281,6 +269,8 @@
           <control type="label" span="3" label="Activo"/>
           <control type="buttongroup" name="Ctx_Active" source="True,False" sourcelabels="Sí,No" 
             span="3" edit="true" default="True"/>
+          <control type="label" span="3" label="Categoria"/>  
+          <control type="calc" name="Ranking" source="ShiftSelected+ServiceSelected+SurgeryGroupSelected+SurgeryCategorySelected" span="1"/>
         </row>
         <row>
           <control type="label" span="3" label="Fecha Inicio"/>
@@ -457,8 +447,6 @@
           <control type="hidden" name="ServiceSelected"  default="0"/>
           <control type="hidden" name="SurgeryGroupSelected"  default="0"/>
           <control type="hidden" name="SurgeryCategorySelected"  default="0"/>
-          <control type="label" span="3" label="Categoria"/>  
-          <control type="calc" name="Ranking" source="ShiftSelected+ServiceSelected+SurgeryGroupSelected+SurgeryCategorySelected" span="1"/>
         </row>
         <row>
           <control type="modalbutton" name="mbtNewContractException" label="Guardar" icon="cloud-upload" color="green"

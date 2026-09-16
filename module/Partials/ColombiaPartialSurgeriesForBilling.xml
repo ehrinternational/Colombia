@@ -1,0 +1,28 @@
+﻿<partial>
+    <control type="datagrid" label="Cirugías (Haz clic para seleccionar)" name="grdSurgeryList"       
+      searchable="true" rows="10" mode="batch"
+      option="Surgery"
+      skipbatchrow="[Selected]=true" 
+      postwith="SurgeryGuid"
+      appendbatch="ClaimGuid=[selPatientClaims]" 
+      rowcolor="Selected|true=green"
+      
+      datarequest="GetScheduledSurgeries"
+      appendrequest="patientId=[PatientId]"
+      source="DateTimeScheduled,Status,SurgeryType,PrimaryProcedureName,SurgeonName"
+      sourcelabels="Programada,Estatus,Tipo,Procedimiento Primario,Cirujano"
+      align="|left|left|left|left|left|left"
+      key="SurgeryGuid"
+      translate="Status"
+      format="datetime"
+      onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
+      onselect="grdSurgeryList|static">
+    <control type="button" name="btnUpdateSurgeryList"
+      label="Asignar al Convenio o Desasignar" color="green"
+      tooltip="Deje el convenio en blanco para desasignar." 
+      action="batchupdate" 
+      capture="grdSurgeryList"
+      dataupdate="ScheduledSurgeries"
+      provoke="grdSurgeryList"/>
+    </control>
+</partial>

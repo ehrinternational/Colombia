@@ -211,7 +211,7 @@
       sourcelabels="1 Soltero,2 Casado,3 Unión Libre,4 Divorciado,5 Viudo"
       when="[Consult_AgeInYears]«18;1,[Consult_AgeInYears]«14;"/>
     <control type="label" label="Profesión" span="1"/>
-    <control type="select" name="Pym_EmployerName" span="6" edit="[Consult_AgeInYears]»15"
+    <control type="select" name="Consult_EmployerName" span="6" edit="[Consult_AgeInYears]»15"
       searchable="true"
       acctsvc="true"
       datasource="GetCoProfessions"
@@ -220,7 +220,7 @@
   </row>
   <row name="rowOccupation" reveal="FileName%Admitting|Social">
     <control type="label" label="Ocupacion" span="2"/>
-    <control type="select" name="Pym_OccupationCode" span="10" edit="[Consult_AgeInYears]»15" required="true"
+    <control type="select" name="Consult_OccupationCode" span="10" edit="[Consult_AgeInYears]»15" required="true"
       searchable="true"
       acctsvc="true"
       datasource="GetCoOccupations"

@@ -1,0 +1,28 @@
+﻿<partial>
+    <control type="datagrid" label="Procedimientos (Haz clic para seleccionar)" name="grdProcedureOrders"       
+      searchable="true" rows="10" mode="batch"
+      option="Procedures"
+      skipbatchrow="[Selected]=true" 
+      postwith="ProcedureGuid"
+      appendbatch="ClaimGuid=[selPatientClaims]"
+      acctsvcreq="true" 
+      rowcolor="Selected|true=green"
+      datarequest="GetPatientProceduresByPatientVisit"
+      appendrequest="patientVisit=[VisitSelect]"
+      source="DateTimeEntered,ClaimNumber,ProcedureStatus,OrderNumber,ProcedureDescription,OrderedByFullName"
+      sourcelabels="Ordenado,Convenio,Estatus,Folio,Procedimiento,Ordenado por"
+      align="|left|left|left|left|left"
+      translate="ProcedureStatus"
+      format="datetime"
+      key="ProcedureGuid"
+      onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
+      onselect="grdProcedureOrders|static">
+    <control type="button" name="btnUpdateProcedureList"
+      label="Asignar al Convenio o Desasignar" color="green"
+      tooltip="Deje el convenio en blanco para desasignar." 
+      action="batchupdate" 
+      capture="grdProcedureOrders"
+      dataupdate="PatientProcedures"
+      provoke="grdProcedureOrders"/>
+    </control>
+</partial>

@@ -169,7 +169,6 @@ ProcedureList AS (
       AND v.ProcedureGuid IS NOT NULL
 ),
 
-
 -- ==========================================================================================
 -- SECTION 4: Code Mapping & Category Exception Priority Scoring
 -- ==========================================================================================

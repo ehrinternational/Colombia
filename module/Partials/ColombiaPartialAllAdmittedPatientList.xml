@@ -1,5 +1,5 @@
 ﻿<partial>  
-  <section type="tab" title="Pacientes Ingresados">
+  <section type="tab" name="tabAllAdmittedPatientsList" title="Pacientes Ingresados">
     <group>
       <row>
           <control type="datagrid" label="Pacientes Ingresados" name="PatientList"

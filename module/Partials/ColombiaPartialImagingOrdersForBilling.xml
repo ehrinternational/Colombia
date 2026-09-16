@@ -1,0 +1,28 @@
+﻿<partial>
+    <control type="datagrid" label="Órdenes de Imagenología (Haz clic para seleccionar)" name="grdRadiologyOrders"       
+      searchable="true" rows="10" mode="batch"
+      option="Imaging"
+      skipbatchrow="[Selected]=true" 
+      postwith="ImagingOrderGuid"
+      appendbatch="ClaimGuid=[selPatientClaims]" 
+      rowcolor="Selected|true=green"
+      datarequest="GetPatientImagingOrdersByPatientVisit"
+      appendrequest="patientId=[PatientId],patientVisit=[VisitSelect]"
+      source="DateTimeEntered,ClaimNumber,OrderStatus,OrderNumber,ImagingOrderDescription,OrderedByFullName,ExternalProviderName"
+      sourcelabels="Fecha,Convenio,Estatus,Número,Orden,Médico,Médico Externo"
+      align="left|left|left|left|left|left"
+      translate="OrderStatus"
+      format="datetime"
+      sort="DateTimeEntered=desc"
+      key="ImagingOrderGuid"
+      onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
+      onselect="grdRadiologyOrders|static">
+    <control type="button" name="btnUpdateImagingList"
+      label="Asignar al Convenio o Desasignar" color="green"
+      tooltip="Deje el convenio en blanco para desasignar." 
+      action="batchupdate" 
+      capture="grdRadiologyOrders"
+      dataupdate="PatientImagingOrders"
+      provoke="grdRadiologyOrders"/>
+    </control>
+</partial>

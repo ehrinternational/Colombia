@@ -2,7 +2,6 @@
 <!-- XML for Views version 1.0-->
 <module name="Facturación" type="onload" trigger="GetPOSSessionForUser,PatientPayerGroup_PayerStateProvince,Payers_PayerStateProvince,PatientList">
   <facet name="InvoiceCalculated" default="False"/>
-  <facet name="DateTimeProcessed"/>
   <facet name="FileName" value="PatientBilling"/>
   <headerbutton name="btnBillingReportsByType"
     icon="print" label="Informes"
@@ -11,10 +10,10 @@
     action="redirect" target="mdlReports"/>
   <!-- Display a list of patients -->
   <partial link="Partials/ColombiaPartialAllAdmittedPatientList.xml"/>
-  <!-- SAT Invoices -->
-  <partial link="Partials/ColombiaPartialSATInvoices.xml"/>
+  <!-- SAT Invoices 
+  <partial link="Partials/ColombiaPartialDIANInvoices.xml"/>-->
   <!-- Patient tabmodal -->
-  <section type="tabmodal" name="PatientTabModal" title="Facturas del Paciente" badge="none" size="medium" provoke="InvoiceList">
+  <section type="tabmodal" name="PatientTabModal" title="Factura del Paciente" badge="none" size="medium" provoke="InvoiceList">
     <group showif="never">
       <row>
         <control type="hidden" name="PatientId"
@@ -47,6 +46,7 @@
           appendrequest="PatientId=[PatientId]"
           set="HasOpenCharges=[[HasOpenCharges]],HasOpenPayments=[[HasOpenPayments]]"/>
         <control type="button" name="ClosePatientTabModal" action="close|new"/>
+        <control type="hidden" name="GridDisplay" default="Billing"/>
       </row>
     </group>
     <!--Patient information-->
@@ -739,21 +739,24 @@
           default="0.00" source="PatientVisitChargeTotal-(PatientVisitPaymentTotal)" />              
       </row>
     </group>      
-     <!-- Patient visit datagrids -->
-    <group name="PatientGridGroup" reveal="[PatientId]!+[VisitSelect]!">
+    <!-- Patient visit datagrids -->
+    <group name="PatientGridGroup" reveal="[PatientId]!+[VisitSelect]!+[GridDisplay]=Billing">
       <row>
-        <control type="buttongroup" name="ButtonGroupSelect" span="12"
+        <control type="button" name="btnSwitchToMedical" label="Médico" action="trigger" span="2"
+          set="[GridDisplay]=Medical" provoke="selPatientClaims"/>
+        <control type="buttongroup" name="ButtonGroupSelect" span="10"
           edit="true" mode="auto" default="Charges"
           source="Charges,PatientPayers,PayerClaims,Addresses,Contacts,Documents,SATInvoices,Quotes,Appointments" 
           sourcelabels="Cargos,Convenios,Convenios de Atención,Direcciones,Contactos,Documentos,Facturas,Cotizaciones,Citas" 
           provoke="GridOptions|options"/>
       </row>
+      <!--<partial link="Partials/ColombiaPartialPatientSATInvoiceList.xml"/>-->
       <row>
         <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
           <partial link="Partials/ColombiaPartialBillingPatientCharges.xml"/>
           <partial link="Partials/ColombiaPartialBillingPatientPayments.xml"/>
           <partial link="Partials/ColombiaPartialPatientPayers.xml"/>
-          <partial link="Partials/ColombiaPartialPatientClaims.xml"/>
+          <partial link="Partials/ColombiaPartialPatientClaimsForBilling.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialPatientQuotesNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithRevisionsNoEdit.xml"/>
@@ -763,6 +766,34 @@
         </control>
       </row>    
     </group> 
+    <!-- Patient visit datagrids -->
+    <group name="MedicalGridGroup" reveal="[PatientId]!+[VisitSelect]!+[GridDisplay]=Medical">
+      <row>
+        <control type="button" name="btnSwitchToBilling" label="Facturación" action="trigger" span="2"
+          set="[GridDisplay]=Billing"/>
+        <control type="buttongroup" name="MedicalGroupSelect" span="10"
+          edit="true" mode="auto" default="Laboratory"
+          source="Laboratory,Imaging,Medication,Procedures,Surgery" 
+          sourcelabels="Laboratorio,Imagen,Medicamentos,Procedimientos,Cirugía" 
+          provoke="MedicalOptions|options"/>
+      </row>
+      <row>
+         <control type="label" span="2" label="Asignar al Convenio"/>
+         <control type="select" name="selPatientClaims" span="9"
+            datarequest="GetPayerClaimsByPatientVisit"
+            appendrequest="patientVisit=[VisitSelect]"
+            source="ClaimNumber|PayerName,ClaimGuid"/>
+      </row>
+      <row>
+        <control type="options" name="MedicalOptions" affector="MedicalGroupSelect" span="12">
+          <partial link="Partials/ColombiaPartialLabOrdersForBilling.xml"/>
+          <partial link="Partials/ColombiaPartialImagingOrdersForBilling.xml"/>
+          <partial link="Partials/ColombiaPartialProcedureOrdersForBilling.xml"/>
+          <partial link="Partials/ColombiaPartialSurgeriesForBilling.xml"/>
+          <partial link="Partials/ColombiaPartialMedicationsForBilling.xml"/>
+        </control>
+      </row>    
+    </group>
   </section>
   <!-- Tabmodal to merge patient visits -->
   <section type="tabmodal" name="mdlMergeVisits" title="Combinar Visitas" badge="none" size="small">
