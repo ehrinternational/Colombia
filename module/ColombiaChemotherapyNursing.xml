@@ -38,7 +38,7 @@
   <partial link="../../ERPSpanish/module/Partials/PartialESCountStockItemsByLocation.xml"/>
   <partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
   <!-- Patient tabmodal displays the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" title="Información del Paciente" edit="false">
+  <section type="tabmodal" badge="none" name="PatientTabModal" title="Información del Paciente" edit="false"  provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <!-- Get patient information -->
@@ -179,6 +179,7 @@
     <partial link="Partials/ColombiaPartialCalendarTreatmentAsModal.xml"/>
     <partial link="Partials/ColombiaPartialCalendarTreatmentAppointmentModal.xml"/>
     <!-- General modals -->
+     <partial target="mdlFindRoom" link="./Partial/Beds/PartialAssignPatientBed.xml"/>
     <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
     <partial link="./Partial/Admin/PartialInitiatePatientSearchModalAllPatients.xml"/>
     <partial link="./Partial/Requests/PartialInternalConsultRequest.xml"/>

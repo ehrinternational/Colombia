@@ -48,7 +48,7 @@
   <!-- Display a list of appointments for a date range -->
   <partial link="Partials/ColombiaPartialOutpatientAppointmentList.xml"/>
   <!-- PatientTabModal is the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false" provoke="OutPatientList">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="OutPatientList">
     <group name="GuidStorage">
       <row showif="never">
         <control type="hidden" name="GetUserName" default="(userName)"/>

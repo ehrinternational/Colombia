@@ -48,14 +48,6 @@
       trigger="ReportList,Report_VisitId"
       action="redirect" target="mdlReports"/>
   </row>
-  <row>
-        <control type="button" name="btnNewSurgeryRequest" span="12" label="Solicitud Cirugía"
-          reveal="[PatientId]!"
-          action="redirect"
-          target="NewSurgeryRequestModal"
-          preset="SurgeryRequest_PatientId=[PatientId]"
-          trigger="SurgeryRequest_PatientId"/>
-    </row>
     <row>
       <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
         span="12" icon="envelope" label="Email"
@@ -87,8 +79,29 @@
         action="redirect" target="tmdPatientBirthRecords"/>
     </row>
     <row>
-      <control type="button" name="btnTriageCalculation" label="Triaje" icon="edit" span="12" 
-        reveal="[PatientId]!+[PatientVisitGuid]!"
+      <control type="button" name="btnTriageCalculation" label="Nivel Triage" color="grey" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]="
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation1" label="Triage Rojo" icon="warning-sign" color="red" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=1"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        trigger="GetTriageFields"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation2" label="Triaje Amarillo" icon="edit" color="yellow" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=2"
+        trigger="GetTriageFields"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation3" label="Triaje Verde" icon="edit" color="yellowgreen" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=3"
+        trigger="GetTriageFields"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation4" label="Urgencia Sentida" icon="edit" color="green" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=4"
+        trigger="GetTriageFields"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
         action="redirect" target="mdlTriageCalculation"/>
     </row>
     <!-- AI buttons -->

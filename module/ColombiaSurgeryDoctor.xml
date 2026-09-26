@@ -32,7 +32,7 @@
   <!-- Bed Map for surgery -->
   <partial link="./Partial/Beds/PartialBedMapSurgery.xml"/>
   <!-- PatientTabModal is the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <control type="text" name="GetUserName" default="(userName)"/>
@@ -42,20 +42,13 @@
           appendrequest="PatientId=[PatientId]"
           inject="PatientInfo"
           set="[[HasOpenVisit]]=true;PatientVisitGuid=[[PatientVisit]]"
-          provoke="[[HasOpenVisit]]=true;PatientVisitGuid,[[HasOpenVisit]]=true;FindSurgeryGuid"/>
+          provoke="[[HasOpenVisit]]=true;PatientVisitGuid"/>
         <!-- Get visit information -->
         <control type="hidden" span="4" name="PatientVisitGuid" 
           datarequest="GetPatientVisitByUniqueId"
           appendrequest="UniqueId=[PatientVisitGuid]"
           inject="VisitInfo"
-          provoke="ERProblemList|active,ERPastProblemList|active,ERAllergyList|active"/>
-        <!-- Find the first scheduled surgery -->
-        <control type="select" name="FindSurgeryGuid"
-          default="true" explicit="true"
-          sort="Status"
-          source="Description,SurgeryGuid"
-          datarequest="GetScheduledSurgeries"
-          appendrequest="patientId=[PatientId],byStatus=In Process|Scheduled"/>
+          provoke="ButtonGroupSelect"/>
         <!-- Insert patient bed assignement -->
         <control type="text" span="4" name="InsertNewBedAssignment"
           datarequest="GetPatientAllFields"
@@ -104,7 +97,6 @@
           <partial link="./Partial/Grids/PartialPatientTasksWithNewAndEdit.xml"/>
           <partial link="Partials/ColombiaPartialIdentificationGrid.xml"/>
           <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
-          
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="Partials/ColombiaPartialScannedDocumentsWithNewAndCancelInWindow.xml"/>
           <partial link="./Partial/Grids/PartialAppointmentListForPatientNoEdit.xml"/>
@@ -115,8 +107,7 @@
         <control type="button" name="btnDempgraphics" span="1"
           icon="home" label="" action="trigger" set="ShowDataGrids=Demographic"
           provoke="ButtonGroupSelect2"/>
-        <control type="buttongroup" 
-          name="ButtonGroupSelect" 
+        <control type="buttongroup" name="ButtonGroupSelect" 
           edit="true" mode="auto" 
           source="Surgery,Problems,Nursing,Vitals,Physicians,Studies,Medication,Vaccines,Services,Documents,Diets" 
           sourcelabels="Procedimientos,Diagnósticos,Enfermería,Vitales,Médicos,Estudios,Medicamentos,Inmunizaciones,Servicios,Documentos,Dietas" 
@@ -156,9 +147,8 @@
           <partial link="./Partial/Grids/PartialImagingOrderHistory.xml"/>
           <partial link="Partials/ColombiaPartialImagingReports.xml"/>
           <partial link="./Partial/Grids/PartialScannedImagingDocumentsInWindow.xml"/>
-          <partial link="Partials/ColombiaPartialSurgeryListForPatientWithAdd.xml"/>
+          <partial link="Partials/ColombiaPartialSurgeryListForSurgeonWithAdd.xml"/>
           <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
-          
           <partial link="./Partial/Grids/PartialBloodBankOrdersWithNewAndEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
         </control>
@@ -166,7 +156,6 @@
      </group>
    </section>
   <!-- Colombia Partials -->
-  <partial target="mdlSurgerySuppliesList" link="Partials/ColombiaPartialSurgerySuppliesModalForView.xml"/>
   <partial target="mdlSurgeryOrderModal" link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
   <partial target="mdlSurgeryECDs" link="Partials/ColombiaPartialSurgeryECDs.xml"/>
   <partial target="mdlSurgeryECDsWithSurgeryGuid" link="Partials/ColombiaPartialSurgeryECDsWithSurgeryGuid.xml"/>

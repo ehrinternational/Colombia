@@ -16,7 +16,7 @@
       icon="cloud-upload"
       compare="[CurrentDepartment]!+[Consult_PatientFirstName]!+[Consult_PatientMiddleName]!+[Consult_PatientDOB]!+[Consult_PatientSex]!+[PtSSN]!+[Consult_Sector]!+[Consult_AttendingPhysician]!+[Consult_BirthPlace]!|Faltan Departamento, Nombres, Fecha de nacimiento, CURP, Establecimiento o Asignado"
       datainsert="InsertPatientVisitAllFields"
-      appendinsert="CopyDiagnosis=true,LocationId=(facilityData.LocationId),patientId=[PatientId],visitType=[DefaultAdmitType],departmentGuid=[CurrentDepartment],hospitalService=Esperando,ambulatoryStatus=Inpatient
+      appendinsert="LocationId=(facilityData.LocationId),patientId=[PatientId],visitType=[DefaultAdmitType],departmentGuid=[CurrentDepartment],hospitalService=Esperando,ambulatoryStatus=Inpatient
       ,preAdmit=0,admitDateTime=(dateTimeNow),payerName=[Consult_PatientNameSuffix],PayerRFC=[Consult_RFC],PayerPostalCode=[Consult_PrimaryPayorZipCode],PayerAddress=[Consult_PrimaryPayorAddLineOne]"
       set="HasOpenVisit=true,PatientVisit=[PatientVisitUniqueId]"
       provoke="ERProblemList"/>
@@ -39,7 +39,7 @@
   <row>
     <!-- Assign a patient room -->
     <control type="button" name="btnAssignPatientBed" span="12"
-      reveal="[HasOpenVisit]=true"
+      reveal="[PatientVisitGuid]!+[PatientId]!"
       icon="cloud-upload" color="orange"
       label="Asignar Cama"
       trigger="FindWardList"

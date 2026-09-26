@@ -22,7 +22,7 @@
   <!-- Surgery Approval Patient List -->
   <partial link="Partials/ColombiaPartialSurgeryApprovalPatientList.xml"/>
   <!-- PatientTabModal is the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <control type="text" name="GetUserName" default="(userName)"/>

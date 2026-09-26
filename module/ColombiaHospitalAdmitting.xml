@@ -18,7 +18,7 @@
   <!-- Display list of admitted patients for a selected department -->
   <partial link="Partials/ColombiaPartialHospitalizedPatientListByDepartment.xml"/>
   <!--Tabmodal for admitting/reviewing hospital patients-->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="medium" title="Información del Paciente" edit="false" provoke="PatientList">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="medium" title="Información del Paciente" provoke="PatientList">
     <group name="AdmitGuidStorage" showif="never">
       <row>
         <!--Read the patient record and display-->

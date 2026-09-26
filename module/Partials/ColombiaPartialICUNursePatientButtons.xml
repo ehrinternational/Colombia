@@ -54,19 +54,6 @@
         append="ecdGuid=03098ec0-ad84-43bb-b607-af6662654988,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
         provoke="EREcdForms"/>
     </row>
-    <!--
-    <row>
-       Print bed id 
-      <control type="button"
-        reveal="[PatientId]!" 
-        span="12"
-        name="btnPrintBedIdentification"
-        action="print" 
-        mode="report" 
-        label="Identificación" 
-        icon="print" 
-        append="id=f098d227ae6,FacilityId=(facility),PatientId=[PatientId],PatientVisit=[PatientVisit]"/>
-    </row>-->
      <row>
       <!-- Display the patient timeline -->
       <control type="button" name="btnTimeline"  span="12" color="yellow" icon="time" label="Cronograma"

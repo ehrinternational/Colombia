@@ -1,19 +1,68 @@
 ﻿<partial>
-  <!-- Partial surgery equipment -->
-  <control type="datagrid" name="ScheduledEquipment" label="Equipo de Cirugía" 
-    modalname="ScheduledEquipmentModal" 
-    rows="10" span="12"
-    fitrows="true"
-    idle="[SurgeryGuid]=|reset"
-    datarequest="GetScheduledEquipment"
-    appendrequest="SurgeryGuid=[SurgeryGuid]"
-    datainsert="InsertScheduledEquipment"
-    appendinsert="SurgeryGuid=[SurgeryGuid]"
-    dataupdate="UpdateScheduledEquipment"
-    appendupdate="SurgeryGuid=[SurgeryGuid]"
-    source="Active,EquipmentName,EquipmentSerialNumber,Notes"
-    sourcelabels="Activo,Descripción,Serie,Notas"
-    align="|left|left|left|left|left"
-    format="boolean"
-    key="ScheduledGuid"/>
+  <section type="tabmodal" name="mdlScheduledSurgeryEquipment" title="Equipo de Cirugía" badge="none">
+    <group>
+      <row>
+        <!-- Partial surgery equipment -->
+        <control type="datagrid" name="dgrScheduledEquipment" label="Equipo de Cirugía" 
+          modalname="ScheduledEquipmentModal" 
+          rows="10" span="12"
+          fitrows="true"
+          idle="[SurgeryGuid]=|reset"
+          datarequest="GetScheduledEquipment"
+          appendrequest="SurgeryGuid=[SurgeryGuid]"
+          datainsert="InsertScheduledEquipment"
+          appendinsert="SurgeryGuid=[SurgeryGuid]"
+          dataupdate="UpdateScheduledEquipment"
+          appendupdate="SurgeryGuid=[SurgeryGuid]"
+          source="Active,EquipmentName,EquipmentSerialNumber,Notes"
+          sourcelabels="Activo,Descripción,Serie,Notas"
+          align="|left|left|left|left|left"
+          format="boolean"
+          key="ScheduledGuid"/>
+      </row>
+    </group>
+  </section>
+    <!-- Partial Surgery Equipment Modal  -->
+  <section type="modal" name="ScheduledEquipmentModal" title="Equipo de Cirugía">
+    <group>
+      <row showif="edit">
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Sem_Active" span="2"
+          source="True,False" 
+          sourcelabels="Sí,No" 
+          default="True" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Equipo" span="3"/>
+        <control type="select" name="Sem_EquipmentGuid" searchable="true" sort="EquipmentName=asc" span="5"
+          datasource="GetSurgeryEquipment"
+          source="EquipmentName|EquipmentSerialNumber,EquipmentGuid"
+          filter="Active=true"
+          required="true"
+          edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Notas" span="3"/>
+        <control type="textarea" name="Sem_Notes" span="5" rows="3" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="Sem_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="Sem_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>
 </partial>

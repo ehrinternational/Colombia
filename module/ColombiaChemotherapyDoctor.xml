@@ -18,7 +18,7 @@
  <!-- Hospitalized patient list -->
   <partial link="Partials/ColombiaPartialHospitalizedPatientListNoQueues.xml"/>
   <!-- PatientTabModal is the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" title="Información del Paciente" size="medium">
+  <section type="tabmodal" badge="none" name="PatientTabModal" title="Información del Paciente" size="medium"  provoke="PatientList">
     <group showif="never">
       <row>
         <!-- Get patient information -->

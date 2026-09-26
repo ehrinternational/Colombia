@@ -10,9 +10,7 @@
           acctsvcreq="true"
           datarequest="GetLastTriageCalculationByPatientVisitId"
           appendrequest="PatientVisitId=[Triage_PatientVisitGuid]"
-          inject="grpTriageInfo"
-          />
-
+          inject="grpTriageInfo"/>
         <!-- Calculate triage levels from vital signs -->
         <control type="hidden" name="Triage_PatientId"/>
         <control type="hidden" name="Triage_PatientVisitGuid"/>
@@ -173,24 +171,13 @@
       <row>
         <!-- Update the triagelevel field in the patient visit record and set the TriageLevel on patient chart -->
         <control type="modalbutton" name="btnUpdateTriageTriageLevel" icon="cloud-upload" label="Guardar" color="green"
-          action="save" 
+          action="save|close|new" 
           affector="none"
           capture="grpTriageInfo"
           acctsvc="true"
           datainsert="InsertTriageCalculation"
           appendinsert="patientVisitId=[Triage_PatientVisitGuid],PatientId=[Triage_PatientId]"
-          set="TriageLevel=[Triage_TriageLevel]"
-          provoke="btnUpdateTriageLevel"/>
-      </row>
-      <row showif="never">
-        <!-- Update the triage level on the patient visit -->
-        <control type="button" name="btnUpdateTriageLevel"
-          action="save|close|new"
-          acctsvc="true"
-          dataupdate="UpdatePatientVisitNoDepartmentTracking"
-          appendupdate="patientVisitUniqueId=[Triage_PatientVisitGuid],TriageLevel=[Triage_TriageLevel]"
-          provoke="PatientList"
-          emit="trigger|PatientList"/>
+          set="TriageLevel=[Triage_TriageLevel]"/>
       </row>
     </subset>
     </group>

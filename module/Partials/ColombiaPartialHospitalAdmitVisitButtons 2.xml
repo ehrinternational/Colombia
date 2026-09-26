@@ -22,7 +22,7 @@
       setaffector="PatientVisitUniqueId"
       capture="VisitInfo"
       datainsert="InsertPatientVisitAllFields"
-      appendinsert="CopyDiagnosis=true,LocationId=(facilityData.LocationId),patientId=[PatientId],visitType=[DefaultAdmitType],departmentGuid=[GetAdmittingDepartment],hospitalService=Esperando,ambulatoryStatus=Inpatient
+      appendinsert="LocationId=(facilityData.LocationId),patientId=[PatientId],visitType=[DefaultAdmitType],departmentGuid=[GetAdmittingDepartment],hospitalService=Esperando,ambulatoryStatus=Inpatient
       ,preAdmit=0,admitDateTime=(dateTimeNow),payerName=[Consult_PatientNameSuffix],PayerRFC=[Consult_RFC],PayerPostalCode=[Consult_PrimaryPayorZipCode],PayerAddress=[Consult_PrimaryPayorAddLineOne]"
       set="HasOpenVisit=true,PatientVisit=[PatientVisitGuid]"
       provoke="ERProblemList"/>
@@ -45,7 +45,7 @@
   <row>
     <!-- Assign a patient room -->
     <control type="button" name="btnAssignPatientBed" span="12"
-      reveal="[HasOpenVisit]=true"
+      reveal="[PatientVisitGuid]!+[PatientId]!"
       icon="cloud-upload" color="orange"
       label="Asignar Cama"
       trigger="FindWardList"

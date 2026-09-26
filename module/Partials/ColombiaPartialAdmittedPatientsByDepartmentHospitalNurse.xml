@@ -8,7 +8,7 @@
           datarequest="GetUserProfileFromUserId2"
           appendrequest="UserIdToGet=(userName)"
           set="[[Department]]!;NurseDepartmentGuidLookup=[[Department]]"
-					provoke="NursePatientList"/>
+					provoke="PatientList"/>
         <!-- Save the department the user selects to the user profile -->
         <control type="button" 
           name="SaveLastNurseDepartment"
@@ -27,7 +27,7 @@
             datasource="GetDepartmentsActive" 
             append="LocationId=(facilityData.LocationId)" 
             source="DepartmentNumber|DepartmentName,DepartmentGuid"
-            provoke="SaveLastNurseDepartment,NursePatientList"/>
+            provoke="SaveLastNurseDepartment,PatientList"/>
             <!-- Select the hospital service (queue) to display -->
           <control type="hidden" name="NurseQRScannedResult" span="3" action="trigger" 
             trigger="NurseGetScannedPatientByQR"
@@ -56,12 +56,11 @@
       </row>
       <row>
         <!-- Display a list of patients currently assigned to the department -->
-        <control type="datagrid" label="Pacientes por Departamento" name="NursePatientList"
+        <control type="datagrid" label="Pacientes por Departamento" name="PatientList"
           action="redirect" 
           target="PatientTabModal"
           searchable="true"
           span="12" rows="15"
-          rowcolor="TriageLevel|1=green;2=blue;3=yellow;4=red"
           idle="[NurseDepartmentGuidLookup]=|reset"
           acctsvcreq="true"
           datarequest="GetAdmittedPatientsByDepartment"
@@ -80,7 +79,7 @@
             preset="PatientSearchSource=61,DisplayOpenVisitsOnly=true"
             action="redirect" target="mdlFindPatients"/>
 					<control type="button" name="NursebtnRefreshPatientList" label="Actualizar"
-						icon="refresh" action="trigger" trigger="NursePatientList"/>
+						icon="refresh" action="trigger" trigger="PatientList"/>
         </control>
         </row>
         <row showif="never">

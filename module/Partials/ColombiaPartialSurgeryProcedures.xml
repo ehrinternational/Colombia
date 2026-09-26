@@ -1,0 +1,117 @@
+<partial>
+<section type="tabmodal" name="mdlSurgeryProcedures" title="Procedimientos de Cirugía" badge="none" size="medium">
+  <group>
+    <row>
+      <control type="datagrid" label="Procedimientos Quirúrgicos" name="dgrSurgeryProcedures"
+        span="12" rows="5"
+        modalname="mdlSurgeryProcedure"
+        fitrows="true"
+        acctsvcreq="true"
+        acctsvc="true"
+        datarequest="GetSurgeryProcedures"
+        datainsert="InsertSurgeryProcedures"
+        appendinsert="[FileName]=SurgeryScheduling|SurgeryAdministration;SurgeryGuid=[SurgeryGuid]^SurgeryGuid=[SurgeryViewGuid]"
+        dataupdate="UpdateSurgeryProcedures"
+        appendrequest="[FileName]=SurgeryScheduling|SurgeryAdministration;SurgeryGuid=[SurgeryGuid]^SurgeryGuid=[SurgeryViewGuid]"
+        source="Active,IncisionNumber,IsPrimary,ProcedureDescription,SurgeonName,AnesthesiologistName,AssistantName1,AssistantName2"
+        sourcelabels="Activo,Incisión,Principal,Procedimiento,Cirujano,Anestesiólogo,1er Ayudante,2do Ayudante"
+        align="|||left|left|left|left|left"
+        format="boolean||boolean"
+        sort="ProcedureDescription=asc"
+        key="SurgeryProcedureGuid">
+      </control>
+    </row>
+  </group>
+</section>
+<!-- Modal to exnter/edit surgery procedures -->
+<section type="modal" name="mdlSurgeryProcedure" title="Procedimientos de Cirugía">
+    <group>
+      <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Prc_Active" span="2" default="True" 
+          edit="[Prc_CalcOrdinal]»1" source="True,False" sourcelabels="Sí,No"/>
+      </row>
+      <row>
+        <control type="label" label="Número de Incisión" span="3"/>
+        <control type="integer" name="Prc_IncisionNumber" span="2" min="1" max="[Prc_CalcOrdinal]" default="1" 
+          edit="[Prc_CalcOrdinal]»1" required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Primario" span="3"/>
+        <control type="buttongroup" name="Prc_IsPrimary" span="2" edit="[Prc_CalcOrdinal]»1"
+          source="True,False" sourcelabels="Sí,No" when="[Prc_CalcOrdinal]=1;True"/>
+      </row>
+      <row>
+        <control type="label" label="Plano" span="3"/>
+        <control type="select" name="Prc_Laterality" span="3"
+          source="1,2,3,4" 
+          sourcelabels="1 Izquierdo,2 Derecho,3 Bilateral,4 No Aplica" 
+          required="true"
+          edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"/>
+      </row>
+      <row>
+        <control type="label" label="Forma Realizacion" span="3"/>
+        <control type="select" name="Prc_SurgeryApproach" span="3" edit="true"
+          source="1,2,3" required="true"
+          sourcelabels="1 Abierto, 2 Laparoscópico/Endoscópico, 3 Percutáneo"/>
+      </row>
+      <row>
+        <control type="label" label="Procedimiento" span="3"/>
+        <control type="typeahead" name="Prc_ProcedureDescription,Prc_ProcedureGuid" span="9" 
+          edit="true"
+          source="ProcedureDescription,ProcedureGuid"
+          datasource="GetProceduresFromProcedureAdministration"
+          term="procedureDescription" required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Cirujano" span="3"/>
+        <control type="select" name="Prc_SurgeonId" persist="true"
+          searchable="true" required="[Surgery_Posting]=True"
+          acctsvc="true" datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Surgeon"
+          source="UserFirstMiddleLast,UserId"
+          span="5" explicit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Anestesiólogo" span="3"/>
+        <control type="select" name="Prc_Anesthesiologist" persist="true"
+          namefield="AnesthesiologistName"
+          searchable="true" edit="true"
+          acctsvc="true" datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Anesthesiologist"
+          source="UserFirstMiddleLast,UserId"
+          span="5" explicit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Primer Ayudante" span="3"/>
+        <control type="select" name="Prc_Assistant1" persist="true"
+          namefield="Assistant1Name"
+          searchable="true"
+          acctsvc="true" datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Surgeon"
+          source="UserFirstMiddleLast,UserId"
+          span="5" explicit="true" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Segundo Ayudante" span="3"/>
+        <control type="select" name="Prc_Assistant2" persist="true"
+          namefield="Assistant2Name"
+          searchable="true"
+          acctsvc="true" datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Surgeon"
+          source="UserFirstMiddleLast,UserId"
+          span="5" explicit="true" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Instrumentador" span="3"/>
+        <control type="select" name="Prc_Instrumentalist" persist="true"
+          searchable="true"
+          acctsvc="true" datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Instrumentalist"
+          source="UserFirstMiddleLast,UserId"
+          span="5" explicit="true" 
+          edit="true"/>
+      </row>
+    </group>
+  </section>
+</partial>

@@ -119,39 +119,6 @@
               dataupdate="UpdatePayerClaim"
               appendupdate="ClaimGuid=[ClaimGuid]"/>
           </row>
-          <row>
-            <!-- Recalculate patient invoice-->
-            <control type="button" name="btnReCalculateOtherPayerInvoice" span="12"
-              label="Recalcular" icon="refresh" action="save"
-              reveal="{[ClaimGuid]!+[Clm_Recalculated]=false+[Clm_Status]=Pending+FileName=PatientBilling}"
-              acctsvc="true"
-              capture="NewClaimsInfo"
-              affector="ClaimGuid"
-              setaffector="ClaimGuid"
-              dataupdate="UpdatePayerClaim"
-              appendupdate="ClaimGuid=[ClaimGuid],InvoicedBy=(userName)"
-              provoke="btnFinishRecalculateClaim"/>
-          </row>
-          <row showif="never">
-            <!-- Recalculate this payer claim with price updating-->
-            <control type="button" name="btnFinishRecalculateClaim"
-              action="save"
-              acctsvc="true" 
-              dataupdate="RecalculatePatientInvoice"
-              appendupdate="patientVisit=[Clm_PatientVisit],ClaimGuid=[ClaimGuid]"
-              set="Clm_Recalculated=true"
-              provoke="grdPayerCharges_Charges|active"
-              success="Esta factura se ha recalculado."/>
-          </row> 
-          <row>
-            <!-- Edit an invoice after recalculating -->
-            <control type="button" span="12" name="btnOpenClaimAfterRecalculating"
-              icon="cloud-upload" label="Editar"
-              reveal="[Clm_Recalculated]=true"
-              confirm="Confirme que desea editar este Convenio de la Atención antes de procesarla."
-              set="Clm_Recalculated=false"
-              action="trigger"/>
-          </row>
           <!-- Insert a DIAN invoice for Colombia facilities -->
           <row>
             <control type="button" span="12" name="btnInsertPayerDIANInvoice"
@@ -317,35 +284,6 @@
           key="TransactionGuid"
           onselectset="[Clm_Status]=Pending;EditClaimCharge_ClaimTransaction=[[TransactionGuid]]"
           onselect="[Clm_Status]=Pending;EditClaimCharge_ClaimTransaction">  
-          <control type="button" name="btnAnahiMagic" reveal="(userName)%Anahi"
-            icon="remove" color="red" label="Cancelar Cargo" action="save"
-            showif="feature"
-            confirm="Confirme que desea cancelar este cargo."
-            acctsvc="true"
-            dataupdate="UpdatePatientCharge"
-            appendupdate="TransactionGuid=[[TransactionGuid]],Status=Canceled"
-            provoke="grdPayerCharges_Charges"/>
-          <control type="button" name="btnRemoveChargeFromClaim"
-            icon="refresh" label="Revertir a Paciente"
-            showif="feature" reveal="[InvoiceStatus]=Open|Closed+[Clm_Status]=Pending"
-            action="save"
-            acctsvc="true"
-            confirm="Confirme que desea devolver este cargo a la factura del paciente."
-            dataupdate="UpdatePatientCharge"
-            appendupdate="TransactionGuid=[[TransactionGuid]],ClaimGuid=null"
-            provoke="grdPayerCharges_Charges"/>
-          <control type="button" name="ClaimAllocatePatientCharges" action="redirect" 
-            reveal="[InvoiceStatus]=Open|Closed"
-            preset="InvoiceCalculated=false,Clm_Recalculated=false,selPayerClaims=ClaimGuid"
-            trigger="selPayerClaims,grdPatientCharges" 
-            label="Asignar Cargos" 
-            icon="refresh" target="mdlAllocatePatientCharges"/>
-          <control type="button" name="btnNewClaimCharge"
-            icon="plus" label="Añadir Nuevo" 
-            reveal="[Clm_Status]=Pending"
-            action="redirect"
-            target="mdlNewClaimCharge"
-            preset="NewClaimCharge_ClaimGuid=[ClaimGuid],NewClaimCharge_ClaimNumber=[Clm_ClaimNumber]"/>
           </control>
           <!-- Claim receipts -->
           <control type="datagrid" label="Pagos del Pagador" name="grdPayerReceipts_Receipts"

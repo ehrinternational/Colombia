@@ -25,7 +25,7 @@
   <!-- Display a list of appointments for a date range -->
   <partial link="./Partial/Lists/PartialTreatmentAppointmentListAdmitAndEdit.xml"/>
   <!--Tabmodal for admitting/reviewing hospital patients-->
-  <section type="tabmodal" badge="none" name="PatientTabModal" title="Información del Paciente" size="medium">
+  <section type="tabmodal" badge="none" name="PatientTabModal" title="Información del Paciente" size="medium"  provoke="PatientList">
     <group showif="never">
       <row>
         <!--Read the patient record and display-->

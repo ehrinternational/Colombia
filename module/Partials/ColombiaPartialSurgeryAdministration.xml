@@ -1,0 +1,68 @@
+<partial>
+  <!-- Partial surgery request wait list -->
+  <section type="tab" name="tabSurgeryAdminList" title="Administración de Cirugías" trigger="dgrSurgeryAdminList">
+    <group>
+      <row>
+        <control type="label" label="Estatus" span="1"/>
+        <control type="buttongroup" name="btgSurgeryStatus"
+          source="Requested,Scheduled,Confirmed,In Process,Completed,Canceled"
+          sourcelabels="Solicitado,Reservada,Confirmado,En Proceso,Realizada,Cancelada" 
+          span="7" default="Requested" 
+          provoke="dgrSurgeryAdminList"/>
+        <!-- Date controls to search by a range of dates (DateTimeEntered) -->
+        <control type="date" span="2" name="SearchStartDate" 
+          default="now" reveal="btgSurgeryStatus=Completed|Canceled" trigger="dgrSurgeryAdminList"/>
+        <control type="date" span="2" name="SearchEndDate" 
+          default="now" reveal="btgSurgeryStatus=Completed|Canceled" trigger="dgrSurgeryAdminList"/>
+      </row>
+      <row>
+        <control type="label" label="Especialidad" span="1"/>
+        <!-- Select control to search for a Medical Specialty -->
+        <control type="select" span="3" name="SearchSurgerySpecialty"
+          explicit="true"
+          acctsvc="true"
+          datasource="GetMedicalSpecialties" 
+          source="Specialty,MedicalSpecialtyGuid"
+          provoke="dgrSurgeryAdminList"/>
+        <control type="label" label="Cirujano" span="1"/>
+        <!-- Select control to search by the AssignedTo physician (originating) -->
+        <control type="select" span="3" name="SearchAssignedToId"          
+          source="UserFirstMiddleLast,UserId"
+          acctsvc="true" 
+          datasource="GetUsersByAttributes" 
+          append="LocationId=(facilityData.LocationId),role=Surgeon"
+          searchable="true"
+          provoke="dgrSurgeryAdminList"/>
+      </row>
+      <row>
+        <!-- Consult Request list -->
+        <!-- Change mode to read waitng list records -->
+        <control type="datagrid" label="Géstion de Cirugías" name="dgrSurgeryAdminList" 
+          span="12" rows="15"
+          searchable="true"
+          fitrows="true"
+          action="redirect"
+          target="SurgeryTabModal"
+          datarequest="GetScheduledSurgeries"
+          appendrequest="byStatus=[btgSurgeryStatus],
+            [btgSurgeryStatus]=Completed|Canceled;startDate=[SearchStartDate],
+            [btgSurgeryStatus]=Completed|Canceled;endDate=[SearchEndDate],
+            [SearchAssignedToId]!;SurgeonId=[SearchAssignedToId],
+            [SearchSurgerySpecialty]!;MedicalSpecialty=[SearchSurgerySpecialty]"
+          source="DateTimeScheduled,Status,MedicalRecordNumber,PatientName,PrimaryProcedureName,SurgeonName,RoomName"
+          sourcelabels="Programada,Estatus,Expediente,Paciente,Procedimiento,Cirujano,Sala"
+          translate="Status"
+          align="|left|left|left|left|left|left"
+          format="datetime"
+          sort="DateTimeScheduled=desc"
+          key="SurgeryGuid"
+          onselectset="[SurgeryGuid]=[[SurgeryGuid]]"
+          onselect="SurgeryGuid">
+          <!-- Refresh the consult list -->
+          <control type="button" name="RefreshSurgeryRequestList" label="Actualizar" icon="refresh"
+            action="trigger" trigger="dgrSurgeryAdminList"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

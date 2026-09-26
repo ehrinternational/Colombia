@@ -1,19 +1,88 @@
 ﻿<partial>
-  <!-- Partial Surgery scheduled kits -->
-  <control type="datagrid" label="Kits de CEYE Programados" name="ScheduledSurgeryKits"
-    modalname="ScheduledSurgeryKitsModal" 
-    rows="10" span="12"
-    fitrows="true"
-    idle="[SurgeryGuid]=|reset"
-    datarequest="GetScheduledSurgeryKits"
-    appendrequest="SurgeryGuid=[SurgeryGuid]"
-    datainsert="InsertScheduledSurgeryKits"
-    appendinsert="SurgeryGuid=[SurgeryGuid]"
-    dataupdate="UpdateScheduledSurgeryKits"
-    appendupdate="SurgeryGuid=[SurgeryGuid]"
-    source="Active,KitTypeName,KitName,Description,Notes"
-    sourcelabels="Activo,Tipo,Nombre,Descripción,Notas"
-    align="|left|left|left"
-    format="boolean"
-    key="ScheduledKitGuid"/>
+  <section type="tabmodal" name="mdlScheduledSurgeryKits" title="Kits de Cirugía" badge="none" trigger="dgrScheduledSurgeryKits">
+    <group>
+      <row>
+        <!-- Partial Surgery scheduled kits -->
+        <control type="datagrid" label="Kits de CEYE Programados" name="dgrScheduledSurgeryKits"
+          modalname="ScheduledSurgeryKitsModal" 
+          rows="10" span="12"
+          fitrows="true"
+          idle="[SurgeryGuid]=|reset"
+          datarequest="GetScheduledSurgeryKits"
+          appendrequest="SurgeryGuid=[SurgeryGuid]"
+          datainsert="InsertScheduledSurgeryKits"
+          appendinsert="SurgeryGuid=[SurgeryGuid]"
+          dataupdate="UpdateScheduledSurgeryKits"
+          appendupdate="SurgeryGuid=[SurgeryGuid]"
+          source="Active,KitTypeName,KitName,Description,Notes"
+          sourcelabels="Activo,Tipo,Nombre,Descripción,Notas"
+          align="|left|left|left"
+          format="boolean"
+          key="ScheduledKitGuid"/>
+      </row>
+    </group>
+  </section>
+  <!-- Partial Surgery Kits modal -->
+  <section type="modal" name="ScheduledSurgeryKitsModal" title="Kit de Cirugía">
+    <group>
+      <row showif="edit">
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Ssk_Active" span="2"
+          source="True,False" sourcelabels="Sí,No" default="True" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Nombre" span="3"/>
+        <control type="select" name="Ssk_KitGuid" span="5" edit="true" 
+          datasource="GetSurgeryKits" 
+          source="KitName,KitGuid" 
+          filter="Active=true" required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Descripción" span="3"/>
+        <control type="text" name="Ssk_Description" span="5" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Numero de Kit" span="3"/>
+        <control type="double" name="Ssk_KitNumber" span="2" edit="true" />
+        <control type="label" label="Fecha de Esterilización" span="3"/>
+        <control type="date" name="Ssk_DateSterilizer" span="2" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Cantidad" span="3"/>
+        <control type="integer" name="Ssk_Quantity" span="1" edit="true" default="1" />
+      </row>
+      <row>
+        <control type="label" label="Esterilizador" span="3"/>
+        <control type="select" name="Ssk_KitSterilizer" edit="true" span="4"
+          datasource="GetUsersForThisFacility" append="LocationId=(facilityData.LocationId)" source="FullName,UserId" />
+      </row>
+      <row>
+        <control type="label" label="Ensamblador" span="3"/>
+        <control type="select" name="Ssk_KitAssembler" edit="true" span="4"
+          datasource="GetUsersForThisFacility" append="LocationId=(facilityData.LocationId)" source="FullName,UserId" />
+      </row>
+      <row>
+        <control type="label" label="Notas" span="3"/>
+        <control type="textarea" name="Ssk_Notes" span="5" rows="3" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="Ssk_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="Ssk_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>  
 </partial>

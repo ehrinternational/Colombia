@@ -30,7 +30,7 @@
   <!-- Hospitalized patient list -->
   <partial link="Partials/ColombiaPartialHospitalizedPatientListNoQueues.xml"/>
   <!-- PatientTabModal is the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <control type="text" name="GetUserName" default="(userName)"/>
@@ -162,6 +162,10 @@
      </group>
    </section>
   <!-- Colombia partials -->
+  <partial link="Partials/ColombiaPartialPartograma.xml"/>
+  <partial link="Partials/ColombiaPartialPatientSilvermanCalculation.xml"/>
+  <partial target="tmdPatientBirthRecords" link="Partials/ColombiaPartialPatientBirthRecords.xml"/>
+  <partial target="mdlBirthRecord" link="Partials/ColombiaPartialPatientBirthRecord.xml"/>
   <partial target="mdlSurgeryOrderModal" link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
   <partial target="mdlMedicationApprovedBy" link="Partials/ColombiaPartialMedicationApprovedBy.xml"/>
   <partial target="NewConsultModal" link="Partials/ColombiaPartialInterconsultRequest.xml"/>

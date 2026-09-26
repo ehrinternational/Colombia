@@ -9,7 +9,7 @@
 					datarequest="GetOrthoticWorkOrders"
 					appendrequest="OrderGuid=[OrthoticsWorkOrderGuid]"
 					inject="grpOrthoticsWorkOrderInfo"
-					provoke="GetOrthoticsPatient,grdOrthoticsWorkOrderDocuments"/>
+					provoke="GetOrthoticsPatient,grdOrthoticsWorkOrderDocuments,grdWorkOrderItems,ProthesisPurchaseOrders"/>
 				<control type="hidden" name="GetOrthoticsPatient"
 					datarequest="GetPatientAllFields"
 					appendrequest="PatientId=[OrthoticsOrder_PatientId]"
@@ -390,7 +390,7 @@
           </control>
 			</row>
 			<row>
-				<control type="datagrid" name="ProthesisPurchaseOrders" label="Requisiciónes de Compras" 
+				<control type="datagrid" name="ProthesisPurchaseOrders" label="Requisiciones de Compras" 
 					span="12" rows="5"
 					action="redirect"
 					target="mdlPatientPurchaseOrderRequest"
@@ -398,7 +398,7 @@
 					datarequest="GetPurchaseOrderByStatus"
 					appendrequest="surgeryGuid=[OrthoticsWorkOrderGuid]"
 					source="Status,PODate,DeliveryDate,PONumber,DepartmentName,VendorName,Description"
-					sourcelabels="Estatus,Fecha,Fecha de Entrega,Número,Departamento,Proveedor,Description"
+					sourcelabels="Estatus,Fecha,Fecha de Entrega,Número,Departamento,Proveedor,Descripción"
 					align="|left|left|left|left|left|left"
 					format="|date|date"
 					translate="Status"
@@ -407,7 +407,7 @@
 					onselect="PurchaseOrderGuid">
 				<control type="button" name="btnNewSurgeryPO"
 					reveal="[EditMode]=Surgery"
-					icon="plus" label="Add New"
+					icon="plus" label="Añadir Nuevo"
 					preset="POInfo_SurgeryGuid=[OrthoticsWorkOrderGuid],POInfo_PatientId=[PatientId],POInfo_Status=Draft"
 					action="redirect" target="mdlPatientPurchaseOrderRequest"/>
 				</control>
@@ -416,7 +416,7 @@
 				<control type="datagrid" label="Documentos de la Orden" name="grdOrthoticsWorkOrderDocuments"
 					span="12" rows="5"
 					acctsvcreq="true"
-					filter="Status=Active,Category=Ortesis y prótesis"
+					filter="Status=Active"
 					datarequest="GetImagingOrderFilesByImagingOrderGuid"
 					appendrequest="ImagingOrderGuid=[OrthoticsWorkOrderGuid]"
 					source="DateEntered,Category,Type,FileName,EnteredByFullName"
@@ -468,7 +468,7 @@
           name="GetOrthoticWorkOrderItemDetails"
           acctsvcreq="true"
           datarequest="GetItemByItemGuid"
-          appendrequest="ItemMasterGuid=[OrthoticWorkOrderItemMasterGuidLookup]"
+          appendrequest="ItemMasterGuid=[OrthoticWork_ItemMasterGuid]"
           inject="grpOrthoticWorkOrderItemInfo"/>
 			</row>
 		</group>
@@ -484,7 +484,7 @@
 					provoke="OrthoticWorkItemMasterGuidLookup"/>
       </row>
  			<row>
-			 	<control type="label" label="Buscar" span="3"/>
+			 	<control type="label" label="Material" span="3"/>
 				<control type="select" name="OrthoticWorkItemMasterGuidLookup"
           span="8" 
           searchable="true"

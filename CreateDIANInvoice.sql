@@ -1,4 +1,4 @@
-ALTER PROCEDURE ClinicalGeniusSupplyChain.usp_CreateDianInvoice
+ALTER PROCEDURE ClinicalGeniusSupplyChain.CreateDianInvoice
     @PatientVisit NVARCHAR(50),
     @FacilityId NVARCHAR(50),                     -- Explicit tenant partition filter
     @ClaimGuid NVARCHAR(50) = NULL

@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XML for Views version 1.0-->
+<module name="Liquidación de CUPS" type="onload" trigger="dgrCUPSList">
+  <facet name="FileName" value="CUPSLiquidationManagement"/>
+  <section type="tab" name="tabCUPSLiquidation" title="Liquidación de CUPS">
+    <group>
+      <row>      
+        <control type="datagrid" label="CUPS al SOAT y ISS 2001" name="dgrCUPSList" rows="20" span="12"
+          mode="batch"
+          edit="only"
+          modalname="mdlCUPSToSoat"
+          rowcolor="Status|insert=green;update=yellow"
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetStagingManualValues"
+          source="CUPSCode,CUPSDescription,SOATCode,SOATDescription,ISS2001Code,ISS2001Description"
+          sourcelabels="Código CUPS,Descripción CUPS,Código SOAT,Descripción SOAT,Código ISS 2001,Descripción ISS 2001"
+          align="left|left|left|left|left|left|left"
+          key="CUPSCode">
+        <control type="button" name="btnUpdateCUPS" label="Actualizar CUPS al SOAT y ISS 2001" color="green" icon="cloud-upload"
+          action="batchupdate"
+          capture="dgrCUPSList"
+          key="RecId"
+          acctsvc="true"
+          dataupdate="Staging_ManualValues"
+          skipbatchrow="[[Status]]=update"
+          postwithout="Status,YearOfService"
+          provoke="dgrCUPSList"/>
+        </control>
+      </row>
+    </group>
+  </section>  
+  <section type="modal" name="mdlCUPSToSoat" title="CUPS al SOAT y ISS 2001" badge="none">
+    <group>
+      <row>
+        <control type="label" label="Año" span="2"/>
+        <control type="text" name="YearOfService" span="2"/>
+      </row>
+      <row>
+        <control type="label" label="CUPS" span="2"/>
+        <control type="text" name="CUPSCode" span="2"/>
+        <control type="textarea" name="CUPSDescription" span="8" rows="1"/>
+      </row>
+      <row>
+        <control type="label" label="SOAT" span="2"/>
+        <control type="text" name="SOATCode" span="2" edit="true"/>
+        <control type="textarea" name="SOATDescription" span="8"  rows="1" edit="true" required="[SOATCode]!"/>
+      </row>
+      <row>
+        <control type="label" label="Artículo SOAT" span="2"/>
+        <control name="SOATArticle" type="select" span="10" edit="true" explicit="true"  required="[SOATCode]!"
+          searchable="true"
+          source="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,48,49,55,56"
+          sourcelabels="5 Neurocirugía 2101 - 2194
+            ,6 Oftalmología 2201 - 2293
+            ,7 Otorrinolaringología 2301 - 2392
+            ,8 Cirugía del Cuello y de la Cara 2401 - 2415
+            ,9 Cirugía Cardiovascular 2501 - 2577
+            ,10 Cirugía de Tórax 2601 - 2640
+            ,11 Cirugía Abdominal 2701 - 2772
+            ,12 Proctología 2801 - 2816
+            ,13 Urología y Nefrología 2901 - 2991
+            ,14 Cirugía de la Mama 3001 - 3007
+            ,15 Ginecología 3101 - 3140
+            ,16 Obstetricia 3201 - 3213
+            ,17 Ortopedia y Traumatología 3301 - 3474
+            ,18 Cirugía de Mano 3501 - 3591
+            ,19 Cirugía Plástica 3601 - 3681
+            ,20 Cirugía Oral y Maxilofacial 3701 - 3734
+            ,21 Laboratorio Clínico (Exámenes comunes y especiales) 19001 - 19965
+            ,22 Anatomía Patológica (Biopsias; citologías y necropsias) 20101 - 20304
+            ,23 Radiología / Imagenología (Rayos X; mamografías; contrastados) 21101 - 21708
+            ,24 Estudios de Medicina Nuclear (Gammagrafías; terapias) 22101 - 22501
+            ,25 Exámenes de Ultrasonido (Ecocardiogramas; ecografías) 23101 - 23120
+            ,26 Resonancia Magnética y Tomografía Computarizada (TAC) 24101 - 24126
+            ,27 Nefrología y Urología (Diálisis; urodinamia) 25101 - 25114
+            ,28 Neumología (Espirometrías ; broncoscopias) 26101 - 26117
+            ,29 Cardiología y Hemodinamia (Cateterismo ; electrocardiogramas) 27101 - 27125
+            ,30 Neurología y Neurofisiología (Electroencefalogramas ; polisomnografía) 28101 - 28118
+            ,31 Otorrinolaringología Audiológica 29101 - 29119
+            ,32 Oftalmología Diagnóstica y Funcional 30101 - 30121
+            ,33 Medicina Física y Rehabilitación (Terapias) 31101 - 31108
+            ,34 Banco de Sangre (Hemocomponentes y pruebas de compatibilidad) 32101 - 32117
+            ,35 Salud Mental y Psiquiatría (Terapias psicológicas) 33101 - 33104
+            ,36 Salud Oral / Odontología General y Especializada 34101 - 34503
+            ,37 Procedimientos de Diagnóstico y Tratamiento Endoscópico 35101 - 35118
+            ,38 Alergología; Genética y Oncología Médica 36101 - 36302
+            ,39 Estancias Hospitalarias (Piso; UCI; UCE; Quemados) 38111 - 38525
+            ,48 Servicios Profesionales (Interconsultas; visitas médicas; juntas) 39101 - 39142
+            ,49-50Derechos de Sala (Cirugía; parto; recuperación; procedimientos) Se liquidan según Grupo
+            ,55 Materiales de Sutura y Curación; Gases Medicinales Códigos específicos por Grupo
+            ,56 Servicios de Ambulancia / Traslado de Pacientes 39301 - 39305"/>
+      </row>
+      <row>
+        <control type="label" label="Valor SOAT" span="2"/>
+        <control type="text" name="SOATValue" span="2" edit="true"  required="[SOATCode]!"/>
+      </row>
+      <row>
+        <control type="label" label="ISS 2001" span="2"/>
+        <control type="text" name="ISS2001Code" span="2" edit="true"/>
+        <control type="textarea" name="ISS2001Description" span="8" rows="1" edit="true" required="[ISS2001Code]!"/>
+      </row>
+      <row>
+        <control type="label" label="Artículo ISS2001" span="2"/>
+         <control name="ISS2001Article" type="select" span="10" edit="true" explicit="true" required="[ISS2001Code]!"
+            searchable="true"
+            source="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,19,22,27,28,45,59"
+            sourcelabels="1 Neurocirugía
+              ,2 Oftalmología
+              ,3 Otorrinolaringología
+              ,4 Cirugía de Cuello
+              ,5 Cirugía Cardiovascular
+              ,6 Cirugía Torácica
+              ,7 Cirugía Abdominal
+              ,8 Proctología
+              ,9 Urología y Nefrología
+              ,10 Ginecología
+              ,11 Obstetricia
+              ,12 Ortopedia y Traumatología
+              ,13 Cirugía de Mano
+              ,14 Cirugía Plástica
+              ,15 Cirugía Oral y Maxilofacial
+              ,19–21 Laboratorio Clínico y Patología
+              ,22–26 Imágenes Diagnósticas (Radiología; Ecografía; TAC; Resonancia)
+              ,27 Medicina Nuclear
+              ,28–43 Procedimientos de Diagnóstico Dinámico (Cardiología; Neurología; Gastroenterología; Fisioterapia)
+              ,45–54 Estancias (Hospitalización; UCE; UCI)
+              ,59 Servicios Profesionales (Interconsultas; Visitas Médicas)"/>
+      </row>
+      <row>
+        <control type="label" label="Valor ISS2001" span="2"/>
+        <control type="text" name="ISS2001Value" span="2" edit="true"/>
+        <control type="label" label="UVR ISS2001" span="2"/>
+        <control type="text" name="ISS2001UVR" span="2" edit="true" required="[ISS2001Code]!+[ISS2001Value]="/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Status" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Status" value="insert" ignore="edit" persist="true"/>
+      </row>
+      <row>
+       <control type="modalbutton" 
+          showif="edit"
+          name="mbtNextRecord" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="mbtAddNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add"/>
+      </row>
+    </group>
+  </section>
+</module>

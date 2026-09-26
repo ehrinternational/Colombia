@@ -82,7 +82,7 @@
         <control type="select" 
 				  name="calAppointmentTypeGuidDialysis" span="3"
 				  datasource="GetSchedulerAppointmentTypesByFacility" 
-          append="CalendarType=Chemotherapy,LocationId=(facilityData.LocationId)" 
+          append="CalendarType=Dialysis,LocationId=(facilityData.LocationId)" 
 				  source="CalendarName,CalendarGuid" 
           explicit="true"
 				  default="true"

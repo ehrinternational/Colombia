@@ -161,7 +161,7 @@
 						confirm="Por favor, confirme que desea admitir esta paciente."
 						affector="none"
 						datainsert="InsertPatientVisitAllFields"
-						appendinsert="copyDiagnosis=true,
+						appendinsert="
 							locationId=(facilityData.LocationId),
 							patientId=[FirstVisitInfo_PatientId],
 							visitType=[DefaultAdmitType],

@@ -25,7 +25,7 @@
   <!-- Partial list of nutrition meal components -->
   <partial link="./Partial/Lists/PartialNutritionComponentsList.xml"/>
   <!-- Patient tabmodal displays the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <control type="hidden" span="4" name="PatientId"

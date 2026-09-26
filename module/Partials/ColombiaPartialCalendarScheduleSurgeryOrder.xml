@@ -84,7 +84,7 @@
 				  edit="true" 
 					sort="CalendarName=asc"
           set="[[Service]]!;[ScheduleOrderRoomType]=[[Service]]^ScheduleOrderRoomType=None"
-				  provoke="[SurgeryCalendarOrderLookup]!;SurgeryOrderTimes|resource"/>
+				  provoke="[SurgeryCalendarOrderLookup]!;SurgeryOrderTimes|resource,Order_RoomGuid"/>
          <control type="label" label="Especialidad" span="1"/>
         <control type="select" name="selCalendarOrderSpecialty" span="2" searchable="true" edit="true"
           acctsvc="true"
@@ -166,7 +166,7 @@
           datarequest="GetRoomsAndBedsForThisFacility"
           appendrequest="LocationId=[SurgeryOrderLocationId]"
           source="RoomAndBedNumber,RoomGuid"
-          filter="RoomType%Quirófano|Quirofano"/>
+          filter="RoomTypeGuid=[ScheduleOrderRoomType]"/>
       </row>
       <row>
         <control type="label" label="Calendario" span="4"/>

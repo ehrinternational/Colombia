@@ -37,7 +37,7 @@
       compare="[Consult_DepartmentGuid]!+[Consult_AdmitType]!|Seleccione un departamento y Atención para esta visita."
       affector="none"
       datainsert="InsertPatientVisitAllFields"
-      appendinsert="CopyDiagnosis=true,CopyApprovals=true,
+      appendinsert="
         LocationId=(facilityData.LocationId),
         patientId=[PatientId],
         visitType=Outpatient,

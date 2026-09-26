@@ -37,7 +37,7 @@
   <!-- Inventory stock counting -->
   <partial link="(user.UserRoles)%Requisiciones e inventarios;../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
   <!--Tabmodal for admitting/reviewing hospital patients-->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group showif="never">
       <row>
         <!--Read the patient record and display-->

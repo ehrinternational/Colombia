@@ -7,7 +7,8 @@
         <control type="hidden" name="SurgeryOrderPatientId"
           datarequest="GetPatientAllFields"
           appendrequest="PatientId=[SurgeryOrderPatientId]"
-          inject="SurgeryOrderPatientInfo"/>
+          inject="SurgeryOrderPatientInfo"
+          set="[SurgeryOrder_ConfirmedDiagnosis]=,[SurgeryOrder_ConfirmedDiagnosisCode]="/>
       </row>
     </group>
     <group name="SurgeryOrderPatientInfo">

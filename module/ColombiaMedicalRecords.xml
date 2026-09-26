@@ -22,7 +22,7 @@
   <!-- All admitted patients -->
   <partial link="Partials/ColombiaPartialPatientVisitsByDateRange.xml"/>
   <!--Tabmodal for admitting/reviewing hospital patients-->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group showif="never">
       <row>
         <!--Read the patient record and display-->

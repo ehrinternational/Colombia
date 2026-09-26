@@ -35,7 +35,7 @@
     trigger="grdMyBuildingWorkOrders"
     action="redirect" target="mdlMyBuildingWorkOrderRequests"/>
   <!-- Display list of patients by department -->
-  <partial link="Partials/ColombiaPartialAdmittedPatientsByDepartmentHospitalNurse.xml"/>
+  <partial link="Partials/ColombiaPartialEmergencyPatientsByDepartment.xml"/>
   <!-- Display a list of appointments for a date range -->
   <partial link="Partials/ColombiaPartialOutpatientAppointmentList.xml"/>
   <!-- Display a list of internal consult requests -->
@@ -58,7 +58,7 @@
   <partial link="../../ERPSpanish/module/Partials/PartialESCountStockItemsByLocation.xml"/>
   <partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
   <!-- Patient tabmodal displays the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <!-- Get patient information -->
@@ -74,7 +74,7 @@
           appendrequest="UniqueId=[PatientVisitGuid]"
           inject="VisitInfo"
           set="UnAcknowledgedOrders=[[UnAcknowledgedOrders]]"
-          provoke="ERNursingOrders|active,ERNursingOrdersComplete|active,ERPatientLines|active"/>
+          provoke="ERNursingOrders|active,ERNursingOrdersComplete|active,ERPatientLines|active,GetTriageLevel"/>
         <!-- Insert new bed assignment -->
         <control type="text" span="4" name="InsertNewBedAssignment"
           datarequest="GetPatientVisitByUniqueId"
@@ -85,9 +85,15 @@
           datarequest="GetPatientVisitByUniqueId"
           appendrequest="UniqueId=[PatientVisitGuid]"
           set="UnAcknowledgedOrders=[[UnAcknowledgedOrders]]"/>
+        <control type="hidden" name="GetTriageLevel"
+          acctsvcreq="true"
+          datarequest="GetLastTriageCalculationByPatientVisitId"
+          appendrequest="PatientVisitId=[PatientVisitGuid]"
+          set="[TriageLevel]=[[TriageLevel]]"/>
         <!-- Close patient tab modal -->
         <control type="button" name="ClosePatientTabModal" action="close|new"/>
         <control type="hidden" name="UnAcknowledgedOrders"/>
+        <control type="hidden" name="TriageLevel"/>
       </row>
     </group>
     <!-- Patient information and nursing buttons -->
@@ -180,7 +186,7 @@
           <partial link="./Partial/Grids/PartialHomeMedicationNoEditPrintPrescriptionByVisit.xml"/>
           <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
-           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
+          <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="./Partial/Grids/PartialAdverseMedicationEventsNoEdit.xml"/>

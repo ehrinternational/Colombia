@@ -11,6 +11,7 @@
      <row>
       <!-- Assign a patient room -->
       <control type="button" name="btnAssignPatientBed" span="12"
+        reveal="[PatientVisitGuid]!+[PatientId]!"
         icon="cloud-upload" color="orange"
         label="Asignar Cama"
         trigger="FindWardList"

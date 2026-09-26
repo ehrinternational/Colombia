@@ -16,6 +16,8 @@
   <partial link="Partials/ColombiaPartialTemplates.xml"/>
   <!-- Partial Surgery Request List -->
   <partial link="Partials/ColombiaPartialSurgeryRequestList.xml"/>
+  <!-- Partial Surgery Request List -->
+  <partial link="Partials/ColombiaPartialSurgeryAdministration.xml"/>
   <!-- Partial Surgery Calendar -->
   <partial link="Partials/ColombiaPartialCalendarSurgeryAppointments.xml"/>
   <!-- Tabmodal to enter/edit surgeries -->
@@ -27,18 +29,17 @@
           appendrequest="SurgeryGuid=[SurgeryGuid]"
           inject="SurgeryInfo"
           set="[[PatientId]]!;PatientId=[[PatientId]]"
-          provoke="[[PatientId]]!;PatientId,SurgeryGridList,SurgeryTeam"/>
+          provoke="[[PatientId]]!;PatientId"/>
         <control type="hidden" name="PatientId"
           datarequest="GetPatientAllFields"
           appendrequest="PatientId=[PatientId]"
           set="Surgery_PatientId=[PatientId]"
-          inject="SurgSchPatientInfo"
-          provoke="Surgery_PatientPayerGuid"/>
+          inject="SurgSchPatientInfo2"/>
         <control type="button" name="btnCloseSurgeryTabModal" action="close|new" provoke="SurgeryTimes"/>
       </row>
     </group>
     <!--Patient information-->
-    <group name="SurgSchPatientInfo" reveal="[EditMode]=Surgery|Labor">
+    <group name="SurgSchPatientInfo2">
         <partial link="Partials/ColombiaPartialSurgeryPatientInfo.xml"/>
     </group> 
     <!-- Surgery information -->
@@ -53,72 +54,28 @@
       </columns>
     </group>
   </section>
-  <!-- Tabmodals -->
-  <section type="tabmodal" name="tbmSurgeryTeam" title="Personal de Cirugía" badge="none" trigger="SurgeryTeam">
-    <group>
-      <row>
-        <partial link="Partials/ColombiaPartialSurgeryTeam.xml"/>
-      </row>
-    </group>
-  </section>
-  <section type="tabmodal" name="tbmSurgeryEquipment" title="Equipo de Cirugía" badge="none" trigger="ScheduledEquipment">
-    <group>
-      <row>
-        <partial link="Partials/ColombiaPartialSurgeryScheduledEquipment.xml"/>
-      </row>
-    </group>
-  </section>
-  <section type="tabmodal" name="tbmSurgeryKits" badge="none" title="Kits de CEYE Programados" trigger="ScheduledSurgeryKits">
-    <group>
-      <row>
-        <partial link="Partials/ColombiaPartialSurgeryScheduledKits.xml"/>
-      </row>
-    </group>
-  </section>
-  <section type="tabmodal" name="tbmSurgeryStockRequests" title="Requisiciónes de Stock" badge="none" trigger="SurgeryStockRequests">
-    <group>
-      <row>
-        <partial link="Partials/ColombiaPartialSurgeryStockRequests.xml"/>
-      </row>
-    </group>
-  </section>
-  <section type="tabmodal" name="tbmSurgeryPurchaseRequests" title="Compras de Cirugía" badge="none" trigger="SurgeryPurchaseOrders">
-    <group>
-      <row>
-        <partial link="Partials/ColombiaPartialSurgeryScheduledPurchases.xml"/>
-      </row>
-    </group>
-  </section>
-  <section type="tabmodal" name="tbmSurgeryDocuments" badge="none" title="Documentos de Cirugía" trigger="SurgeryEcdForms,SurgeryScannedForms">
-    <group>
-      <row>
-        <partial link="Partials/ColombiaPartialECDFormsForSurgery.xml"/>
-        <partial link="Partials/ColombiaPartialSurgeryScannedDocuments.xml"/>
-      </row>
-    </group>
-  </section>
     <partial target="mdlFindPatients" link="./Partial/Admin/PartialPatientSearchmodal.xml"/>
     <partial target="mdlReferringMd" link="./Partial/Modals/PartialReferringMds.xml"/>
     <partial link="./Partial/Calendars/PartialCalendarConsultVisitAppointmentModal.xml"/>
     <partial target="mdlConsultVisitCalendarAppointments" link="./Partial/Calendars/PartialCalendarConsultAppointmentsAsModal.xml"/>
     <!-- General Modals -->
-    <partial target="mdlCombinedECDForms" link="./Partial/Modals/PartialCombineECDFormsToPDF.xml"/>
-    <partial target="ReviewPatientTabModal" link="./Partial/Admin/PartialPatientChartForReviewOnly.xml"/>
     <partial target="mdlReports" link="./Partial/Admin/PartialReportModals.xml"/>
     <partial target="MedicationDetailModal" link="./Partial/Modals/PartialMedicationDetailModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientPayersListModal.xml"/>
+     <partial link="Partials/ColombiaPartialPatientPayersModal.xml"/>
     <!-- Surgery Modals -->
+    <partial link="Partials/ColombiaPartialSurgeryProcedures.xml"/>
     <partial link="Partials/ColombiaPartialSurgeryBundleModal.xml"/>
-    <partial link="Partials/ColombiaPartialSurgerySuppliesModal.xml"/>
-    <partial link="Partials/ColombiaPartialPatientPayersModal.xml"/>
     <partial link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
     <partial link="Partials/ColombiaPartialCalendarScheduleSurgeryOrder.xml"/>
-    <partial link="./Partial/Modals/PartialSurgeryTeamModal.xml"/>
-    <partial link="./Partial/Modals/PartialScheduledSurgeryKitsModal.xml"/>
-    <partial link="./Partial/Modals/PartialSurgeryEquipmentModal.xml"/>
-    <partial link="./Partial/Modals/PartialSurgeryStockRequestModal.xml"/>
-    <partial link="./Partial/Modals/PartialSurgeryTemplateListModal.xml"/>
-    <partial target="mdlPatientPurchaseOrderRequest" link="./Partial/Modals/PartialPatientPurchaseOrderRequestsModal.xml"/>
+    <partial link="./Partial/Modals/PartialPatientPurchaseOrderRequestsModal.xml"/>
+    <!-- Attached surgery tables-->
+    <partial link="Partials/ColombiaPartialSurgerySuppliesModal.xml"/>
+    <partial link="Partials/ColombiaPartialSurgeryTeam.xml"/>
+    <partial link="Partials/ColombiaPartialSurgeryScheduledEquipment.xml"/>
+    <partial link="Partials/ColombiaPartialSurgeryScheduledKits.xml"/>
+    <partial link="Partials/ColombiaPartialSurgeryCharges.xml"/>
+    <partial link="Partials/ColombiaPartialSurgeryStockRequests.xml"/>
     <!-- Messaging -->
     <partial link="./Partial/Messaging/PartialSendWYSIWYGEmail.xml"/>
     <partial target="mdlSendTextMessage" link="./Partial/Messaging/PartialSendTextMessageToPatient.xml"/>

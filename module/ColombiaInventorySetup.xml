@@ -1,0 +1,1176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="Inventario" type="onload" trigger="ItemCategories">
+  <!--Item Master Maintenance -->
+  <section type="tab" title="Artículo Maestro">
+    <group> 
+      <row>
+        <control type="label" label="Categoría" span="1"/>
+        <control type="select" name="ItemCategories"
+          span="4"
+          acctsvcreq="true"
+          default="true"
+          sort="CategoryDescription=asc"
+          translate="true"     
+          datarequest="GetItemMasterCategoriesByFacilityActive" 
+          source="CategoryDescription,ItemCategoryGuid"        
+          provoke="ItemMasterList"/>
+        <control type="text" name="SearchForItems" span="3" action="trigger" trigger="btnSearchForItems"/>
+        <control type="button" name="btnSearchForItems" icon="search" label=""
+          preset="SearchForItems2=[SearchForItems]"
+          action="redirect" target="mdlItemSearch" trigger="ItemSearchList"/>
+      </row>
+      <row>
+        <control type="datagrid" name="ItemMasterList" label="Artículo Maestro"
+          span="12" rows="25"
+          action="redirect"
+          target="ItemMasterModal"
+          searchable="true"
+          acctsvcreq="true"
+          idle="[ItemCategories]="
+          datarequest="GetItemMasterNamesForThisFacility"
+          appendrequest="Category=[ItemCategories]"
+          source="Status,ItemNumber,ItemName,ItemDescription,Cost,BasePrice,Notes"
+          sourcelabels="Estado,Número,Artículo,Descripción,Costo,Precio,Notas"
+          align="|left|left|left|right|right|left"
+          format="||||0.00|0.00|"
+          sort="ItemName=asc"
+          key="ItemMasterGuid"
+          translate="Status"
+          onselectset="searchselect=[[ItemMasterGuid]]"
+          onselect="searchselect,itemInfo_TypeGuid,itemInfo_CategoryGuid">
+          <!-- Insert new items to Item Master -->
+          <control type="button" name="btnNewItem"
+            icon="plus"
+            label="Añadir Nuevo"
+            action="redirect"
+            target="ItemMasterModal"
+            provoke="itemInfo_TypeGuid,itemInfo_CategoryGuid"/>
+        </control>
+      </row>
+    </group>
+  </section>
+  <!-- Tab modal to search for items -->
+  <section type="tabmodal" name="mdlItemSearch" badge="none" title="Buscar Artículo">
+    <group>
+      <row>
+        <control type="text" name="SearchForItems2" span="3" action="trigger" trigger="ItemSearchList"/>
+        <control type="button" name="btnSearchForItems2" icon="search" label=""
+          action="trigger" trigger="ItemSearchList"/>
+      </row>
+      <row>
+        <control type="datagrid"
+          name="ItemSearchList"
+          label="Artículo Maestro"
+          span="12" rows="20"
+          action="redirect"
+          target="ItemMasterModal"
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetAllItemMasterItemsBySearchCriteria"
+          appendrequest="searchCriteria=[SearchForItems2]"
+          source="Status,ItemNumber,ItemName,ItemDescription,Cost,BasePrice,Notes"
+          sourcelabels="Activo,Número,Artículo,Descripción,Costo,Precio,Notas"
+          align="|left|left|left|right|right|left"
+          format="||||0.00|0.00|"
+          sort="ItemName=asc"
+          key="ItemMasterGuid"
+          translate="Status"
+          onselectset="searchselect=[[ItemMasterGuid]]"
+          onselect="searchselect"/>
+      </row>
+    </group>
+  </section>
+
+  <!-- Item master tab modal -->
+  <section type="tabmodal" name="ItemMasterModal" badge="none" title="Artículo Maestro" size="large">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="searchselect"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[searchselect]"
+          inject="ManufacturingDetails,itemInfo"                                  
+          provoke="GetNumberOfEaches,btgItemGrids"/>    
+        <control type="hidden" name="GetNumberOfEaches"
+          acctsvcreq="true"
+          datarequest="GetItemMasterRelatedUnitsOfMeasureByRelatedUnitGuid"
+          appendrequest="RelatedUnitGuid=[AquiredUOMGuid]"
+          set="HiddenFields_NumberOfEaches=[[NumberOfEaches]]"/>      
+        <control type="hidden" name="HiddenFields_NumberOfEaches"/>    
+      </row> 
+    </group>
+    <group name="itemInfo">  
+      <subset>
+      <row>
+        <control type="hidden" name="RelatedTable"/>
+      </row>
+      <row>       
+        <control type="label" label="Categoría" span="2"/>
+        <control type="select" name="itemInfo_CategoryGuid" namefield="itemInfo_Category" 
+          required="true" edit="true" span="6" 
+          reveal="[RelatedTable]="
+          explicit="true"
+          translate="true"
+          filter="SystemCategory=false"
+          acctsvc="true"
+          acctsvcreq="true"
+          datasource="GetItemMasterCategoriesByFacilityActive"
+          datarequest="GetItemMasterCategoriesByFacilityActive"
+          source="CategoryDescription,ItemCategoryGuid"/>  
+        <control type="text" name="itemInfo_Category"
+          reveal="[RelatedTable]!"           
+          edit="false"         
+          translate="true"         
+          span="6"/>      
+          <!-- Save a new serialized item -->
+        <control type="button" name="btnSaveItemSerialized" 
+          reveal="[IsSerialized]=true+[searchselect]="         
+          span="2" offset="2" color="green"
+          label="Guardar" 
+          icon="cloud-upload"
+          action="save"
+          affector="searchselect"
+          setaffector="ItemMasterGuid"
+          capture="itemInfo"
+          acctsvc="true"         
+          compare="[HiddenFields_NumberOfEaches]=1|No se puede guardar: Los artículos serializados deben comprarse en unidades de medida individuales."
+          datainsert="InsertItemMasterItem"
+          provoke="ItemMasterList"/>
+
+        <!-- Save a new unserialized item -->
+        <control type="button" name="btnSaveItemUnserialized"
+          reveal="IsSerialized=false+[searchselect]="         
+          span="2" offset="2" color="green"
+          label="Guardar" 
+          icon="cloud-upload"
+          action="save"
+          affector="searchselect"
+          setaffector="ItemMasterGuid"
+          capture="itemInfo"
+          acctsvc="true"         
+          datainsert="InsertItemMasterItem"
+          provoke="ItemMasterList"/>  
+
+        <!-- Update an unserialized item -->
+        <control type="button" name="btnUpdateItemUnserialized"
+          reveal="[IsSerialized]=false+[searchselect]!"         
+          span="2" offset="2" 
+          label="Actualizar" 
+          icon="cloud-upload"
+          action="save|close|new"
+          affector="searchselect"
+          setaffector="ItemMasterGuid"
+          capture="itemInfo|active"
+          acctsvc="true"         
+          dataupdate="UpdateItemMasterItem"
+          appendupdate="itemMasterGuid=[searchselect]"
+          provoke="ItemMasterList"/>  
+
+          <!-- Update a serialized item -->
+        <control type="button" name="btnUpdateItemSerialized" 
+          reveal="[IsSerialized]=true+[searchselect]!"         
+          span="2" offset="2" 
+          label="Actualizar" 
+          icon="cloud-upload"
+          action="save|close|new"
+          affector="searchselect"
+          setaffector="ItemMasterGuid"
+          capture="itemInfo|active"
+          acctsvc="true"         
+          compare="[HiddenFields_NumberOfEaches]=1|No se puede guardar: Los artículos serializados deben comprarse en unidades de medida individuales."
+          dataupdate="UpdateItemMasterItem"
+          appendupdate="itemMasterGuid=[searchselect]"
+          provoke="ItemMasterList"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo de Artículo" span="3"/>
+        <!-- If the 'RelatedTable' is not NULL then do not allow the Type to be changed -->
+        <control type="select" span="5" name="itemInfo_TypeGuid" 
+          required="true"
+          acctsvc="true" edit="true" explicit="true"
+          sort="TypeDescription=asc"
+          source="TypeDescription,TypeGuid"
+          datasource="GetItemMasterTypesByFacility"
+          append="Active=1" />   
+        <control type="label" span="2" label="Activo"/>   
+         <!-- If the 'RelatedTable' is not NULL then do not allow the Status to be changed -->
+        <control type="buttongroup" span="2" name="itemInfo_Status"
+          required="true" edit="[RelatedTable]=,(userName)%medwave,(user.UserRoles)%SysAdmin" 
+          sourcelabels="Sí,No" 
+          source="Active,Canceled" 
+          default="Active"/>  
+      </row>
+      <!-- The stocked item indicator identifies items that are purchased -->
+      <!--  Note: Inventory (not StockedItemIndicator) indicates that the item is managed by the inventory system -->
+      <row>
+        <control type="label" span="2" label="Número"/>
+        <control type="text" span="2" name="itemInfo_ItemNumber" edit="[RelatedTable]!DrugFormularies" />
+        <control type="label" span="1" label="Clave"/>
+        <!-- Product Id  -->
+        <control type="text" span="3" name="itemInfo_ImportId" edit="true" />  
+        <control type="label" label="Artículo Comprado" span="2"/>
+        <control type="buttongroup" name="StockedItemIndicator"
+          span="2"
+          source="True,False" sourcelabels="Sí,No"
+          default="True" edit="true"/>
+      </row>
+      <row>
+        <control type="label" span="2" label="Nombre"/>        
+        <control type="textarea" span="6" name="itemInfo_ItemName" rows="1" required="true" edit="[RelatedTable]=" /> 
+        <control type="label" span="2" label="Inventario"/>
+        <control type="buttongroup" span="2" name="Inventory"  sourcelabels="Sí,No" source="True,False" default="False" edit="true" />
+      </row>
+      <row>
+        <control type="label" span="2" label="Descripción"/>        
+        <control type="textarea" span="6" rows="1" name="itemInfo_ItemDescription" edit="[RelatedTable]="/>
+        <!-- Do not allow Kits to be set for Drug Formulary Items (Medications) -->
+        <control type="label" span="2" label="Es Kit"/>        
+        <control type="buttongroup" span="2" name="IsKit"
+          source="True,False" sourcelabels="Sí,No" default="False" 
+          when="[Inventory]=True;False"
+          edit="[RelatedTable]!DrugFormularies+[RelatedTable]!FacilityVidalCommonGroupName" 
+          provoke="[searchselect]!+[IsKit]=True;grdKitItems"/>
+      </row>  
+      <row>
+         <control type="label" span="4" label="Requerir Número de Serial"/>       
+        <control type="buttongroup" span="2" name="IsSerialized" source="True,False" sourcelabels="Sí,No" default="False" edit="true"  
+           provoke="controlset"/> 
+      </row>           
+      <row>         
+         <control type="label" label="Precio Base" span="2"/>        
+         <control type="text" name="BasePrice" span="2" edit="[RelatedTable]=" format="0,00.00" default="0.00" 
+                 tooltip="El precio al paciente es el precio base antes de descuentos e impuestos."/>                   
+        <control type="label" label="Última Actualización" span="2"/>        
+        <control type="date" name="DateTimeLastPriceUpdate" span="2" edit="[RelatedTable]=" />          
+        <control type="label" span="2" label="Requerir Lotes"/>      
+        <control type="buttongroup" span="2" name="SubjectToExpiration" source="True,False" sourcelabels="Sí,No" default="False" edit="true" /> 
+      </row>      
+      <row>
+        <control type="label" label="Precio de Costo" span="2"/>        
+        <control type="text"  name="Cost" edit="[RelatedTable]=" format="0,00.00" default="0.00" span="2" />
+        <control type="label" label="Margen %" span="2"/>        
+        <control type="text" name="itemInfo_MarkUp" span="1" edit="true" format="0,00.00"/>  
+        <control type="label" span="3" label="Paciente Cobrable"/>     
+        <control type="buttongroup" span="2" name="itemInfo_PatientChargeable"
+           tooltip="Seleccione Verdadero si este artículo se cobrará a los pacientes"
+           source="True,False" sourcelabels="Sí,No" default="True" edit="[RelatedTable]=" required="true" />      
+      </row>      
+
+      <row> 
+        <control type="label" label="Costo Promedio" span="2"/>        
+        <control type="text"  name="AverageCost" edit="AverageCost=" format="0,00.00" default="0.00" span="2" />
+        <control type="label" label="Último Compra" span="2"/>        
+        <control type="text"  name="LastOrderCost" edit="[LastOrderCost]=" format="0,00.00" default="0.00" span="2" />
+        <control type="label" span="2" label="Precio de Financiera"/>        
+        <control type="buttongroup" span="2" name="FinancialClassPricing" 
+           source="True,False" sourcelabels="Sí,No" default="False" edit="true"  provoke="[searchselect]!;itemFinClassList,[searchselect]!;finClassList,[searchselect]!;itemFinClass"/> 
+      </row>     
+      <row>
+        <control type="label" span="2" label="Unidad de Compra"/>        
+        <control type="select" span="2" name="AquiredUOMGuid" namefield="AquiredUOM"
+          explicit="true"
+          source="RelatedUnitName,RelatedUnitGuid"
+          datasource="GetItemMasterRelatedUnitsOfMeasureActive"
+          acctsvc="true"
+          edit="true" 
+          sort="RelatedUnitName=asc"
+          set="HiddenFields_NumberOfEaches=[[NumberOfEaches]]"/>
+        <control type="label" span="2" label="Unidad de Uso"/>       
+        <control type="select" span="2" name="ConsumedUOMGuid" namefield="ConsumedUOM"
+          explicit="true"
+          filter="Active=true"
+          source="UnitOfMeasure,UOMGuid"
+          datasource="GetUnitsOfMeasure"
+          acctsvc="true"
+          edit="true" 
+          sort="UnitOfMeasure=asc"/> 
+        <control type="label" label="Ciclo de Conteo" span="2"/>
+        <control type="select" name="CountCycle" span="2"
+          source="1,7,30,90,365" 
+          sourcelabels="Dia,Semana,Mes,Cuarto,Anual"          
+          edit="true" />
+      </row>
+      <!-- Set taxable and retention rates -->
+      <row>
+        <control type="label" span="2" label="Sujeto a Impuestos"/>
+        <control type="buttongroup" span="2" name="TaxableItemIndicator" 
+          source="True,False" sourcelabels="Sí,No" default="True" edit="true"/> 
+        <control type="label" span="2" label="Tasa de Impuesto"/>
+        <control type="text" span="2" name="TaxRate" edit="[TaxableItemIndicator]=True" format="0.00"/>
+        <control type="label" span="2" label="Tasa de Retención"/>
+        <control type="text" span="2" name="RetentionRate" edit="[TaxableItemIndicator]=True" format="0.00"/>
+      </row>
+       <row>
+        <control type="label" span="2" label="Reordenar Min"/>     
+        <control type="text" span="2" name="MinimumStock" edit="true" format="0,000" />
+        <control type="label" span="2" label="Reordenar Max"/>       
+        <control type="text" span="2" name="MaximumStock" edit="true" format="0,000" /> 
+        <control type="label" span="2" label="Cantidad Pedido Min"/>
+        <control type="text" span="2" name="MinimumOrderQuantity" edit="true" format="0,000" />
+      </row>     
+      <row name="BarCodeInfo" reveal="[searchselect]!+Inventory=True">        
+        <control type="label" span="2" label="Código de Barra"/>        
+        <control type="text" span="3" name="Normal_EAN13Barcode" edit="true"  reveal="UPCCode!HarmoniMD"/>
+        <control type="text" span="3" name="HarmoniMD_EAN13Barcode" edit="false"  reveal="UPCCode=HarmoniMD"/>
+        <control type="button" name="ScanBarcode" span="2" reveal="UPCCode!HarmoniMD"
+          action="scan" icon="barcode"
+          label="Escanear"  inject="value=[Normal_EAN13Barcode],format=[UPCCode]"/>
+        <control type="label" span="1" label="Formato"/>        
+        <control type="select" name="UPCCode" span="2"
+          source="Code128,Code93,Code39,EAN-13,Standard 2 of 5,Interleaved 2 of 5,Codabar,QR,HarmoniMD"
+          sourcelabels="Código128,Código93,Código39,EAN-13,Estándar 2 de 5,Intercalado 2 de 5,Codabar,QR,HarmoniMD HIS"
+          edit="true" 
+          set="HarmoniMD_EAN13Barcode=[searchselect]"/>
+        <control type="button" name="btnPrintCode128"
+          icon="print"
+          span="2"
+          reveal="UPCCode=Code128+[searchselect]!"
+          color="green"
+          label="Etiquetas" 
+          action="print"
+          mode="report" 
+          append="id=9c2e7b93cbc,FacilityId=(facility),ItemMasterGuid=[searchselect]"/>
+        <control type="button" name="btnPrintCode93"
+            icon="print"
+            span="2"
+            reveal="UPCCode=Code93+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=f9ba99885e9,FacilityId=(facility),ItemMasterGuid=[searchselect]"/> 
+          <control type="button" name="btnPrintCode39"
+            icon="print" span="2"
+            reveal="UPCCode=Code39+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=6f917613b97,FacilityId=(facility),ItemMasterGuid=[searchselect]"/> 
+          <control type="button" name="btnPrintEAN-13"
+            icon="print" span="2"
+            reveal="UPCCode=EAN-13+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=2df9f67a175,FacilityId=(facility),ItemMasterGuid=[searchselect]"/> 
+          <control type="button" name="btnPrintStandard2of5"
+            icon="print" span="2"
+            reveal="UPCCode=Standard 2 of 5+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=9e823730a02,FacilityId=(facility),ItemMasterGuid=[searchselect]"/> 
+          <control type="button" name="btnPrintInterleaved2of5"
+            icon="print" span="2"
+            reveal="UPCCode=Interleaved 2 of 5+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=acb5606e426,FacilityId=(facility),ItemMasterGuid=[searchselect]"/>
+          <control type="button" name="btnPrintCodabar"
+            icon="print" span="2"
+            reveal="UPCCode=Codabar+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=1e4c67c3111,FacilityId=(facility),ItemMasterGuid=[searchselect]"/> 
+          <control type="button" name="btnPrintQR"
+            icon="print" span="2"
+            reveal="UPCCode=QR+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=9b862393f1c,FacilityId=(facility),ItemMasterGuid=[searchselect]"/>  
+          <control type="button" name="btnPrintHarmoniMD"
+            icon="print" span="2"
+            reveal="UPCCode=HarmoniMD+[searchselect]!"
+            color="green"
+            label="Etiquetas" 
+            action="print"
+            mode="report" 
+            append="id=9b862393f1c,FacilityId=(facility),ItemMasterGuid=[searchselect]"/>    
+      </row>  
+      <row>
+        <control type="label" label="Notas" span="2" />       
+        <control type="textarea" name="itemInfo_Notes" span="8" rows="1" edit="true"/>
+        <control type="button" name="btnManufacturer" span="2"
+          reveal="[searchselect]!"
+          icon="cloud-upload" label="Fabricante" 
+          action="redirect" trigger="GetManufacturer" target="mdlManufacturer"/>
+      </row>
+    </subset>
+    </group>   
+    <group name="grpItemMasterGrids" reveal="[searchselect]!">
+      <row>
+        <control type="buttongroup" name="btgItemGrids" span="12" edit="true" default="Documents" mode="auto"
+          source="Documents,Suppliers,Payers,Classes,Kit"
+          sourcelabels="Documentos,Proveedores,Precios de Pagadores,Precios de Clasificaciones,Kit"
+          provoke="optItemGrids|options"/>
+      </row>
+      <row>
+        <control type="options" name="optItemGrids" span="12" affector="btgItemGrids">
+        <control type="datagrid" label="Documentos" name="ItemMaster_UploadedImages"         
+          option="Documents"
+          rows="5"
+          acctsvcreq="true"
+          datarequest="GetImagingOrderFilesByImagingOrderGuid"
+          appendrequest="ImagingOrderGuid=[searchselect]"
+          source="DateEntered,FileType,Category,Type,FileName,EnteredByFullName,"
+          sourcelabels="Fecha y Hora,Tipo,Categoría,Tipo,Documento,Entregado"
+          translate="FileType"
+          align="left|left|left|left"
+          format="datetime"
+          sort="DateTimeEntered=desc"
+          key="PhotoGuid"
+          action="redirect|url"
+          target="printables/uploadviewer.html"
+          usesource="login"
+          append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+          <!-- Upload scanned document/jpg -->
+          <control type="button"
+            name="ItemMaster_ScanDocuments"
+            label="Subir Documentos"
+            icon="folder-open"
+            limit="Inventario"
+            append="labOrderId=[searchselect]"
+            action="upload"
+            filter="pdf,jpg,jpeg"
+            provoke="ItemMaster_UploadedImages"/>
+        </control>
+         <control type="datagrid" label="Proveedores de Artículos" name="itemsuppliers" edit="true" rows="5"
+          option="Suppliers"
+          modalname="ItemNewSupplier"     
+          dependent="searchselect"     
+          source="Active,VendorName,Status,Priority,UnitOfMeasure,CurrentPrice,LastPrice,PatientChargeAmount,DateOfLastPrice,Notes"
+          sourcelabels="Activo,Proveedor,Estatus,Preferencia,UOM,Precio Actual,Precio Anterior,Paciente,Fecha,Notas"          
+          datainsert="InsertItemVendor"
+          dataupdate="UpdateItemVendor"
+          datarequest="GetItemVendorsAll"
+          acctsvc="true"
+          acctsvcreq="true" 
+          appendinsert="ItemMasterGuid=[searchselect]"
+          appendupdate="ItemMasterGuid=[searchselect]"
+          appendrequest="ItemGuid=[searchselect]"
+          format="boolean|||||0.00|0.00|0.00|datetime"
+          align="|left|left|left|left|right|right|right|left|left"
+          sort="VendorName=asc"
+          key="ItemVendorGuid"/>
+        <!-- Kit Items -->
+        <control type="datagrid" label="Artículos de Kit" name="grdKitItems" rows="5"
+            reveal="[IsKit]=True"
+            option="Kit"
+            action="redirect"
+            target="mdlNewKitItem"
+            source="Active,PatientChargeable,OverridePrice,ItemNumber,ItemName,KitItemPrice,ItemCount"
+            sourcelabels="Activo,Cobrable,Anular Precio,Número,Nombre del Artículo,Precio,Cantidad"
+            acctsvcreq="true"
+            datarequest="GetKitItemsByKitGuidActive"
+            appendrequest="kitGuid=[searchselect]"
+            format="boolean|boolean|boolean|||$0,0.00|0,000"
+            align="|||left|left|right|right"
+            sort="ItemName=asc"
+            key="KitItemGuid"
+            onselectset="KitItemGuid=[[KitItemGuid]]"
+            onselect="KitItemGuid">
+          <control type="button" name="btnNewKitItem" icon="plus" label="Añadir Nuevo"
+            reveal="[IsKit]=True"
+            action="redirect" target="mdlNewKitItem"/>
+        </control>
+        <!--  Financial class pricing -->
+        <control type="datagrid" label="Clasificaciones de Precios Financieros" name="itemFinClass" edit="true" rows="5"
+          option="Classes"
+          modalname="newItemFinClass"
+          source="Active,ClassificationCode,ClassificationDescription,CurrentPrice,DateofPriceChange,Notes"
+          sourcelabels="Activo,Código,Clase,Precio Actual,Fecha de Cambio,Notas" 
+          datainsert="InsertItemMasterFinancialClassificationPricing"
+          dataupdate="UpdateItemMasterFinancialClassificationPricing"
+          datarequest="GetItemMasterFinancialClassificationPricingActive"           
+          acctsvc="true"
+          acctsvcreq="true"          
+          appendinsert="ItemMasterGuid=[searchselect]"
+          appendupdate="ItemMasterGuid=[searchselect]"
+          appendrequest="itemMasterGuid=[searchselect]"
+          format="boolean|||0,0.00|datetime|"
+          align="|left|left|right|left|left"
+          sort="ClassificationCode=asc"
+          key="PricingGuid"/>
+        <!--  Payer pricing -->
+        <control type="datagrid" label="Precio del Pagador" name="itemPayers" edit="true" rows="5"
+          option="Payers"
+          modalname="newItemPayer"
+          source="Active,PayerName,PayerItemReference,UOM,CurrentPrice,PreviousPrice,DateofPriceChange,Notes"
+          sourcelabels="Activo,Pagador,Referencia,UOM,Precio,Anterior,Cambiado,Notas" 
+          datainsert="InsertItemMasterPayerPricing"
+          dataupdate="UpdateItemMasterPayerPricing"
+          datarequest="GetItemMasterPayerPricingByItemMasterGuid"
+          acctsvc="true"
+          acctsvcreq="true"          
+          appendinsert="ItemMasterGuid=[searchselect]"
+          appendupdate="ItemMasterGuid=[searchselect]"
+          appendrequest="ItemMasterGuid=[searchselect]"
+          format="boolean||||0.00|0.00|datetime||"
+          align="|left|left|left|left|left|left|left|left|"
+          sort="PayerName=asc"
+          key="PayerPricingGuid"/>
+        </control>
+      </row>
+    </group>
+  </section>
+  
+  <section type="tabmodal" name="mdlManufacturer"  title="Fabricante" badge="none">
+    <group>
+      <control type="hidden" name="GetManufacturer"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[searchselect]"
+          inject="ManufacturingDetails"/>
+    </group>
+    <group name="ManufacturingDetails">     
+      <row>
+        <control type="label" label="" span="2"/>
+        <!-- Item Master photo -->
+        <control type="image" 
+          format="square" 
+          default="null"             
+          name="LinkToPhoto" 
+          span="8"/>
+      </row>
+      <row>
+        <control type="label" label="" span="2"/>
+        <control type="button" 
+          name="TakeItemPhoto" 
+          color="grey" 
+          span="8" 
+          label="Foto" 
+          icon="camera" 
+          action="itemphoto" 
+          append="itemMasterGuid=[searchselect]" 
+          provoke="GetManufacturer"/> 
+      </row>
+      <row>
+        <control type="label" span="5" label="Nombre del Fabricante" />               
+        <control type="text" span="6" name="ManufacturerName" edit="true" />
+      </row>
+      <row>  
+        <control type="label" span="5" label="ID del Artículo del Fabricante" />        
+        <control type="text" span="6" name="ManufacturerID" edit="true" />
+      </row>
+      <row >  
+        <control type="label" span="5" label="ID de la Etiqueta del Fabricante" />        
+        <control type="text" span="6" name="ManufacturerLabelerIDCode" edit="true" />
+      </row>
+      <row >
+        <control type="label" span="5" label="Número de Modelo" />        
+        <control type="text" span="6" name="ModelNumber" edit="true" />
+      </row>
+      <row>  
+        <control type="label" span="5" label="Número de Catálogo" />
+        <control type="text" span="6" name="ManufacturerCatalogNumber" edit="true" />
+      </row>  
+      <row>
+        <control type="modalbutton" name="btnUpdateManufacturer"
+          reveal="[IsSerialized]=false+[searchselect]!"         
+          color="green"
+          label="Guardar" 
+          icon="cloud-upload"
+          action="save|close|new"
+          affector="none"
+          capture="ManufacturingDetails|active"
+          acctsvc="true"         
+          dataupdate="UpdateItemMasterItem"
+          appendupdate="itemMasterGuid=[searchselect]"/>  
+      </row>
+    </group>
+  </section>
+  <!-- Tabmodal to enter kit items -->
+  <section type="tabmodal" title="Artículos de Kit" name="mdlNewKitItem"   badge="none">
+    <group>
+      <row>
+        <control type="hidden" name="KitItemGuid"
+          acctsvcreq="true"
+          datarequest="GetKitItemByKitItemGuid"
+          appendrequest="KitItemGuid=[KitItemGuid]"
+          inject="NewKitItemInfo"/>
+      </row>
+    </group>
+    <group name="NewKitItemSelect" reveal="[KitItemGuid]=">
+      <row >
+        <control type="label" label="Artículo" span="3"/>
+        <control type="select" name="itemselect" span="8" searchable="true" placeholder="Buscar artículo"
+          source="ItemName,ItemMasterGuid"
+          acctsvc="true"
+          datasource="GetItemMasterNamesForThisFacility"
+          append="IsKit=false,Status=Active,Inventory=true"
+          provoke="hidGetItemFromItemSelect"/>
+        <control type="hidden" name="hidGetItemFromItemSelect"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[itemselect]"
+          inject="NewKitItemInfo"
+          set="NKI_ItemGuid=[[ItemMasterGuid]],KitItemPrice=[[BasePrice]]"/>
+      </row>
+    </group>
+    <group name="NewKitItemInfo"> 
+      <row>
+        <control type="hidden" name="NKI_ItemGuid"/> 
+      </row>  
+      <row>
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="NKI__Active" sourcelabels="Sí,No"
+          source="True,False" span="2" readonly="true" default="True" />
+      </row>
+      <row>
+        <control type="label" span="3" label="Número"/>
+        <control type="text" span="4" name="NKI_ItemNumber" readonly="true" />   
+        <control type="hidden" span="2" label="ID Externa"/>
+        <control type="hidden" span="2" name="NKI_ExternalId1"/>     
+      </row>   
+      <row>
+        <control type="label" span="3" label="Nombre"/>
+        <control type="textarea" rows="2" span="8" name="NKI_ItemName" readonly="true" />
+      </row>
+      <row>
+        <control type="label" span="3" label="Descripción"/>
+        <control type="textarea" rows="2" span="8" name="NKI_ItemDescription" readonly="true" />
+      </row>
+      <row>          
+        <control type="label" label="Cobrable" span="3" />
+        <control type="buttongroup" span="2" name="NKI_PatientChargeable" source="True,False" sourcelabels="Sí,No" default="True" edit="true" />          
+      </row>     
+      <row>        
+        <control type="label" label="Precio" span="3"/>
+        <control type="text" name="KitItemPrice" span="2" default="0.00" format="0,00.00" edit="OverridePrice=True" /> 
+        <control type="label" label="Cantidad" span="1"/>
+        <control type="text" injectname="ItemCount" name="ItemCount"  span="1" default="1.00" format="0,00.00" required="true" edit="true" />   
+        <control type="label" label="Anular precio" span="2" />
+        <control type="buttongroup" span="2" name="OverridePrice" 
+          source="True,False" 
+          sourcelabels="Sí,No" default="False" edit="true"  
+          trigger="KitItemPrice"/>      
+      </row>
+      <row>
+        <control type="modalbutton" name="mbtSaveNewKitItem" label="Guardar" icon="cloud-upload" color="green"
+          reveal="[KitItemGuid]="
+          action="save|close|new"
+          compare="[NKI_ItemGuid]!|El artículo es obligatorio."
+          acctsvc="true"
+          capture="NewKitItemInfo"
+          datainsert="InsertKitItem"
+          appendinsert="kitGuid=[searchselect]"
+          provoke="grdKitItems"/>
+        <control type="modalbutton" name="mbtSaveAndNewKitItem" label="Guardar y Más" icon="cloud-upload" color="yellowgreen"
+          reveal="[KitItemGuid]="
+          action="save|new"
+          compare="[NKI_ItemGuid]!|El artículo es obligatorio."
+          acctsvc="true"
+          capture="NewKitItemInfo"
+          datainsert="InsertKitItem"
+          appendinsert="kitGuid=[searchselect]"
+          provoke="grdKitItems"/>
+        <control type="modalbutton" name="mbtUpdateKitItem" label="Actualizar" icon="cloud-upload"
+          reveal="[KitItemGuid]!"
+          action="save|close|new"
+          compare="[NKI_ItemGuid]!|El artículo es obligatorio."
+          acctsvc="true"
+          capture="NewKitItemInfo"
+          datainsert="UpdateKitItem"
+          appendinsert="KitItemGuid=[KitItemGuid]"
+          provoke="grdKitItems"/>
+        <control type="modalbutton" name="mbtRemoveKitItem" label="Eliminar" icon="cloud-upload" color="red"
+          reveal="[KitItemGuid]!"
+          action="save|close|new"
+          confirm="Por favor, confirme que desea eliminar este artículo del kit."
+          acctsvc="true"
+          dataupdate="UpdateKitItem"
+          appendupdate="KitItemGuid=[KitItemGuid],Active=false"
+          provoke="grdKitItems"/>
+      </row>
+   </group>
+  </section>   
+
+  <!--  Supplier pricing -->
+  <section  type="modal" name="ItemNewSupplier" title="Proveedor"
+           enteredby="EnteredByFullName" updatedby="LastUpdatedByFullName"
+           dtentered="DateTimeEntered" dtupdated="DateTimeLastUpdated"> 
+    <group>
+      <row>
+        <control type="label" label="Activo" span="4"/>
+        <control type="buttongroup" name="ItemNewSupplier_Active" sourcelabels="Sí,No" source="True,False" default="True" edit="true" span="3" />
+      </row>
+      <row>
+        <control type="label" label="Proveedor" span="4" />
+        <control type="select" name="SupplierGuid" required="true"
+          source="VendorName,VendorGuid"
+          datasource="GetVendorsActive"
+          acctsvc="true"
+          span="5" />
+      </row>      
+      <row>
+      <control type="label" label="Estatus" span="4"/>       
+       <control type="select" name="ItemNewSupplier_Status" span="3"
+          source="Approved,Not Approved,OnHold"
+          sourcelabels="Aprobado,No aprobado,En espera"
+          edit="true" />
+      </row>
+      <row> 
+        <control type="label" label="Preferencia" span="4" />
+        <control type="buttongroup" name="Priority" default="2"
+          source="1,2,3,4,5" edit="true" span="4" required="true"
+          />
+      </row>
+
+      <row>
+        <control type="label" label="ID de Artículo" span="4"/>
+        <control type="text" name="SupplierPartNumber" span="4" edit="true" />
+      </row>
+
+      <row>
+        <control type="label" label="ID de la Etiqueta" span="4"/>
+        <control type="text" name="SupplierLabelId" span="4" edit="true" />
+      </row>
+
+      <row>
+        <control type="label" label="Plazo de Entrega (Días)" span="4"/>
+        <control type="text" name="LeadTimeDays" span="2" edit="true" />
+      </row>
+
+      <row>
+        <control type="label" label="Cantidad Mínima de Pedido" span="4"/>
+        <control type="text" name="MinimumOrderQty" span="2" edit="true" />    
+      </row>
+
+      <row>   
+        <control type="label" label="Cantidad Máxima de Pedido" span="4"/>
+        <control type="text" name="MaximumOrderQty" span="2" edit="true" />
+      </row>
+
+      <row>
+        <control type="label" label="Unidad de Compra" span="4"/>
+        <control type="select" name="ItemNewSupplier_UnitOfMeasure"
+          source="RelatedUnitName,RelatedUnitName"
+          datasource="GetItemMasterRelatedUnitsOfMeasure"
+          acctsvc="true" explicit="true"
+          span="4" 
+          edit="true" 
+          sort="RelatedUnitName=asc"
+          />
+      </row>
+      <row>
+        <control type="label" label="Precio Compra Actual" span ="4"/>
+        <control type="text" name="ItemNewSupplier_CurrentPrice" span="2" edit="true" default="0.00" format="0,0.00"/>  
+      </row>
+      <row>   
+        <control type="label" label="Precio Compra Anterior" span ="4"/>
+        <control type="text" name="ItemNewSupplier_LastPrice" span="2" edit="true" default="0.00" format="0,0.00"/>
+       </row>
+        <row>
+        <control type="label" label="Cobrar Pacientes" span ="4"/>
+        <control type="text" name="ItemNewSupplier_PatientChargeAmount" span="2" edit="true" default="0.00" format="0,0.00"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha de Cambio de Precio" span="4"/>
+        <control type="datetime" name="ItemNewSupplier_DateOfLastPrice" default="now" span="3" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Notas" span="4" />
+        <control type="textarea" name="ItemNewSupplier_Notes" span="8" rows="2" edit="true"  />
+      </row>
+    </group>
+  </section>
+  <!-- Payer pricing -->
+  <section type="modal" title="Precio del Pagador" name="newItemPayer"
+           enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+           dtentered="DateTimeEntered" dtupdated="DateTimeUpdated" >
+    <group>
+      <row>
+        <control type="label" span="3" label="Pagador"/>        
+        <control name="PayerGuid" type="select" datasource="GetPayersActive" 
+          source="PayerName,PayerGuid" sort="PayerName" span="3"  
+          edit="true" required="true" acctsvc="true"/>
+        <control type="label" span="2" label="Activo"/>
+        <control type="buttongroup" name="newItemPayer_Active" edit="true" span="2" default="True" required="true" sourcelabels="Sí,No" source="True,False" />
+      </row>
+      <row>
+        <control type="label" span="3" label="Ref. Artículo Pagador"/>
+        <control type="text" name="PayerItemReference" span="3" edit="true" />        
+        <control type="label" span="2" label="UOM"/>        
+        <control type="select" span="2" name="UOM"
+          source="UnitOfMeasure,UOMGuid"
+          datasource="GetUnitsOfMeasure"
+          acctsvc="true"
+          edit="true" />
+      </row>
+
+      <row>
+        <control type="label" span="3" label="Precio"/>
+        <control type="text" name="newItemPayer_CurrentPrice" span="2" edit="true" default="0.00" format="0,0.00"/>
+        <control type="label" span="3" label="Precio Anterior"/>
+        <control type="text" name="PreviousPrice" span="2" edit="true" default="0.00" format="0,0.00"/>
+      </row>
+
+      <row>
+        <control type="label" span="3" label="Fecha de Cambio de Precio"/>
+        <control type="datetime" name="newItemPayer_DateofPriceChange" span="3" edit="true" default="now"  format="date"/>        
+      </row>
+      <row>
+        <control type="label" label="Notas" span="3" />
+        <control type="textarea" name="newItemPayer_Notes" span="8" rows="2" edit="true"  />
+      </row>
+    </group>
+  </section>
+  <!-- Modal to enter financial class pricing -->
+  <section type="modal" title="Clasificación de Precio Financiero" name="newItemFinClass" 
+           enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+           dtentered="DateTimeEntered" dtupdated="DateTimeUpdated" >
+    <group>
+      <row>
+        <control type="label" span="4" label="Activo"/>
+        <control type="buttongroup" name="newItemFinClass_Active" edit="true" 
+          span="2" default="True" required="true" 
+          sourcelabels="Sí,No" source="True,False" />
+      </row>
+      <row>
+        <control type="label" span="4" label="Fecha de Cambio de Precio"/>
+        <control type="date" name="newItemFinClass_DateofPriceChange" 
+        span="4" edit="true" default="now" required="true"/>
+      </row>
+      <row>
+        <control type="label" span="4" label="Clasificación"/>        
+        <control name="ClassificationGuid" type="select" 
+          datasource="GetLookupFinancialClassificationsActive"
+          source="ClassificationCode|ClassificationDescription,ClassificationGuid" 
+          sort="ClassificationCode=asc" span="4"  edit="true"
+          required="true" acctsvc="true"/>
+      </row>      
+      <row>
+        <control type="label" span="4" label="Precio Actual"/>
+        <control type="text" name="newItemFinClass_CurrentPrice" 
+          span="4" edit="true" default="0.00" format="0,0.00" required="true"/>
+      </row>
+      <row>
+        <control type="label" label="Notas" span="4" />
+        <control type="textarea" name="newItemFinClass_Notes" 
+        span="6" rows="2" edit="true"  />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="updateNextFinancialClass" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" 
+          provoke="itemFinClass"/>
+        </row>
+        <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="InsertNextFinancialClass" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" 
+          provoke="itemFinClass"/>
+      </row>
+    </group>
+  </section>
+
+  <section type="tab" title="Tipos de Artículos" name="tabTypes" trigger="ItemTypes">
+    <group>      
+      <row>
+        <control type="datagrid" label="Tipos de Artículo Maestro" name="ItemTypes" span="12" rows="20" searchable="true"
+          modalname="NewItemMasterTypes"
+          persist="true"
+          acctsvc="true"
+          acctsvcreq="true"
+          datarequest="GetItemMasterTypessByFacility"
+          datainsert="InsertItemMasterType"
+          dataupdate="UpdateItemMasterType"
+          source="Active,TypeCode,TypeDescription,IncomeAccountNumber,IncomeAccountName,ExpenseAccountNumber,ExpenseAccountName"
+          sourcelabels="Activo,Código,Tipo de Descripción,,Cuenta de Ingresos,,Cuenta de Costos"
+          align="|left|left|left|left|left|left|"
+          format="boolean"
+          sort="TypeCode=asc"
+          key="TypeGuid" 
+          provoke="iteminfo_TypeGuid"/>
+      </row>      
+    </group>
+  </section>
+  <!-- Modal to add edit  -->
+  <section  type="modal" name="NewItemMasterTypes" title="Tipo de Artículo Maestro" 
+            enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+            dtentered="DateTimeEntered" dtupdated="DateTimeLastUpdate">    
+    <group>
+      <row>
+        <control type="label" label="Activo" span="5"/>
+        <control type="buttongroup" name="NewItemMasterTypes_Active" span="2" sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Código" span="4"/>
+        <control type="text" name="TypeCode" span="2" max="20"  edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Tipo de Artículo Maestro" span="4"/>
+        <control type="text" name="TypeDescription" max="900" span="7" required="true" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Notas" span="4"/>
+        <control type="textarea" name="NewItemMasterTypes_Notes" rows="1" span="7" edit="true" />
+      </row>
+      <!--This needs GetIncomeAccounts-->
+      <row name="rowTypeIncomeAccount" reveal="(facilityData.GeneralLedgerUse)=true"> 
+        <control type="label" label="Cuenta de Ingresos" span="4" />
+        <control type="select" name="IncomeAccount"
+          edit="true" span="7" required="true"
+          acctsvc="true"
+          explicit="true"
+          datasource="GetIncomeAccounts"
+          source="AccountNumber|LongName,LedgerAccountGuid"/>
+      </row>
+      <!--This needs GetExpenseAccounts-->
+      <row name="rowTypeExpenseAccount" reveal="(facilityData.GeneralLedgerUse)=true"> 
+        <control type="label" label="Cuenta de Costos" span="4" />
+        <control type="select" name="ExpenseAccount"
+          edit="true" span="7" required="true" searchable="true"
+          acctsvc="true"
+          explicit="true"
+          filter="ReportingCategory=Costs"
+          datasource="GetLedgerAccounts"
+          append="ReportingCategory=Costs"
+          source="AccountNumber|LongName,LedgerAccountGuid"/>
+      </row>
+      <row name="rowTypeInventoryAccount" reveal="(facilityData.GeneralLedgerUse)=true"> 
+        <control type="label" label="Cuenta de Inventario" span="4" />
+        <control type="select" name="InventoryAccount"
+          edit="true" span="7" required="true" searchable="true"
+          acctsvc="true"
+          explicit="true"
+          filter="ReportingCategory=Current Assets,Active=True,NormalBalance=Dr,AccountType=Inventory"
+          datasource="GetLedgerAccounts"
+          source="AccountNumber|LongName,LedgerAccountGuid"/>
+      </row>
+      <!--This needs GetExpenseAccounts-->
+      <row name="rowTypeConsumedExpenseAccount" reveal="(facilityData.GeneralLedgerUse)=true"> 
+        <control type="label" label="Cuenta de Gastos" span="4" />
+        <control type="select" name="ConsumedExpenseAccount"
+          edit="true" span="7" required="true" searchable="true"
+          acctsvc="true"
+          explicit="true"
+          filter="ReportingCategory=Expense"
+          datasource="GetLedgerAccounts"
+          append="ReportingCategory=Expense"
+          source="AccountNumber|LongName,LedgerAccountGuid"/>
+      </row>
+    </group>
+  </section>
+
+   <!--Item Master Categories-->
+  <!--Added by Dan 4/10/2018-->
+  <section type="tab" title="Categorías de Artículos" name="tabCategories" trigger="ItemMasterCategories">
+    <group>
+     <row>
+        <control type="datagrid" label="Categorías de Artículos" name="ItemMasterCategories" searchable="true"
+          modalname="NewItemMasterCategories" span="12"
+          rows="20"
+          acctsvc="true"
+          acctsvcreq="true" 
+          filter="SystemCategory=false"                  
+          datarequest="GetItemMasterCategoriesByFacilityAll"
+          datainsert="InsertItemMasterCategories"
+          dataupdate="UpdateItemMasterCategories"
+          source="Active,CategoryCode,CategoryDescription"
+          sourcelabels="Activo,Código,Categoría del Artículo Maestro"
+          align="|left|left|"
+          format="boolean"
+          sort="CategoryDescription=asc"
+          key="ItemCategoryGuid"
+          provoke="ItemCategories">
+          <control type="button" name="btnRefreshCategories"
+            icon="refresh" label="Actualizar" action="trigger" trigger="ItemMasterCategories"/>
+        </control>  
+     </row>
+    </group>
+  </section>
+  <section type="modal" name="NewItemMasterCategories" title="Categoría de Artículos"  provoke="ItemCategories" 
+           enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+           dtentered="DateTimeEntered" dtupdated="DateTimeLastUpdate"> 
+    <group name="NewItemMasterCategoriesGroup">
+      <row name="rowSystemCategory" reveal="NIMCG_SystemCategory=True">
+        <control type="label" label="Categoría del Sistema" span="5"/>
+        <control type="buttongroup" name="NIMCG_SystemCategory" span="2" sourcelabels="Sí,No" source="True,False" default="False" />
+      </row>
+      <row>
+        <control type="label" label="Activo" span="5"/>
+        <control type="buttongroup" name="NIMCG_Active" span="2" sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
+      </row>      
+      <row>
+        <control type="label" label="Código" span="5"/>
+        <control type="text" name="CategoryCode" span="4" required="true" 
+          edit="NIMCG_SystemCategory=False" />
+      </row>
+      <row>
+        <control type="label" label="Categoría de Cargo" span="5"/>
+        <control type="text" name="CategoryDescription" span="5" required="true" edit="NIMCG_SystemCategory=False" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="NIMCG_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" 
+          provoke="ItemCategories"/>
+        </row>
+        <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="NIMCG_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" 
+          provoke="ItemCategories"/>
+      </row>
+    </group>
+</section>
+
+  <!--Related Units of Measure-->
+  <section type="tab" title="Unidades de Medida y Compra" name="tabUnits" trigger="UnitsOfMeasure,PurchaseUnitsOfMeasure">
+    <group>
+     <row>
+      <control type="datagrid" label="Unidades de Medida" name="UnitsOfMeasure"  searchable="true"
+          modalname="NewUnitsOfMeasure" span="6"
+          rows="20"
+          persist="true"
+          datarequest="GetUnitsOfMeasure"
+          datainsert="InsertItemMasterUnitsOfMeasure"
+          dataupdate="UpdateItemMasterUnitsOfMeasure"
+          acctsvc="true"
+          acctsvcreq="true"
+          source="Active,UnitCode,UOMType,UnitOfMeasure,UOMAbbreviation,UnitCount"
+          sourcelabels="Activo,Código,Tipo,Unidad de Medida,Abreviatura,Contar"
+          align="|left|left|left|left"
+          format="boolean"
+          sort="UnitOfMeasure=asc"
+          key="UOMGuid" />
+        <control type="datagrid" label="Unidades de Compra" name="PurchaseUnitsOfMeasure"  searchable="true"
+          modalname="NewRelatedUnitsOfMeasure" span="6"
+          rows="20"
+          persist="true"
+          datarequest="GetItemMasterRelatedUnitsOfMeasure"
+          datainsert="InsertItemMasterRelatedUnitsOfMeasure"
+          dataupdate="UpdateItemMasterRelatedUnitsOfMeasure"
+          acctsvc="true"
+          acctsvcreq="true"
+          source="Active,Type,RelatedUnitName,NumberOfEaches"
+          sourcelabels="Activo,Tipo,Unidad de Compra,Cantidad"
+          align="|left|left|Left"
+          format="boolean|||0,0"
+          sort="RelatedUnitName=asc"
+          key="RelatedUnitGuid" />
+     </row>
+    </group>
+  </section>
+
+  <section type="modal" name="NewUnitsOfMeasure" title="Unidad de Medida" 
+           enteredby="EnteredByFullName" updatedby="LastUpdatedByFullName"
+           dtentered="DateTimeEntered" dtupdated="DateTimeLastUpdate"> 
+    <group name="NewUnitsOfMeasureGroup">
+      <row>
+        <control type="label" label="Activo" span="5"/>
+        <control type="buttongroup" name="NewUnitsOfMeasure_Active" span="4" sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Código" span="5"/>
+        <control type="text" name="UnitCode" span="4" 
+          required="true" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo" span="5"/>
+        <control type="select" name="UOMType" span="4" required="true" edit="true" 
+          source="Contar,Longitud,Peso,Tiempo,Volumen" default="Contar"/>
+      </row>
+      <row>
+        <control type="label" label="Unidad de Medida" span="5"/>
+        <control type="text" name="NewUnitsOfMeasure_UnitOfMeasure" max="50" span="4" required="true" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Abreviatura" span="5"/>
+        <control type="text" name="UOMAbbreviation" max="10" span="4" required="true" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="NewUnitsOfMeasure_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+        </row>
+        <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="NewUnitsOfMeasure_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>
+
+  <!--Modal Window for Related Units of Measure-->
+  <!--Added by Dan 4/10/2018-->
+  <section type="modal" name="NewRelatedUnitsOfMeasure" title="Unidad de Compra" 
+      enteredby="EnteredByFullName" updatedby="UpdatedByFullName"
+      dtentered="DateTimeEntered" dtupdated="DateTimeUpdated"> 
+    <group name="NewRelatedUnitsOfMeasureGroup">
+      <row>
+        <control type="label" label="Activo" span="5"/>
+        <control type="buttongroup" name="Nrl_Active" span="4" sourcelabels="Sí,No" source="True,False" edit="true" default="True" />
+      </row>
+      <row>
+        <control type="label" label="Tipo" span="5"/>
+       <control type="select" name="Nrl_Type" span="5" required="true"
+          source="Cuenta,Caja,Tiempo,Volumen,Largo,Area,Peso" default="Cuenta"/>
+      </row>
+      <row>
+        <control type="label" label="Unidad de Compra" span="5"/>
+        <control type="text" name="Nrl_RelatedUnitName" max="50" span="5" required="true" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Contar" span="5"/>
+        <control type="integer" name="Nrl_NumberOfEaches" span="2" required="true" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="NewRelatedUnitsOfMeasureGroup_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+        </row>
+        <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="NewRelatedUnitsOfMeasureGroup_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section> 
+  <!--Inventory Locations-->
+  <partial link="../../ERPSpanish/Module/Partials/PartialESStockLocations.xml"/>
+  <!-- Vendors -->
+  <partial link="../../ERPSpanish/Module/Partials/PartialESVendors.xml"/>
+</module>

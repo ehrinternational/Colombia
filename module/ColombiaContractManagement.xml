@@ -27,10 +27,10 @@
           acctsvcreq="true"
           datarequest="GetInsuranceContracts"
           appendrequest="Status=[btgContractStatus],[PayerGuid]!;PayerGuid=[PayerGuid],[selEndDate]!;EndDate=[selEndDate]"
-          source="StartDate,EndDate,ContractCode,ContractName,ContractType"
-          sourcelabels="Inicio,Final,Código,Nombre de Convenio,Tipo de Convenio"
-          align="||left|left|left|left|left|left"
-          format="date|date"
+          source="StartDate,EndDate,EntityCode,ContractNumber,PlanName,InsuranceType,CoverageType,ContractNotes"
+          sourcelabels="Inicio,Final,Manual,Código,Nombre de Convenio,Régimen,Tipo de Convenio,Observaciones"
+          align="||left|left|left|left|left|left|left"
+          format="date|date||||template=tmpInsuranceType|template=tmpCoverageType"
           sort="EndDate=desc"
           key="ContractGuid"
           action="redirect"
@@ -38,7 +38,7 @@
           onselectset="[ContractGuid]=[[ContractGuid]]"
           onselect="ContractGuid">
           <control type="button" name="btnNewContract" label="Añadir Nuevo" icon="plus"
-            compare="[PayerGuid]!|Seleccione una Empresa para crear un nuevo convenio."
+            preset="[Ctc_PayerGuid]=[PayerGuid]"
             action="redirect"
             target="mdlContracts"/>
         </control>

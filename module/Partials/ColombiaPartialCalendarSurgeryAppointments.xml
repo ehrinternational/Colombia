@@ -100,24 +100,22 @@
           datarequest="GetHospitalByGroupId"
           appendrequest="GroupId=(facilityData.GroupId)"
           source="HospitalName,LocationId"
-          provoke="[SurgeryLocationId]!;SurgeryCalendarLookup"/>
+          provoke="SurgeryCalendarLookup"/>
         <!-- Select the calendar to view filter="CalendarType=Surgery" -->
-        <control type="select" 
-				  name="SurgeryCalendarLookup" span="3" default="true" explicit="true"
+        <control type="select" name="SurgeryCalendarLookup" span="3" default="true" explicit="true"
 				  datarequest="GetSchedulerAppointmentTypesByFacility" 
           appendrequest="LocationId=[SurgeryLocationId]" 
 				  source="CalendarName,CalendarGuid" 
-          filter="CalendarType%Surgery,Active=true"
-				  edit="true" 
+          filter="CalendarType%Surgery,Active=true" 
 					sort="CalendarName=asc"
           set="[[Service]]!;CalendarRoomType=[[Service]]^CalendarRoomType=None"
-				  provoke="[SurgeryCalendarLookup]!;SurgeryTimes|resource"/>
+				  provoke="SurgerybtnRefreshCalendar"/>
         <control type="label" label="Especialidad" span="1"/>
         <control type="select" name="selCalendarSpecialty" span="2" searchable="true" edit="true"
           acctsvc="true"
           datasource="GetMedicalSpecialties"
           source="Specialty,MedicalSpecialtyGuid"
-          provoke="[SurgeryCalendarLookup]!;SurgeryTimes|resource"/>
+         provoke="SurgerybtnRefreshCalendar"/>
         <!-- Select surgeon -->
         <control type="label" label="Cirujano" span="1"/>
         <control type="select" name="SurgeryInf_SurgeonId"
@@ -126,10 +124,10 @@
           append="LocationId=[SurgeryLocationId],role=Physician"
           source="UserFirstMiddleLast,UserId"
           span="2" explicit="true" edit="true"
-          provoke="[SurgeryCalendarLookup]!;SurgeryTimes|resource"/>
+          provoke="SurgerybtnRefreshCalendar"/>
       </row>
 			<row>
-          <!-- Surgery Calendar -->
+          <!-- Surgery Calendar resourcefilter="RoomTypeGuid=[CalendarRoomType]" -->
           <control type="calendar" name="SurgeryTimes" span="12"
             aspect="10/5"
             headerleft="prevYear,nextYear prev,next today"
@@ -137,7 +135,7 @@
             headerright="dayGridMonth,resourceTimeGridDay,listDay"
             resource="RoomAndBedNumber,RoomGuid"
             dataresource="GetRoomsAndBedsForThisFacility"
-            appendresource="LocationId=[SurgeryLocationId]"
+            appendresource="LocationId=[SurgeryLocationId],RoomTypeGuid=[CalendarRoomType]"
             resourcefilter="RoomTypeGuid=[CalendarRoomType]"
             default="resourceTimeGridDay"
             navlinking="true"
@@ -173,7 +171,7 @@
             <!-- Button to refresh the calendar -->
             <control type="button" name="SurgerybtnRefreshCalendar"
               icon="refresh" label="Actualizar" action="trigger" 
-              trigger="SurgeryTimes|resource"/>
+              provoke="[SurgeryCalendarLookup]!+[CalendarRoomType]!+[CalendarRoomType]!None;SurgeryTimes|resource^SurgeryTimes"/>
           </control>
       </row>
 		</group>

@@ -1,5 +1,5 @@
 ﻿<partial>
-<section type="tabmodal" name="mdlSurgerySuppliesList" title="Suministros de Cirugía" trigger="dgrSurgerySupplies" badge="none">
+<section type="tabmodal" name="mdlSurgerySuppliesList" title="Suministros de Cirugía" badge="none">
   <group>
       <row>
         <control type="datagrid" label="Suministros de Cirugía" name="dgrSurgerySupplies"

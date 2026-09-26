@@ -49,7 +49,7 @@
       </row>
       <row>
         <control type="label" span="3" label="Convenio"/>    
-        <control name="PPL_PlanGuid" type="select" explicit="true" span="6" edit="true" searchable="true" required="true"
+        <control name="PPL_PayerPlan" type="select" explicit="true" span="6" edit="true" searchable="true" required="true"
           sort="PlanName"  nameField="PPL_PlanName" persist="true"
           acctsvcreq="true"
           datarequest="GetInsurancePlans" 

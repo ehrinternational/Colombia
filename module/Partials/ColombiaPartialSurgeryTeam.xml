@@ -1,21 +1,72 @@
 ﻿<partial>
   <!-- Partial surgery team members -->
-    <control type="datagrid" 
-      label="Personal de Cirugía" 
-      name="SurgeryTeam"
-      modalname="SurgeryTeamModal" 
-      rows="10" span="12"
-      fitrows="true"
-      idle="[SurgeryGuid]=|reset"
-      datarequest="GetScheduledSurgeryTeams"
-      appendrequest="surgeryGuid=[SurgeryGuid]"
-      datainsert="InsertScheduledSurgeryTeams"
-      appendinsert="surgeryGuid=[SurgeryGuid]"
-      dataupdate="UpdateScheduledSurgeryTeams"
-      appendupdate="surgeryGuid=[SurgeryGuid]"
-      source="Active,Role,UserName,Notes"
-      sourcelabels="Activo,Rol,Usuario,Notas"
-      align="|left|left|left"
-      format="boolean"
-      key="TeamMemberGuid"/>
+  <section type="tabmodal" name="mdlSurgeryTeamModal" title="Personal de Cirugía" badge="none">
+    <group>
+      <row>
+        <control type="datagrid" label="Personal de Cirugía" name="dgrSurgeryTeam"
+          modalname="SurgeryTeamModal" 
+          rows="10" span="12"
+          fitrows="true"
+          idle="[SurgeryGuid]=|reset"
+          datarequest="GetScheduledSurgeryTeams"
+          appendrequest="surgeryGuid=[SurgeryGuid]"
+          datainsert="InsertScheduledSurgeryTeams"
+          appendinsert="surgeryGuid=[SurgeryGuid]"
+          dataupdate="UpdateScheduledSurgeryTeams"
+          appendupdate="surgeryGuid=[SurgeryGuid]"
+          source="Active,Role,UserName,Notes"
+          sourcelabels="Activo,Rol,Usuario,Notas"
+          align="|left|left|left"
+          format="boolean"
+          key="TeamMemberGuid"/>
+      </row>
+    </group>
+  </section>
+    <!-- Partial Surgey team modal -->
+  <section type="modal" name="SurgeryTeamModal" title="Personal de Cirugía">
+    <group>
+      <row showif="edit">
+        <control type="label" label="Activo" span="3"/>
+        <control type="buttongroup" name="Stm_Active" span="2"
+          source="True,False" sourcelabels="Sí,No" default="True" edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Rol" span="3"/>
+        <control type="select" name="Stm_Role" span="4" required="true"
+          source="Anestesiólogo,Ayudante,Circulante,Instrumentista,Médico Cirujano,Médico Cirujano Solicitante,Médico Cirujano Primer,Médico Cirujano Segundo,Enfermera Clínica,Técnico en Enfermería,Auxiliar de Anestesia,Arsenalera,RRHH Médico,Residente"
+          sort="asc"
+          edit="true" />
+      </row>
+      <row>
+        <control type="label" label="Personal de Cirugía" span="3"/>
+        <control type="select" name="Stm_SurgeryUserId" edit="true" span="4"
+          acctsvc="true" required="true" searchable="true"
+          datasource="GetUsersByAttributes"
+          append="LocationId=(facilityData.LocationId),role=Physician|Surgery Doctor|Surgery Director|Nurse|Nurse Supervisor,active=true"
+          source="FullName,UserId"/>
+      </row>
+      <row>
+        <control type="label" label="Notas" span="3"/>
+        <control type="textarea" name="Stm_Notes" span="5" rows="3" edit="true" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="edit"
+          name="Stm_UpdateResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="update|next" />
+      </row>
+      <row>
+        <control type="modalbutton" 
+          showif="add"
+          name="Stm_InsertResultNext" 
+          label="Siguiente"
+          color="grey"
+          icon="circle-arrow-right"
+          modaltask="insert|add" />
+      </row>
+    </group>
+  </section>
 </partial>

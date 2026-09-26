@@ -1,44 +1,404 @@
 <partial>  
-  <control type="datagrid" label="Requisiciónes de Stock" name="SurgeryStockRequests"
-    option="StockRequests"
-    rows="20" span="12"
-    acctsvcreq="true"
-    action="redirect"
-    target="mdlSurgeryStockRequest"
-    searchable="true"
-    idle="[SurgeryGuid]=|reset"
-    datarequest="GetInventoryTransferListBySurgeryGuid"
-    appendrequest="SurgeryGuid=[SurgeryGuid]"
-    source="DateTimeEntered,TransferNumber,FromLocationName,Description,Notes,Status"
-    sourcelabels="Creado,Folio,Desde Ubicación,Descripción,Notas,Estatus"
-    align="|Left|Left|left|left|left"
-    format="datetime"
-    translate="Status"
-    sort="DateTimeEntered=desc"
-    key="TransferGuid" 
-    onselectset="StockRequestGuid=[[TransferGuid]],FromLocationDisplayName=[[FromLocationName]],ToLocationDisplayName=[[ToLocationName]]"
-    onselect="StockRequestGuid">
-    <!-- Refresh the transfer list -->
-    <control type="button" name="btnRefreshStockRequests"
-      icon="refresh" label="Actualizar"
-      action="trigger" trigger="StockRequestList"/>
-    <!-- Display the transfer modal -->
-    <control type="button" 
-      name="btnNewStockRequest" 
-      reveal="[SurgeryGuid]!+[EditMode]=Surgery"
-      label="Añadir Nuevo"
-      icon="plus"
-      action="redirect"
-      trigger="PatientId!;GetStockRequestPatientName"
-      preset="StkReq_SurgeryGuid=[SurgeryGuid],StkReq_Status=Requested,StkReq_PatientId=[PatientId]"
-      target="mdlSurgeryStockRequest"/>
-    <control type="button" 
-      name="btnNewTemplateStockRequest" 
-      reveal="[SurgeryGuid]!+[EditMode]=Template"
-      label="Añadir Nuevo"
-      icon="plus"
-      action="redirect"
-      preset="StkReq_SurgeryGuid=[SurgeryGuid],StkReq_Status=Template"
-      target="mdlSurgeryStockRequest"/>
-  </control>
+  <section type="tabmodal" badge="none" name="mdlSurgeryStockRequestList" title="Requisiciónes de Stock">
+    <group>
+      <row>
+        <control type="datagrid" label="Requisiciónes de Stock" name="dgrSurgeryStockRequests"
+          rows="10" span="12"
+          acctsvcreq="true"
+          action="redirect"
+          target="mdlSurgeryStockRequest"
+          searchable="true"
+          idle="[SurgeryGuid]=|reset"
+          datarequest="GetInventoryTransferListBySurgeryGuid"
+          appendrequest="SurgeryGuid=[SurgeryGuid]"
+          source="DateTimeEntered,TransferNumber,FromLocationName,Description,Notes,Status"
+          sourcelabels="Creado,Folio,Desde Ubicación,Descripción,Notas,Estatus"
+          align="|Left|Left|left|left|left"
+          format="datetime"
+          translate="Status"
+          sort="DateTimeEntered=desc"
+          key="TransferGuid" 
+          onselectset="StockRequestGuid=[[TransferGuid]],FromLocationDisplayName=[[FromLocationName]],ToLocationDisplayName=[[ToLocationName]]"
+          onselect="StockRequestGuid">
+          <!-- Refresh the transfer list -->
+          <control type="button" name="btnRefreshStockRequests"
+            icon="refresh" label="Actualizar"
+            action="trigger" trigger="dgrStockRequestList"/>
+          <!-- Display the transfer modal -->
+          <control type="button" name="btnNewStockRequest" 
+            reveal="[SurgeryGuid]!"
+            label="Añadir Nuevo"
+            icon="plus"
+            action="redirect"
+            trigger="PatientId!;GetStockRequestPatientName"
+            preset="StkReq_SurgeryGuid=[SurgeryGuid],StkReq_Status=Requested,StkReq_PatientId=[PatientId]"
+            target="mdlSurgeryStockRequest"/>
+        </control>
+    </row>
+  </group>
+</section>
+
+  <section type="tabmodal" badge="none" name="mdlSurgeryStockRequest" title="Requisición de Stock" provoke="dgrSurgeryStockRequests">
+    <group showif="never">
+      <row>
+        <!-- Read the transfer header information and inject -->
+        <control type="hidden" 
+          name="StockRequestGuid"
+          acctsvcreq="true"
+          datarequest="GetInventoryTransferByTransferGuid"
+          appendrequest="TransferGuid=[StockRequestGuid]"
+          inject="StockRequestInfo,StockRequestItemsGroup"
+          provoke="StockRequestItems,StkReq_PatientId!;GetStockRequestPatientName"/>
+      </row>
+      <row>
+        <control type="hidden" name="GetStockRequestPatientName"
+          datarequest="GetPatientAllFields"
+          appendrequest="PatientId=[PatientId]"
+          set="StkReq_PatientName=[[PatientFullName]]"/>
+      </row>
+    </group>
+    <!-- Inventory transfer information -->
+    <group name="StockRequestInfo">
+      <columns>
+        <column span="10">
+          <row>
+            <control type="hidden" name="StkReq_PatientId"/>
+            <control type="hidden" name="StkReq_SurgeryGuid"/>
+          </row>
+          <row>
+            <!-- Transfer number and status -->
+            <!-- Note: Items are moved in inventory when transfer is signed, not when entered -->
+            <control type="label" span="3" label="Folio#"/>
+            <control type="text" span="2" name="StkReq_TransferNumber" readonly="true"/>
+            <control type="label" span="2" label="Estatus"/>
+            <control type="select" span="3" name="StkReq_Status" default="Requested"
+              source="Requested,Open,Prepared,Completed,Canceled" 
+              sourcelabels="Requisición,Revisión,Preparado,Completado,Cancelado"
+              readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Tipo" span="3"/>
+            <control type="select" name="StkReq_TransferType" span="3"
+              source="Transfer,Patient" 
+              sourcelabels="Transferencia,Cargo al Paciente"
+              default="Transfer" edit="true" required="true"/>
+            <!-- DateTime of Transfer  -->
+            <control type="label" label="Fecha y Hora" span="3"/>
+            <control type="datetime" span="3" name="StkReq_DateTimeOfTransfer" 
+            default="(dateTimeNow)" readonly="true"/>
+          </row>
+          <row name="rowShowStockPatientName" reveal="[StkReq_PatientId]!">
+            <control type="label" label="Paciente" span="3"/>
+            <control type="text" name="StkReq_PatientName" span="6" readonly="true"/>
+          </row>
+          <row>
+            <!-- From location for transfer -->
+            <control type="label" span="3" label="Desde Ubicación"/>
+            <control type="select" span="6" name="StkReq_FromLocationGuid" edit="true"
+              namefield="FromLocationName"
+              source="LocationName,LocationGuid"
+              acctsvc="true" filter="Active=true"
+              datasource="GetInventoryLocationsForThisFacility" 
+              append="LocationId=(facilityData.LocationId)"
+              required="true"/>
+          </row>
+          <row>
+            <!-- Reference/description for transfer -->
+            <control type="label" span="3" label="Descripción"/>
+            <control type="text" span="6" name="StkReq_Description" 
+              edit="[StkReq_Status]=Requested" required="true" max="100"/>
+          </row>
+          <row>
+            <!-- Transfer Notes -->
+            <control type="label" label="Notas" span="3" />
+            <control type="textarea" name="StkReq_Notes" 
+              span="8" rows="1" edit="[StkReq_Status]=Requested"  />
+          </row>
+          <row name="rowStkReqSignRequest" reveal="[StkReq_Status]=Prepared" bgcolor="green">
+            <control type="label" label="Asignar" span="2"/>
+            <control type="select" name="StkReqPrepared_SignedBy" span="3" default="(userName)"
+              namefield="StkReqPrepared_SignedByName"
+              source="FullName,UserId" edit="true"
+              filter="Active=true" explicit="true"
+              acctsvc="true"
+              datasource="GetUsersByAttributes"
+              append="userRoles=MedWave|Nurse|Nurse Supervisor|Physician|Resident|Inventory|Pharmacy|Pharmacy Manager"/>
+            <control type="label" label="NIP" span="2"/>
+            <control type="password" name="StkReq_SignedByPIN" span="2" edit="true" required="true"/>
+          </row>
+          <row name="rowStkReqSignedBy" reveal="[StkReq_Status]=Completed" bgcolor="white">
+            <control type="label" label="Asignado por" span="2"/>
+            <control type="text" name="StkReqCompleted_SignedByName" span="3"  readonly="true"/>
+            <control type="label" label="Asignado" span="2"/>
+            <control type="datetime" name="StkReq_DateTimeSigned" span="3" readonly="true"/>
+          </row>
+        </column>
+        <column span="2">
+          <row>
+             <!-- Button to update the transfer header -->        
+            <control type="button"
+              reveal="[StockRequestGuid]!+[StkReq_Status]=Requested"
+              name="btnUpdateStockRequest"
+              span="12"
+              icon="cloud-upload"
+              label="Actualizar"
+              affector="StockRequestGuid"
+              setaffector="TransferGuid"
+              capture="StockRequestInfo"
+              acctsvc="true"
+              datainsert="UpdateInventoryTransfer"
+              appendinsert="TransferGuid=[StockRequestGuid]"
+              action="save|close|new"
+              provoke="SurgeryStockRequests"/>
+          </row>
+          <row>
+            <!-- Continue button to save new transfer -->
+            <control type="button"
+              name="btnContinueStockRequest"
+              reveal="[StockRequestGuid]="
+              span="12" color="green"
+              label="Guardar"
+              icon="cloud-upload"
+              action="save"
+              acctsvc="true"
+              capture="StockRequestInfo"
+              affector="StockRequestGuid"
+              setaffector="TransferGuid"
+              datainsert="InsertInventoryTransfer"
+              provoke="SurgeryStockRequests"/>
+          </row>
+          <row>
+            <!-- Button to cancel the transfer header -->   
+            <control type="button"
+              reveal="[StockRequestGuid]!+[StkReq_Status]=Requested"
+              name="btnCancelStockRequest"
+              span="12" color="red"
+              icon="remove"
+              label="Cancelar"
+              affector="none"
+              acctsvc="true"
+              datainsert="UpdateInventoryTransfer"
+              appendinsert="TransferGuid=[StockRequestGuid],Status=Canceled"
+              action="save|close|new"
+              provoke="SurgeryStockRequests"/>
+          </row>
+          <row>
+            <!-- Button to sign the transfer header and move stock-->   
+            <control type="button"
+              reveal="[StockRequestGuid]!+[StkReq_Status]=Prepared+[StkReq_PatientId]="
+              name="btnCompleteStockRequestNoPatient"
+              span="12" color="green"
+              icon="check"
+              label="Asignar y Transferir"
+              action="save"
+              affector="none"
+              acctsvc="true"
+              confirm="Por favor, confirme que desea firmar esta transferencia de stock."
+              datainsert="UpdateInventoryTransfer"
+              appendinsert="TransferGuid=[StockRequestGuid],dateTimeSigned=(dateTimeNow)"
+              provoke="btnCompleteTransfer"/>
+          </row>
+          <row>
+            <!-- Button to sign the transfer header and charge to patient -->   
+            <control type="button"
+              reveal="[StockRequestGuid]!+[StkReq_Status]=Prepared+[StkReq_PatientId]!"
+              name="btnCompleteStockRequestWithPatient"
+              span="12" color="green"
+              icon="check" label="Asignar y Cargar"
+              action="save"
+              affector="none"
+              acctsvc="true"
+              confirm="Por favor, confirme que desea firmar esta transferencia de stock y carga al paciente."
+              datainsert="UpdateInventoryTransfer"
+              appendinsert="TransferGuid=[StockRequestGuid],dateTimeSigned=(dateTimeNow)"
+              provoke="btnCompleteTransfer"/>
+          </row>
+          <row showif="never">
+            <control type="button" name="btnCompleteStockRequest"
+              acctsvc="true" action="save|close|new"
+              datainsert="CompleteInventoryTransfer"
+              appendinsert="transferGuid=[StockRequestGuid],dateTimeTransferred=(dateTimeNow)"
+              provoke="SurgeryStockRequests"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+    <!-- Transfer line items -->
+    <!-- Note: items are moved to inventory when they are added to the transfer -->
+    <!-- Removing a transfer item reverses the move reveal="StockRequestGuid!" -->
+    <group name="StockRequestItemsGroup" reveal="StockRequestGuid!">
+      <row>
+        <control type="datagrid" label="Artículos de Transferencia" 
+          name="StockRequestItems"
+          span="12" rows="10"
+          acctsvcreq="true"
+          searchable="true"
+          filter="Active=true"
+          datarequest="GetInventoryTransferItemsDetailByTransferGuid"
+          appendrequest="TransferGuid=[StockRequestGuid]"
+          source="ItemNumber,ItemName,ItemDescription,QtyToTransfer,TransferFromBin"
+          sourcelabels="Código,Artículo,Descripción,Cantidad,De Bin" 
+          align="|left|left|right|left|left"
+          format="|||0"
+          key="ItemDetailGuid"
+          onselectset="ItemDetailGuid=[[ItemDetailGuid]]"
+          onselect="ItemDetailGuid">
+          <!-- Button to cancel transfer item -->
+          <control type="button" name="btnCancelStockRequestItem"
+            icon="remove" showif="feature" color="red"
+            reveal="StkReq_Status=Requested"
+            label="Eliminar"
+            action="save"
+            acctsvc="true"
+            affector="none"
+            dataupdate="UpdateInventoryTransferDetail"
+            appendupdate="ItemDetailGuid=[[ItemDetailGuid]],active=false"
+            provoke="StockRequestItems"/>
+          <!-- Open the new transfer item screen -->
+          <control type="button"
+            reveal="StkReq_Status=Requested"
+            name="btnNewStockRequestItem"
+            label="Añadir Nuevo"
+            icon="plus"
+            action="redirect"
+            target="mdlStockRequestItems"/>
+          </control>
+      </row>
+    </group>
+  </section>
+  
+  <!--  Modal for entering/editing Transfer Items -->
+  <section  type="tabmodal" badge="none" name="mdlStockRequestItems" title="Artículo de Requisición" size="small">
+    <group showif="never">
+      <row>
+        <!-- Read an Item Master Item and inject its values -->
+        <control type="hidden"
+          name="GetRequestItemDetails"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[StkReq_ItemMasterGuid]"
+          inject="StockRequestItemInfo,grpInsertStockRequestItemInfo"
+          provoke="GetFromLocationRequestItemDetails"/>
+
+        <!-- Find the inventory stock item for the from location -->
+        <control type="hidden"
+          name="GetFromLocationRequestItemDetails"
+          acctsvcreq="true"
+          datarequest="GetInventoryStockItemsForLocationByItemActive"
+          appendrequest="itemGuid=[StkReq_ItemMasterGuid],locationGuid=[StkReq_FromLocationGuid]"
+          inject="StockRequestFromLocationInfo"/>
+      </row>
+      <row>
+          <!-- Clear existing item but leave search data -->
+          <control type="button" name="btnResetStockRequestScreen" action="trigger"         
+            reset="StockRequestItemInfo,grpInsertStockRequestItemInfo"
+            provoke="[focus=StockRequestBarCodeLookup]"/>
+      </row>
+    </group>
+    <!-- Display buttons to select the type of lookup for ItemMaster Items -->
+    <group>
+      <!-- Four Types of item lookup (search, scan, camera scan, and Restock list -->
+      <!-- Search list of items for the selected category -->
+      <row name="rowStockRequestItem">
+        <control type="label" label="Artículo" span="2"/> 
+        <control type="typeahead" name="StkReq_ItemMasterGuidLookup"
+          span="9" 
+          acctsvc="true"
+          datasource="GetItemMasterItemsBySearchCriteria"
+          term="searchCriteria"
+          append="inventory=true"
+          source="ItemName,ItemMasterGuid"
+          set="StkReq_ItemMasterGuid=[StkReq_ItemMasterGuidLookup]"
+          provoke="GetRequestItemDetails"/>
+      </row>
+    </group>
+    <!-- Order Item group holds all fields for edit or entry of Transfer order items -->
+    <group name="StockRequestFromLocationInfo" bgcolor="white" title="Existencia">
+      <!-- If this is an inventoried item (Inventory=true), the current stock totals are shown -->
+        <row showif="never">
+          <control type="hidden" name="StkReqFrom_ItemGuid"/>
+          <control type="hidden" name="StkReqFrom_Bin"/>
+        </row>
+        <!-- Display the stockinformation for the FromLocation -->
+        <row name="rowFromStockRequestInventoryFound" reveal="StkReqFrom_ItemGuid!">
+          <control type="label" label="Ubicación" span="3" />
+          <control type="text" name="StkReqFrom_QuantityOnHand" span="2" format="0" readonly="true"/>
+          <control type="label" label="Hospital" span="3" />
+          <control type="text" name="StkReqFrom_FacilityOnHand" span="2" format="0" readonly="true"/>
+        </row>
+    </group>
+    <!-- Display the item information -->
+    <group name="StockRequestItemInfo">
+      <row>
+        <control type="label" label="Código" span="2"/>
+        <control type="text" span="3" name="StockRequest_ItemNumber" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Artículo" span="2"/>
+        <control type="textarea" span="9" name="StockRequest_ItemName" rows="1" required="true" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Descripción" span="2"/>
+        <control type="textarea" span="9" rows="1"
+          name="StockRequest_ItemDescription" readonly="true" />
+      </row>
+    </group>
+    <!-- Enter the quantity to transfer -->
+    <group name="grpInsertStockRequestItemInfo">
+      <row>
+        <control type="hidden" name="StkReq_ItemMasterGuid"/>
+      </row>
+      <row>
+        <control type="label" label="Cantidad" span="2"/>
+        <control type="text" name="StkReq_QtyToTransfer" 
+        required="true" edit="true" span="2" format="0" compare="»0"/>
+        <control type="label" label="UDM" span="1"/>
+        <control type="select" span="4" name="StkReq_UOM"
+          injectname="ConsumedUOM"
+          acctsvc="true"
+          datasource="GetUnitsOfMeasure"
+          source="UnitOfMeasure,UOMGuid"/>
+      </row> 
+    </group>
+    <!-- Save Transfer Items Buttons -->
+    <group>
+      <row>
+        <!-- Save transfer item and clear sceen for new entry -->
+        <control type="modalbutton" name="btnSaveAndNewStockRequestItems"
+          action="save"
+          color="green"
+          label="Guardar y Nuevo"
+          icon="cloud-upload"
+          capture="grpInsertStockRequestItemInfo"
+          affector="none"
+          acctsvc="true"
+          datainsert="InsertInventoryTransferDetail"
+          appendinsert="transferGuid=[StockRequestGuid],
+            qtyRequested=[StkReq_QtyToTransfer],
+            transferFromLocation=[StkReq_FromLocationGuid],
+            transferToLocation=[StkReq_ToLocationGuid],
+            transferFromBin=[StkReqFrom_Bin],
+            transferToBin=[StkReqTo_Bin]"
+          provoke="StockRequestItems,btnResetStockRequestScreen"/>
+        <!-- Save transfer detail and close the window -->
+        <control type="modalbutton"
+          action="save|close|new"
+          name="btnSaveNewStockRequestItems"
+          color="yellowgreen"
+          label="Guardar"
+          icon="cloud-upload"
+          affector="none"
+          capture="grpInsertStockRequestItemInfo"
+          acctsvc="true"
+          datainsert="InsertInventoryTransferDetail"
+          appendinsert="transferGuid=[StockRequestGuid],
+            qtyRequested=[StkReq_QtyToTransfer],
+            transferFromLocation=[StkReq_FromLocationGuid],
+            transferToLocation=[StkReq_ToLocationGuid],
+            transferFromBin=[StkReqFrom_Bin],
+            transferToBin=[StkReqTo_Bin]"
+          provoke="StockRequestItems"/>
+      </row>
+    </group>
+  </section>
 </partial>

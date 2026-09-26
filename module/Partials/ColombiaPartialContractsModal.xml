@@ -15,8 +15,13 @@
       <row bgcolor="white">
         <control type="label" span="3" label="NIT"/>
         <control type="text" name="Ctc_PayerId" span="2" readonly="true" persist="true"/>
-        <control type="label" span="1" label="Empressa"/>
-        <control type="text" name="Ctc_PayerName" span="6" readonly="true" persist="true"/>
+        <control type="select" name="Ctc_PayerGuid" edit="[ContractGuid]=" span="7" required="true"
+          namefield="Ctc_PayerName"
+          acctsvc="true"
+          datasource="GetPayers"
+          append="Active=true"
+          source="PayerName,PayerGuid"
+          set="Ctc_PayerId=[[PayerId]]"/>
       </row>
       <row>
         <control type="label" span="3" label="Tipo de Documento"/>
@@ -24,34 +29,12 @@
           default="1" explicit="true"
           source="1,2,3"
           sourcelabels="1 CONTRATO,2 CARTA DE COMPROMISO,3 CONVENIO PRESTACION SERVICIOS"/>
-        <control type="button" name="btnSaveNewContract" icon="cloud-upload" label="Guardar" color="green" offset="4" span="2"
-          reveal="[ContractGuid]="
-          capture="grpContractInfo"
-          action="save"
-          acctsvc="true"
-          confirm="Por favor, confirme que desea insertar este nuevo contrato."
-          affector="ContractGuid"
-          setaffector="ContractGuid"
-          datainsert="InsertInsuranceContracts"
-          appendinsert="PayerGuid=[PayerGuid]"
-          provoke="dgrContracts"/>
-        <control type="button" name="btnUpdateContract" icon="cloud-upload" label="Actualizar" offset="4" span="2"
-          reveal="[ContractGuid]!"
-          capture="grpContractInfo"
-          action="save|close|new"
-          acctsvc="true"
-          confirm="Por favor, confirme que desea actualizar este contrato."
-          affector="ContractGuid"
-          setaffector="ContractGuid"
-          dataupdate="UpdateInsuranceContracts"
-          appendupdate="ContractGuid=[ContractGuid]"
-          provoke="dgrContracts"/>
       </row>
       <row>
         <control type="label" span="3" label="Estatus"/>
         <control type="select" name="Ctc_Status" edit="true" span="3"
           source="Pending,Active,Completed,Canceled" default="Pending"
-          sourcelabels="Pendiente,Activo,Caducada,Cancelado"/>
+          sourcelabels="Pendiente,Activo,Caducado,Cancelado"/>
          <control type="label" span="3" label="Régimen"/>
         <control type="select" name="Ctc_InsuranceType" span="3" edit="true" searchable="true"
           source="1,2,3,4,5,6,7" required="true" explicit="true"
@@ -97,7 +80,7 @@
       <row>
         <control type="label" span="3" label="Fecha de Inicio"/>
         <control type="date" name="Ctc_StartDate" span="3" edit="true" required="true"/>
-        <control type="label" span="3" label="Fecha de Termino"/>
+        <control type="label" span="3" label="Fecha de Término"/>
         <control type="date" name="Ctc_EndDate" span="3" edit="true"  required="true"/>
       </row>
       <row>
@@ -133,15 +116,37 @@
          <control type="label" span="3" label="Observaciones"/>
          <control type="textarea" name="ContractNotes" span="9" rows="2" edit="true"/>
       </row>
-    </group>
-    <!-- ?? reveal="[ContractGuid]!"-->
-    <group name="grpContractRelatedTables" >
       <row>
-        <control type="buttongroup" name="ContractButtonGroupSelect" edit="true" mode="auto" span="8"
-          source="Plans,Tariffs,Medications,Documents" 
-          sourcelabels="Planes,Tarifas,Medicamentos,Documentos" 
-          default="Plans"/>
-          <!-- ?? provoke="ContractGridList|options"/> -->
+       <control type="modalbutton" name="btnSaveNewContract" icon="cloud-upload" label="Guardar" color="green" 
+          reveal="[ContractGuid]="
+          capture="grpContractInfo"
+          action="save"
+          acctsvc="true"
+          confirm="Por favor, confirme que desea insertar este nuevo contrato."
+          affector="ContractGuid"
+          setaffector="ContractGuid"
+          datainsert="InsertInsuranceContracts"
+          provoke="dgrContracts"/>
+        <control type="modalbutton" name="btnUpdateContract" icon="cloud-upload" label="Actualizar"
+          reveal="[ContractGuid]!"
+          capture="grpContractInfo"
+          action="save|close|new"
+          acctsvc="true"
+          confirm="Por favor, confirme que desea actualizar este contrato."
+          affector="ContractGuid"
+          setaffector="ContractGuid"
+          dataupdate="UpdateInsuranceContracts"
+          appendupdate="ContractGuid=[ContractGuid]"
+          provoke="dgrContracts"/>
+      </row>
+    </group>
+    <group name="grpContractRelatedTables" reveal="[ContractGuid]!">
+      <row>
+        <control type="buttongroup" name="ContractButtonGroupSelect" edit="true" mode="auto" span="6"
+          source="Plans,Tariffs,Documents" 
+          sourcelabels="Planes,Tarifas,Documentos" 
+          default="Plans"
+          provoke="[ContractButtonGroupSelect]=Plans|Documents;ContractGridList|options"/> 
       </row>
       <row>
         <control name="ContractGridList" affector="ContractButtonGroupSelect" type="options" span="12">
@@ -167,11 +172,11 @@
             searchable="true"
             acctsvcreq="true"
             filter="Active=true,Type=General"
-            datarequest="GetContractExceptions" 
-            source="StartDate,EndDate,ShiftType,Ambito,Prestacion"
-            sourcelabels="Fecha Inicio,Fecha Termino,Tiempo,Ambito,Prestación"
-            align="||left|left|left"
-            format="date|date"
+            datarequest="GetColombiaContractExceptions" 
+            source="StartDate,EndDate,Ranking,ShiftType,ServiceGroup,ArticleName,SurgeryGroup,CUPSCode"
+            sourcelabels="Fecha Inicio,Fecha Término,Tipo,Tiempo,Ambito,Articulo,Grupo,Código"
+            align="||left|left|left|left|left|left"
+            format="date|date|template=tmpRanking|template=tmpShiftType|template=tmoServiceGroup"
             sort="StartDate=desc"
             key="ExceptionGuid"
             onselectset="ExceptionGuid=[[ExceptionGuid]]"
@@ -180,24 +185,6 @@
             reveal="[Ctc_CoverageType]!10|13"
             compare="[Ctc_EntityCode]!|Es necesario incluir el Manual Tarifario en el convenio para poder ingresar las tarifas."
             action="redirect" target="mdlContractExceptions"/>
-          </control>
-          <control type="datagrid"  name="dgrMedications" option="Medications" label="Medicamentos" rows="10"
-            action="redirect"
-            target="mdlMedExceptions"
-            searchable="true"
-            acctsvcreq="true"
-            filter="Active=true,Type=Medication"
-            datarequest="GetContractExceptions" 
-            source="StartDate,EndDate,ShiftType,Ambito,Medication"
-            sourcelabels="Fecha Inicio,Fecha Termino,Tiempo,Ambito,Medicamentos"
-            align="||left|left|left"
-            format="date|date"
-            sort="StartDate=desc"
-            key="ExceptionGuid"
-            onselectset="ExceptionGuid=[[ExceptionGuid]]"
-            onselect="ExceptionGuid">
-          <control type="button" name="btnNewMedException" icon="plus" label="Añadir Nuevo" 
-            action="redirect" target="mdlMedExceptions"/>
           </control>
           <!-- Scanned images for contract -->
           <control type="datagrid" label="Documentos Escaneados" name="dgrScannedForms" option="Documents"
@@ -259,7 +246,7 @@
       <row>
         <control type="hidden" name="ExceptionGuid"
           acctsvcreq="true"
-          datarequest="GetContractExceptions"
+          datarequest="GetColombiaContractExceptions"
           appendrequest="ExceptionGuid=[ExceptionGuid]"
           inject="grpExceptionInfo"/>
       </row>
@@ -269,23 +256,21 @@
           <control type="label" span="3" label="Activo"/>
           <control type="buttongroup" name="Ctx_Active" source="True,False" sourcelabels="Sí,No" 
             span="3" edit="true" default="True"/>
-          <control type="label" span="3" label="Categoria"/>  
-          <control type="calc" name="Ranking" source="ShiftSelected+ServiceSelected+SurgeryGroupSelected+SurgeryCategorySelected" span="1"/>
         </row>
         <row>
           <control type="label" span="3" label="Fecha Inicio"/>
           <control name="Ctx_StartDate" type="date" span="3" edit="true" required="true"
             default="[Ctc_StartDate]"/>
-          <control type="label" span="3" label="Fecha Termino"/>
+          <control type="label" span="3" label="Fecha Término"/>
           <control name="Ctx_EndDate" type="date" span="3" edit="true" required="true"
           default="[Ctc_EndDate]"/>
         </row>
         <row> 
           <control type="label" span="3" label="Tiempo de Servicio"/>
-          <control name="Ctx_Shiftype" type="select" span="3" edit="true" required="true" explicit="true"
+          <control name="Ctx_ShiftType" type="select" span="3" edit="true" required="true" explicit="true"
             source="1,2,3,4" default="1"
-            sourcelabels="1 Todos,2 Diurno,3 Nocturno,4 Festivo"
-            set="[Ctx_Shiftype]=2|3|4;[ShiftSelected]=1^[ShiftSelected]=0"/>
+            sourcelabels="1 Todo,2 Diurno,3 Nocturno,4 Festivo"
+            set="[Ctx_ShiftType]=2|3|4;[ShiftSelected]=1^[ShiftSelected]=0"/>
           <control type="label" span="3" label="Ambito"/>
           <control name="Ctx_ServiceGroup" type="select" span="3" edit="true" required="true" explicit="true"
             source="00,01,02,03,04,05" default="00"
@@ -293,10 +278,17 @@
             03 Internación,04 Quirúrgico,05 Atención inmediata" 
             set="[Ctx_ServiceGroup]=01|02|03|04;[ServiceSelected]=1^[ServiceSelected]=0"/>
         </row>
-        <row name="rowExceptionType1" reveal="[Ctc_EntityCode]=SOAT|ISS_2001|ISS_2004">
+        <row>
+          <control type="label" span="3" label="Tipo de Tarifa"/>  
+          <control type="select" name="Ctx_Ranking" span="3"
+          source="1,2,3,4,5,6,7,8" 
+          sourcelabels="1 Articulo(%),2 Grupo Cirugía(%),3 CUPS Cirugía (COP),4 CUPS Cirugía (%),5 CUPS Procedimiento (COP),6 CUPS Procedimiento (%),7 Paquete (COP),8 Medicamento (COP)"/>
+        </row>
+        <row name="rowExceptionType1" reveal="[Ctx_Ranking]=1">
           <control type="label" span="3" label="Articulo"/>
           <control name="Ctx_ExceptionType" type="select" span="9" edit="true" required="true" explicit="true"
           reveal="[Ctc_EntityCode]=SOAT" searchable="true"
+          nameField="Ctx_ArticleName"
           source="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,48,49,55,56"
           sourcelabels="5 Neurocirugía 2101 - 2194
             ,6 Oftalmología 2201 - 2293
@@ -334,11 +326,12 @@
             ,38 Alergología; Genética y Oncología Médica 36101 - 36302
             ,39 Estancias Hospitalarias (Piso; UCI; UCE; Quemados) 38111 - 38525
             ,48 Servicios Profesionales (Interconsultas; visitas médicas; juntas) 39101 - 39142
-            ,49 / 50 Derechos de Sala (Cirugía; parto; recuperación; procedimientos) Se liquidan según Grupo
+            ,49-50Derechos de Sala (Cirugía; parto; recuperación; procedimientos) Se liquidan según Grupo
             ,55 Materiales de Sutura y Curación; Gases Medicinales Códigos específicos por Grupo
             ,56 Servicios de Ambulancia / Traslado de Pacientes 39301 - 39305"/>
           <control name="Ctx2_ExceptionType" type="select" span="9" edit="true" required="true" explicit="true"
             reveal="[Ctc_EntityCode]=ISS_2001" searchable="true"
+            nameField="Ctx2_ArticleName"
             source="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,19,22,27,28,45,59"
             sourcelabels="1 Neurocirugía
               ,2 Oftalmología
@@ -363,6 +356,7 @@
               ,59 Servicios Profesionales (Interconsultas; Visitas Médicas)"/>
           <control name="Ctx3_ExceptionType" type="select" span="9" edit="true" required="true" explicit="true"
             reveal="[Ctc_EntityCode]=ISS_2004" searchable="true"
+            nameField="Ctx3_ArticleName"
             source="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34"
             sourcelabels="01 Sistema Nervioso
               ,02 Sistema Endocrino
@@ -398,55 +392,52 @@
               ,33 Medicina Preventiva y del Trabajo
               ,34 Higiene Industrial"/>
         </row>
-        <row name="rowSurgeryGroups1" reveal="[Ctc_EntityCode]=SOAT+[Ctx_ExceptionType]«20">
-          <control type="label" span="3" label="Grupos Quirurgico (SOAT)"/>
-          <control name="Ctx_SurgeryGrp" type="select" span="3" edit="true"
-            source="1,2,3,4,5,6,7,8,9,10,11,12,13" 
-            sourcelabels="Grupo 1,Grupo 2,Grupo 3,Grupo 4,Grupo 5,Grupo 6,Grupo 7,Grupo 8,Grupo 9,Grupo 10,Grupo 11,Grupo 12,Grupo 13"
+        <row name="rowSurgeryGroup" reveal="[Ctx_Ranking]=2">
+          <control type="label" span="3" label="Grupos Quirurgico"/>
+          <control name="Ctx_SurgeryGrp" type="select" span="3" edit="true" required="true"
+            source="2,3,4,5,6,7,8,9,10,11,12,13,20,21,22,23" 
+            sourcelabels="Grupo 2,Grupo 3,Grupo 4,Grupo 5,Grupo 6,Grupo 7,Grupo 8,Grupo 9,Grupo 10,Grupo 11,Grupo 12,Grupo 13,Grupo 20,Grupo 21,Grupo 22,Grupo 23"
             set="[Ctx_SurgeryGrp]!;SurgeryGroupSelected=1^SurgeryGroupSelected=0"/>
         </row>
-        <row name="rowSurgeryGroups2" reveal="[Ctc_EntityCode]=ISS_2001+[Ctx2_ExceptionType]«19">
-          <control type="label" span="3" label="Grupos Quirurgico (ISS)"/>
-          <control name="Ctx2_SurgeryGrp" type="select" span="3" edit="true"
-            source="20,21,22,23" sourcelabels="Grupo 20,Grupo 21,Grupo 22,Grupo 23"
-            set="[Ctx2_SurgeryGrp]!;SurgeryGroupSelected=1^SurgeryGroupSelected=0"/>
+        <row name="rowCUPSCode" reveal="[Ctx_Ranking]=3|4|5|6|7">
+          <control type="label" label="CUPS" span="3"/>
+          <control type="typeahead" name="CUPSName,CupsCode" span="9" edit="true" required="true"
+            acctsvc="true"
+            datasource="GetCUPSBySearchTerm"
+            term="cUPSName"
+            source="CUPSName,CupsCode"/>
         </row>
-        <row name="rowSurgeryGroups3" reveal="[Ctc_EntityCode]=ISS_2004+[Ctx3_ExceptionType]«15">
-          <control type="label" span="3" label="Grupos Quirurgico(ISS)"/>
-          <control name="Ctx3_SurgeryGrp" type="select" span="3" edit="true"
-            source="20,21,22,23" sourcelabels="Grupo 20,Grupo 21,Grupo 22,Grupo 23"
-            set="[Ctx3_SurgeryGrp]!;SurgeryGroupSelected=1^SurgeryGroupSelected=0"/>
+        
+        <row name="rowMedicationException" reveal="[Ctx_Ranking]=8">
+          <control type="label" span="3" label="Medicamento"/>
+          <control type="select" name="Ctm_FormularyItemGuid" span="9" searchable="true"
+            acctsvc="true" edit="true"
+            filter="Active=true"
+            datasource="GetDrugFormularyByFacility"
+            source="DrugTradeName,FormularyItemGuid"
+            required="true"/>
         </row>
-        <row name="rowSurgeryCategory1" reveal="[Ctc_EntityCode]=SOAT+[Ctx_ExceptionType]«21">
-            <control type="label" span="3" label="Categoria de Quirurgico"/>
-            <control name="Ctx1_SubType" type="select" span="3" explicit="true"
-            source="1,2,3,4,5" edit="true"
-            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
-            set="[Ctx1_SubType]=1|2|3|4|5;SurgeryCategorySelected=1^SurgeryCategorySelected=0"/>
+        <row name="rowSurgeryCategory1" reveal="[Ctx_Ranking]=3">
+            <control type="label" span="2" label="Cirujano" align="left" offset="2" badge="COP"/>
+            <control type="label" span="2" label="Anestesia" align="left" badge="COP"/>
+            <control type="label" span="2" label="Ayudante" align="left" badge="COP"/>
+            <control type="label" span="2" label="Sala" align="left" badge="COP"/>
+            <control type="label" span="2" label="Material" align="left" badge="COP"/>
         </row>
-        <row name="rowSurgeryCategory2" reveal="[Ctc_EntityCode]=ISS_2001+[Ctx2_ExceptionType]«19">
-            <control type="label" span="3" label="Categoria de Quirurgico"/>
-            <control name="Ctx2_SubType" type="select" span="3" explicit="true"
-            source="1,2,3,4,5" edit="true"
-            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
-            set="[Ctx2_SubType]=1|2|3|4|5;SurgeryCategorySelected=1^SurgeryCategorySelected=0"/>
+        <row name="rowSurgeryCategory2" reveal="[Ctx_Ranking]=3">
+          <control type="text" name="Ctx_SurgeonFee" span="2" format="0,0" edit="true" required="true" offset="2"/>
+          <control type="text" name="Ctx_AnesthesiaFee" span="2" format="0,0" edit="true" required="true"/>
+          <control type="text" name="Ctx_AssistantFee" span="2" format="0,0" edit="true" required="true"/>
+          <control type="text" name="Ctx_RoomFee" span="2" format="0,0" edit="true" required="true"/>
+          <control type="text" name="Ctx_MaterialFee" span="2" format="0,0" edit="true" required="true"/>
         </row>
-        <row name="rowSurgeryCategory3" reveal="[Ctc_EntityCode]=ISS_2004+[Ctx3_ExceptionType]«15">
-            <control type="label" span="3" label="Categoria de Quirurgico"/>
-            <control name="Ctx3_SubType" type="select" span="3" explicit="true"
-            source="1,2,3,4,5" edit="true"
-            sourcelabels="1 Cirujano,2 Anestesiologo,3 Ayudante,4 Sala,5 Materiales"
-            set="[Ctx3_SubType]=1|2|3|4|5;SurgeryCategorySelected=1^SurgeryCategorySelected=0"/>
-        </row>
-        <row>
-          <control type="label" span="3" label="Modificador"/>       
+        <row name="rowModifier" reveal="[Ctx_Ranking]=1|2|4|6">
+          <control type="label" span="3" label="Modificador" badge="%"/>       
           <control name="Ctx_PriceModifier" type="text" span="3" edit="true" required="true" format="0.00"/>
         </row>
-        <row>
-          <control type="hidden" name="ShiftSelected" default="0"/>
-          <control type="hidden" name="ServiceSelected"  default="0"/>
-          <control type="hidden" name="SurgeryGroupSelected"  default="0"/>
-          <control type="hidden" name="SurgeryCategorySelected"  default="0"/>
+        <row name="rowFlatPrice" reveal="[Ctx_Ranking]=5|7|8">
+          <control type="label" span="3" label="Precio Fijo" badge="COP"/>       
+          <control name="Ctx_PriceValue" type="text" span="3" edit="true" required="true" format="0,0"/>
         </row>
         <row>
           <control type="modalbutton" name="mbtNewContractException" label="Guardar" icon="cloud-upload" color="green"
@@ -454,82 +445,15 @@
             capture="grpExceptionInfo"
             acctsvc="true"
             action="save|close|new"
-            datainsert="InsertContractExceptions" 
-            appendinsert="ContractGuid=[ContractGuid],Type=General,Ranking"/>
+            datainsert="InsertColombiaContractExceptions" 
+            appendinsert="ContractGuid=[ContractGuid]"/>
           <control type="modalbutton" name="mbtUpdateContractException" label="Actualizar" icon="cloud-upload"
             reveal="[ExceptionGuid]!"
             capture="grpExceptionInfo"
             acctsvc="true"
             action="save|close|new"
-            dataupdate="UpdateContractExceptions" 
+            dataupdate="UpdateComolbiaContractExceptions" 
             appendupdate="ExceptionGuid=[ExceptionGuid]"/>
-        </row>
-    </group>
-  </section>
-  <!-- modal for contract Exceptions  ?? provoke="dgrMedications" --> 
-  <section type="tabmodal" name="mdlMedExceptions" title="Medicamentos" badge="none" >
-    <group showif="never">
-      <row>
-        <control type="hidden" name="MedExceptionGuid"
-          acctsvcreq="true"
-          datarequest="GetContractExceptions"
-          appendrequest="ExceptionGuid=[MedExceptionGuid]"
-          inject="grpMedExceptionInfo"/>
-      </row>
-    </group>
-    <group name="grpMedExceptionInfo">
-        <row>
-          <control type="label" span="3" label="Activo"/>
-          <control type="buttongroup" name="Ctm_Active" source="True,False" sourcelabels="Sí,No" 
-            span="3" edit="true" default="True"/>
-        </row>
-        <row>
-          <control type="label" span="3" label="Fecha Inicio"/>
-          <control name="Ctm_StartDate" type="date" span="3" edit="true" required="true"
-            default="[Ctc_StartDate]"/>
-          <control type="label" span="2" label="Fecha Termino"/>
-          <control name="Ctm_EndDate" type="date" span="3" edit="true" required="true"
-          default="[Ctc_EndDate]"/>
-        </row>
-        <row> 
-          <control type="label" span="3" label="Tiempo de Servicio"/>
-          <control name="Ctm_Shiftype" type="select" span="3" edit="true" required="true" explicit="true"
-            source="1,2,3,4" default="1"
-            sourcelabels="1 Todos,2 Diurno,3 Nocturno,4 Festivo" />
-          <control type="label" span="2" label="Ambito"/>
-          <control name="Ctm_ServiceGroup" type="select" span="3" edit="true" required="true" explicit="true"
-            source="00,01,02,03,04,05" default="03"
-            sourcelabels="00 Todo,01 Consulta externa,02 Apoyo diagnóstico y complementación terapéutica,
-            03 Internación,04 Quirúrgico,05 Atención inmediata" />
-        </row>
-        <row>
-          <control type="label" span="3" label="Medicamento"/>
-          <control type="select" name="Vaccine_ItemMasterGuid" span="8" searchable="true"
-            acctsvc="true" edit="true"
-            filter="Active=true"
-            datasource="GetDrugFormularyByFacility"
-            source="DrugTradeName,FormularyItemGuid"
-            required="true"/>
-        </row>
-       <row>
-          <control type="label" span="3" label="Precio"/>       
-          <control name="Ctm_PriceModifier" type="text" span="3" edit="true" required="true" format="0.00"/>
-        </row>
-        <row>
-          <control type="modalbutton" name="mbtNewMedException" label="Guardar" icon="cloud-upload" color="green"
-            reveal="[MedExceptionGuid]="
-            capture="grpMedExceptionInfo"
-            acctsvc="true"
-            action="save|close|new"
-            datainsert="InsertContractExceptions" 
-            appendinsert="ContractGuid=[ContractGuid],Type=Medication"/>
-          <control type="modalbutton" name="mbtUpdateMedException" label="Actualizar" icon="cloud-upload"
-            reveal="[MedExceptionGuid]!"
-            capture="grpMedExceptionInfo"
-            acctsvc="true"
-            action="save|close|new"
-            dataupdate="UpdateContractExceptions" 
-            appendupdate="ExceptionGuid=[MedExceptionGuid]"/>
         </row>
     </group>
   </section>
@@ -564,12 +488,12 @@
           regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$" />
         </row>
         <row>
-          <control type="label" span="4" label="Cuota Moderadora:  Rango A"/> Ctc_CoverageType
+          <control type="label" span="4" label="Cuota Moderadora:  Rango A"/>
           <control name="Pln_ClassACuota" type="text" span="1" edit="[Ctc_CoverageType]!1|2|3|11|13|14" 
             format="0,0"  required="true" default="5000"/>
            <control type="label" span="2" label="Rango B"/>
           <control name="Pln_ClassBCuota" type="text" span="1" edit="[Ctc_CoverageType]!1|2|3|11|13|14" 
-            format="0,0"  required="true" default="20,100"/>
+            format="0,0"  required="true" default="20100"/>
            <control type="label" span="2" label="Rango C"/>
           <control name="Pln_ClassCCuota" type="text" span="1" edit="[Ctc_CoverageType]!1|2|3|11|13|14" 
             format="0,0"  required="true" default="52800"/>
@@ -606,503 +530,6 @@
           <control name="Pln_Notes" type="textarea" span="9" edit="true" rows="1"
           regex="^[A-Za-z0-9ñÑáéíóúÁÉÍÓÚüÜ .,;:!?¿¡'()_\-\/]{0,250}$"/>
         </row>
-    </group>
-  </section>
-  <!-- tabmodal Compuestos-->
-  <section type="tabmodal" title="Compuestos" name="mdlCompuestos" badge="none">
-    <group>
-      <row>
-        <control type="label" label="Prestación" span="2"/>
-        <control type="text" name="Cm2_PrestaionCode" span="2" readonly="true"/>
-        <control type="textarea" name="Cm2_PrestaionDescription" span="8" readonly="true" rows="2"/>
-      </row>
-      <row>
-        <control type="datagrid" name="grdCompuestos" label="Compuestos" span="12" rows="10"
-          edit="true"	searchable="true"
-          mode="batch"
-          modalname="mdlNewCompuesto"
-          rowcolor="Modify|insert=green;update=yellow"
-          datarequest="GetCompuestos"
-          appendrequest="RuleGuid=[RuleGuid]"
-          source="PrestacionCode,PrestacionDescription,Quantity,Unit"
-          sourcelabels="Código Prestación,Descripción Prestación,Cantidad,Unidad"
-          align="left|left|left|left"
-          key="CompuestoGuid">
-        <control type="button" name="btnInsertCompuestos" label="Actualizar Catalog" icon="cloud-upload"
-          action="batchinsert" color="green"
-          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
-          capture="grdCompuestos"
-          datainsert="Compuestos"
-          appendbatch="CompuestoGuid=(newUUID),RuleGuid=[RuleGuid]"
-          skipbatchrow="[[Modify]]=insert"
-          postwithout="Modify"
-          provoke="btnUpdateCompuestos"/>
-        </control>
-      </row>
-      <row showif="never">
-        <control type="button" name="btnUpdateCompuestos"
-          action="batchupdate|close|new"
-          key="CompuestoGuid"
-          capture="grdCompuestos"
-          dataupdate="Compuestos"
-          skipbatchrow="[[Modify]]=update"
-          postwithout="Modify"/>
-      </row>
-    </group>
-  </section>
-  <section type="modal" title="Compuestos" name="mdlNewCompuesto">
-    <group>
-       <row>
-        <control type="label" label="Activo" span="3"/>
-        <control type="buttongroup" name="Cmp_Active" span="3" edit="true" default="True"
-          source="True,False" sourcelabels="Sí,No"/>
-      </row>
-      <row>
-        <control type="label" label="Prestación" span="3"/>
-        <control type="select" name="Cmp_PrestacionGuid" span="8" searchable="true" required="true"
-          acctsvcreq="true"
-          datarequest="GetPrestaciones"
-          source="Code|Description,PrestacionGuid" edit="true"
-          set="Cmp_PrestacionCode=[[Code]],Cmp_PrestacionDescription=[[Description]]"/>
-      </row>
-      <row>
-        <control type="hidden" name="Cmp_PrestacionCode"/>
-        <control type="hidden" name="Cmp_PrestacionDescription"/>
-      </row>
-      <row>
-        <control type="label" label="Cantidad" span="3"/>
-        <control type="text" name="Cmp_Quantity" span="3" format="0" edit="true" required="true"
-          regex=""/>
-      </row>
-      <row>
-        <control type="label" label="Unidad" span="3"/>
-        <control type="text" name="Cmp_Unit" span="3" edit="true" regex="" required="true"/>
-      </row>
-      <row>
-        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
-        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
-      </row>
-    </group>
-  </section>
-
-<!-- tabmodal Compuestos-->
-  <section type="tabmodal" title="Especalidades Asociadas" name="mdlAssociatedSpecialties" badge="none">
-    <group>
-      <row>
-        <control type="label" label="Prestación" span="2"/>
-        <control type="text" name="Cm8_PrestaionCode" span="2" readonly="true"/>
-        <control type="textarea" name="Cm8_PrestaionDescription" span="8" readonly="true" rows="2"/>
-      </row>
-      <row>
-        <control type="datagrid" name="grdSpecialties" label="Especalidades Asociadas" span="12" rows="10" size="small"
-          edit="true"	searchable="true"
-          mode="batch"
-          modalname="mdlNewSpecialty"
-          rowcolor="Modify|insert=green;update=yellow"
-          datarequest="GetAssociatedSpecialties"
-          appendrequest="RuleGuid=[RuleGuid]"
-          source="Code,Description"
-          sourcelabels="Código,Descripción"
-          align="left|left"
-          key="AssociatedGuid">
-        <control type="button" name="btnInsertSpecialties" label="Actualizar Catalog" icon="cloud-upload"
-          action="batchinsert" color="green"
-          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
-          capture="grdSpecialties"
-          datainsert="AssociatedSpecialties"
-          appendbatch="AssociatedGuid=(newUUID),RuleGuid=[RuleGuid]"
-          skipbatchrow="[[Modify]]=insert"
-          postwithout="Modify"
-          provoke="btnUpdateSpecialties"/>
-        </control>
-      </row>
-      <row showif="never">
-        <control type="button" name="btnUpdateSpecialties"
-          action="batchupdate|close|new"
-          key="AssociatedGuid"
-          capture="grdSpecialties"
-          dataupdate="AssociatedSpecialties"
-          skipbatchrow="[[Modify]]=update"
-          postwithout="Modify"/>
-      </row>
-    </group>
-  </section>
-  <section type="modal" title="Especalidades Asociadas" name="mdlNewSpecialty">
-    <group>
-       <row>
-        <control type="label" label="Activo" span="3"/>
-        <control type="buttongroup" name="Cm9_Active" span="3" edit="true" default="True"
-          source="True,False" sourcelabels="Sí,No"/>
-      </row>
-      <row>
-        <control type="label" label="Especialidad" span="3"/>
-        <control type="select" name="Cm9_SpecialtyGuid" span="8" searchable="true" required="true"
-          acctsvc="true"
-          datasource="GetMedicalSpecialties"
-          source="SpecialtyCode|Specialty,MedicalSpecialtyGuid" edit="true"
-          set="Cm9_Code=[[SpecialtyCode]],Cm9_Description=[[Specialty]]"/>
-      </row>
-      <row>
-        <control type="hidden" name="Cm9_Code"/>
-        <control type="hidden" name="Cm9_Description"/>
-      </row>
-      <row>
-        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
-        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
-      </row>
-    </group>
-  </section>
-
-<!-- tabmodal Sinonimos-->
-  <section type="tabmodal" title="Sinonímos" name="mdlSynonyms" badge="none">
-    <group>
-      <row>
-        <control type="label" label="Prestación" span="2"/>
-        <control type="text" name="Cm3_PrestaionCode" span="2" readonly="true"/>
-        <control type="textarea" name="Cm3_PrestaionDescription" span="8" readonly="true" rows="2"/>
-      </row>
-      <row>
-        <control type="datagrid" name="grdSynonyms" label="Sinonimos" span="12" rows="10"
-          edit="true"	searchable="true"
-          mode="batch"
-          modalname="mdlNewSynonyms"
-          datarequest="GetSynonyms"
-          appendrequest="RuleGuid=[RuleGuid]"
-          source="Tariff,Code,Description,Active"
-          sourcelabels="Tarifa,Código S.,Descripción,Vigenta"
-          align="left|left|left|left"
-          format="|||boolean"
-          key="SynonimGuid">
-        <control type="button" name="btnInsertSynonyms" label="Actualizar Catalog" icon="cloud-upload"
-          action="batchinsert" color="green"
-          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
-          capture="grdSynonyms"
-          datainsert="Synonims"
-          appendbatch="SynonimGuid=(newUUID),RuleGuid=[RuleGuid]"
-          skipbatchrow="[[Modify]]=insert"
-          postwithout="Modify"
-          provoke="btnUpdategrdSynonyms"/>
-        </control>
-      </row>
-      <row showif="never">
-        <control type="button" name="btnUpdategrdSynonyms"
-          action="batchupdate|close|new"
-          key="grdSynonymGuid"
-          capture="grdSynonyms"
-          dataupdate="Synonyms"
-          skipbatchrow="[[Modify]]=update"
-          postwithout="Modify"/>
-      </row>
-    </group>
-  </section>
-  <section type="modal" title="Sinonimo" name="mdlNewSynonyms">
-    <group>
-       <row>
-        <control type="label" label="Vigente" span="3"/>
-        <control type="buttongroup" name="Cm3_Active" span="3" edit="true"
-          source="True,False" sourcelabels="Sí,No"/>
-      </row>
-      <row>
-        <control type="label" label="Tarifa" span="3"/>
-        <control type="select" name="Cm3_Tariff" span="8" searchable="true"
-          acctsvcreq="true"
-          datarequest="GetTariffs"
-          source="Code|Description,TariffGuid" edit="true"/>
-      </row>
-      <row>
-        <control type="label" label="Código" span="3"/>
-        <control type="text" name="Cm3_Code" span="3" format="0" edit="true"
-          regex=""/>
-      </row>
-      <row>
-        <control type="label" label="Descripción" span="3"/>
-        <control type="text" name="Cm3_Description" span="8" edit="true" regex=""/>
-      </row>
-      <row>
-        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
-        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
-      </row>
-    </group>
-  </section>
-  <!-- tabmodal Tariffs-->
-  <section type="tabmodal" title="Tarifas" name="mdlTariffs" badge="none">
-    <group>
-      <row>
-        <control type="label" label="Prestación" span="2"/>
-        <control type="text" name="Cm4_PrestaionCode" span="2" readonly="true"/>
-        <control type="textarea" name="Cm4_PrestaionDescription" span="8" readonly="true" rows="2"/>
-      </row>
-      <row>
-        <control type="datagrid" name="grdTariffs" label="Tarifas" span="12" rows="10"
-          edit="true"	searchable="true"
-          acctsvcreq="true"
-          datarequest="GetPrestacionTariffs"
-          appendrequest="RuleGuid=[RuleGuid],Active=true"
-          source="Description,Period,ISSPoint,ISSValue,QxGroup,Salaries,PropiaPoint,Value"
-          sourcelabels="Descripción,Periodo,Punto ISS,Valor ISS,Grupo Qx,Salarios,Punto Tarifa Propia,Valor"
-          align="left|left|left|left|left|left|left|left"
-          key="TariffGuid"/>
-      </row>
-    </group>
-  </section>
-  <!-- tabmodal Tariffs-->
-  <section type="tabmodal" title="Centros Costos" name="mdlCostCenters" badge="none">
-    <group>
-      <row>
-        <control type="label" label="Prestación" span="2"/>
-        <control type="text" name="Cm5_PrestaionCode" span="2" readonly="true"/>
-        <control type="textarea" name="Cm5_PrestaionDescription" span="8" readonly="true" rows="2"/>
-      </row>
-      <row>
-        <control type="datagrid" name="grdCostCenters" label="Centros Costos" span="12" rows="10"
-          edit="true"	searchable="true"
-          mode="batch"
-          modalname="mdlCostCenter"
-          acctsvcreq="true"
-          datarequest="GetPrestacionCostCenters"
-          appendrequest="RuleGuid=[RuleGuid],Active=true"
-          source="Code,Description"
-          sourcelabels="Código,Descripción"
-          align="|left|left"
-          format="boolean"
-          key="CostCenterGuid">
-        <control type="button" name="btnInsertCostCenters" label="Actualizar Catalog" icon="cloud-upload"
-          action="batchinsert" color="green"
-          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
-          capture="grdCostCenters"
-          datainsert="PrestacionCostCenters"
-          appendbatch="CostCenterGuid=(newUUID),RuleGuid=[RuleGuid]"
-          skipbatchrow="[[Modify]]=insert"
-          postwithout="Modify"
-          provoke="btnUpdategrdCostCenters"/>
-        </control>
-      </row>
-      <row showif="never">
-        <control type="button" name="btnUpdategrdCostCenters"
-          action="batchupdate|close|new"
-          key="CostCenterGuid"
-          capture="grdCostCenters"
-          dataupdate="PrestacionCostCenters"
-          skipbatchrow="[[Modify]]=update"
-          postwithout="Modify"/>
-      </row>
-    </group>
-  </section>
-  <section type="modal" title="Centro de Costo" name="mdlCostCenter" trigger="Cm5_CostCenterGuid">
-    <group>
-      <row>
-        <control type="label" label="Vigente" span="3"/>
-        <control type="buttongroup" name="Cm5_Active" span="3" edit="true" default="true"
-          source="True,False" sourcelabels="Sí,No"/>
-      </row>
-      <row>
-        <control type="label" label="Centro de Costo" span="3"/>
-        <control type="select" name="Cm5_CostCenterGuid" span="8" searchable="true" required="true"
-          acctsvc="true"
-          datasource="GetHospitalByGroupId"
-          append="GroupId=(facilityData.GroupId)"
-          source="HospitalName,HospitalGuid" edit="true"
-          set="Cm5_Code=[[LocationId]],Cm5_Description=[[HospitalName]]"/>
-        <control type="hidden" name="Cm5_Code"/>
-        <control type="hidden" name="Cm5_Description"/>
-      </row>
-      <row>
-        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
-        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
-      </row>
-    </group>
-  </section>
-  <!-- tabmodal Vigente-->
-  <section type="tabmodal" title="Centros Costos Vigente" name="mdlActiveCostCenters" badge="none">
-    <group>
-      <row>
-        <control type="label" label="Prestación" span="2"/>
-        <control type="text" name="Cm12_PrestaionCode" span="2" readonly="true"/>
-        <control type="textarea" name="Cm12_PrestaionDescription" span="8" readonly="true" rows="2"/>
-      </row>
-      <row>
-        <control type="datagrid" name="grdActiveCostCenters" label="Centros Costos Vigente" span="12" rows="10"
-          edit="true"	searchable="true"
-          mode="batch"
-          modalname="mdlActiveCostCenter"
-          acctsvcreq="true"
-          datarequest="GetActiveCostCenters"
-          appendrequest="RuleGuid=[RuleGuid],Active=true"
-          source="Code,Description,IsActive"
-          sourcelabels="Código,Descripción,Vigente"
-          align="|left|left"
-          format="||boolean"
-          key="ActiveCenterGuid">
-        <control type="button" name="btnInsertActiveCostCenters" label="Actualizar Catalog" icon="cloud-upload"
-          action="batchinsert" color="green"
-          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
-          capture="grdActiveCostCenters"
-          datainsert="ActiveCostCenters"
-          appendbatch="ActiveCenterGuid=(newUUID),RuleGuid=[RuleGuid]"
-          skipbatchrow="[[Modify]]=insert"
-          postwithout="Modify"
-          provoke="btnUpdateActiveCostCenters"/>
-        </control>
-      </row>
-      <row showif="never">
-        <control type="button" name="btnUpdateActiveCostCenters"
-          action="batchupdate|close|new"
-          key="ActiveCenterGuid"
-          capture="grdActiveCostCenters"
-          dataupdate="ActiveCostCenters"
-          skipbatchrow="[[Modify]]=update"
-          postwithout="Modify"/>
-      </row>
-    </group>
-  </section>
-  <section type="modal" title="Centro de Costo Vigente" name="mdlActiveCostCenter">
-    <group>
-      <row>
-        <control type="label" label="Activo" span="3"/>
-        <control type="buttongroup" name="Cm12_Active" span="3" edit="true" default="true"
-          source="True,False" sourcelabels="Sí,No"/>
-      </row>
-      <row>
-        <control type="label" label="Centro de Costo" span="3"/>
-        <control type="select" name="Cm12_CostCenterGuid" span="8" searchable="true" required="true"
-          acctsvc="true"
-          datasource="GetHospitalByGroupId"
-          append="GroupId=(facilityData.GroupId)"
-          source="HospitalName,HospitalGuid" edit="true"
-          set="Cm12_Code=[[LocationId]],Cm12_Description=[[HospitalName]]"/>
-        <control type="hidden" name="Cm12_Code"/>
-        <control type="hidden" name="Cm12_Description"/>
-      </row>
-      <row>
-        <control type="label" label="Vigente" span="3"/>
-        <control type="buttongroup" name="Cm12_IsActive" span="3" edit="true" default="true"
-          source="True,False" sourcelabels="Sí,No"/>
-      </row>
-      <row>
-        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
-        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
-      </row>
-    </group>
-  </section>
-  <!-- tabmodal Tariffs-->
-  <section type="tabmodal" title="Conjunto de Atención" name="mdlRelatedProcedures" badge="none">
-    <group>
-      <row>
-        <control type="label" label="Prestación" span="2"/>
-        <control type="text" name="Cm6_PrestaionCode" span="2" readonly="true"/>
-        <control type="textarea" name="Cm6_PrestaionDescription" span="8" readonly="true" rows="2"/>
-      </row>
-      <row>
-        <control type="datagrid" name="grdRelatedProcedures" label="Procedimientos Asociados" span="12" rows="5"
-          edit="true"	searchable="true"
-          mode="batch"
-          acctsvcreq="true"
-          datarequest="GetPrestacionProcedures"
-          appendrequest="RuleGuid=[RuleGuid],Active=true"
-          source="Code,Description,Quantity,Opportunity,Reference"
-          sourcelabels="Código,Descripción,Cantidad,Oportunidad,Referencia"
-          align="left|left|left|left|"
-          format="||||boolean"
-          key="RelatedProcedureGuid">
-        <control type="button" name="btnInsertRelatedProcedures" label="Actualizar Catalog" icon="cloud-upload"
-          action="batchinsert" color="green"
-          confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
-          capture="grdRelatedProcedures"
-          datainsert="PrestacionProcedures"
-          appendbatch="RelatedProcedureGuid=(newUUID),RuleGuid=[RuleGuid]"
-          skipbatchrow="[[Modify]]=insert"
-          postwithout="Modify"
-          provoke="btnUpdateRelatedProcedures"/>
-        </control>
-        </row>
-        <row showif="never">
-          <control type="button" name="btnUpdateRelatedProcedures"
-            action="batchupdate|close|new"
-            key="RelatedProcedureGuid"
-            capture="grdRelatedProcedures"
-            dataupdate="PrestacionProcedures"
-            skipbatchrow="[[Modify]]=update"
-            postwithout="Modify"/>
-        </row>
-        <row>
-          <control type="datagrid" name="grdRelatedItems" label="Productos Asociados" span="12" rows="5"
-            edit="true"	searchable="true"
-            mode="batch"
-            acctsvcreq="true"
-            datarequest="GetPrestacionItems"
-            appendrequest="RuleGuid=[RuleGuid],Active=true"
-            source="Code,Description,Quantity,Opportunity"
-            sourcelabels="Código,Descripción,Cantidad,Oportunidad"
-            align="left|left|left|left"
-            key="RelatedItemGuid">
-          <control type="button" name="btnInsertRelatedItems" label="Actualizar Catalog" icon="cloud-upload"
-            action="batchinsert" color="green"
-            confirm="Por favor, confirme que desea actualizar los cambios en el catálogo."
-            capture="grdRelatedItems"
-            datainsert="PrestacionItems"
-            appendbatch="RelatedItemGuid=(newUUID),RuleGuid=[RuleGuid]"
-            skipbatchrow="[[Modify]]=insert"
-            postwithout="Modify"
-            provoke="btnUpdateRelatedItems"/>
-          </control>
-        </row>
-        <row showif="never">
-          <control type="button" name="btnUpdateRelatedItems"
-            action="batchupdate|close|new"
-            key="RelatedItemGuid"
-            capture="grdRelatedItemss"
-            dataupdate="PrestacionItems"
-            skipbatchrow="[[Modify]]=update"
-            postwithout="Modify"/>
-        </row>
-    </group>
-  </section>
-  <section type="modal" title="Procedimiento Asociado" name="mdlNewRelatedProcedure">
-    <group>
-      <row>
-        <control type="label" label="Procedimiento Asociado" span="3"/>
-        <control type="select" name="Cm6_ProcedureGuid" span="8" searchable="true" required="true"
-          acctsvc="true"
-          datasource="GetProcedureAdministrationItemsNamesOnly"
-          source="ProcedureDescription,ProcedureGuid"
-          set="Cm6_Code=[[ProcedureCode]],Cm6_Description=[[ProcedureDescription]]"/> 
-        <control type="hidden" name="Cm6_Code"/>
-        <control type="hidden" name="Cm6_Description"/>
-      </row>
-      <row>
-        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
-        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
-      </row>
-    </group>
-  </section>
-  <section type="modal" title="Producto Asociado" name="mdlNewRelatedProcedure">
-    <group>
-      <row>
-        <control type="label" label="Producto Asociado" span="3"/>
-        <control type="typeahead" name="ItemMasterGuid" span="9"
-          acctsvc="true"
-          datasource="GetItemMasterItemsBySearchCriteria"
-          term="searchCriteria"
-          append="Inventory=true,Status=Active"
-          source="ItemName,ItemMasterGuid"
-          set="[Cm10_Code]=[[ItemCode]],[Cm10_Description]=[[ItemName]]"/>
-        <control type="hidden" name="Cm10_Code"/>
-        <control type="hidden" name="Cm10_Description"/>
-      </row>
-      <row>
-        <control type="label" label="Cantidad" span="3"/>
-        <control type="text" name="Cm10_Quantity" span="3" format="0" edit="true" required="true"
-          regex=""/>
-      </row>
-      <row>
-        <control type="label" label="Oportunidad" span="3"/>
-        <control type="text" name="Cm10_Opportunity" span="3" format="0" edit="true" required="true"
-          regex=""/>
-      </row>
-      <row>
-        <control type="hidden" name="ru_Modify" value="update" ignore="add" persist="true"/>
-        <control type="hidden" name="ri_Modify" value="insert" ignore="edit" persist="true"/>
-      </row>
     </group>
   </section>
 </partial>

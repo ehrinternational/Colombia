@@ -1,5 +1,5 @@
 <partial>
-  <!-- GoPartialSurgeryInformation -->
+  <!-- Partial Surgery Order Information -->
   <row>
     <control type="label" label="Tipo de Consulta" span="3"/>
     <control type="buttongroup" name="SurgeryOrder_AttentionType" span="3" required="true"
@@ -64,22 +64,6 @@
       datasource="GetProceduresFromProcedureAdministration"
       term="procedureDescription"/>
   </row>
-  <row>
-    <control type="label" label="Procedimiento Secundario" span="3"/>
-    <control type="typeahead" name="SurgeryOrder_SecondaryProcedureName,SurgeryOrder_SecondaryProcedure" span="6"
-      edit="true"
-      source="ProcedureDescription,ProcedureGuid"
-      datasource="GetProceduresFromProcedureAdministration"
-      term="procedureDescription"/>
-  </row>
-  <row>
-    <control type="label" label="Procedimiento Tercero" span="3"/>
-    <control type="typeahead" name="SurgeryOrder_ProcedureName3,SurgeryOrder_Procedure3" span="6"
-      edit="true"
-      source="ProcedureDescription,ProcedureGuid"
-      datasource="GetProceduresFromProcedureAdministration"
-      term="procedureDescription"/>
-  </row>
   <row name="rowReferringMd" reveal="FileName=SurgeryScheduling">
     <control type="label" label="Referidor" span="3"/>
     <control type="select" name="SurgeryOrder_ReferringDoctor"
@@ -95,7 +79,7 @@
   </row>
   <row>
     <!--??required="true"-->
-    <control type="label" label="Cirujano" span="3"/>
+    <control type="label" label="Cirujano Primario" span="3"/>
     <control type="select" name="SurgeryOrder_SurgeonId"
       searchable="true" 
       acctsvc="true" datasource="GetUsersByAttributes" 

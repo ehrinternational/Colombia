@@ -27,10 +27,10 @@
     icon="calendar" label="Mis Interconsultas"
     trigger="grdMyInternalConsultList"
     action="redirect" target="MyInternalConsultList"/>
-  <!-- Hospitalized patient list -->
-  <partial link="Partials/ColombiaPartialHospitalizedPatientListNoQueues.xml"/>
+  <!-- Emergency patient list -->
+  <partial link="Partials/ColombiaPartialEmergencyPatientsByDepartment.xml"/>
   <!-- PatientTabModal is the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <control type="text" name="GetUserName" default="(userName)"/>
@@ -46,14 +46,20 @@
           datarequest="GetPatientVisitByUniqueId"
           appendrequest="UniqueId=[PatientVisitGuid]"
           inject="VisitInfo"
-          provoke="ERProblemList|active,ERPastProblemList|active,ERAllergyList|active"/>
+          provoke="ERProblemList|active,ERPastProblemList|active,ERAllergyList|active,GetTriageLevel"/>
         <!-- Get medical specialty -->
         <control type="hidden" name="GetMedicalSpecialty"
           datarequest="GetUserProfileFromUserId2"
           appendrequest="UserIdToGet=[AttendingDoctor]"
           set="AttendingMedicalSpecialty=[[MedicalSpecialty1]]"/>
+        <control type="hidden" name="GetTriageLevel"
+          acctsvcreq="true"
+          datarequest="GetLastTriageCalculationByPatientVisitId"
+          appendrequest="PatientVisitId=[PatientVisitGuid]"
+          set="[TriageLevel]=[[TriageLevel]]"/>
         <!-- Close this patient chart when discharged by another user -->
         <partial link="./Partial/Move/PartialClosePatientWhenDischarged.xml"/>
+        <control type="hidden" name="TriageLevel"/>
         <!-- Close patient tab modal -->
         <control type="button" name="ClosePatientTabModal" action="close|new"/>
       </row>
@@ -162,6 +168,10 @@
      </group>
    </section>
   <!-- Colombia partials -->
+  <partial link="Partials/ColombiaPartialPartograma.xml"/>
+  <partial link="Partials/ColombiaPartialPatientSilvermanCalculation.xml"/>
+  <partial target="tmdPatientBirthRecords" link="Partials/ColombiaPartialPatientBirthRecords.xml"/>
+  <partial target="mdlBirthRecord" link="Partials/ColombiaPartialPatientBirthRecord.xml"/>
   <partial target="mdlTriageCalculation" link="Partials/ColombiaPartialTriageCalculation.xml"/>
   <partial target="mdlSurgeryOrderModal" link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
   <partial target="mdlMedicationApprovedBy" link="Partials/ColombiaPartialMedicationApprovedBy.xml"/>

@@ -7,7 +7,7 @@
   <!-- Display a list of admitted patients to discharge -->
   <partial link="Partials/ColombiaPartialAllAdmittedPatientsForDischarge.xml"/>
   <!--Tabmodal for admitting/reviewing hospital patients-->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="medium" title="Información del Paciente">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="medium" title="Información del Paciente" provoke="PatientList">
     <group showif="never">
       <row>
         <!--Read the patient record and display-->

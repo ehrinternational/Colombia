@@ -48,14 +48,6 @@
       trigger="ReportList,Report_VisitId"
       action="redirect" target="mdlReports"/>
   </row>
-  <row>
-        <control type="button" name="btnNewSurgeryRequest" span="12" label="Solicitud Cirugía"
-          reveal="[PatientId]!"
-          action="redirect"
-          target="NewSurgeryRequestModal"
-          preset="SurgeryRequest_PatientId=[PatientId]"
-          trigger="SurgeryRequest_PatientId"/>
-    </row>
     <row>
       <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
         span="12" icon="envelope" label="Email"

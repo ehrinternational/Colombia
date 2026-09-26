@@ -35,17 +35,6 @@
       trigger="ReportList,Report_VisitId"
       action="redirect" target="mdlReports"/>
   </row>
-  <row>
-      <!-- Display the first surgery with a Scheduled status -->
-      <control type="button" name="btnShowCurrentSurgery"
-        span="12" icon="search" label="Cirugía"
-        reveal="[PatientVisitGuid]!+[PatientId]!"
-        compare="FindSurgeryGuid!|No se encontró cirugía en proceso para este paciente."
-        preset="SurgeryViewGuid=[FindSurgeryGuid]"
-        trigger="SurgeryViewGuid"
-        action="redirect"
-        target="mdlSurgeryViewModal"/>
-    </row>
     <row>
       <!-- Display the patient timeline -->
       <control type="button" name="btnTimeline"
@@ -82,14 +71,6 @@
         trigger="GetReadyForDischarge"
         preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
         target="mdlReadyForDischarge"/>
-    </row>
-    <row>
-        <control type="button" name="btnNewSurgeryRequest" span="12" label="Solicitud Cirugía"
-          reveal="[PatientId]!+[FileName]=SurgeryDoctor"
-          action="redirect"
-          target="NewSurgeryRequestModal"
-          preset="SurgeryRequest_PatientId=[PatientId]"
-          trigger="SurgeryRequest_PatientId"/>
     </row>
     <row>
       <control type="button" name="btnEmailPatient" reveal="[PatientId]!"

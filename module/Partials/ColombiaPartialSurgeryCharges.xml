@@ -1,0 +1,124 @@
+  
+<partial>
+  <section type="tabmodal" name="mdlSurgeryChargesList" title="Cargos Adicional de Cirugía" badge="none">
+    <group>
+      <row>
+        <!-- Partial Surgery scheduled supplies -->
+        <control type="datagrid" label="Cargos de Cirugía" name="dgrSurgeryCharges"
+          action="redirect"
+          target="mdlNewSurgeryCharges" 
+          option="Charges"
+          rows="10"
+          acctsvcreq="true"
+          acctsvc="true"
+          filter="Active=true"
+          idle="[SurgeryGuid]=|reset"
+          datarequest="GetSurgeryCharges"
+          appendrequest="SurgeryGuid=[SurgeryGuid],Template=false"
+          source="Billed,ItemName,Quantity,ConsumedUOM,BasePrice,Subtotal"
+          sourcelabels="Facturado,Cargo,Cantidad,UDM,Precio,Total"
+          calculate="Amount=BasePrice*Quantity"
+          format="boolean||0||0,000.00|0,000.00"
+          total="|||||+"
+          align="|left|right|left|right|right"
+          key="SurgeryChargeGuid"
+          onselectset="SurgeryChargeGuid=[[SurgeryChargeGuid]]"
+          onselect="SurgeryChargeGuid">
+        <control type="button" name="btnNewSurgeryCharge"
+          icon="plus" label="Añadir Nuevo"
+          action="redirect" target="mdlNewSurgeryCharges"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- Partial Surgery supplies modal -->
+  <section type="tabmodal" name="mdlNewSurgeryCharges" title="Cargos Adicional de Cirugía" badge="none">
+    <group showif="never">
+      <row>
+        <control type="hidden" name="SurgeryChargeGuid"
+          acctsvcreq="true"
+          datarequest="GetSurgeryChargesBySurgeryChargeGuid"
+          appendrequest="SurgeryChargeGuid=[SurgeryChargeGuid]"
+          inject="SurgeryChargeInfo"/>
+      </row>
+    </group>
+    <group>
+      <row name="rowSelectItem" reveal="[SurgeryChargeGuid]=">
+        <control type="label" label="Cargo" span="3"/>
+        <control type="typeahead" name="Scm_ItemName2,Scm_ItemMasterGuid2" span="8" edit="true" 
+          acctsvc="true" required="true"
+          datasource="GetItemMasterItemsBySearchCriteria"
+          append="patientChargeable=true" 
+          source="ItemName,ItemGuid"
+          term="searchCriteria"
+          provoke="GetSurgeryChargeItem"/>
+          <control type="hidden" name="GetSurgeryChargeItem"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[Scm_ItemMasterGuid2]"    
+          set="Scm_UOM=[[ConsumedUOM]],Scm_BasePrice=[[BasePrice]],Dsp_ItemMasterGuid=[[ItemMasterGuid]],Dsp_ItemName=[[ItemName]]"/>
+      </row>
+    </group>
+    <group name="SurgeryChargeInfo">
+      <row>
+        <control type="hidden" name="Scm_Billed" default="false"/>
+        <control type="hidden" name="Scm_Active" default="true"/>
+        <control type="hidden" name="Dsp_ItemMasterGuid"/>
+        <control type="hidden" name="Dsp_ItemName"/>
+      </row>
+      <row name="rowDisplayItem" reveal="[SurgeryChargeGuid]!">
+        <control type="label" label="Cargo" span="3"/>
+        <control type="textarea" name="Scm_ItemName" span="8" rows="1" required="true" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Cantidad" span="3"/>
+        <control type="text" name="Scm_Quantity" span="2" edit="true" format="0" default="1" required="true"/>
+        <control type="label" label="UDM" span="2"/>
+        <control type="text" name="Scm_ConsumedUOM" span="2"/>
+      </row>
+      <row>
+        <control type="label" label="Precio" span="3"/>
+        <control type="text" name="Scm_BasePrice" span="3" edit="true" format="0,000.00" required="true"/>
+        <control type="label" label="SubTotal" span="2"/>
+        <control type="calc" name="Scm_SubTotal" span="3" source="Scm_Quantity*Scm_BasePrice" format="0,000.00"/>
+      </row>
+      <row>
+        <control type="label" label="Descuento" span="3"/>
+        <control type="text" name="Scm_DiscountAmount" span="3" edit="true" format="0,000.00"/>
+        <control type="label" label="Total" span="2"/>
+        <control type="calc" name="Scm_NetAmount" span="3" source="Scm_Quantity*Scm_BasePrice-Scm_DiscountAmount" format="0,000.00"/>
+      </row>
+    </group>
+    <group>
+      <row>
+        <control type="modalbutton" name="btnSaveNewCharge" label="Guardar" icon="cloud-upload" color="green"
+          reveal="[SurgeryChargeGuid]="
+          action="save|close|new"
+          affector="none"
+          capture="SurgeryChargeInfo"
+          acctsvc="true"
+          datainsert="InsertSurgeryCharge"
+          appendinsert="SurgeryGuid=[SurgeryGuid]"
+          provoke="dgrSurgeryCharges"/>
+        <control type="modalbutton" name="btnUpdateSurgeryCharge" label="Actualizar"  icon="cloud-upload" color="grey"
+          reveal="[SurgeryChargeGuid]!"
+          action="save|close|new"
+          affector="none"
+          capture="SurgeryChargeInfo"
+          acctsvc="true"
+          datainsert="UpdateSurgeryCharge"
+          appendinsert="surgeryChargeGuid=[SurgeryChargeGuid]"
+          provoke="dgrSurgeryCharges"/>
+        <control type="modalbutton" name="btnRemoveSurgeryCharge" label="Eliminar"  icon="remove" color="red" 
+          reveal="[SurgeryChargeGuid]!+[Scm_Billed]=false"
+          action="save|close|new"
+          affector="none"
+          acctsvc="true"
+          datainsert="UpdateSurgeryCharge"
+          appendinsert="surgeryChargeGuid=[SurgeryChargeGuid],active=false"
+          provoke="dgrSurgeryCharges"/>
+      </row>
+    </group>
+  </section>
+</partial>

@@ -1,29 +1,48 @@
 <partial>
-  <template name="tmpExceptionType" type="markup">
-    [IF ${[[ExceptionType]]}=1]Quirurgico[/IF]
-    [IF ${[[ExceptionType]]}=2]CUPS[/IF]
-    [IF ${[[ExceptionType]]}=3]Medicamentos[/IF]
-    [IF ${[[ExceptionType]]}=4]Inmunizaciones[/IF]
-    [IF ${[[ExceptionType]]}=5]Laboratorio[/IF]
-    [IF ${[[ExceptionType]]}=6]Imagenologia[/IF]
-    [IF ${[[ExceptionType]]}=7]General[/IF]
+  <template name="tmpRanking" type="markup">
+    [IF ${[[Ranking]]}=1]Articulo(%)[/IF]
+    [IF ${[[Ranking]]}=2]Grupo Cirugía(%)[/IF]
+    [IF ${[[Ranking]]}=3]CUPS Cirugía(COP)[/IF]
+    [IF ${[[Ranking]]}=4]CUPS Cirugía(%)[/IF]
+    [IF ${[[Ranking]]}=5]CUPS Procedimiento(COP)/IF]
+    [IF ${[[Ranking]]}=6]CUPS Procedimiento(%)[/IF]
+    [IF ${[[Ranking]]}=7]Paquete(COP)[/IF]
+    [IF ${[[Ranking]]}=8]Medicamentos[/IF]
   </template>
-  <template name="tmpSubType" type="markup">
-    [IF ${[[SubType]]}=1]Cirujano[/IF]
-    [IF ${[[SubType]]}=2]Anestesiologo[/IF]
-    [IF ${[[SubType]]}=3]Ayudante[/IF]
-    [IF ${[[SubType]]}=4]Sala[/IF]
-    [IF ${[[SubType]]}=5]Materiales[/IF]
+  <template name="tmpShiftType" type="markup">
+    [IF ${[[ShiftType]]}=1]1 Todo[/IF]
+    [IF ${[[ShiftType]]}=2]2 Diurno[/IF]
+    [IF ${[[ShiftType]]}=3]3 Nocturno[/IF]
+    [IF ${[[ShiftType]]}=4]4 Festivo[/IF]
   </template>
-  <template name="tmpPriceTable" type="markup">
-    [IF ${[[SubType]]}=1]SOAT[/IF]
-    [IF ${[[SubType]]}=2]ISS_2001[/IF]
-    [IF ${[[SubType]]}=3]ISS_2004[/IF]
+   <template name="tmpServiceGroup" type="markup">
+    [IF ${[[ServiceGroup]]}=00]00 Todo[/IF]
+    [IF ${[[ServiceGroup]]}=01]01 Consulta externa[/IF]
+    [IF ${[[ServiceGroup]]}=02]02 Apoyo diagnóstico [/IF]
+    [IF ${[[ServiceGroup]]}=03]03 Internación[/IF]
+    [IF ${[[ServiceGroup]]}=04]04 Quirúrgico[/IF]
+    [IF ${[[ServiceGroup]]}=05]05 Atención inmediata[/IF]
+  </template>
+  <!--?? this needs more detail for meds-->
+  <template name="tmpCUPSCode" type="markup">
+    [IF ${[[Ranking]]}=1]${[[ExceptionType]]}[/IF]
+    [IF ${[[Ranking]]}=2]${[[SurgeryGrp]]}[/IF]
+    [IF ${[[Ranking]]}=3|4|5|6|7]${[[CUPSCode]]}[/IF]
+    [IF ${[[Ranking]]}=3|4|5|6|7]${[[MedicationName]]}[/IF]
   </template>
   <template name="tmpContractType" type="markup">
     [IF ${[[ContractType]]}=1]1 CONTRATO[/IF]
     [IF ${[[ContractType]]}=2]2 CARTA DE COMPROMISO[/IF]
     [IF ${[[ContractType]]}=3]3 CONVENIO PRESTACION SERVICIOS[/IF]
+  </template>
+  <template name="tmpInsuranceType" type="markup">
+    [IF ${[[InsuranceType]]}=1]SIN INFORMACION[/IF]
+    [IF ${[[InsuranceType]]}=2]CONTRIBUTIVO[/IF]
+    [IF ${[[InsuranceType]]}=3]ESPECIAL[/IF]
+    [IF ${[[InsuranceType]]}=4]NO ASEGURADO[/IF]
+    [IF ${[[InsuranceType]]}=5]EXCEPCION[/IF]
+    [IF ${[[InsuranceType]]}=6]SUBSIDIADO[/IF]
+    [IF ${[[InsuranceType]]}=7]VINCULADO[/IF]
   </template>
   <template name="tmpCoverageType" type="markup">
     [IF ${[[CoverageType]]}=1]EPS[/IF]
@@ -49,7 +68,7 @@
     [IF ${[[TaskPriority]]}=3][icon color=red]warning-sign[/icon][/IF]
   </template>
   <template name="medsNoteTemplate" type="markup">
-    ${[[CombinedTradeName]]}[if ${[[TreatmentGoal]]}!][br][span size=10][b]Observaciones:[/b] ${[[TreatmentGoal]]}[/span][/if]
+    ${[[MedsTradeName]]}[if ${[[TreatmentGoal]]}!][br][span size=10][b]Observaciones:[/b] ${[[TreatmentGoal]]}[/span][/if]
   </template>
   <template name="tmpDispenseStatus" type="markup" align="center">
     [if ${[[DispenseStatus]]}=Approved][icon size=2x color=green]check-sign[/icon][/if]

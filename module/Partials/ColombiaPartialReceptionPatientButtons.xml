@@ -68,7 +68,7 @@
       setaffector="PatientVisitUniqueId"
       capture="VisitInfo"
       datainsert="InsertPatientVisitAllFields"
-      appendinsert="copyDiagnosis=true,
+      appendinsert="
         patientId=[PatientId],
         visitType=[DefaultAdmitType],
         hospitalService=Esperando,

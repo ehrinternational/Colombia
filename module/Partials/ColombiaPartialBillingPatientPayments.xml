@@ -22,13 +22,13 @@
       onselect="ReceiptGuid">
       <control type="button" name="btnAddNewPatientReceipt"
         icon="plus" label="Añadir Nuevo"
-        reveal="VisitSelect!+[POSSessionGuid]!"
+        reveal="VisitSelect!"
         preset="NewRec_RemainingBalance=[PatientVisitInvoiceBalance]"
         action="redirect" target="newpatientreceipts"/>
       <control type="button" name="ReversePatientReceipt" label="Revertir" icon="exchange"
         showif="feature"
-        reveal="(facilityData.HospitalShortName)¡COI|CART+[InvoiceStatus]=Open|Closed|Submitted+[POSSessionGuid]!,
-          (facilityData.HospitalShortName)%COI|CART+[InvoiceStatus]=Open|Closed|Submitted+[POSSessionGuid]!+(user.UserRoles)%Reverse Payments"
+        reveal="(facilityData.HospitalShortName)¡COI|CART+[InvoiceStatus]=Open|Closed|Submitted,
+          (facilityData.HospitalShortName)%COI|CART+[InvoiceStatus]=Open|Closed|Submitted+(user.UserRoles)%Reverse Payments"
         action="save" 
         confirm="¿Seguro que quieres revertir el pago de este paciente?"
         affector="none"  

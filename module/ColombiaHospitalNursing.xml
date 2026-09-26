@@ -21,8 +21,6 @@
     preset="DefaultPatientId="
     trigger="MyTaskAppointmentTimes"
     action="redirect" target="mdlMyTaskAppointments"/>
-  
-  
   <!-- Review My Biomedical work orders and insert a new work order -->
    <headerbutton name="btnBiomedicalWorkOrder"
     icon="edit" label="Equipo"
@@ -59,7 +57,7 @@
   <partial link="../../ERPSpanish/module/Partials/PartialESCountStockItemsByLocation.xml"/>
   <partial link="../../ERPSpanish/module/Partials/PartialESInventoryScanCount.xml"/>
   <!-- Patient tabmodal displays the patient chart -->
-  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" edit="false">
+  <section type="tabmodal" badge="none" name="PatientTabModal" size="large" title="Información del Paciente" provoke="PatientList">
     <group name="GuidStorage">
       <row showif="never">
         <!-- Get patient information -->
@@ -181,7 +179,7 @@
           <partial link="./Partial/Grids/PartialHomeMedicationNoEditPrintPrescriptionByVisit.xml"/>
           <partial link="./Partial/Grids/PartialPatientVaccinations.xml"/>
           <partial link="Partials/ColombiaPartialProcedureOrdersWithNewAndEdit.xml"/>
-           <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
+          <partial link="Partials/ColombiaPartialSurgeryListForPatientNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialBloodBankOrdersNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithNewAndEditWindowMode.xml"/>
           <partial link="./Partial/Grids/PartialAdverseMedicationEventsNoEdit.xml"/>

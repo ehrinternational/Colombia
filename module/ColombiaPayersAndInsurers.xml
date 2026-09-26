@@ -107,7 +107,7 @@
         </column>
         <column span="2">
           <row>
-            <control type="button" name="btnSaveNewPayer" label="Continuar" color="green" 
+            <control type="button" name="btnSaveNewPayer" label="Guardar" color="green" 
               icon="cloud-upload" span="12"
               reveal="[PayerGuid]="
               action="save"

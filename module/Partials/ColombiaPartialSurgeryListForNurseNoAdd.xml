@@ -1,0 +1,20 @@
+﻿<partial>
+  <!-- List of patient surgeries -->
+  <control type="datagrid" label="Cirugías del Paciente" name="dgrPatientSurgeries"
+    option="Surgery"
+    rows="5"
+    action="redirect"
+    target="mdlSurgeryViewModal"
+    idle="[PatientId]=|reset"
+    datarequest="GetScheduledSurgeries"
+    appendrequest="patientId=[PatientId]"
+    source="Status,DateTimeScheduled,DateTimePerformed,Priority,SurgeryType,PrimaryProcedureName,SurgeonName"
+    sourcelabels="Estatus,Programada,Completado,Prioridad,Tipo,Procedimiento Primario,Cirujano"
+    align="|left|left|left|left|left|left"
+    translate="Status,Priority"
+    format="|datetime|datetime"
+    key="SurgeryGuid"
+    onselectset="SurgeryViewGuid=[[SurgeryGuid]]"
+    onselect="SurgeryViewGuid">
+    </control>
+</partial>
