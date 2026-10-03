@@ -12,7 +12,7 @@
       </row>
     </group>
     <group name="SurgeryOrderPatientInfo">
-      <partial link="Partials/ColombiaPartialSurgeryPatientInfo.xml"/>
+      <partial link="Partials/ColombiaPartialSurgeryOrderPatientInfo.xml"/>
     </group>
     <!-- Surgery information -->
     <group name="SurgeryOrderInfo">

@@ -1,0 +1,25 @@
+﻿<partial>
+    <control type="datagrid" label="Asignación de Camas a Pacientes (Haz clic para seleccionar)" name="grdBedAssignments"       
+      searchable="true" rows="10" mode="batch"
+      option="Rooms"
+      skipbatchrow="[Selected]=true" 
+      postwith="ProcedureGuid"
+      appendbatch="ClaimGuid=[selPatientClaims]" 
+      datarequest="GetPatientBedAssignmentsByPatientVisit"
+      appendrequest="patientVisit=[VisitSelect]"
+      source="Selected,ClaimNumber,DateTimeAssigned,DateTimeCheckedOut,RoomAndBedNumber"
+      sourcelabels=",Convenio,Fecha Inicio,Fecha Fin,Cama"
+      align="||left|left|left"
+      format="boolean||datetime|datetime"
+      key="BedAssignmentGuid"
+      onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
+      onselect="grdBedAssignments|static">
+    <control type="button" name="btnUpdateProcedureList"
+      label="Asignar al Convenio o Desasignar" color="green"
+      tooltip="Deje el convenio en blanco para desasignar." 
+      action="batchupdate" 
+      capture="grdBedAssignments"
+      dataupdate="PatientBedAssignments"
+      provoke="grdBedAssignments"/>
+    </control>
+</partial>

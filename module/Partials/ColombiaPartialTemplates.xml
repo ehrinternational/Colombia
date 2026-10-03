@@ -15,6 +15,11 @@
     [IF ${[[ShiftType]]}=3]3 Nocturno[/IF]
     [IF ${[[ShiftType]]}=4]4 Festivo[/IF]
   </template>
+  <template name="tmpDIANInvoiceType" type="markup">
+    [IF ${[[InvoiceType]]}=01]'Factura de Venta[/IF]
+    [IF ${[[ShiftType]]}=91]Nota Crédito[/IF]
+    [IF ${[[ShiftType]]}=92]Nota Débito[/IF]
+  </template>
    <template name="tmpServiceGroup" type="markup">
     [IF ${[[ServiceGroup]]}=00]00 Todo[/IF]
     [IF ${[[ServiceGroup]]}=01]01 Consulta externa[/IF]

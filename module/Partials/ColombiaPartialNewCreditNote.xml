@@ -1,0 +1,135 @@
+<partial>
+  <!-- ==================================================================== -->
+  <!-- 1. BATCH CREATION SCREEN (HEADER + CREDIT NOTE LINES DATAGRID)       -->
+  <!-- ==================================================================== -->
+  <section type="tabmodal" badge="none" name="mdlCreateCreditNoteBatch" title="Generar Nota Crédito DIAN" size="medium">
+    
+    <group showif="never">
+      <!-- Holds the newly generated CreditNoteGuid -->
+      <control type="hidden" name="NewCreditNoteGuid"/>
+      
+      <!-- Triggered automatically after the header is saved to insert the modified lines directly into the table -->
+      <control type="button" name="btnInsertCreditNoteLinesBatch"
+        action="batchinsert|close"
+        capture="grdCreditNoteLines"
+        datainsert="DIANInvoiceLines"
+        skipbatchrow="[[Status]]=update"
+        appendbatch="InvoiceGuid=[NewCreditNoteGuid],InvoiceLineGuid=(newUUID)"
+        postwithout="Status"
+        success="Nota Crédito generada y lista para transmisión a la DIAN."
+        provoke="DianInvoiceList"/>
+
+      <!-- Load the original DIAN Invoice Header -->
+      <control type="hidden" name="DianInvoiceGuid"
+        datarequest="COLGetDIANInvoices"
+        appendrequest="InvoiceGuid=[DianInvoiceGuid]" 
+        inject="grpCreditNoteHeaderInfo"
+        provoke="grdCreditNoteLines"/>
+    </group>
+
+    <!-- Header Information (Combines Read-Only Context with New Credit Inputs) -->
+    <group name="grpCreditNoteHeaderInfo">
+      <columns>
+        <column span="12">
+          <row>
+            <control type="hidden" name="CNH_CUFE"/>
+          </row>
+          <row>
+            <control type="label" label="Factura DIAN" span="2"/>
+            <control type="text" name="CNH_InvoiceNumber" span="3" readonly="true"/>
+            <control type="label" label="Motivo DIAN" span="2"/>
+            <!-- Standard DIAN UBL 2.1 Credit Note Reason Codes -->
+            <control type="select" name="CNH_CreditNoteConceptCode" span="5" required="true" edit="true"
+              source="1,2,3,4,5,6" 
+              sourcelabels="1 Devolución parcial de los bienes,2 Anulación de factura,3 Rebaja total aplicada,4 Descuento total aplicado,5 Rescisión: nulidad por falta de requisitos,6 Otros"/>
+          </row>
+          <row>
+            <control type="label" label="NIT" span="2"/>
+            <control type="text" name="CNH_PayerId" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Aseguradora (EPS)" span="2"/>
+            <control type="text" name="CNH_PayerName" span="10" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Observación" span="2"/>
+            <control type="textarea" name="CNH_CreditNoteObservation" span="10" rows="1" edit="true" required="true"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+
+    <!-- Lines Datagrid (Renamed to prevent UI collision) -->
+    <group>
+      <row>
+        <control type="datagrid" label="Líneas a Acreditar" name="grdCreditNoteLines"       
+          searchable="true" rows="15" 
+          mode="batch"
+          modalname="mdlCreditNoteLineEntry"
+          rowcolor="Status|update=yellow"
+          edit="update"
+          acctsvcreq="true"
+          datarequest="COLGetDianInvoiceLines"
+          appendrequest="InvoiceGuid=[DianInvoiceGuid]"        
+          source="LineNumber,ItemCode,ItemDescription,Quantity,UnitPrice,TaxAmount,LineNetAmount,Status"
+          sourcelabels="Línea,CUPS,Descripción,Cant.,Precio Unit.,Impuesto,Valor Neto,Estatus"
+          format="|||0,0.00|0,000|0,000|0,000|"
+          align="center|left|left|center|right|right|right|center"
+          total="||||||+|"
+          key="InvoiceLineGuid"> 
+          
+          <!-- Master Button: Saves Header, returns Guid, triggers batch loop -->
+          <control type="button" name="btnGenerateCreditNote" label="Generar Nota Crédito" icon="cloud-upload"
+            action="save" color="green"
+            confirm="Confirme que desea generar la Nota Crédito con las líneas ajustadas (marcadas en amarillo)."
+            capture="mdlCreateCreditNoteBatch"
+            affector="NewCreditNoteGuid"
+            setaffector="CreditNoteGuid"
+            acctsvc="true"
+            datainsert="COLCreateCreditNoteHeader"
+            appendinsert="OriginalInvoiceGuid=[DianInvoiceGuid],OriginalCUFE=[CNH_CUFE],ConceptCode=[CNH_CreditNoteConceptCode],Observation=[CNH_CreditNoteObservation],FacilityId=(facilityData.LocationId),UserId=(userName)"
+            provoke="btnInsertCreditNoteLinesBatch"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- ==================================================================== -->
+  <!-- 2. BATCH LINE ENTRY MODAL (EDIT QUANTITY / PRICE)                    -->
+  <!-- ==================================================================== -->
+
+  <section type="modal" name="mdlCreditNoteLineEntry" title="Ajustar Línea para Nota Crédito" size="small">
+    <group>
+      <!-- Read-Only Context -->
+      <row>
+        <control type="label" label="Línea DIAN" span="2"/>
+        <control type="text" name="CN_LineNumber" span="2" readonly="true"/>
+        <control type="label" label="CUPS" span="2"/>
+        <control type="text" name="CN_ItemCode" span="6" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Descripción" span="2"/>
+        <control type="textarea" name="CN_ItemDescription" span="10" readonly="true" rows="1"/>
+      </row>
+      
+      <!-- Editable Adjustments -->
+      <row>
+        <control type="label" label="Cantidad" span="2"/>
+        <control type="text" name="CN_Quantity" span="4" edit="true" required="true" format="0,0.00"/>
+      </row>
+      <row>
+        <control type="label" label="Precio" span="2"/>
+        <control type="text" name="CN_UnitPrice" span="4" edit="true" required="true" format="0,000"/>
+      </row>
+      <row>
+        <control type="label" label="Total" span="42"/>
+        <control type="calc" name="CN_LineNetAmount" span="4" format="0,000"
+          source="CN_Quantity * CN_UnitPrice"/>
+      </row>
+      <row>
+        <!-- Triggers the datagrid row to flag as an update -->
+        <control type="hidden" name="ru_Status" value="update" ignore="add" persist="true"/>
+      </row>
+    </group>
+  </section>
+</partial>

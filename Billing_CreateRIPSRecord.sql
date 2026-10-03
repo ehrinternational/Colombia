@@ -1,4 +1,14 @@
-ALTER PROCEDURE ClinicalGeniusSupplyChain.usp_HydrateRipsData
+USE [ClinicalGeniusSupplyChain]
+GO
+
+/****** Object:  COLCreateRipsRecord ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE {odata}.{COLCreateRipsRecord}
     @InvoiceGuid NVARCHAR(50),
     @FacilityId NVARCHAR(50)
 AS
@@ -12,17 +22,35 @@ BEGIN
             @PatientId NVARCHAR(50),
             @ClaimGuid NVARCHAR(50),
             @RipsGuid NVARCHAR(50) = NEWID(),
+            @VisitLocationId NVARCHAR(50),
+            @CodPrestador  NVARCHAR(20),
+            @NumDocumentoPrestador  NVARCHAR(20),
             -- Local holders for the resolved multi-tenant diagnostic strings
             @ResolvedPrincipalDiagnosis VARCHAR(10) = NULL;
 
+    -- FIXED: Added missing comma between @ClaimGuid and @VisitLocationId assignments
     SELECT TOP 1
-        @InvoiceNumber = InvoiceNumber,
-        @PatientVisit = PatientVisit,
-        @PatientId = PatientId,
-        @ClaimGuid = ClaimGuid
-    FROM ClinicalGeniusSupplyChain.DianInvoices WITH(NOLOCK)
-    WHERE InvoiceGuid = @InvoiceGuid
-      AND FacilityId = @FacilityId;
+        @InvoiceNumber = dii.InvoiceNumber,
+        @PatientVisit = dii.PatientVisit,
+        @PatientId = dii.PatientId,
+        @ClaimGuid = dii.ClaimGuid,
+        @VisitLocationId = pvt.LocationId
+    FROM ClinicalGeniusSupplyChain.dbo.DianInvoices dii WITH(NOLOCK)
+    INNER JOIN ClinicalGeniusEhr.dbo.PatientVisits  pvt WITH(NOLOCK)
+        ON pvt.PatientVisitUniqueId = dii.PatientVisit
+    WHERE dii.InvoiceGuid = @InvoiceGuid
+      AND dii.FacilityId = @FacilityId;
+
+    -- Get the facility codes from the hospital record with safe fallbacks
+    SELECT TOP 1
+        @CodPrestador = hsp.NPI,
+        @NumDocumentoPrestador = hsp.TaxID
+    FROM ClinicalGeniusEhr.dbo.Hospitals hsp WITH(NOLOCK)
+    WHERE hsp.LocationId = @VisitLocationId
+      AND (hsp.HospitalGuid = @FacilityId  OR hsp.AlternateHospitalGuid = @FacilityId);
+
+    SET @CodPrestador = ISNULL(@CodPrestador, '110010999901');
+    SET @NumDocumentoPrestador = ISNULL(@NumDocumentoPrestador, '900123456');
 
     -- ==========================================================================================
     -- DIAGNOSTIC MATRIX EXTRACTION RULE: Resolve the compliance diagnostic code per patient visit
@@ -58,8 +86,8 @@ BEGIN
             @InvoiceGuid,
             @FacilityId,
             @InvoiceNumber,
-            '110010999901', 
-            '900123456'     
+            @CodPrestador, 
+            @NumDocumentoPrestador     
         );
 
         -- 2. Insert RIPS User profile extraction mapping rules
@@ -68,15 +96,43 @@ BEGIN
         )
         SELECT TOP 1
             @RipsGuid,
-            'CC', 
-            @PatientId,
-            '01', 
-            '1985-06-15', 
-            'F', 
-            '11001', 
-            'U' 
-        FROM ClinicalGeniusEhr.dbo.PatientVisits WITH(NOLOCK)
-        WHERE PatientVisit = @PatientVisit;
+            ISNULL(pt.PrimaryIdNumber, 'CC'), 
+            ISNULL(pt.MedicalRecordNumber, '1001'),
+            ISNULL(pyx.PayerType,'01'), 
+            pt.PatientDOB, 
+            CASE 
+                WHEN pt.PatientSex LIKE 'M%' THEN 'M'
+                WHEN pt.PatientSex LIKE 'F%' THEN 'F'
+                ELSE 'I'
+            END, 
+            ISNULL(adx.MunicipalityCode, '11001'), 
+            ISNULL(adx.ResidencyZone, 'U') 
+        FROM ClinicalGeniusEhr.dbo.PatientVisits pv WITH(NOLOCK)
+        INNER JOIN ClinicalGeniusEhr.dbo.PatientTable pt WITH(NOLOCK)
+            ON pt.RecordUniqueId = pv.PatientId
+        OUTER APPLY
+            (SELECT TOP 1 
+                ISNULL(adr.BarangayCode,'') AS MunicipalityCode,
+                ISNULL(adr.County,'U') AS ResidencyZone
+             FROM ClinicalGeniusEhr.dbo.PatientAddresses adr WITH(NOLOCK)
+             WHERE adr.Patientid = pv.PatientId
+               AND adr.Active = 1
+             ORDER BY adr.Selected ASC) adx
+        OUTER APPLY
+            (SELECT TOP 1 
+                pyr.PayerType
+             FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
+             INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
+                 ON ppy.PatientPayerGuid = pyc.PayerGuid
+             INNER JOIN ClinicalGeniusSupplyChain.dbo.InsurancePlans isp WITH(NOLOCK) 
+                 ON isp.PlanGuid = ppy.PayerPlan
+             INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
+                 ON isc.ContractGuid = isp.ContractGuid
+             INNER JOIN ClinicalGeniusSupplyChain.dbo.Payers pyr WITH(NOLOCK)
+                 ON pyr.PayerGuid = isc.PayerGuid
+             WHERE pyc.PatientVisit = @PatientVisit
+             ORDER BY pyc.BatchNumber ASC) pyx
+        WHERE pv.PatientVisit = @PatientVisit;
 
         -- 3. Deconstruct and stage active items into the unified services array
         INSERT INTO ClinicalGeniusSupplyChain.RipsServicios (
@@ -88,25 +144,17 @@ BEGIN
             pt.TransactionGuid,
             pt.SurgeryGuid, 
             CASE 
-                -- FIXED: Added explicit categorization mapping for inpatient bed-days ('Stay')
                 WHEN pt.TransactionType IN ('Surgery', 'Procedure', 'BundleMaster', 'Honorary', 'RoomRights') THEN 'Procedimientos'
                 WHEN pt.TransactionType = 'Medication' THEN 'Medicamentos'
-                WHEN pt.TransactionType = 'Stay' THEN 'Stay' -- Aligns directly with Node.js array sorters
+                WHEN pt.TransactionType = 'Stay' THEN 'Stay' 
                 WHEN pt.TransactionType = 'Supplies' THEN 'Insumos'
                 ELSE 'OtrosServicios'
             END AS ServiceCategory,
             CASE 
-                -- FIXED: If NetAmount > 0 and it's a Supply linked to a surgery, it is a high-cost carve-out item
-                -- This forces it to Modality '02' (Pago por Evento) so it maps seamlessly alongside the bundle envelope
                 WHEN pt.TransactionType = 'Supplies' AND pt.SurgeryGuid IS NOT NULL AND pt.NetAmount > 0 THEN '02'
-                
-                -- Standard Package Mapping Rules
                 WHEN pt.TransactionType = 'BundleMaster' THEN '01'
-                -- If it is a zeroed component tracking line or an absorbed bed-night, tag as bundle absorption
                 WHEN pt.SurgeryGuid IS NOT NULL AND pt.NetAmount = 0 THEN '01'
-                -- If it's a room day outside the bundle, it calculates normally as an itemized event
                 WHEN pt.TransactionType = 'Stay' AND pt.NetAmount > 0 THEN '02'
-                
                 ELSE '02' 
             END AS ModalidadPago,
             CASE WHEN pt.TransactionType = 'Medication' THEN pt.CUMCode ELSE pt.CupsCode END AS CodServicio,
@@ -120,7 +168,7 @@ BEGIN
         FROM ClinicalGeniusSupplyChain.PatientTransactions pt WITH(NOLOCK)
         WHERE pt.PatientVisit = @PatientVisit
           AND pt.Status = 'Active'
-          AND pt.Facility = @FacilityId -- Enforces multi-tenant workspace separation
+          AND pt.Facility = @FacilityId 
           AND ((@ClaimGuid IS NULL AND pt.ClaimGuid IS NULL) OR (@ClaimGuid IS NOT NULL AND pt.ClaimGuid = @ClaimGuid));
 
         COMMIT TRAN;

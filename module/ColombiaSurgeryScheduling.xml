@@ -4,7 +4,6 @@
   <facet name="CalendarOption" value="Surgery"/>
   <facet name="PatientSearched" value="false"/>
   <facet name="DefaultRoom"/>
-  <facet name="NewStatus"/>
   <facet name="FieldEdit" value="1"/>
   <facet name="EditMode" value="Surgery"/>
   <headerbutton name="btnReportsByType"

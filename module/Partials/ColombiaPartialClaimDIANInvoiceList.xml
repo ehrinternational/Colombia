@@ -1,0 +1,18 @@
+<partial>
+  <!-- Patient SAT Invoice list-->
+   <control type="datagrid" label="Facturas de DIAN" name="grdClaimDIANInvoiceList" rows="5"
+    option="DIANInvoices"
+    acctsvcreq="true"
+    searchable="true"
+    idle="[ClaimGuid]=|reset"
+    datarequest="COLGetDIANInvoices"
+    appendrequest="ClaimGuid=[ClaimGuid]"
+    source="IssueDateTime,DIANStatus,InvoiceNumber,InvoiceType,GrossAmount,NetAmount"
+    sourcelabels="Fecha,Estatus,Número,Tipo de Documento,Importe Bruto,Neto"
+    align="|left|left|left|right|right"
+    format="datetime_short|||template=tmpDIANInvoiceType|0,000|0,000"
+    translate="DIANStatus"
+    sort="IssueDateTime=desc"
+    key="InvoiceGuid">
+    </control>
+</partial>

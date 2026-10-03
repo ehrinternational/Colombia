@@ -5,7 +5,6 @@
     <control type="hidden" name="Surgery_ScheduledBy" default="(userName)"/>
     <control type="hidden" name="Surgery_TemplateGuid"/>
     <control type="hidden" name="Surgery_QuoteTemplateGuid"/>
-    <control type="hidden" name="Surgery_WaitListGuid"/>
     <control type="hidden" name="CalendarRoomType2"/>
   </row>
   <row>
@@ -61,7 +60,8 @@
     required="true"/>
     <control type="label" label="Fecha Realizada" span="3"/>
     <control type="datetime" name="Surgery_DateTimePerformed" span="3"
-    edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=In Process"/>
+      required="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=In Process"
+      edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=In Process"/>
   </row>
   <row>
     <control type="label" label="Vía Ingreso Usuario" span="3"/>

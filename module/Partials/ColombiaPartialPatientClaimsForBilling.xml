@@ -17,8 +17,8 @@
     onselect="ClaimGuid">
     <control type="button" name="btnInsertNewClaim" label="Añadir Nuevo" icon="plus"
       reveal="[VisitSelect]!"
-      preset="[Clm_PatientVisit]=[VisitSelect],
-      [Clm_PatientId]=[PatientId]"
+      preset="[Clm_PatientVisit]=[VisitSelect],[Clm_PatientId]=[PatientId]"
+      trigger="Clm_PayerGuid"
       action="redirect" target="mdlNewClaims"/>
     </control>
 </partial>

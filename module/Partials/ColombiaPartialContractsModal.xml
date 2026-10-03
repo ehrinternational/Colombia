@@ -109,7 +109,7 @@
           regex="^\d{1,3}(?:\.\d{1,2})?$" required="true"/>
       </row>
       <row>        
-        <control type="checkbox" name="Ctc_NightCharge" edit="true" span="9" offset="3"
+        <control type="checkbox" name="Ctc_NightCharges" edit="true" span="9" offset="3"
           label="Aplica Recargo Nocturno/Festivo" source="True,False"/>
       </row>
       <row>
@@ -158,7 +158,7 @@
             datarequest="GetInsurancePlans" 
             appendrequest="ContractGuid=[ContractGuid]"
             datainsert="InsertInsurancePlans" 
-            appendinsert="ContractGuid=[ContractGuid],PayerGuid=[PayerGuid]"
+            appendinsert="ContractGuid=[ContractGuid],PayerGuid=[Ctc_PayerGuid]"
             dataupdate="UpdateInsurancePlans"
             source="Active,StartDate,EndDate,PlanCode,Category,PlanName"
             sourcelabels="Activo,Fecha Inicio,Fecha Fin,Código,Tipo,Nombre"

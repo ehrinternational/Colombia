@@ -1,0 +1,27 @@
+<partial>        
+   <!-- Claim receipts -->
+  <control type="datagrid" label="Pagos del Pagador" name="Clm_Receipts" searchable="true" rows="5" option="Payments"
+    modalname="newpayerreceipts"
+    acctsvcreq="true"
+    acctsvc="true"
+    idle="[ClaimGuid]="
+    datarequest="GetPayerReceiptsByPatientVisit"
+    appendrequest="patientVisit=[VisitSelect],claimGuid=[ClaimGuid]"
+    datainsert="InsertPayorReceiptAgainstInvoice"
+    appendinsert="ClaimGuid=[ClaimGuid],
+      patientId=[PatientId],patientVisit=[VisitSelect],
+      invoiceNumber=[Clm_ClaimNumber],
+      location=[POSSessionLocation],
+      cashierGuid=[POSSessionGuid],
+      type=Payment,
+      payorGuid=[Clm_PayerGuid]"
+    dataupdate="UpdatePayorReceiptAgainstInvoice"
+    source="ReceiptDate,ReceiptNumber,ReceiptTypeDescription,ReferenceNumber,ClaimNumber,PayorName,ReceiptNotes,AmountPaid,FinalPaymentForClaim"
+    sourcelabels="Fecha,Número,Tipo,Referencia,Número de Solicitud,Pagador,Notas,Importe,Final"
+    align="|left|left|left|left|left|left|right||"
+    total="|||||||+||"
+    format="datetime|||||||0,000|boolean|"
+    key="ReceiptGuid"
+    sort="ReceiptDate=desc">          
+  </control> 
+</partial>

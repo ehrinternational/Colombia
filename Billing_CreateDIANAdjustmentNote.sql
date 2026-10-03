@@ -3,8 +3,17 @@
 -- TARGET ARCHITECTURE: SQL Server Enterprise 2014
 -- COMPLIANCE: COLOMBIAN DIAN NATIVE ANNEX 1.9 REGISTRY RULES
 -- ==========================================================================================
+USE [ClinicalGeniusSupplyChain]
+GO
 
-ALTER PROCEDURE ClinicalGeniusSupplyChain.usp_CreateDianAdjustmentNote
+/****** Object:  COLCreateDianAdjustmentNote ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE {odata}.{COLCreateDianAdjustmentNote}
     @SourceInvoiceGuid NVARCHAR(50),          
     @FacilityId NVARCHAR(50),                     -- Mandatory tenant partition filter
     @NoteType VARCHAR(5),                         -- '91' for Nota Crédito, '92' for Nota Débito
@@ -18,9 +27,9 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    -- Clean up parameter padding
-    SET @SourceInvoiceGuid = TRIM(@SourceInvoiceGuid);
-    SET @FacilityId = TRIM(@FacilityId);
+    -- Clean up parameter padding for SQL Server 2014 compatibility
+    SET @SourceInvoiceGuid = LTRIM(RTRIM(@SourceInvoiceGuid));
+    SET @FacilityId = LTRIM(RTRIM(@FacilityId));
 
     -- Initialize tracking state variables
     DECLARE @OrigInvoiceNumber NVARCHAR(20),
@@ -46,7 +55,7 @@ BEGIN
         @OrigResolution = ResolutionNumber
     FROM ClinicalGeniusSupplyChain.DianInvoices WITH(NOLOCK)
     WHERE InvoiceGuid = @SourceInvoiceGuid
-      AND FacilityId = @FacilityId; 
+      AND FacilityId = @FacilityId;
 
     -- Validation Safeguards
     IF @OrigPatientId IS NULL
@@ -77,10 +86,11 @@ BEGIN
     BEGIN TRAN;
     BEGIN TRY
         
-        SELECT @CurrentMaxId = ISNULL(MAX(CAST(SUBSTRING(InvoiceNumber, 4, 16) AS INT)), 100000)
+        -- FIXED: Substring starting index corrected to 3 to safely capture digits following 'NC' or 'ND'
+        SELECT @CurrentMaxId = ISNULL(MAX(CAST(SUBSTRING(InvoiceNumber, 3, 16) AS INT)), 100000)
         FROM ClinicalGeniusSupplyChain.DianInvoices WITH(XLOCK, ROWLOCK)
         WHERE InvoiceNumber LIKE @NotePrefix + '%'
-          AND FacilityId = @FacilityId; 
+          AND FacilityId = @FacilityId;
         
         SET @NextNoteNumber = @NotePrefix + CAST(@CurrentMaxId + 1 AS NVARCHAR(16));
 
@@ -88,14 +98,14 @@ BEGIN
         DECLARE @InsertedNote TABLE (NoteGuid NVARCHAR(50));
 
         -- 3. Header insertion mapping the V3 Table constraints layout
-        -- NOTE: Ensure your DianInvoices table has 'ReferencedInvoiceNumber' and 'AdjustmentReasonCode' added.
+        -- NOTE: Ensure ReferencedInvoiceNumber and AdjustmentReasonCode exist in the schema.
         INSERT INTO ClinicalGeniusSupplyChain.DianInvoices (
             InvoiceNumber, ResolutionNumber, FacilityId, PatientVisit, ClaimGuid, PatientId, PayerId, 
             IssueDateTime, DueDate, GrossAmount, DiscountAmount, TaxableAmount, TaxAmount, 
             CopayOrCuotaAmount, NetAmount, InvoiceType, OperationType, DianStatus, LastUpdatedBy,
             DianResponseDescription,
-            ReferencedInvoiceNumber,  -- FIXED: Explicit structured data column mapping for Node.js gateway ingestion
-            AdjustmentReasonCode      -- FIXED: Explicit structured data column mapping for Node.js gateway ingestion
+            ReferencedInvoiceNumber,  
+            AdjustmentReasonCode      
         )
         OUTPUT inserted.InvoiceGuid INTO @InsertedNote
         VALUES (
@@ -119,8 +129,8 @@ BEGIN
             'Draft',
             @AdjustedBy,
             CONCAT('Reason Code: ', @ReasonCode, ' | ', @ReasonDescription),
-            @OrigInvoiceNumber,       -- Populates the structured reference number natively
-            @ReasonCode               -- Populates the structured reason string natively
+            @OrigInvoiceNumber,       
+            @ReasonCode               
         );
 
         DECLARE @NewNoteGuid NVARCHAR(50);

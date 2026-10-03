@@ -19,9 +19,6 @@ CREATE TABLE ClinicalGeniusSupplyChain.RipsTransactions (
     DateTimeGenerated DATETIME NOT NULL DEFAULT GETDATE(),
     RipsStatus VARCHAR(20) NOT NULL DEFAULT 'Draft',-- Draft, Validated, Rejected, Sent
     
-    CONSTRAINT PK_RipsTransactions PRIMARY KEY CLUSTERED (RipsGuid),
-    CONSTRAINT FK_RipsTransactions_DianInvoices FOREIGN KEY (InvoiceGuid)
-        REFERENCES ClinicalGeniusSupplyChain.DianInvoices (InvoiceGuid) ON DELETE CASCADE
 );
 
 -- 2. USER DETAILS LEDGER: RipsUsuarios (Replaces old US file metadata)
@@ -36,10 +33,6 @@ CREATE TABLE ClinicalGeniusSupplyChain.RipsUsuarios (
     CodPaisResidencia VARCHAR(5) NOT NULL DEFAULT '170', -- '170' for Colombia
     CodMunicipioResidencia VARCHAR(10) NOT NULL,    -- 5-digit DANE code (e.g., '11001' for Bogotá)
     ZonaTerritorioResidencia VARCHAR(2) NOT NULL,   -- 'U' Urbana, 'R' Rural
-    
-    CONSTRAINT PK_RipsUsuarios PRIMARY KEY CLUSTERED (RipsUserGuid),
-    CONSTRAINT FK_RipsUsuarios_RipsTransactions FOREIGN KEY (RipsGuid)
-        REFERENCES ClinicalGeniusSupplyChain.RipsTransactions (RipsGuid) ON DELETE CASCADE
 );
 
 -- 3. MEDICAL SERVICES INDEPENDENT LEDGER: RipsServicios (Consolidates old AC, AP, AM files into unified fields)
@@ -67,11 +60,7 @@ CREATE TABLE ClinicalGeniusSupplyChain.RipsServicios (
     TipoDiagnostico VARCHAR(5) NULL,                -- '1' Impresión diag, '2' Confirmado nuevo, '3' Confirmado repetido
     
     -- Authorization Tracking
-    NumAutorizacion NVARCHAR(30) NULL,
-    
-    CONSTRAINT PK_RipsServicios PRIMARY KEY CLUSTERED (RipsServiceGuid),
-    CONSTRAINT FK_RipsServicios_RipsTransactions FOREIGN KEY (RipsGuid)
-        REFERENCES ClinicalGeniusSupplyChain.RipsTransactions (RipsGuid) ON DELETE CASCADE
+    NumAutorizacion NVARCHAR(30) NULL
 );
 
 -- Optimization Indexing

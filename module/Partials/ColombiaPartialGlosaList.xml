@@ -1,0 +1,64 @@
+<partial>
+  <section name="GlosaManagement" type="tab" title="Gestión de Glosas" trigger="GlosaQueueList">
+    <group>
+      <!-- ==================================================================== -->
+      <!-- 1. SEARCH & FILTER CONTROLS                                          -->
+      <!-- ==================================================================== -->
+      <row>
+         <control type="buttongroup" name="selGlosaStatusSelect" span="6" default="Radicada"
+          source="Radicada,En_Auditoria,Respondida,Aceptada,Levantada,Conciliada" 
+          sourcelabels="Radicada,En Auditoría,Respondida,Aceptada,Levantada,Conciliada"
+          set="txtInvoiceNumberSelect=,txtPayerRefSelect="
+          provoke="[GlosaStartDate]!+[GlosaEndDate]!;GlosaQueueList"/>
+          <!-- Search by exact DIAN Invoice Number -->
+        <control type="label" label="Factura DIAN" span="1"/>
+        <control type="text" name="txtInvoiceNumberSelect" span="2"
+          set="txtPayerRefSelect="
+          action="trigger" trigger="[GlosaStartDate]!+[GlosaEndDate]!;GlosaQueueList"/>
+        <!-- Search by EPS Reference Number -->
+        <control type="label" label="Referencia EPS" span="1"/>
+        <control type="text" name="txtPayerRefSelect" span="2"
+          set="txtInvoiceNumberSelect="
+          action="trigger" trigger="[GlosaStartDate]!+[GlosaEndDate]!;GlosaQueueList"/>
+      </row>
+      <row name="rowDateRange" reveal="[selGlosaStatusSelect]=Aceptada|Levantada|Conciliada">
+
+        <control type="label" label="Fecha Radicación Inicio" span="2"/>
+        <control type="date" name="GlosaStartDate" span="2" default="now-30"
+          set="txtInvoiceNumberSelect=,txtPayerRefSelect="
+          trigger="[GlosaStartDate]!+[GlosaEndDate]!;GlosaQueueList"/>
+        <control type="label" label="Fecha Radicación Final" span="2"/>
+        <control type="date" name="GlosaEndDate" span="2" default="now"
+          set="txtInvoiceNumberSelect=,txtPayerRefSelect="
+          trigger="[GlosaStartDate]!+[GlosaEndDate]!;GlosaQueueList"/>
+      </row>
+      <!-- ==================================================================== -->
+      <!-- 2. GLOSA DATAGRID QUEUE                                              -->
+      <!-- ==================================================================== -->
+      <row>
+        <control type="datagrid" label="Bandeja de Glosas" name="GlosaQueueList"
+          span="12" rows="20"
+          acctsvcreq="true"
+          action="redirect"
+          target="mdlGlosaModal"
+          searchable="true"
+          datarequest="COLGetGlosas"
+          appendrequest="[selGlosaStatusSelect]=Aceptada|Levantada|Conciliada;StartDate=[GlosaStartDate],[selGlosaStatusSelect]=Aceptada|Levantada|Conciliada;EndDate=[GlosaEndDate],Status=[selGlosaStatusSelect],[txtInvoiceNumberSelect]!;InvoiceNumber=[txtInvoiceNumberSelect]"
+          source="RadicationDate,ResponseDeadlineDate,DaysRemaining,InvoiceNumber,PayerName,PayerGlosaReference,InvoiceTotalAmount,TotalDisputedAmount,TotalAcceptedAmount,TotalDefendedAmount,Status"
+          sourcelabels="Radicación,Vencimiento,Días SLA,Factura DIAN,Pagador,Ref EPS,Total Factura,Disputado,IPS Acepta,IPS Defiende,Estatus"
+          align="center|center|center|left|left|left|right|right|right|right|center"
+          format="date|date||||0,000|0,000|0,000|0,000|"
+          sort="ResponseDeadlineDate=asc"
+          key="GlosaGuid" 
+          onselectset="GlosaGuid=[[GlosaGuid]]"
+          onselect="GlosaGuid">
+          <control type="button" name="btnTestGlosa" label="*" action="redirect" target="mdlGlosaModal"/>
+          <!-- Button to refresh the Glosa Queue -->
+          <control type="button" name="btnRefreshGlosaQueue"
+            icon="refresh" label="Actualizar Bandeja" 
+            action="trigger" trigger="GlosaQueueList"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

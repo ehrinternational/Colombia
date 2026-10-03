@@ -1,0 +1,24 @@
+<partial>
+  <!-- Billing payer claims modal -->
+  <section type="tabmodal" title="Errores en la factura" name="mdlDisplayInvoiceErrors" badge="none" >
+    <group>
+      <row>
+        <control type="hidden" name="dsp_PatientVisit"/>
+         <control type="hidden" name="dsp_ClaimGuid"/>
+      </row>
+      <row>
+        <control type="datagrid" label="Errores en la factura" name="grdDisplayErrors"
+          searchable="true"
+          span="12" rows="5"                   
+          acctsvcreq="true"
+          datarequest="COLInvoiceScrubber"
+          appendrequest="patientVisit=[dsp_PatientVisit],ClaimGuid=[dsp_ClaimGuid]"
+          source="DateTimePerformed,TransactionId,TransactionType,CupsCode,ItemDescription,LineQuantity,TotalVisitQuantity,ScrubberViolationMessage"
+          sourcelabels="Fecha,Folio,Tipo,CUPS,Descripción,Cant,Cant/Visita,Errores"
+          align="|left|left|left|left|left|left|left"
+          format="datetime"
+          key="key"/>
+      </row>
+    </group>
+  </section>
+</partial>

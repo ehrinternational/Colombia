@@ -81,25 +81,24 @@
       icon="cloud-upload"
       action="save"
       confirm="Por favor confirme que quiere confirmar esta cirugía."
-      preset="NewStatus=Confirmed"
+      preset="NewSurgeryStatus=Confirmed"
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid]"
-      provoke="btnNewStatus"/>
+      provoke="btnNewSurgeryStatus"/>
   </row>
   <!-- Set surgery to In Process and insert the patient visit into the surgery.-->
   <!--?? compare="[Spi_HasOpenVisit]=true|Este paciente no tiene una visita abierta. Admita al paciente para continuar."-->
   <row name="rowSurgeryInProcess" reveal="[SurgeryGuid]!+[PatientId]!+[Surgery_CalendarGuid]!">
-    <control type="button" name="btnSurgeryInProcess" span="12" color="purple" 
-      label="En Proceso" icon="cloud-upload"
+    <control type="button" name="btnSurgeryInProcess" span="12" color="purple" label="En Proceso" icon="cloud-upload"
       reveal="[Surgery_Status]=Scheduled|Confirmed|Requested"   
       affector="none" 
       action="save"
       confirm="Por favor confirme que quiere proceso esta cirugía."
       compare="[Spi_HasOpenVisit]!false|Este paciente no tiene una visita abierta. Admita al paciente para continuar."
-      preset="NewStatus=In Process"
+      preset="NewSurgeryStatus=In Process"
       dataupdate="UpdateScheduledSurgeries"
-      appendupdate="surgeryGuid=[SurgeryGuid],patientVisit=[Spi_PatientVisit]"
-      provoke="btnNewStatus"/>
+      appendupdate="surgeryGuid=[SurgeryGuid]"
+      provoke="btnNewSurgeryStatus"/>
   </row>
   <!-- Set the surgery to completed status and update the patient information-->
   <row name="rowCompleteSurgery" reveal="[SurgeryGuid]!+[PatientId]!+[Surgery_CalendarGuid]!">
@@ -109,10 +108,10 @@
       capture="SurgeryInfo" 
       action="save"
       confirm="Por favor confirme que quiere completar esta cirugía."
-      preset="NewStatus=Completed"
+      preset="NewSurgeryStatus=Completed"
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid],DateTimeCompleted=(now)"
-      provoke="btnNewStatus"/>
+      provoke="btnNewSurgeryStatus"/>
   </row>
   <!-- Cancel the surgery -->
   <row name="rowCancelSurgery" reveal="[SurgeryGuid]!+[Surgery_CalendarGuid]!">
@@ -122,18 +121,19 @@
       capture="SurgeryInfo" 
       action="save"
       confirm="Por favor confirme que quiere cancelar esta cirugía."
-      preset="NewStatus=Canceled"
+      preset="NewSurgeryStatus=Canceled"
       dataupdate="UpdateScheduledSurgeries"
       appendupdate="surgeryGuid=[SurgeryGuid]"
-      provoke="btnNewStatus"/>
+      provoke="btnNewSurgeryStatus"/>
   </row>
   <!-- Update apply new status -->
   <row showif="never">
-    <control type="button" name="btnNewStatus"
+     <control type="hidden" name="NewSurgeryStatus" persist="true"/>
+    <control type="button" name="btnNewSurgeryStatus"
       action="save|close|new"
       dataupdate="UpdateScheduledSurgeries"
-      appendupdate="surgeryGuid=[SurgeryGuid],Status=[NewStatus],
-        [NewStatus]=Completed;PatientVisit=[Spi_PatientVisit]"
+      appendupdate="surgeryGuid=[SurgeryGuid],Status=[NewSurgeryStatus],
+        [NewSurgeryStatus]=Completed|In Process;PatientVisit=[Spi_PatientVisit]"
       provoke="SurgeryTimes,dgrSurgeryAdminList"/>
   </row>
   <row> <!-- Validated -->

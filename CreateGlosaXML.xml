@@ -1,0 +1,29 @@
+const sql = require('mssql');
+
+async function recordIncomingGlosa(pool, glosaData) {
+    // Convert lines array to XML
+    const linesXml = `
+        <Lines>
+            ${glosaData.lines.map(line => `
+                <Line>
+                    <LineNumber>${line.lineNumber}</LineNumber>
+                    <GeneralGlosaCode>${line.generalCode}</GeneralGlosaCode>
+                    <SpecificGlosaCode>${line.specificCode}</SpecificGlosaCode>
+                    <DisputedAmount>${line.amount}</DisputedAmount>
+                    <PayerObservation><![CDATA[${line.observation}]]></PayerObservation>
+                </Line>
+            `).join('')}
+        </Lines>
+    `;
+
+    const request = pool.request();
+    request.input('FacilityId', sql.NVarChar(50), glosaData.facilityId);
+    request.input('InvoiceNumber', sql.NVarChar(20), glosaData.invoiceNumber);
+    request.input('PayerGlosaReference', sql.NVarChar(100), glosaData.payerReference);
+    request.input('RadicationDate', sql.Date, glosaData.radicationDate);
+    request.input('UserId', sql.NVarChar(100), glosaData.userId);
+    request.input('LinesXml', sql.Xml, linesXml);
+
+    const result = await request.execute('odata.COLCreateGlosa');
+    return result.recordset[0];
+}

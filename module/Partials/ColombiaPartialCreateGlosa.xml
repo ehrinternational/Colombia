@@ -1,0 +1,129 @@
+<partial>
+  <!-- ==================================================================== -->
+  <!-- 1. BATCH CREATION SCREEN (HEADER + DIAN LINES DATAGRID)              -->
+  <!-- ==================================================================== -->
+  
+  <section type="tabmodal" name="mdlCreateGlosa" title="Registrar Glosa desde DIAN" badge="none" size="medium">
+    <group>
+      <row showif="never">
+        <control type="hidden" name="DianInvoiceGuidLookup"
+          acctsvcreq="true"
+          datarequest="COLGetDIANInvoices"
+          appendrequest="InvoiceGuid=[DianInvoiceGuidLookup]"
+          inject="grpGlosaHeaderInfo"/>
+        <!-- Holds the newly generated GlosaGuid from the header creation -->
+        <control type="hidden" name="NewBatchGlosaGuid"/>
+        
+        <!-- Triggered automatically after the header is saved to insert the marked lines -->
+        <control type="button" name="btnInsertGlosaLinesBatch"
+          action="batchinsert|close|new"
+          capture="grdDianLinesForGlosa"
+          datainsert="InvoiceGlosaLines"
+          skipbatchrow="[[Status]]=update"
+          appendbatch="GlosaGuid=[NewBatchGlosaGuid],TransactionGuid=[[TransactionGuid]]"
+          postwithout="Status,RecId"
+          success="Glosa y líneas disputadas registradas exitosamente."
+          provoke="GlosaQueueList"/>
+      </row>
+    </group>
+    <group name="grpGlosaHeaderInfo">
+      <!-- Glosa Header Inputs -->
+      <row>
+        <control type="hidden" name="GlosaInfo_InvoiceGuid"/>
+      </row>
+      <row>
+        <control type="label" label="Factura DIAN" span="2"/>
+        <control type="text" name="GlosaInfo_InvoiceNumber" span="3" readonly="true"/>
+        <control type="label" label="Referencia EPS" span="3"/>
+        <control type="text" name="GlosaInfo_PayerGlosaReference" span="4" required="true" edit="true"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha Radicación" span="2"/>
+        <control type="date" name="GlosaInfo_RadicationDate" span="3" required="true" edit="true" default="now"/>
+      </row>
+      <row>
+        <control type="label" label="Total Disputado" span="2"/>
+        <control type="calc" name="GlosaInfo_TotalDisputedAmount" span="3" source="1*DisputedAmountTotal" format="0,000"/>
+      </row>
+      <!-- Interactive DIAN Lines Grid (Batch Mode) -->
+      <row>  
+        <control type="datagrid" name="grdDianLinesForGlosa" span="12" rows="15" label="Seleccione las líneas a disputar" 
+          mode="batch"
+          modalname="mdlGlosaLineEntry"         
+          edit="edit" searchable="true"
+          rowcolor="Status|update=yellow"
+          acctsvcreq="true"
+          datarequest="COLGetDianInvoiceLines"
+          appendrequest="InvoiceGuid=[GlosaInfo_InvoiceGuid]"
+          source="LineNumber,ItemCode,ItemDescription,LineNetAmount,GeneralGlosaCode,SpecificGlosaCode,DisputedAmount,PayerObservation,TransactionGuid,Status"
+          sourcelabels="Línea,CUPS,Descripción,Valor Neto,C. General,C. Específico,Valor Disputado,Observación"
+          align="center|left|left|right|center|center|right|left"
+          format="|||0,000|||0,000|||"
+          total="||||||+|||"
+          key="InvoiceLineGuid">
+          <!-- Master Button: Saves Header, returns Guid, triggers batch loop -->
+          <control type="button" name="btnGenerateGlosaHeader" label="Crear Glosa y Guardar Líneas" icon="cloud-upload"
+            action="save" color="green"
+            confirm="Confirme que desea registrar la Glosa con las líneas marcadas."
+            capture="grpGlosaHeaderInfo"
+            affector="NewBatchGlosaGuid"
+            setaffector="GlosaGuid"
+            acctsvc="true"
+            datainsert="COLInsertGlosa"
+            appendinsert="FacilityId=(facilityData.LocationId),UserId=(userName)"
+            provoke="btnInsertGlosaLinesBatch"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- ==================================================================== -->
+  <!-- 2. BATCH LINE ENTRY MODAL (DISPUTE DETAILS)                          -->
+  <!-- ==================================================================== -->
+  <section type="modal" name="mdlGlosaLineEntry" title="Detalle de Disputa (Glosa)" size="small">
+    <group>
+      <!-- DIAN Line Context (Read-Only) -->
+      <row>
+        <control type="label" label="Línea DIAN" span="2"/>
+        <control type="text" name="GL_LineNumber" span="2" readonly="true"/>
+        <control type="label" label="CUPS" span="2"/>
+        <control type="text" name="GL_ItemCode" span="6" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Descripción" span="2"/>
+        <control type="textarea" name="GL_ItemDescription" span="10" readonly="true" rows="1"/>
+      </row>
+      <row>
+        <control type="label" label="Valor Original Neto" span="3"/>
+        <control type="text" name="GL_LineNetAmount" span="3" readonly="true" format="0,000"/>
+      </row>
+      
+      <!-- EPS Dispute Details (Editable) -->
+      <row>
+        <control type="label" label="Concepto General" span="3"/>
+        <control type="select" name="GL_GeneralGlosaCode" span="3" required="true" edit="true"
+          datarequest="COLGetGlosaGeneralCodes" 
+          source="GeneralCode|Description,GeneralCode"
+          provoke="GL_SpecificGlosaCode"/>
+        <control type="label" label="Concepto Específico" span="3"/>
+        <control type="select" name="GL_SpecificGlosaCode" span="3" required="true" edit="true"
+          datarequest="COLGetGlosaSpecificCodes" 
+          appendrequest="GeneralCode=[GL_GeneralGlosaCode]"
+          source="SpecificCode|Description,SpecificCode"/>
+      </row>
+      <row>
+        <control type="label" label="Valor Disputado" span="3"/>
+        <control type="text" name="GL_DisputedAmount" span="3" required="true" edit="true" format="0,000"
+          compare="[GL_DisputedAmount]≤[GL_LineNetAmount]"/>
+      </row>
+      <row>
+        <control type="label" label="Observación EPS" span="3"/>
+        <control type="textarea" name="GL_PayerObservation" span="9" edit="true" rows="2"/>
+      </row>
+      <row>
+        <!-- Injects 'update' status into the datagrid row when the modal is saved -->
+        <control type="hidden" name="ru_Status" value="update" ignore="add" persist="true"/>
+      </row>
+    </group>
+  </section>
+</partial>

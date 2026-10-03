@@ -1,0 +1,209 @@
+<partial>
+  <!-- ==================================================================== -->
+  <!-- 1. MAIN GLOSA HEADER & LINES DATAGRID                                -->
+  <!-- ==================================================================== -->
+
+  <section type="tabmodal" badge="none" name="mdlGlosaModal" title="Gestión de Glosa" size="medium">
+    <group showif="never">
+      <row>
+        <!-- Load an existing Glosa Header -->
+        <control type="hidden" name="GlosaGuid"
+          datarequest="COLGetGlosas"
+          appendrequest="GlosaGuid=[GlosaGuid"
+          inject="GlosaHeaderInfo"
+          provoke="grdGlosaLines"/>
+      </row>
+    </group>
+    <group name="GlosaHeaderInfo">
+      <columns>
+        <!-- Left Column: Primary Glosa Metadata -->
+        <column span="10">
+          <row>
+            <control type="label" label="Factura DIAN" span="2"/>
+            <control type="text" name="GlosaInfo_InvoiceNumber" span="3" readonly="[GlosaGuid]="/>
+            <control type="label" label="Referencia EPS" span="3"/>
+            <control type="text" name="GlosaInfo_PayerGlosaReference" span="4" 
+              required="true" edit="[GlosaInfo_Status]=Radicada|En_Auditoria"/>
+          </row>
+          <row>
+            <control type="label" label="Fecha Radicación" span="2"/>
+            <control type="date" name="GlosaInfo_RadicationDate" span="3" 
+              required="true" edit="[GlosaGuid]="/>
+            <control type="label" label="Límite Legal (SLA)" span="3"/>
+            <!-- Calculated 15-day deadline returned by SQL -->
+            <control type="date" name="GlosaInfo_ResponseDeadlineDate" span="4" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Estatus" span="2"/>
+            <control type="select" span="3" name="GlosaInfo_Status" default="Radicada" edit="[GlosaGuid]="
+              source="Radicada,En_Auditoria,Respondida,Aceptada,Levantada,Conciliada" 
+              sourcelabels="Radicada,En Auditoría,Respondida,Aceptada,Levantada,Conciliada"/>
+            <control type="label" label="Días Restantes" span="3"/>
+            <control type="text" name="GlosaInfo_DaysRemaining" span="4" readonly="true"/>
+          </row>
+          <!-- Financial Rollups (Read-only, updated by line actions) -->
+          <row>
+            <control type="label" label="Total Disputado" span="2"/>
+            <control type="text" name="GlosaInfo_TotalDisputedAmount" span="2" format="0,0" readonly="true"/>
+            <control type="label" label="Total Aceptado" span="2"/>
+            <control type="text" name="GlosaInfo_TotalAcceptedAmount" span="2" format="0,0" readonly="true"/>
+            <control type="label" label="Total Defendido" span="2"/>
+            <control type="text" name="GlosaInfo_TotalDefendedAmount" span="2" format="0,0" readonly="true"/>
+          </row>
+        </column>
+
+        <!-- Right Column: Action Buttons -->
+        <column span="2">
+          <row>
+            <!-- Submit Defense and trigger Node.js transmission payload -->
+            <control type="button" name="btnSubmitGlosaResponse"
+              reveal="[GlosaGuid]!+[GlosaInfo_Status]=Radicada|En_Auditoria"
+              span="12" icon="check" color="blue" label="Enviar Respuesta"
+              action="save|close|new"
+              capture="GlosaHeaderInfo"
+              confirm="¿Confirma que desea enviar la respuesta y la evidencia a la EPS?"
+              dataupdate="COLUpdateGlosa"
+              appendupdate="GlosaGuid=[GlosaGuid],ActionType=Respuesta_IPS,TargetStatus=Respondida"
+              provoke="GlosaQueueList"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+
+    <!-- Disputed Lines Grid -->
+    <group>
+      <row>
+        <control type="buttongroup" name="btgGlosaView" span="4" default="Lines"
+          source="Lines,Documents" sourcelabels="Lineas,Documentos"
+          provoke="optClosaGridList|options"/>
+      </row>
+       <row showif="never">
+        <control type="button" name="btnUpdateGlosaLines" action="batchupdate|close|new"
+          key="GlosaLineGuid"
+          capture="grdGlosaLines"
+          dataupdate="InvoiceGlosaLines"
+          skipbatchrow="[[Status]]=update"
+          postwithout="Status"/>
+      </row>
+      <row>
+        <control name="optClosaGridList" affector="btgGlosaView" type="options" span="12">
+        <control type="datagrid" label="Detalle de Líneas Disputadas" name="grdGlosaLines"       
+          searchable="true" rows="10" option="Lines" edit="edit"
+          mode="batch"
+          modalname="mdlAuditGlosaLine"
+          datarequest="COLGetGlosaLines"
+          appendrequest="GlosaGuid=[GlosaGuid]"        
+          source="DianLineNumber,CupsCode,ItemDescription,GlosaCodeDescription,OriginalLineAmount,DisputedAmount,AcceptedAmount,DefendedAmount,LineStatus"
+          sourcelabels="Linea,CUPS,Descripción,Motivo EPS,Valor Original,Disputado,IPS Acepta,IPS Defiende,Estatus"
+          format="||||0,000|0,000|0,000|0,000|"
+          align="center|left|left|left|right|right|right|right|center"
+          total="||||+|+|+|+|"
+          key="GlosaLineGuid"> 
+        <control type="button" name="btnTestmModal" label="*" action="redirect" target="mdlAuditGlosaLine"/>
+        <control type="button" name="btnInsertGlosaLines" label="Actualizar Glosa" icon="cloud-upload"
+          action="batchinsert" color="green"
+          confirm="Por favor, confirme que desea actualizar los cambios en el Glosa."
+          capture="grdGlosaLines"
+          datainsert="InvoiceGlosaLines"
+          skipbatchrow="[[Status]]=insert"
+          appendbatch="GlosaLineGuid=(newUUID),GlosaGuid=[GlosaGuid]"
+          postwithout="Status"
+          provoke="btnUpdateGlosaLines"/>
+        </control>
+         <!--scanned quotes -->
+        <control type="datagrid" label="Documentos" name="grdGlosaAttachments"
+            option="Documents" rows="10"
+            fitrows="true"
+            acctsvcreq="true"
+            filter="Status=Active"
+            datarequest="GetImagingOrderFilesByImagingOrderGuid"
+            appendrequest="ImagingOrderGuid=[GlosaGuid]"
+            source="DateEntered,FileType,Type,FileName,EnteredByFullName,Status"
+            sourcelabels="Fecha y Hora,Tipo,Categoria,Documento,Entregado por,Estatus"
+            translate="FileType,Status"
+            align="left|left|left|left|left|left"
+            format="datetime"
+            sort="DateTimeEntered=desc"
+            key="PhotoGuid"
+            action="redirect|url"
+            target="printables/uploadviewer.html"
+            usesource="login"
+            append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
+            <!-- remove scanned items from a purchase order -->
+            <control type="button" name="btnRemoveDocument"
+              label="Eliminar" icon="remove" color="red"
+              showif="feature"
+              action="save"
+              acctsvc="true"
+              confirm="Confirme que desea eliminar este archivo."
+              dataupdate="UpdatePatientFilesByPhotoGuid"
+              appendupdate="PhotoGuid=[[PhotoGuid]],Status=Canceled"
+              provoke="POInf_UploadedImages"/>
+          <!-- Upload scanned documents -->
+            <control type="button" name="PO_ScanDocuments" label="Subir Documentos" icon="folder-open"
+              append="labOrderId=[GlosaGuid]"
+              action="upload"
+              filter="pdf,jpg,jpeg"
+              provoke="POInf_UploadedImages"/>
+          </control>
+        </control>
+      </row>
+    </group>
+  </section>
+  <!-- ==================================================================== -->
+  <!-- 2. AUDIT LINE MODAL (The Auditor's Workbench)                        -->
+  <!-- ==================================================================== -->
+  <section type="modal" title="Auditoría de Línea" name="mdlAuditGlosaLine">
+    <group name="GlosaLineAuditData">  
+      <row>  
+        <!-- Read-only context from the EPS -->
+        <control type="label" span="2" label="Código CUPS"/>
+        <control type="text" span="4" name="Audit_CupsCode" readonly="true"/>
+        <control type="label" span="2" label="Línea"/>
+        <control type="text" span="2" name="Audit_DianLineNumber" readonly="true"/>
+      </row>
+      <row>    
+        <control type="label" label="Descripción" span="2"/>
+        <control type="textarea" span="10" name="Audit_ItemDescription" readonly="true" rows="1"/>
+      </row>
+      <row>
+        <control type="label" label="Concepto EPS" span="2"/>
+        <control type="text" span="10" name="Audit_GlosaCodeDescription" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Observación EPS" span="2"/>
+        <control type="textarea" span="10" name="Audit_PayerObservation" readonly="true" rows="2"/>
+      </row>
+      <!-- Auditor Inputs -->
+      <row>        
+        <control type="label" label="Valor Disputado" span="2"/>       
+        <control type="text" name="Audit_DisputedAmount" span="2" format="0,000" readonly="true"/>
+      </row>
+      <row>
+        <control type="label" label="Aceptado (Concedido)" span="2"/>
+        <control type="text" name="Audit_AcceptedAmount" span="2" default="0" format="0,000" 
+          edit="[GlosaInfo_Status]=Radicada|En_Auditoria" required="true"/>
+        
+        <control type="label" label="Defendido (Justificado)" span="3"/>
+        <control type="text" name="Audit_DefendedAmount" span="2" default="0" format="0,000" 
+          edit="[GlosaInfo_Status]=Radicada|En_Auditoria" required="true"/>
+      </row>
+      <!-- Real-time calculation check to prevent over-allocation -->
+      <row>
+        <control type="label" label="Balance de Auditoría" span="2"/>
+        <control type="calc" name="Audit_BalanceCheck" span="2" format="0,0"
+          source="Audit_DisputedAmount - (Audit_AcceptedAmount + Audit_DefendedAmount)"/>
+      </row>
+      <row>
+        <control type="label" label="Defensa Médica IPS" span="2"/>
+        <control type="textarea" name="Audit_IpsAuditResponse" span="10" rows="3"
+          edit="[GlosaInfo_Status]=Radicada|En_Auditoria" 
+          required="[Audit_DefendedAmount]>0"/>
+      </row>
+      <row>
+        <control type="hidden" name="ru_Status" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Status" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>  
+</partial>

@@ -1,62 +1,64 @@
 USE [ClinicalGeniusSupplyChain]
 GO
 
-/****** Object:  LiquidateProcedures ******/
+/****** Object:  COLLiquidateDiagnostics ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER PROCEDURE {odata}.{LiquidateDiagnostics}
-    @PatientVisit   NVARCHAR(50),
-    @FacilityId     NVARCHAR(50)
+ALTER PROCEDURE {odata}.{COLLiquidateDiagnostics}
+    @PatientVisit    NVARCHAR(50),
+    @FacilityId      NVARCHAR(50),
+    @TargetClaimGuid NVARCHAR(50) 
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
     -- ==========================================================================================
-    -- 1. Context Resolution (Default Claim & Patient)
+    -- 1. Targeted Context Resolution
     -- ==========================================================================================
-    DECLARE @DefaultClaimGuid NVARCHAR(50),
-            @DefaultContractGuid     NVARCHAR(50),
-            @DefaultManual           VARCHAR(20),
-            @DefaultAdjustmentPct    DECIMAL(5,2),
-            @DefaultNightCharges     Bit,
-            @PatientId        NVARCHAR(50);
+    DECLARE @ResolvedClaimGuid       NVARCHAR(50),
+            @ResolvedContractGuid    NVARCHAR(50),
+            @ResolvedManual          VARCHAR(20),
+            @ResolvedAdjustmentPct   DECIMAL(5,2),
+            @ResolvedNightCharges    Bit,
+            @PatientId               NVARCHAR(50);
 
-    SELECT TOP 1 
-        @DefaultClaimGuid = pyc.ClaimGuid,
-        @PatientId        = pyc.PatientId,
-        @DefaultContractGuid     = ppy.ContractGuid,
-        @DefaultManual           = isc.EntityCode,
-        @DefaultAdjustmentPct    = ISNULL(isc.AdjustmentPct, 0.00),
-        @DefaultNightCharges     = ISNULL(NightCharges,0)
-    FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
-    INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
-        ON ppy.PatientPayerGuid = pyc.PayerGuid
-    INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
-        ON isc.ContractGuid = ppy.ContractGuid
-    WHERE pyc.PatientVisit = @PatientVisit
-      AND pyc.FacilityId = @FacilityId
-      AND pyc.Status = 'Pending'
-    ORDER BY pyc.BatchNumber ASC;
+    SELECT TOP 1 @PatientId = PatientId
+    FROM ClinicalGeniusEhr.dbo.PatientVisits WITH(NOLOCK)
+    WHERE PatientVisitUniqueId = @PatientVisit AND FacilityId = @FacilityId;
 
-    -- Fallback baseline if uninsured or self-pay
-    IF @DefaultContractGuid IS NULL OR @DefaultManual IS NULL
+    -- Route A: Patient Responsibility (Out-of-pocket / Unassigned items only)
+    IF @TargetClaimGuid = 'Patient'
     BEGIN
-        SET @DefaultManual = 'SOAT';
-        SET @DefaultAdjustmentPct = 0.00;
-    END;
-
-    -- Ensure PatientId is populated if no pending claim exists
-    IF @PatientId IS NULL
+        SET @ResolvedClaimGuid       = NULL;
+        SET @ResolvedContractGuid    = NULL;
+        SET @ResolvedManual          = 'SOAT';
+        SET @ResolvedAdjustmentPct   = 0.00;
+        SET @ResolvedNightCharges    = 0;
+    END
+    -- Route B: Explicit Payer Claim Targeted
+    ELSE 
     BEGIN
-        SELECT TOP 1 @PatientId = PatientId
-        FROM ClinicalGeniusEhr.dbo.PatientVisits WITH(NOLOCK)
-        WHERE PatientVisitUniqueId = @PatientVisit AND FacilityId = @FacilityId;
-    END;
+        SELECT TOP 1 
+            @ResolvedClaimGuid       = pyc.ClaimGuid,
+            @ResolvedContractGuid    = isc.ContractGuid,
+            @ResolvedManual          = ISNULL(isc.EntityCode, 'SOAT'),
+            @ResolvedAdjustmentPct   = ISNULL(isc.AdjustmentPct, 0.00),
+            @ResolvedNightCharges    = ISNULL(isc.NightCharges, 0)
+        FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
+        INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
+            ON ppy.PatientPayerGuid = pyc.PayerGuid
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.InsurancePlans isp WITH(NOLOCK) 
+            ON isp.PlanGuid = ppy.PayerPlan
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
+            ON isc.ContractGuid = isp.ContractGuid
+        WHERE pyc.ClaimGuid = @TargetClaimGuid
+          AND pyc.FacilityId = @FacilityId;
+    END
 
     -- Pre-load Colombian statutory holidays scoped to this diagnostic batch
     IF OBJECT_ID('tempdb..#ColombianHolidays') IS NOT NULL DROP TABLE #ColombianHolidays;
@@ -113,7 +115,27 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- ==========================================================================================
-        -- 2. Targeted Staging Clear (Diagnostic Labs & Imaging ONLY)
+        -- 2. Auto-Assign Unassigned Diagnostics to Target Claim (When running for an insurance claim)
+        -- ==========================================================================================
+        IF @TargetClaimGuid <> 'Patient'
+        BEGIN
+            UPDATE ClinicalGeniusEhr.dbo.PatientLabTestOrders WITH(ROWLOCK, UPDLOCK)
+            SET ClaimGuid = @TargetClaimGuid
+            WHERE PatientVisit = @PatientVisit
+              AND Facility = @FacilityId
+              AND Status = 'Completed'
+              AND ClaimGuid IS NULL;
+
+            UPDATE ClinicalGeniusEhr.dbo.PatientImagingOrders WITH(ROWLOCK, UPDLOCK)
+            SET ClaimGuid = @TargetClaimGuid
+            WHERE PatientVisit = @PatientVisit
+              AND Facility = @FacilityId
+              AND OrderStatus = 'Completed'
+              AND ClaimGuid IS NULL;
+        END
+
+        -- ==========================================================================================
+        -- 3. Targeted Staging Clear (Safeguards Invoiced Records)
         -- ==========================================================================================
         UPDATE ClinicalGeniusSupplyChain.dbo.PatientTransactions WITH(ROWLOCK, UPDLOCK)
         SET Status = 'Canceled',
@@ -123,10 +145,14 @@ BEGIN
           AND Facility = @FacilityId
           AND TransactionType = 'Diagnostics'
           AND SurgeryGuid IS NULL
-          AND Status <> 'Canceled';
+          AND Status NOT IN ('Invoiced', 'Billed', 'Canceled') 
+          AND (
+              (@TargetClaimGuid = 'Patient' AND ClaimGuid IS NULL) OR
+              (@TargetClaimGuid <> 'Patient' AND ClaimGuid = @TargetClaimGuid)
+          );
 
         -- ==========================================================================================
-        -- 3. Execution Pipeline Matrix - SUB-PILLAR 1: Laboratories & Pathology Panels
+        -- 4. Execution Pipeline Matrix - SUB-PILLAR 1: Laboratories & Pathology Panels
         -- ==========================================================================================
         ;WITH CompletedLabPanels AS (
             SELECT 
@@ -138,15 +164,15 @@ BEGIN
                 lto.DateTimeEntered AS CompletionDate, 
                 YEAR(lto.DateTimeEntered) AS YearOfService,
                 ISNULL(amx.Ambity, '02') AS Ambity, 
-                ISNULL(lto.ClaimGuid, @DefaultClaimGuid) AS ResolvedClaimGuid,
-                ISNULL(cinfo.ContractGuid, @DefaultContractGuid) AS ResolvedContractGuid,
-                ISNULL(cinfo.EntityCode, @DefaultManual) AS ResolvedManual,
-                ISNULL(cinfo.AdjustmentPct, @DefaultAdjustmentPct) AS ResolvedAdjustmentPct,
-                ISNULL(cinfo.NightCharges,@DefaultNightCharges) AS ResolvedNightCharges,
+                @ResolvedClaimGuid AS ResolvedClaimGuid,
+                @ResolvedContractGuid AS ResolvedContractGuid,
+                @ResolvedManual AS ResolvedManual,
+                @ResolvedAdjustmentPct AS ResolvedAdjustmentPct,
+                @ResolvedNightCharges AS ResolvedNightCharges,
                 ISNULL(lto.AssociatedDiagnosis,'none') As DiagnosisCode,
                 ISNULL(lto.NoBill, 0) AS NoBill,
                 CASE 
-                    WHEN ISNULL(cinfo.NightCharges,@DefaultNightCharges) = 0 Or Ambity = '02'  OR Ambity = '01' OR ISNULL(lto.Priority,'Routine') <> 'STAT'  THEN 2
+                    WHEN @ResolvedNightCharges = 0 Or Ambity = '02'  OR Ambity = '01' OR ISNULL(lto.Priority,'Routine') <> 'STAT'  THEN 2
                     WHEN h.HolidayDate IS NOT NULL THEN 4
                     WHEN DATENAME(weekday, ISNULL(lto.DateTimeUpdated, lto.DateTimeEntered)) = 'Sunday' THEN 4 
                     WHEN DATEPART(hour, ISNULL(lto.DateTimeUpdated, lto.DateTimeEntered)) < 7 THEN 3 
@@ -171,21 +197,6 @@ BEGIN
             LEFT JOIN #ColombianHolidays h 
                 ON h.HolidayDate = CAST(ISNULL(lto.DateTimeUpdated, lto.DateTimeEntered) AS DATE)
             OUTER APPLY (
-                SELECT TOP 1 
-                    isc.ContractGuid,
-                    isc.EntityCode,
-                    ISNULL(isc.AdjustmentPct, 0.00) AS AdjustmentPct,
-                    isc.NightCharges
-                FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
-                INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
-                    ON ppy.PatientPayerGuid = pyc.PayerGuid
-                INNER JOIN ClinicalGeniusSupplyChain.dbo.InsurancePlans isp WITH(NOLOCK) 
-                    ON isp.PlanGuid = ppy.PayerPlan
-                INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
-                    ON isc.ContractGuid = isp.ContractGuid
-                WHERE pyc.ClaimGuid = ISNULL(lto.ClaimGuid, @DefaultClaimGuid)
-            ) cinfo
-            OUTER APPLY (
                 SELECT TOP 1 DPT.Ambity 
                 FROM ClinicalGeniusSupplyChain.dbo.PatientDepartmentTracking PDT WITH(NOLOCK)
                 INNER JOIN ClinicalGeniusSupplyChain.dbo.Departments DPT WITH(NOLOCK) 
@@ -199,6 +210,10 @@ BEGIN
               AND lto.Status = 'Completed'         
               AND lto.Facility = @FacilityId        
               AND ISNULL(lto.ExistingCharge, 0) = 0 
+              AND (
+                  (@TargetClaimGuid = 'Patient' AND lto.ClaimGuid IS NULL) OR
+                  (@TargetClaimGuid <> 'Patient' AND lto.ClaimGuid = @TargetClaimGuid)
+              )
         ),
         LabLinesWithTariffs AS (
             SELECT 
@@ -336,7 +351,7 @@ BEGIN
         FROM FinalLabLiquidation f;
 
         -- ==========================================================================================
-        -- 4. Execution Pipeline Matrix - SUB-PILLAR 2: Diagnostic Imaging Services
+        -- 5. Execution Pipeline Matrix - SUB-PILLAR 2: Diagnostic Imaging Services
         -- ==========================================================================================
         ;WITH CompletedImagingOrders AS (
             SELECT 
@@ -348,15 +363,15 @@ BEGIN
                 ISNULL(img.DateTimeUpdated, img.DateTimeEntered) AS CompletionDate, 
                 YEAR(ISNULL(img.DateTimeUpdated, img.DateTimeEntered)) AS YearOfService,
                 ISNULL(amx.Ambity, '02') AS Ambity, 
-                ISNULL(img.ClaimGuid, @DefaultClaimGuid) AS ResolvedClaimGuid,
-                ISNULL(cinfo.ContractGuid, @DefaultContractGuid) AS ResolvedContractGuid,
-                ISNULL(cinfo.EntityCode, @DefaultManual) AS ResolvedManual,
-                ISNULL(cinfo.AdjustmentPct, @DefaultAdjustmentPct) AS ResolvedAdjustmentPct,
-                ISNULL(cinfo.NightCharges,@DefaultNightCharges) AS ResolvedNightCharges,
+                @ResolvedClaimGuid AS ResolvedClaimGuid,
+                @ResolvedContractGuid AS ResolvedContractGuid,
+                @ResolvedManual AS ResolvedManual,
+                @ResolvedAdjustmentPct AS ResolvedAdjustmentPct,
+                @ResolvedNightCharges AS ResolvedNightCharges,
                 ISNULL(img.AssociatedDiagnosis,'none') As DiagnosisCode,
                 ISNULL(img.NoBill, 0) AS NoBill,   
                 CASE 
-                    WHEN ISNULL(cinfo.NightCharges,@DefaultNightCharges) = 0 OR Ambity = '02' OR Ambity = '01' OR ISNULL(img.Priority,'Routine') <> 'STAT' THEN 2 
+                    WHEN @ResolvedNightCharges = 0 OR Ambity = '02' OR Ambity = '01' OR ISNULL(img.Priority,'Routine') <> 'STAT' THEN 2 
                     WHEN h.HolidayDate IS NOT NULL THEN 4
                     WHEN DATENAME(weekday, ISNULL(img.DateTimeUpdated, img.DateTimeEntered)) = 'Sunday' THEN 4 
                     WHEN DATEPART(hour, ISNULL(img.DateTimeUpdated, img.DateTimeEntered)) < 7 THEN 3 
@@ -383,21 +398,6 @@ BEGIN
             LEFT JOIN #ColombianHolidays h 
                 ON h.HolidayDate = CAST(ISNULL(img.DateTimeUpdated, img.DateTimeEntered) AS DATE)
             OUTER APPLY (
-                SELECT TOP 1 
-                    isc.ContractGuid,
-                    isc.EntityCode,
-                    ISNULL(isc.AdjustmentPct, 0.00) AS AdjustmentPct,
-                    ISNULL(isc.NightCharges,0) as NightCharges
-                FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
-                INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
-                    ON ppy.PatientPayerGuid = pyc.PayerGuid
-                INNER JOIN ClinicalGeniusSupplyChain.dbo.InsurancePlans isp WITH(NOLOCK) 
-                    ON isp.PlanGuid = ppy.PayerPlan
-                INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
-                    ON isc.ContractGuid = isp.ContractGuid
-                WHERE pyc.ClaimGuid = ISNULL(img.ClaimGuid, @DefaultClaimGuid)
-            ) cinfo
-            OUTER APPLY (
                 SELECT TOP 1 DPT.Ambity 
                 FROM ClinicalGeniusSupplyChain.dbo.PatientDepartmentTracking PDT WITH(NOLOCK)
                 INNER JOIN ClinicalGeniusSupplyChain.dbo.Departments DPT WITH(NOLOCK) 
@@ -410,6 +410,10 @@ BEGIN
             WHERE img.PatientVisit = @PatientVisit 
               AND img.OrderStatus = 'Completed'     
               AND img.Facility = @FacilityId         
+              AND (
+                  (@TargetClaimGuid = 'Patient' AND img.ClaimGuid IS NULL) OR
+                  (@TargetClaimGuid <> 'Patient' AND img.ClaimGuid = @TargetClaimGuid)
+              )
         ),
         ImagingLinesWithTariffs AS (
             SELECT 

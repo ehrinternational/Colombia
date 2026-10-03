@@ -1,0 +1,97 @@
+<partial>
+  <section name="DianInvoices" type="tab" title="Facturación Electrónica DIAN" trigger="DianInvoiceList">
+    <group>
+      <!-- ==================================================================== -->
+      <!-- 1. SEARCH & FILTER CONTROLS                                          -->
+      <!-- ==================================================================== -->
+      
+      <!-- New DIAN Status Filter -->
+      <row>
+        <control type="buttongroup" name="bgDianStatus" span="6" mode="auto"
+          source="Approved,Sent,Acknowledged,Rejected" 
+          sourcelabels="Aprobado,Enviado,Acuse de Recibo,Rechazado"
+          default="Approved"
+          provoke="DianInvoiceList"/>
+        <control type="date" name="DianStartDate" span="2" default="now-30"  action="trigger"
+          reveal="[bgDianStatus]=Acknowledged|Rejected"
+          trigger="[DianStartDate]!+[DianEndDate]!;DianInvoiceList"/>
+        <control type="date" name="DianEndDate" span="2" default="now" action="trigger"
+          reveal="[bgDianStatus]=Acknowledged|Rejected"
+          trigger="[DianStartDate]!+[DianEndDate]!;DianInvoiceList"/>
+      </row>
+      <row>
+        <!-- Select the Invoice Type (01, 91, 92) -->
+        <control type="buttongroup" name="btgDianInvoiceType" span="6" default="01" mode="auto"
+          source="01,91,92" 
+          sourcelabels="01 Factura de Venta,91 Nota Crédito,92 Nota Débito"
+          provoke="DianInvoiceList"/>
+        <!-- Search by DIAN Invoice Number -->
+        <control type="label" label="Factura" span="1"/>
+        <control type="text" name="txtDianInvoiceNumber" span="2"
+          action="trigger" provoke="DianInvoiceList"/>
+        <!-- Search by Payer NIT -->
+        <control type="label" label="NIT" span="1"/>
+        <control type="text" name="txtPayerId" span="2"
+          action="trigger" provoke="DianInvoiceList"/>
+      </row>
+    
+      <!-- ==================================================================== -->
+      <!-- 2. DIAN INVOICES DATAGRID                                            -->
+      <!-- ==================================================================== -->
+
+      <row>
+        <!-- Calls COLGetDIANInvoices mapped strictly to its parameters -->       
+        <control type="datagrid" label="Facturas DIAN" name="DianInvoiceList"
+          span="12" rows="20"
+          acctsvcreq="true"
+          action="redirect"
+          target="mdlDianInvoiceModal"
+          searchable="true"
+          datarequest="COLGetDIANInvoices"
+          appendrequest="[bgDianStatus]=Acknowledged|Rejected;StartDate=[DianStartDate],
+            [bgDianStatus]=Acknowledged|Rejected;EndDate=[DianEndDate],
+            InvoiceType=[btgDianInvoiceType],
+            [txtDianInvoiceNumber]!;InvoiceNumber=[txtDianInvoiceNumber],
+            PayerId=[txtPayerId],
+            DianStatus=[bgDianStatus]"
+          source="IssueDateTime,InvoiceNumber,InvoiceTypeDescription,DianStatus,PayerId,PatientFullName,NetAmount"
+          sourcelabels="Fecha,Factura,Tipo,Estatus DIAN,NIT Pagador,Paciente,Total Neto"
+          align="center|left|left|center|left|left|right"
+          format="date||||||0,000"
+          sort="IssueDateTime=desc"
+          key="InvoiceGuid" 
+          onselectset="DianInvoiceGuid=[[InvoiceGuid]]"
+          onselect="DianInvoiceGuid">
+          <!-- Button to manually enter a new Glosa from a DIAN invoice -->
+          <control type="button" name="btnNewManualGlosa"
+            showif="feature"
+            reveal="[[DianStatus]]=Approved|Sent"
+            label="Glosa Manual" icon="plus" 
+            preset="[DianGlosaGuid]=[[InvoiceGuid]]"
+            trigger="DianGlosaGuid"
+            action="redirect" target="mdlCreateGlosa"/>
+          <!-- Button to manually enter a new Credit Note from a DIAN invoice -->
+          <control type="button" name="btnNewCreditNote"
+            showif="feature"
+            reveal="[[DianStatus]]=Approved|Sent"
+            label="Nota de Credito" icon="plus"
+            preset="[DianCreditGuid]=[[InvoiceGuid]]"
+            trigger="DianCreditGuid"
+            action="redirect" target="mdlCreateCreditNoteBatch"/>
+          <!-- Button to manually enter a new Debit Note from a DIAN invoice -->
+          <control type="button" name="btnNewDebitNote"
+            showif="feature"
+            reveal="[[DianStatus]]=Approved|Sent"
+            label="Nota de Debito" icon="plus"
+            preset="[DianDebitGuid]=[[InvoiceGuid]]"
+            trigger="DianDebitGuid"
+            action="redirect" target="mdlCreateDebitNoteBatch"/>
+          <!-- Button to refresh the DIAN Invoice List -->
+          <control type="button" name="btnRefreshDianInvoices"
+            icon="refresh" label="Actualizar" 
+            action="trigger" trigger="DianInvoiceList"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

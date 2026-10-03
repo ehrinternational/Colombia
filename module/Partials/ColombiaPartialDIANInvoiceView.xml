@@ -1,0 +1,73 @@
+<partial>
+  <section type="tabmodal" badge="none" name="mdlDianInvoiceModal" title="Detalle de Factura DIAN" size="medium">
+    
+    <group showif="never">
+      <row>
+        <!-- Load the existing DIAN Invoice Header  -->
+        <control type="hidden" name="DianInvoiceGuid"
+          datarequest="COLGetDIANInvoices"
+          appendrequest="InvoiceGuid=[DianInvoiceGuid]" 
+          inject="DianInvoiceHeaderInfo"
+          provoke="grdDianInvoiceLines"/>
+      </row>
+    </group>
+
+    <!-- Header Information (Strictly Read-Only) -->
+    <group name="DianInvoiceHeaderInfo">
+      <columns>
+        <column span="12">
+          <row>
+            <control type="label" label="Factura DIAN" span="2"/>
+            <control type="text" name="InvoiceNumber" span="3" readonly="true"/>
+            <control type="label" label="Fecha Emisión" span="2"/>
+            <control type="date" name="IssueDateTime" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Tipo Comprobante" span="2"/>
+            <control type="text" name="InvoiceTypeDescription" span="3" readonly="true"/>
+            <control type="label" label="Estatus DIAN" span="2"/>
+            <control type="text" name="DianStatus" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="NIT" span="2"/>
+            <control type="text" name="PayerId" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Aseguradora (EPS)" span="2"/>
+            <control type="text" name="PayerName" span="10" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Paciente" span="2"/>
+            <control type="text" name="PatientFullName" span="10" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="CUFE" span="2"/>
+            <control type="text" name="CUFE" span="10" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Total Neto" span="2"/>
+            <control type="text" name="NetAmount" span="3" readonly="true" format="0,000"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+
+    <!-- Lines Datagrid -->
+    <group name="grpDianLines" reveal="[DianInvoiceGuid]!">
+      <row>
+        <control type="datagrid" label="Líneas de la Factura" name="grdDianInvoiceLines"       
+          searchable="true" rows="15" 
+          acctsvcreq="true"
+          datarequest="COLGetDianInvoiceLines"
+          appendrequest="InvoiceGuid=[DianInvoiceGuid]"        
+          source="LineNumber,ItemCode,ItemDescription,Quantity,UnitPrice,TaxAmount,LineNetAmount"
+          sourcelabels="Línea,CUPS / Código,Descripción,Cantidad,Precio Unit.,Impuesto,Valor Neto"
+          format="|||0,0.00|0,000|0,000|0,000"
+          align="center|left|left|center|right|right|right"
+          total="||||||+"
+          key="InvoiceLineGuid"> 
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

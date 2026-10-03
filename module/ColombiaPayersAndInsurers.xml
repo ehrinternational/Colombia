@@ -258,7 +258,7 @@
       </row>
       <row>
         <control type="options" name="PayerGridOptions" affector="PayerButtonGroupSelect" span="12">
-          <control type="datagrid" label="Convenios" name="Contacts" 
+          <control type="datagrid" label="Contactos" name="Contacts" 
             option="Contacts"
             span="12" rows="5"
             modalname="mdlPayerContacts"

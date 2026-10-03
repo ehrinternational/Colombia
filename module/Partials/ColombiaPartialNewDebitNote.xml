@@ -1,0 +1,157 @@
+<partial>
+  <!-- ==================================================================== -->
+  <!-- 1. BATCH CREATION SCREEN (HEADER + DEBIT NOTE LINES DATAGRID)        -->
+  <!-- ==================================================================== -->
+  <section type="tabmodal" badge="none" name="mdlCreateDebitNoteBatch" title="Generar Nota Débito DIAN" size="medium">
+    
+    <group showif="never">
+      <!-- Holds the newly generated DebitNoteGuid -->
+      <control type="hidden" name="NewDebitNoteGuid"/>
+      
+      <!-- CHAIN STEP 1: Insert modified existing lines (Status=update) -->
+      <control type="button" name="btnInsertDebitLinesBatch_Update"
+        action="batchinsert"
+        capture="grdDebitNoteLines"
+        datainsert="DIANInvoiceLines"
+        skipbatchrow="[[Status]]=update"
+        appendbatch="InvoiceGuid=[NewDebitNoteGuid],InvoiceLineGuid=(newUUID)"
+        postwithout="Status"
+        provoke="btnInsertDebitLinesBatch_Insert"/>
+
+      <!-- CHAIN STEP 2: Insert completely new lines (Status=insert) -->
+      <control type="button" name="btnInsertDebitLinesBatch_Insert"
+        action="batchinsert|close"
+        capture="grdDebitNoteLines"
+        datainsert="DIANInvoiceLines"
+        skipbatchrow="[[Status]]=insert"
+        appendbatch="InvoiceGuid=[NewDebitNoteGuid],InvoiceLineGuid=(newUUID)"
+        postwithout="Status"
+        success="Nota Débito generada y lista para transmisión a la DIAN."
+        provoke="DianInvoiceList"/>
+
+      <!-- Load the original DIAN Invoice Header -->
+      <control type="hidden" name="DianInvoiceGuid"
+        datarequest="COLGetDIANInvoices"
+        appendrequest="InvoiceGuid=[DianInvoiceGuid]" 
+        inject="grpDebitNoteHeaderInfo"
+        provoke="grdDebitNoteLines"/>
+    </group>
+
+    <!-- Header Information -->
+    <group name="grpDebitNoteHeaderInfo">
+      <columns>
+        <column span="12">
+          <row>
+            <control type="hidden" name="DNH_CUFE"/>
+          </row>
+          <row>
+            <control type="label" label="Factura DIAN" span="2"/>
+            <control type="text" name="DNH_InvoiceNumber" span="3" readonly="true"/>
+            <control type="label" label="Motivo DIAN" span="2"/>
+            <!-- Standard DIAN UBL 2.1 Debit Note Reason Codes -->
+            <control type="select" name="DNH_DebitNoteConceptCode" span="5" required="true" edit="true"
+              source="1,2,3,4" 
+              sourcelabels="1 Intereses,2 Gastos por cobrar,3 Cambio del valor,4 Otros"/>
+          </row>
+          <row>
+            <control type="label" label="NIT" span="2"/>
+            <control type="text" name="DNH_PayerId" span="3" readonly="true"/>
+          </row>
+          <row>
+            <control type="label" label="Aseguradora (EPS)" span="2"/>
+            <control type="text" name="DNH_PayerName" span="10" readonly="true"/>
+          </row>
+          <row>
+            
+            <control type="label" label="Observación" span="2"/>
+            <control type="textarea" name="DNH_DebitNoteObservation" span="10" rows="1" edit="true" required="true"/>
+          </row>
+        </column>
+      </columns>
+    </group>
+
+    <!-- Lines Datagrid -->
+    <group>
+      <row>
+        <control type="datagrid" label="Líneas a Debitar (Ajustar o Agregar)" name="grdDebitNoteLines"       
+          searchable="true" rows="15" 
+          mode="batch"
+          modalname="mdlDebitNoteLineEntry"
+          rowcolor="Status|update=yellow;insert=green"
+          edit="true"
+          acctsvcreq="true"
+          datarequest="COLGetDianInvoiceLines"
+          appendrequest="InvoiceGuid=[DianInvoiceGuid]"        
+          source="LineNumber,ItemCode,ItemDescription,Quantity,UnitPrice,TaxAmount,LineNetAmount,Status"
+          sourcelabels="Línea,CUPS,Descripción,Cant.,Precio Unit.,Impuesto,Valor Neto,Estatus"
+          format="|||0,0.00|0,000|0,000|0,000|"
+          align="center|left|left|center|right|right|right|center"
+          total="||||||+|"
+          key="InvoiceLineGuid"> 
+          
+          <!-- Master Button: Saves Header, returns Guid, triggers the batch loop chain -->
+          <control type="button" name="btnGenerateDebitNote" label="Generar Nota Débito" icon="cloud-upload"
+            action="save" color="blue"
+            confirm="Confirme que desea generar la Nota Débito con las líneas agregadas o ajustadas."
+            capture="mdlCreateDebitNoteBatch"
+            affector="NewDebitNoteGuid"
+            setaffector="DebitNoteGuid"
+            acctsvc="true"
+            datainsert="COLCreateDebitNoteHeader"
+            appendinsert="OriginalInvoiceGuid=[DianInvoiceGuid],OriginalCUFE=[DNH_CUFE],ConceptCode=[DNH_DebitNoteConceptCode],Observation=[DNH_DebitNoteObservation],FacilityId=(facilityData.LocationId),UserId=(userName)"
+            provoke="btnInsertDebitLinesBatch_Update"/>
+        </control>
+      </row>
+    </group>
+  </section>
+
+  <!-- ==================================================================== -->
+  <!-- 2. BATCH LINE ENTRY MODAL (INSERT NEW / EDIT EXISTING)               -->
+  <!-- ==================================================================== -->
+  <section type="modal" name="mdlDebitNoteLineEntry" title="Detalle de Línea (Nota Débito)" size="small">
+    <group>
+      <!-- Item Context (Editable for Inserts, Pre-populated for Updates) -->
+      <row showif="edit">
+        <control type="label" label="Línea" span="2"/>
+        <control type="text" name="DN_LineNumber" span="2" readonly="true"/>
+      </row>
+      <!-- display existing item name and item code when editing existing lines -->
+      <row showif="edit">
+        <control type="label" label="CUPS / Código" span="2"/>
+        <control type="text" name="DN_ItemCode" span="2" readonly="true"/>
+      </row>
+      <row showif="edit">
+        <control type="label" label="Descripción" span="2"/>
+        <control type="textarea" name="DN_ItemDescription" span="10" readonly="true" rows="1"/>
+      </row>
+      <!-- Insert CUPS code and name into ItemDescription and ItemCode when inserting new lines -->
+      <row showif="add">
+          <control type="label" label="CUPS" span="2"/>
+          <control type="typeahead" name="DN_ItemDescription,DN_ItemCode" span="9" edit="true" required="true"
+            acctsvc="true"
+            datasource="GetCUPSBySearchTerm"
+            term="cUPSName"
+            source="CUPSName,CupsCode"/>
+      </row>
+      <!-- Financials -->
+      <row>
+        <control type="label" label="Cantidad" span="2"/>
+        <control type="text" name="DN_Quantity" span="4" edit="true" required="true" format="0,0.00"/>
+      </row>
+      <row>
+        <control type="label" label="Precio Unitario" span="2"/>
+        <control type="text" name="DN_UnitPrice" span="4" edit="true" required="true" format="0,000"/>
+      </row>
+      <row>
+        <control type="label" label="Total a Debitar" span="2"/>
+        <control type="calc" name="DN_LineNetAmount" span="4" format="0,000"
+          source="DN_Quantity * DN_UnitPrice"/>
+      </row>
+      <row>
+        <!-- Triggers the datagrid row to flag status appropriately based on the action -->
+        <control type="hidden" name="ru_Status" value="update" ignore="add" persist="true"/>
+        <control type="hidden" name="ri_Status" value="insert" ignore="edit" persist="true"/>
+      </row>
+    </group>
+  </section>
+</partial>

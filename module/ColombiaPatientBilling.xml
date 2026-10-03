@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- XML for Views version 1.0-->
-<module name="Facturación" type="onload" trigger="GetPOSSessionForUser,PatientPayerGroup_PayerStateProvince,Payers_PayerStateProvince,PatientList">
+<module name="Facturación" type="onload" trigger="GetPOSSessionForUser,PatientList">
   <facet name="InvoiceCalculated" default="False"/>
   <facet name="FileName" value="PatientBilling"/>
-  <headerbutton name="btnBillingReportsByType"
-    icon="print" label="Informes"
-    preset="Report_Type=Cashier"
-    trigger="ReportList"
-    action="redirect" target="mdlReports"/>
   <!-- Display a list of patients -->
   <partial link="Partials/ColombiaPartialBillingPatientList.xml"/>
-  <!-- SAT Invoices 
-  <partial link="Partials/ColombiaPartialDIANInvoices.xml"/>-->
+  <!-- DIAN Invoices -->
+  <partial link="Partials/ColombiaPartialDIANInvoiceList.xml"/>
+  <!-- Glosa List -->
+  <partial link="Partials/ColombiaPartialGlosaList.xml"/>
   <!-- Patient tabmodal -->
   <section type="tabmodal" name="PatientTabModal" title="Factura del Paciente" badge="none" size="medium" provoke="InvoiceList">
     <group showif="never">
@@ -40,8 +37,7 @@
           datarequest="GetPatientAllFields"
           appendrequest="PatientId=[PatientId]"
           set="HasPatientPayer=[[HasPatientPayer]]"/>
-        <control type="hidden"
-          name="GetOpenChargesStatus"
+        <control type="hidden" name="GetOpenChargesStatus"
           datarequest="GetPatientAllFields"
           appendrequest="PatientId=[PatientId]"
           set="HasOpenCharges=[[HasOpenCharges]],HasOpenPayments=[[HasOpenPayments]]"/>
@@ -217,29 +213,12 @@
               set="InvoiceStatus=Open"
               confirm="Confirme que desea volver a abrir esta factura."/>
           </row>
-          <!-- Allow a support person to set an invoice to submitted -->
-          <row>
-            <control type="button" span="12" name="btnMedwaveSubmitted"
-              icon="cloud-upload" label="Facturada Medwave"
-              reveal="(user.UserRoles)%Medwave|MedWave"
-              action="save"
-              acctsvc="true"
-              affector="none"
-              dataupdate="UpdatePatientVisitNoDepartmentTracking"
-              appendupdate="patientVisitUniqueId=[VisitSelect],invoiceStatus=Submitted"
-              set="InvoiceStatus=Submitted"
-              confirm="Confirme que desea volver a factura esta factura."/>
-          </row>
           <row>
             <control type="button" span="12" name="btnSettledStatus"
               icon="cloud-upload" label="Pagado" color="green"
               reveal="[InvoiceStatus]=Submitted"
               preset="NewStatus=Settled"
               compare="[PatientVisitInvoiceBalance]=0|El saldo de la factura debe ser cero para marcar el pago."
-              confirmsvc="true"
-              confirmrequest="VerifySettledClaims"
-              appendconfirm="PatientVisit=[VisitSelect]"
-              confirmresponse="value=1|Los Cargos del pagador deben liquidarse antes de liquidar la factura del Paciente."
               confirm="Favor de Confirmar que quiere marcar esta factura como pagada."
               action="trigger" provoke="btnSetNewStatus"/>
           </row>
@@ -295,144 +274,85 @@
           </row>
           <!-- Recalculate a patient bill while the patient visit is still open -->
           <row>
-            <control type="button" span="12" name="btnRecalculateOpenPatientInvoice"
-              icon="refresh" label="Recalcular" action="trigger"
-              reveal="{[InvoiceStatus]=Open+[VisitSelect]!}"
-              preset="InvoiceBillDate=(dateTimeNow),InvoiceDueDate=(dateTimeNow)"
-              provoke="btnCompleteRecalculateOpenPatientInvoice"/>
-          </row>
-          <row showif="never">
-            <!-- Update the patient visit prior to recalculating -->
-            <control type="button" name="btnCompleteRecalculateOpenPatientInvoice"
+            <control type="button" span="12" name="btnRecalculatePatientInvoice"
+              icon="refresh" label="Recalcular"
+              reveal="{[InvoiceStatus]=Open|Closed+[VisitSelect]!}"
               action="save"
               acctsvc="true"
               affector="none"
               capture="PatientVisitInfo|active"
               dataupdate="UpdatePatientVisitNoDepartmentTracking"
               appendupdate="patientVisitUniqueId=[VisitSelect]"
-              provoke="btnCompleteRecalculateOpenInvoice"/>
-            <control type="button" name="btnCompleteRecalculateOpenInvoice"
+              provoke="btnLiquidateInvoice"/>
+           </row>
+          <row showif="never">
+            <!-- Liquidate surgeries -->
+            <control type="button" name="btnLiquidateInvoice"
               action="save" 
               acctsvc="true"
-              datainsert="RecalculatePatientInvoice"
-              appendinsert="patientVisit=[VisitSelect]"
-              set="InvoiceCalculated=True"
-              provoke="Charges_grdNewPatientCharges|active"/>
-          </row>
-          <row>
-            <control type="button" span="12" name="btnRecalculatePatientInvoice"
-              icon="refresh" label="Recalcular" action="trigger"
-              reveal="{[InvoiceStatus]=Closed+[VisitSelect]!+[InvoiceCalculated]=False+[PVI_SATInvoice]=True}"
-              preset="InvoiceBillDate=(dateTimeNow),InvoiceDueDate=(dateTimeNow)"
-              provoke="btnCompleteRecalculatePatientInvoice"/>
-          </row>
-          <row showif="never">
-            <control type="button" name="btnCompleteRecalculatePatientInvoice"
-              action="save"
+              datainsert="COLLiquidateSurgeries"
+              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
+              provoke="btnLiquidateProcedures"/>
+            <!-- Liquidate procedures -->
+            <control type="button" name="btnLiquidateProcedures"
+              action="save" 
               acctsvc="true"
-              affector="none"
-              capture="PatientVisitInfo|active"
-              dataupdate="UpdatePatientVisitNoDepartmentTracking"
-              appendupdate="patientVisitUniqueId=[VisitSelect]"
-              provoke="btnUpdatePatientProcessInvoice"/>
-          </row>
-    
-          <row showif="never">
-              <control type="button" name="btnUpdatePatientProcessInvoice"
-                action="save"
-                affector="none"
-                capture="PatientInfo|active"
-                dataupdate="UpdatePatient"
-                appendupdate="patientId=[PatientId]"
-                provoke="btnCompleteRecalculate"/>
-              <control type="button" name="btnCompleteRecalculate"
-                action="save" 
-                acctsvc="true"
-                datainsert="RecalculatePatientInvoice"
-                appendinsert="patientVisit=[VisitSelect]"
-                set="InvoiceCalculated=True"
-                provoke="Charges_grdNewPatientCharges|active"/>
-              <control type="button" name="btnUpdatePatientProcessInvoiceWithoutRepricing"
-                action="save"
-                affector="none"
-                capture="PatientInfo|active"
-                dataupdate="UpdatePatient"
-                appendupdate="patientId=[PatientId]"
-                set="InvoiceCalculated=True"
-                provoke="Charges_grdNewPatientCharges|active"/>
+              datainsert="COLLiquidateProcedures"
+              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
+              provoke="btnLiquidateDiagnostics"/>
+            <!-- Liquidate diagnostics -->
+            <control type="button" name="btnLiquidateDiagnosticse"
+              action="save" 
+              acctsvc="true"
+              datainsert="COLLiquidateDiagnostics"
+              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
+              provoke="btnLiquidateRoomCharges"/>
+            <!-- Liquidate room charges -->
+            <control type="button" name="btnLiquidateRoomCharges"
+              action="save" 
+              acctsvc="true"
+              datainsert="COLLiquidateRoomCharges"
+              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
+              provoke="btnLiquidateMedications"/>
+              <!-- Liquidate medications -->
+            <control type="button" name="btnLiquidateMedications"
+              action="save" 
+              acctsvc="true"
+              datainsert="COLLiquidateMedications"
+              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
+              provoke="btnScrubPatientInvoice"/>
+            <!-- Scrub patient invoice -->
+            <control type="hidden" name="btnScrubPatientInvoice" 
+              acctsvcreq="true"
+              datarequest="COLInvoiceScrubber"
+              appendrequest="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
+              set="[btnScrubPatientInvoice]=;InvoiceCalculated=True"
+              provoke="Charges_grdNewPatientCharges|active,[btnScrubPatientInvoice]!;btnDisplayInvoiceErrors"/>
+            <control type="button" name="btnDisplayInvoiceErrors" action="redirect" target="mdlInvoiceErrors"
+              preset="[dsp_ClaimGuid]=Patient,[dsp_PatientVisit]=[VisitSelect]" trigger="grdDisplayErrors"/>
           </row>
           <row>
-            <!-- button to insert a patient sat invoice -->
-            <control type="button" span="12" name="btnInsertSATPatientInvoice" action="trigger"
-              reveal="[PVI_SATInvoice]=True+[InvoiceProcess]=False+[InvoiceCalculated]=True+[InvoiceStatus]=Closed+[VisitSelect]!+[PatientVisitCharges]»0"
+            <!-- button to insert a DIAN invoice -->
+            <control type="button" span="12" name="btnInsertDIANPatientInvoice" action="trigger"
+              reveal="[InvoiceProcess]=False+[InvoiceCalculated]=True+[InvoiceStatus]=Closed+[VisitSelect]!+[PatientVisitCharges]»0"
               icon="cloud-upload" label="Procesar" color="green"
               preset="[InvoiceProcess]=True"
-              provoke="btnCompletePatientInvoice"/>
+              provoke="btnCompleteDIANInvoice"/>
           </row>
           <row showif="never">
             <control type="hidden" name="InvoiceProcess" default="False"/>
-            <control type="button" name="btnCompletePatientInvoice"
+            <control type="button" name="btnCompleteDIANInvoice"
               validate="PatientVisitInfo"
               confirm="Por favor, confirme que desea procesar esta factura."
               oncancelset="[InvoiceProcess]=False"
               action="save"
               affector="none"
               acctsvc="true"
-              datainsert="InsertSATInvoice"
-              appendinsert="ProcessCharges=true,
-              GlobalInvoice=False,
-              NewInvoiceStatus=Submitted,
-              [PVI_FiscalType]=Física;FiscalRegimen=[PVI_FiscalRegimen]^FiscalRegimen=[PVI2_FiscalRegimen],
-              [PVI_FiscalType]=Física;FiscalRegimenName=[PVI_FiscalRegimenName]^FiscalRegimenName=[PVI2_FiscalRegimenName],
-              LocationId=(facilityData.LocationId),
-              PatientId=[PatientId],
-              PatientName=[PatientFullName],
-              PatientVisit=[VisitSelect],
-              AdmitDateTime=[PVI_AdmitDateTime],
-              DischargeDateTime=[PVI_DischargeDateTime],
-              PayerType=Patient,
-              Series=[PVI_Series],
-              Folio=[PVI_InvoiceNumber],
-              Status=Pending,
-              PaymentMethod=[PVI_PaymentMethod],
-              DateTimeIssued=(dateTimeNow),
-              PaymentType=[PVI_PaymentType],
-              FiscalType=[PVI_FiscalType],
-              (facilityData.SATInvoiceVersion)=3.3;CDFICode=[PVI_CFDICode],
-              [PVI_FiscalType]=Física+(facilityData.SATInvoiceVersion)=4.0;CDFICode=[PVI2_CFDICode],
-              [PVI_FiscalType]=Moral+(facilityData.SATInvoiceVersion)=4.0;CDFICode=[PVI3_CFDICode],
-              DocumentType=I,
-              PayerRFC=[PVI_PayerRFC],
-              PayerName=[PVI_PayerName],
-              PayerAddress=[PVI_PayerAddress],
-              PayerCellPhone=[PVI_PayerCellPhone],
-              PayerPostalCode=[PVI_PayerPostalCode],
-              PlaceIssued=(facilityData.HospitalCity),
-              InvoiceNotes=[BillingNotes],
-              ReferredBy=[Consult_ReferredBy],
-              ProviderId=[Consult1_AttendingPhysician],
-              AttendingPhysician=[Consult1_AttendingPhysician]"
-            provoke="^btnSetInvoiceToSubmitted"/>
-          </row>
-          <row>
-            <!-- Notify user that there is a balance outstanding -->
-            <control type="button" name="btnProcessGeneralSATInvoice" span="12"
-              icon="cloud-upload" label="Factura PG" color="green" 
-              action="trigger"
-              reveal="{[PVI_SATInvoice]=False+[InvoiceStatus]=Open|Closed+[VisitSelect]!+[PatientVisitCharges]»0+[PatientVisitInvoiceBalance]!0+[InvoiceCalculated]=True}"
-              confirm="La cuenta tiene un saldo pendiente, favor de validar.|nocancel"
-              set="(noclose)=false"/>
+              datainsert="COLCreateDIANInvoice"
+              appendinsert="PatientVisit=[VisitSelect],ClaimGuid=Patient"
+              provoke="btnSetInvoiceToSubmitted"/>
           </row>
           <row showif="never">
-            <!-- Store new Invoice Guid for use by detail lines-->
-            <control type="hidden" name="NewSATInvoiceGuid"/>
-            <!-- Insert new SAT Invoice details for General invoices -->
-            <control type="button" name="btnInsertGeneralSATDetails"
-              action="save"
-              acctsvc="true"
-              datainsert="InsertSATInvoiceCharges"
-              appendinsert="InvoiceType=General,PatientVisit=[VisitSelect],InvoiceGuid=[NewSATInvoiceGuid]"
-              provoke="[PatientVisitInvoiceBalance]=0;btnSetInvoiceToSettled^btnSetInvoiceToSubmitted"/>
             <!-- Update the patient invoice status to 'Submitted' after the invoice has been created -->
             <control type="button" name="btnSetInvoiceToSubmitted"
               action="save"
@@ -440,42 +360,8 @@
               affector="none"
               dataupdate="UpdatePatientVisitNoDepartmentTracking"
               appendupdate="patientVisitUniqueId=[VisitSelect],InvoiceStatus=Submitted,DateTimeProcessed=(now)"
-              set="InvoiceStatus=Submitted"
-              provoke="(facilityData.GeneralLedgerUse)=true+(facilityData.HospitalCountry)!MEX;btnPostInvoiceToGeneralLedger^btnTriggerReadyToPost"/>
-            <!-- Update patient invoice to paid status -->
-            <control type="button" name="btnSetInvoiceToSettled"
-              action="save"
-              acctsvc="true"
-              affector="none"
-              dataupdate="UpdatePatientVisitNoDepartmentTracking"
-              appendupdate="patientVisitUniqueId=[VisitSelect],InvoiceStatus=Settled,DateTimeProcessed=(now)"
-              set="InvoiceStatus=Settled"
-              provoke="(facilityData.GeneralLedgerUse)=true+(facilityData.HospitalCountry)!MEX;btnPostInvoiceToGeneralLedger^btnTriggerReadyToPost"/>
-            <!-- Post patient invoice to General Ledger  -->
-            <control type="button" name="btnPostInvoiceToGeneralLedger"
-              action="save"
-              acctsvc="true"
-              affector="none"
-              datainsert="PostPatientInvoice"
-              appendinsert="PatientVisitUniqueId=[VisitSelect],PatientId=[PatientId],ClaimGuid=,ReferenceNumber=[PVI_InvoiceNumber],TransactionDate=(dateTimeNow),PostedBy=(userName),Description=[PatientFullName],DepartmentGuid=[PVI_CostCenter]"
-              provoke="btnTriggerReadyToPost"/>
-            <!-- Set the SAT Invoice status to 'ReadyToPost' if this is a General Public invoice -->
-            <control type="button" name="btnTriggerReadyToPost"
-              action="trigger"
-              set="[PVI_SATInvoice]=True;(noclose)=false"
-              provoke="[PVI_SATInvoice]=False;btnUpdateGeneralSATInvoiceStatusToReadyToPost^PatientSATInvoiceList"/>
-            <!-- Set the SAT invoice status to 'ready to post' for General Public invoices -->
-            <control type="button" name="btnUpdateGeneralSATInvoiceStatusToReadyToPost"
-              action="save"
-              acctsvc="true"
-              dataupdate="UpdateSATInvoice"
-              appendupdate="InvoiceGuid=[NewSATInvoiceGuid],Status=ReadyToPost"
-              set="(noclose)=false"
-              provoke="PatientSATInvoiceList"/>
+              set="InvoiceStatus=Submitted"/>
             <control type="button" name="btnClosePatientBilling" action="close|new"/>
-            <control type="button" name="btnNoInvoiceGuidReturned" action="trigger"
-              confirm="No se generó ninguna factura. Póngase en contacto con el soporte técnico para resolver este problema.|nocancel"
-              set="InvoiceCalculated=False"/>
           </row>
           <row>
             <!--  Button to print patient invoice -->
@@ -617,7 +503,7 @@
           set="[GridDisplay]=Medical" provoke="selPatientClaims"/>
         <control type="buttongroup" name="ButtonGroupSelect" span="10"
           edit="true" mode="auto" default="Charges"
-          source="Charges,PatientPayers,PayerClaims,Addresses,Contacts,Documents,SATInvoices,Appointments" 
+          source="Charges,PatientPayers,PayerClaims,Addresses,Contacts,Documents,DIANInvoices,Appointments" 
           sourcelabels="Cargos,Convenios,Convenios de Atención,Direcciones,Contactos,Documentos,Facturas,Citas" 
           provoke="GridOptions|options"/>
       </row>
@@ -626,13 +512,13 @@
         <control type="options" name="GridOptions" affector="ButtonGroupSelect" span="12">
           <partial link="Partials/ColombiaPartialBillingPatientCharges.xml"/>
           <partial link="Partials/ColombiaPartialBillingPatientPayments.xml"/>
-           <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
+          <partial link="Partials/ColombiaPartialPatientAddressList.xml"/>
           <partial link="Partials/ColombiaPartialPatientPayers.xml"/>
           <partial link="Partials/ColombiaPartialPatientClaimsForBilling.xml"/>
           <partial link="Partials/ColombiaPartialPatientContactsColombia.xml"/>
           <partial link="./Partial/Grids/PartialECDFormsWithRevisionsNoEdit.xml"/>
           <partial link="./Partial/Grids/PartialScannedDocumentsWithNewAndCancel.xml"/>
-          <partial link="Partials/ColombiaPartialPatientSATInvoiceList.xml"/>
+          <partial link="Partials/ColombiaPartialPatientDIANInvoiceList.xml"/>
           <partial link="./Partial/Grids/PartialAppointmentListForPatientNoEdit.xml"/>
         </control>
       </row>    
@@ -644,8 +530,8 @@
           set="[GridDisplay]=Billing"/>
         <control type="buttongroup" name="MedicalGroupSelect" span="10"
           edit="true" mode="auto" default="Laboratory"
-          source="Laboratory,Imaging,Medication,Procedures,Surgery" 
-          sourcelabels="Laboratorio,Imagen,Medicamentos,Procedimientos,Cirugía" 
+          source="Laboratory,Imaging,Medication,Procedures,Surgery,Rooms" 
+          sourcelabels="Laboratorio,Imagen,Medicamentos,Procedimientos,Cirugía,Camas" 
           provoke="MedicalOptions|options"/>
       </row>
       <row>
@@ -663,6 +549,7 @@
           <partial link="Partials/ColombiaPartialProcedureOrdersForBilling.xml"/>
           <partial link="Partials/ColombiaPartialSurgeriesForBilling.xml"/>
           <partial link="Partials/ColombiaPartialMedicationsForBilling.xml"/>
+          <partial link="Partials/ColombiaPartialRoomAssignmentsForBilling.xml"/>
         </control>
       </row>    
     </group>
@@ -699,11 +586,15 @@
     </group>
   </section>
   <!-- HarmoniColombia modals -->
+  <partial link="Partials/ColombiaPartialGlosaModal.xml"/>
+  <partial link="Partials/ColombiaPartialCreateGlosa.xml"/>
+  <partial link="Partials/ColombiaPartialDIANInvoiceView.xml"/>
+  <partial link="Partials/ColombiaPartialNewCreditNote.xml"/>
+  <partial link="Partials/ColombiaPartialNewDebitNote.xml"/>
+  <partial link="Partials/ColombiaPartialInvoiceErrors.xml"/>
   <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
   <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
   <partial link="Partials/ColombiaPartialPatientPayersModal.xml"/>
-  <partial link="Partials/ColombiaPartialNewSATCredit.xml"/>
-  <partial link="Partials/ColombiaPartialNewSATInvoice.xml"/>
   <partial link="Partials/ColombiaPartialMoneyLaundering.xml"/>
   <!-- Billing modals -->
   <partial link="Partials/ColombiaPartialPayerClaims.xml"/>

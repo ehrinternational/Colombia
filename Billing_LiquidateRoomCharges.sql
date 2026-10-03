@@ -1,58 +1,110 @@
-CREATE OR ALTER PROCEDURE ClinicalGeniusSupplyChain.dbo.LiquidateRoomCharges
-    @PatientVisit   NVARCHAR(50),
-    @FacilityId     NVARCHAR(50),
-    @PatientId      NVARCHAR(50)  = NULL,
-    @ContractGuid   NVARCHAR(50)  = NULL,
-    @ClaimGuid      NVARCHAR(50)  = NULL,
-    @Manual         VARCHAR(20)   = NULL,
-    @AdjustmentPct  DECIMAL(5,2)  = NULL
+USE [ClinicalGeniusSupplyChain]
+GO
+
+/****** Object:  COLLiquidateRoomCharges ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE {odata}.{COLLiquidateRoomCharges}
+    @PatientVisit    NVARCHAR(50),
+    @FacilityId      NVARCHAR(50),
+    @TargetClaimGuid NVARCHAR(50) 
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
     -- ==========================================================================================
-    -- 1. Self-Resolving Context Resolution (Enables standalone execution from UI)
+    -- 1. Targeted Context Resolution & Patient Binding
     -- ==========================================================================================
-    IF @ContractGuid IS NULL OR @ClaimGuid IS NULL OR @Manual IS NULL
+    DECLARE @ClaimGuid        NVARCHAR(50),
+            @ContractGuid     NVARCHAR(50),
+            @Manual           VARCHAR(20),
+            @AdjustmentPct    DECIMAL(5,2),
+            @PatientId        NVARCHAR(50),
+            @VisitDiagnosis   NVARCHAR(50);
+
+    SELECT TOP 1 @PatientId = PatientId
+    FROM ClinicalGeniusEhr.dbo.PatientVisits WITH(NOLOCK)
+    WHERE PatientVisitUniqueId = @PatientVisit AND FacilityId = @FacilityId;
+
+    -- Fetch the most recent active diagnosis code for the visit from PatientProblems
+    SELECT TOP 1 @VisitDiagnosis = prb.ProblemCode 
+    FROM ClinicalGeniusEhr.dbo.PatientProblems prb WITH(NOLOCK) 
+    WHERE prb.PatientVisit = @PatientVisit 
+      AND prb.Status = 'Active' 
+    ORDER BY prb.DateTimeEntered DESC;
+
+    SET @VisitDiagnosis = ISNULL(@VisitDiagnosis, 'none');
+
+    -- Route A: Patient Responsibility
+    IF @TargetClaimGuid = 'Patient'
+    BEGIN
+        SET @ClaimGuid     = NULL;
+        SET @ContractGuid  = NULL;
+        SET @Manual        = 'SOAT';
+        SET @AdjustmentPct = 0.00;
+    END
+    -- Route B: Explicit Payer Claim Targeted
+    ELSE 
     BEGIN
         SELECT TOP 1 
             @ClaimGuid     = pyc.ClaimGuid,
-            @PatientId     = ISNULL(@PatientId, pyc.PatientId),
-            @ContractGuid  = ppy.ContractGuid,
-            @Manual        = isc.EntityCode,
-            @AdjustmentPct = ISNULL(@AdjustmentPct, isc.AdjustmentPct)
+            @ContractGuid  = isc.ContractGuid,
+            @Manual        = ISNULL(isc.EntityCode, 'SOAT'),
+            @AdjustmentPct = ISNULL(isc.AdjustmentPct, 0.00)
         FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
         INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
             ON ppy.PatientPayerGuid = pyc.PayerGuid
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.InsurancePlans isp WITH(NOLOCK) 
+            ON isp.PlanGuid = ppy.PayerPlan
         INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
-            ON isc.ContractGuid = ppy.ContractGuid
-        WHERE pyc.PatientVisit = @PatientVisit
-          AND pyc.FacilityId = @FacilityId
-          AND pyc.Status = 'Pending'
-        ORDER BY pyc.BatchNumber ASC;
+            ON isc.ContractGuid = isp.ContractGuid
+        WHERE pyc.ClaimGuid = @TargetClaimGuid
+          AND pyc.FacilityId = @FacilityId;
+    END
 
-        -- Fallback baseline if uninsured or self-pay
-        IF @ContractGuid IS NULL OR @Manual IS NULL
-        BEGIN
-            SET @Manual = 'SOAT';
-            SET @AdjustmentPct = 0.00;
-        END;
-    END;
-
-    -- Ensure PatientId is populated if not passed
-    IF @PatientId IS NULL
-    BEGIN
-        SELECT TOP 1 @PatientId = PatientId
-        FROM ClinicalGeniusSupplyChain.dbo.PayerClaims WITH(NOLOCK)
-        WHERE PatientVisit = @PatientVisit AND FacilityId = @FacilityId;
-    END;
+    -- Pre-load Unit Parameters globally into tempdb
+    IF OBJECT_ID('tempdb..#UnitParameters') IS NOT NULL DROP TABLE #UnitParameters;
+    CREATE TABLE #UnitParameters (
+        ContractType VARCHAR(10),
+        CalendarYear INT,
+        UnitCategory VARCHAR(10),
+        UnitValue DECIMAL(18,2)
+    );
+    INSERT INTO #UnitParameters (ContractType, CalendarYear, UnitCategory, UnitValue)
+    VALUES
+        ('SOAT', 2023, 'SMDLV', 38666.67),
+        ('SOAT', 2024, 'UVB', 10951.00),
+        ('SOAT', 2025, 'UVB', 11552.00),
+        ('SOAT', 2026, 'UVB', 12110.00),
+        ('SOAT', 2027, 'UVB', 12110.00),
+        ('ISS',  2023, 'UVR', 1.00),
+        ('ISS',  2024, 'UVR', 1.00),
+        ('ISS',  2025, 'UVR', 1.00),
+        ('ISS',  2026, 'UVR', 1.00),
+        ('ISS',  2027, 'UVR', 1.00);
 
     BEGIN TRY
         BEGIN TRANSACTION;
 
         -- ==========================================================================================
-        -- 2. Targeted Staging Clear (Inpatient Hospital Stays ONLY)
+        -- 2. Auto-Assign Unassigned Bed Assignments to Target Claim (When running for an insurance claim)
+        -- ==========================================================================================
+        IF @TargetClaimGuid <> 'Patient'
+        BEGIN
+            UPDATE ClinicalGeniusEhr.dbo.PatientBedAssignments WITH(ROWLOCK, UPDLOCK)
+            SET ClaimGuid = @TargetClaimGuid
+            WHERE PatientVisit = @PatientVisit
+              AND FacilityId = @FacilityId
+              AND ClaimGuid IS NULL;
+        END
+
+        -- ==========================================================================================
+        -- 3. Targeted Staging Clear (Safeguards Invoiced Records)
         -- ==========================================================================================
         UPDATE ClinicalGeniusSupplyChain.dbo.PatientTransactions WITH(ROWLOCK, UPDLOCK)
         SET Status = 'Canceled',
@@ -61,11 +113,14 @@ BEGIN
         WHERE PatientVisit = @PatientVisit
           AND Facility = @FacilityId
           AND TransactionType = 'Stay'
-          AND Status <> 'Canceled'
-          AND (ElectronicInvoiceStatus IS NULL OR ElectronicInvoiceStatus <> 'Transmitted');
+          AND Status NOT IN ('Invoiced', 'Billed', 'Canceled') 
+          AND (
+              (@TargetClaimGuid = 'Patient' AND ClaimGuid IS NULL) OR
+              (@TargetClaimGuid <> 'Patient' AND ClaimGuid = @TargetClaimGuid)
+          );
 
         -- ==========================================================================================
-        -- 3. Execution Pipeline Matrix
+        -- 4. Execution Pipeline Matrix
         -- ==========================================================================================
         ;WITH Tally(n) AS (
             SELECT TOP 1000 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1
@@ -74,30 +129,61 @@ BEGIN
         ),
         ExpandedStayDays AS (
             SELECT 
-                hos.StayGuid,
-                hos.PatientVisit,
-                hos.BedCategoryCode,   
-                hos.FacilityId,
-                CAST(DATEADD(DAY, t.n, hos.AdmissionDateTime) AS DATE) AS StayCalendarDate,
-                YEAR(DATEADD(DAY, t.n, hos.AdmissionDateTime)) AS YearOfService
-            FROM ClinicalGeniusEhr.dbo.PatientHospitalStays hos WITH(NOLOCK)
-            INNER JOIN Tally t ON t.n <= DATEDIFF(DAY, hos.AdmissionDateTime, ISNULL(hos.DischargeDateTime, GETDATE()))
-            WHERE hos.PatientVisit = @PatientVisit
-              AND hos.Status = 'Completed'
-              AND hos.FacilityId = @FacilityId
+                ba.BedAssignmentGuid AS StayGuid,
+                ba.PatientVisit,
+                r.CaseType AS BedCategoryCode,   
+                @FacilityId AS FacilityId,
+                @VisitDiagnosis AS DiagnosisCode,
+                CAST(DATEADD(DAY, t.n, ba.DateTimeAssigned) AS DATE) AS StayCalendarDate,
+                YEAR(DATEADD(DAY, t.n, ba.DateTimeAssigned)) AS YearOfService,
+                ba.DateTimeAssigned,
+                ba.DateTimeCheckedOut
+            FROM ClinicalGeniusEhr.dbo.PatientBedAssignments ba WITH(NOLOCK)
+            INNER JOIN ClinicalGeniusEhr.dbo.FacilityPatientRoomsAndBeds r WITH(NOLOCK)
+                ON r.RoomGuid = ba.RoomGuid
+            INNER JOIN Tally t ON t.n <= DATEDIFF(DAY, ba.DateTimeAssigned, ISNULL(ba.DateTimeCheckedOut, GETDATE()))
+            WHERE ba.PatientVisit = @PatientVisit
+              AND ba.FacilityId = @FacilityId
+              AND r.CaseType IS NOT NULL 
+              AND r.CaseType <> '' 
+              AND r.CaseType <> ' '
+              AND (
+                  (@TargetClaimGuid = 'Patient' AND ba.ClaimGuid IS NULL) OR
+                  (@TargetClaimGuid <> 'Patient' AND ba.ClaimGuid = @TargetClaimGuid)
+              )
+        ),
+        DeduplicatedStayDays AS (
+            SELECT 
+                StayGuid,
+                PatientVisit,
+                BedCategoryCode,
+                FacilityId,
+                DiagnosisCode,
+                StayCalendarDate,
+                YearOfService
+            FROM (
+                SELECT *,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY StayCalendarDate 
+                        -- Chronological tie-breaking to prevent same-day double billing
+                        ORDER BY DateTimeAssigned DESC, ISNULL(DateTimeCheckedOut, GETDATE()) DESC
+                    ) as RowRank
+                FROM ExpandedStayDays
+            ) ranked
+            WHERE RowRank = 1
         ),
         StaysWithTariffBaselines AS (
             SELECT 
                 es.*,
                 CASE 
-                    WHEN ISNULL(@Manual, 'SOAT') = 'SOAT' THEN mvx.SOATValue 
-                    WHEN @Manual = 'ISS_2001'             THEN mvx.ISS2001Value
-                    ELSE mvx.ISS2004Value 
+                    WHEN ISNULL(@Manual, 'SOAT') = 'SOAT' THEN TRY_CAST(mvx.SOATValue AS DECIMAL(18,4))
+                    WHEN @Manual = 'ISS_2001'             THEN ISNULL(mvx.ISS2001Value, CAST(mvx.ISS2001UVR AS DECIMAL(18,2)))
+                    ELSE 0.00 
                 END AS RoomCatalogUnits,
                 CASE 
                     WHEN ISNULL(@Manual, 'SOAT') = 'SOAT' THEN mvx.SOATArticle 
                     WHEN @Manual = 'ISS_2001'             THEN mvx.ISS2001Article
-                    ELSE mvx.ISS2004Article 
+                    ELSE NULL 
                 END AS ArticleGroup,
                 CAST(
                     CASE 
@@ -113,14 +199,15 @@ BEGIN
                         ELSE 0 
                     END AS BIT
                 ) AS IsStayAbsorbedByBundle
-            FROM ExpandedStayDays es
+            FROM DeduplicatedStayDays es
             OUTER APPLY (
                 SELECT TOP 1 
-                    SOATValue, ISS2001Value, ISS2004Value,
-                    SOATArticle, ISS2001Article, ISS2004Article
-                FROM ClinicalGeniusSupplyChain.dbo.ManualValues mvl WITH(NOLOCK)
+                    SOATValue, SOATArticle,
+                    ISS2001Value, ISS2001UVR, ISS2001Article
+                FROM ClinicalGeniusSupplyChain.dbo.Staging_ManualValues mvl WITH(NOLOCK)
                 WHERE mvl.CUPSCode = es.BedCategoryCode
                   AND mvl.YearOfService = es.YearOfService
+                ORDER BY mvl.RecId DESC
             ) mvx
         ),
         AllMatchingStayExceptions AS (
@@ -154,8 +241,8 @@ BEGIN
                 ISNULL(up.UnitValue, 1.00) AS UnitMonetaryValue
             FROM AllMatchingStayExceptions ex
             OUTER APPLY (
-                SELECT TOP 1 BaseRate AS UnitValue 
-                FROM ClinicalGeniusSupplyChain.dbo.UnitParameters up WITH(NOLOCK)
+                SELECT TOP 1 UnitValue 
+                FROM #UnitParameters up 
                 WHERE up.ContractType = CASE WHEN @Manual LIKE 'ISS%' THEN 'ISS' ELSE 'SOAT' END
                   AND up.CalendarYear = ex.YearOfService
                   AND up.UnitCategory = CASE WHEN ex.StayCalendarDate >= '2024-01-01' AND @Manual = 'SOAT' THEN 'UVB'
@@ -170,6 +257,7 @@ BEGIN
                 CAST(
                     CASE 
                         WHEN c.IsStayAbsorbedByBundle = 1 THEN 0.00
+                        WHEN @Manual LIKE 'ISS%' THEN (c.RoomCatalogUnits * c.BaseCalculatedValue)
                         ELSE (c.RoomCatalogUnits * c.BaseCalculatedValue * c.UnitMonetaryValue)
                     END AS DECIMAL(18,2)
                 ) AS DayLineNetAmount
@@ -213,10 +301,17 @@ BEGIN
             1.00 AS USDBasePrice, 
             1.00 AS USDPerItemChargeAmount, 
             f.ValueBasis AS PaymentType, 
-            f.DayLineNetAmount AS NetAmount,    
-            0.00 AS TaxAmount, 
+            ROUND(f.DayLineNetAmount, -2) AS NetAmount,    
+            CASE 
+                WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.DayLineNetAmount * 0.19, -2) 
+                ELSE 0.00 
+            END AS TaxAmount, 
             0.00 AS DiscountAmount, 
-            f.DayLineNetAmount AS PerItemChargeAmount, 
+            ROUND(f.DayLineNetAmount + 
+                CASE 
+                    WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.DayLineNetAmount * 0.19, -2) 
+                    ELSE 0.00 
+                END, -2) AS PerItemChargeAmount, 
             'Active' AS [Status]
         FROM FinalStayLiquidationLines f;
 
@@ -234,5 +329,7 @@ BEGIN
 
         RAISERROR (@ErrMsg, @ErrSeverity, @ErrState);
     END CATCH;
+
+    IF OBJECT_ID('tempdb..#UnitParameters') IS NOT NULL DROP TABLE #UnitParameters;
 END;
 GO

@@ -37,12 +37,7 @@ CREATE TABLE ClinicalGeniusSupplyChain.DianInvoices (
     -- Technical Audit Logging Fields
     DateTimeEntered DATETIME NOT NULL DEFAULT GETDATE(),
     LastUpdatedBy NVARCHAR(100) NOT NULL DEFAULT 'DianBillingEngine',
-    DateTimeLastUpdated DATETIME NULL,
-    
-    CONSTRAINT PK_DianInvoices PRIMARY KEY CLUSTERED (InvoiceGuid),
-    CONSTRAINT UQ_DianInvoice_Number UNIQUE (InvoiceNumber),
-    CONSTRAINT FK_DianInvoices_PatientVisits FOREIGN KEY (PatientVisit) 
-        REFERENCES ClinicalGeniusEhr.dbo.PatientVisits (PatientVisit) -- Adjust cross-db pointer naming if needed
+    DateTimeLastUpdated DATETIME NULL
 );
 
 -- 2. ITEMIZATION DETAIL LEDGER: DianInvoiceLines
@@ -65,12 +60,7 @@ CREATE TABLE ClinicalGeniusSupplyChain.DianInvoiceLines (
     LineTaxableAmount DECIMAL(18,2) NOT NULL DEFAULT 0.00,
     LineTaxPercentage DECIMAL(5,2) NOT NULL DEFAULT 0.00, -- e.g., 0.00 or 19.00 (Exento vs Gravado)
     LineTaxAmount DECIMAL(18,2) NOT NULL DEFAULT 0.00,
-    LineNetAmount DECIMAL(18,2) NOT NULL DEFAULT 0.00,
-    
-    CONSTRAINT PK_DianInvoiceLines PRIMARY KEY CLUSTERED (InvoiceLineGuid),
-    CONSTRAINT UQ_Invoice_Line_Seq UNIQUE (InvoiceGuid, LineNumber),
-    CONSTRAINT FK_DianInvoiceLines_DianInvoices FOREIGN KEY (InvoiceGuid) 
-        REFERENCES ClinicalGeniusSupplyChain.DianInvoices (InvoiceGuid) ON DELETE CASCADE
+    LineNetAmount DECIMAL(18,2) NOT NULL DEFAULT 0.00
 );
 
 -- 3. TRANSIT TRANSACTION BLOB PAYLOAD RECORD: DianInvoiceTransmissions
@@ -84,9 +74,6 @@ CREATE TABLE ClinicalGeniusSupplyChain.DianInvoiceTransmissions (
     TrackId VARCHAR(100) NULL,                      -- DIAN validation processing token (UUID format)
     IsSuccess BIT NOT NULL DEFAULT 0,
     
-    CONSTRAINT PK_DianInvoiceTransmissions PRIMARY KEY CLUSTERED (TransmissionGuid),
-    CONSTRAINT FK_DianInvoiceTransmissions_DianInvoices FOREIGN KEY (InvoiceGuid) 
-        REFERENCES ClinicalGeniusSupplyChain.DianInvoices (InvoiceGuid) ON DELETE CASCADE
 );
 
 -- CREATE INDICES FOR PEAK RE-LIQUIDATION AND AUDITING OVERHEAD SPEEDS ON MASSIVE DATASETS

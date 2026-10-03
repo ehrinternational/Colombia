@@ -1,50 +1,64 @@
-CREATE OR ALTER PROCEDURE ClinicalGeniusSupplyChain.dbo.LiquidateMedications
-    @PatientVisit   NVARCHAR(50),
-    @FacilityId     NVARCHAR(50)
+USE [ClinicalGeniusSupplyChain]
+GO
+
+/****** Object:  COLLiquidateMedications ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+ALTER PROCEDURE {odata}.{COLLiquidateMedications}
+    @PatientVisit    NVARCHAR(50),
+    @FacilityId      NVARCHAR(50),
+    @TargetClaimGuid NVARCHAR(50) 
 AS
 BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
     -- ==========================================================================================
-    -- 1. Context Resolution (Default Claim & Patient)
+    -- 1. Targeted Context Resolution
     -- ==========================================================================================
-    DECLARE @DefaultClaimGuid NVARCHAR(50),
-            @ContractGuid     NVARCHAR(50),
-            @Manual           VARCHAR(20),
-            @AdjustmentPct    DECIMAL(5,2),
-            @PatientId        NVARCHAR(50);
+    DECLARE @ResolvedClaimGuid    NVARCHAR(50),
+            @ContractGuid         NVARCHAR(50),
+            @Manual               VARCHAR(20),
+            @AdjustmentPct        DECIMAL(5,2),
+            @DefaultNightCharges  Bit,
+            @PatientId            NVARCHAR(50);
 
-    SELECT TOP 1 
-        @DefaultClaimGuid = pyc.ClaimGuid,
-        @PatientId        = pyc.PatientId,
-        @ContractGuid     = ppy.ContractGuid,
-        @Manual           = isc.EntityCode,
-        @AdjustmentPct    = ISNULL(isc.AdjustmentPct, 0.00)
-    FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
-    INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
-        ON ppy.PatientPayerGuid = pyc.PayerGuid
-    INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
-        ON isc.ContractGuid = ppy.ContractGuid
-    WHERE pyc.PatientVisit = @PatientVisit
-      AND pyc.FacilityId = @FacilityId
-      AND pyc.Status = 'Pending'
-    ORDER BY pyc.BatchNumber ASC;
+    SELECT TOP 1 @PatientId = PatientId
+    FROM ClinicalGeniusEhr.dbo.PatientVisits WITH(NOLOCK)
+    WHERE PatientVisitUniqueId = @PatientVisit AND FacilityId = @FacilityId;
 
-    -- Fallback baseline if uninsured or self-pay
-    IF @ContractGuid IS NULL OR @Manual IS NULL
+    -- Route A: Patient Responsibility (Out-of-pocket / Unassigned items only)
+    IF @TargetClaimGuid = 'Patient'
     BEGIN
-        SET @Manual = 'SOAT';
-        SET @AdjustmentPct = 0.00;
-    END;
-
-    -- Ensure PatientId is populated if no pending claim exists
-    IF @PatientId IS NULL
+        SET @ResolvedClaimGuid   = NULL;
+        SET @ContractGuid        = NULL;
+        SET @Manual              = 'SOAT';
+        SET @AdjustmentPct       = 0.00;
+        SET @DefaultNightCharges = 0;
+    END
+    -- Route B: Explicit Payer Claim Targeted
+    ELSE 
     BEGIN
-        SELECT TOP 1 @PatientId = PatientId
-        FROM ClinicalGeniusEhr.dbo.PatientVisits WITH(NOLOCK)
-        WHERE PatientVisitUniqueId = @PatientVisit AND FacilityId = @FacilityId;
-    END;
+        SELECT TOP 1 
+            @ResolvedClaimGuid   = pyc.ClaimGuid,
+            @ContractGuid        = isc.ContractGuid,
+            @Manual              = ISNULL(isc.EntityCode, 'SOAT'),
+            @AdjustmentPct       = ISNULL(isc.AdjustmentPct, 0.00),
+            @DefaultNightCharges = ISNULL(isc.NightCharges, 0)
+        FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
+        INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) 
+            ON ppy.PatientPayerGuid = pyc.PayerGuid
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.InsurancePlans isp WITH(NOLOCK) 
+            ON isp.PlanGuid = ppy.PayerPlan
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) 
+            ON isc.ContractGuid = isp.ContractGuid
+        WHERE pyc.ClaimGuid = @TargetClaimGuid
+          AND pyc.FacilityId = @FacilityId;
+    END
 
     -- Pre-load Colombian legal holidays scoped to this execution
     IF OBJECT_ID('tempdb..#ColombianHolidays') IS NOT NULL DROP TABLE #ColombianHolidays;
@@ -80,7 +94,20 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- ==========================================================================================
-        -- 2. Targeted Staging Clear (Medications ONLY)
+        -- 2. Auto-Assign Unassigned Medications to Target Claim (When running for an insurance claim)
+        -- ==========================================================================================
+        IF @TargetClaimGuid <> 'Patient'
+        BEGIN
+            UPDATE ClinicalGeniusEhr.dbo.MedicationAdministrationRecords WITH(ROWLOCK, UPDLOCK)
+            SET ClaimGuid = @TargetClaimGuid
+            WHERE PatientVisit = @PatientVisit
+              AND Facility = @FacilityId
+              AND Status = 'Completed'
+              AND ClaimGuid IS NULL;
+        END
+
+        -- ==========================================================================================
+        -- 3. Targeted Staging Clear (Safeguards Invoiced Records)
         -- ==========================================================================================
         UPDATE ClinicalGeniusSupplyChain.dbo.PatientTransactions WITH(ROWLOCK, UPDLOCK)
         SET Status = 'Canceled',
@@ -89,10 +116,14 @@ BEGIN
         WHERE PatientVisit = @PatientVisit
           AND Facility = @FacilityId
           AND TransactionType = 'Medication'
-          AND Status <> 'Canceled';
+          AND Status NOT IN ('Invoiced', 'Billed', 'Canceled') 
+          AND (
+              (@TargetClaimGuid = 'Patient' AND ClaimGuid IS NULL) OR
+              (@TargetClaimGuid <> 'Patient' AND ClaimGuid = @TargetClaimGuid)
+          );
 
         -- ==========================================================================================
-        -- 3. Execution Pipeline Matrix
+        -- 4. Execution Pipeline Matrix
         -- ==========================================================================================
         ;WITH ActiveMedicationList AS (
             SELECT 
@@ -104,8 +135,9 @@ BEGIN
                 mar.QuantityUnit, 
                 mar.Facility,
                 ISNULL(amx.Ambity, '01') AS Ambity, 
-                ISNULL(mar.ClaimGuid, @DefaultClaimGuid) AS ResolvedClaimGuid,
+                @ResolvedClaimGuid AS ResolvedClaimGuid,
                 ISNULL(mar.NoBill, 0) AS NoBill,
+                ISNULL(mar.AssociatedDiagnosis, 'none') AS DiagnosisCode,
                 ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered) AS TargetDate,
                 YEAR(ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered)) AS YearOfService,
                 CAST(ISNULL(df.BasePrice, 0.00) AS DECIMAL(18,2)) AS FormularyBasePrice,
@@ -117,8 +149,8 @@ BEGIN
                     END AS BIT
                 ) AS IsBundledInPackage,
                 s.SurgeryGuid,
-                -- Restrict 25% premium strictly to Sundays and legal holidays
                 CASE 
+                    WHEN @DefaultNightCharges = 0 OR ISNULL(amx.Ambity, '01') IN ('01', '02') THEN 2
                     WHEN h.HolidayDate IS NOT NULL THEN 4
                     WHEN DATENAME(weekday, ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered)) = 'Sunday' THEN 4 
                     WHEN DATEPART(hour, ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered)) < 7 THEN 3 
@@ -143,12 +175,16 @@ BEGIN
             LEFT JOIN ClinicalGeniusEhr.dbo.ScheduledSurgeries s WITH(NOLOCK)
                 ON s.PatientVisit = mar.PatientVisit
                 AND s.Status = 'Completed'
-                AND ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered) >= s.DateTimePerformed
-                AND ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered) <= DATEADD(HOUR, 4, s.DateTimePerformed)
+                AND ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered) >= DATEADD(HOUR, -24, s.DateTimePerformed)
+                AND ISNULL(mar.DateTimeAdministered, mar.DateTimeEntered) <= DATEADD(HOUR, 6, s.DateTimePerformed)
             WHERE mar.PatientVisit = @PatientVisit
               AND mar.Status = 'Completed'
               AND mar.Facility = @FacilityId
               AND mar.ActualDoseGiven > 0
+              AND (
+                  (@TargetClaimGuid = 'Patient' AND mar.ClaimGuid IS NULL) OR
+                  (@TargetClaimGuid <> 'Patient' AND mar.ClaimGuid = @TargetClaimGuid)
+              )
         ),
         AllMatchingMedicationExceptions AS (
             SELECT 
@@ -224,10 +260,17 @@ BEGIN
             1.00 AS USDBasePrice,                               
             1.00 AS USDPerItemChargeAmount,                               
             'COP' AS PaymentType,                              
-            f.MedicationLineTotal AS NetAmount,    
-            0.00 AS TaxAmount,                               
+            ROUND(f.MedicationLineTotal, -2) AS NetAmount,    
+            CASE 
+                WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.MedicationLineTotal * 0.19, -2) 
+                ELSE 0.00 
+            END AS TaxAmount,                               
             0.00 AS DiscountAmount,                               
-            f.MedicationLineTotal AS PerItemChargeAmount, 
+            ROUND(f.MedicationLineTotal + 
+                CASE 
+                    WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.MedicationLineTotal * 0.19, -2) 
+                    ELSE 0.00 
+                END, -2) AS PerItemChargeAmount, 
             CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status]
         FROM CalculatedMedicationLines f;
 
