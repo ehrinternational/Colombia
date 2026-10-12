@@ -67,7 +67,7 @@
             showif="feature"
             reveal="[[DianStatus]]=Approved|Sent"
             label="Glosa Manual" icon="plus" 
-            preset="[DianInvoiceGuid]=[[InvoiceGuid]]"
+            preset="[DianInvoiceGuidLookup]=[[InvoiceGuid]]"
             trigger="DianInvoiceGuidLookup"
             action="redirect" target="mdlCreateGlosa"/>
           <!-- Button to manually enter a new Credit Note from a DIAN invoice -->

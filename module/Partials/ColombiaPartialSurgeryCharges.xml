@@ -15,17 +15,15 @@
           idle="[SurgeryGuid]=|reset"
           datarequest="GetSurgeryCharges"
           appendrequest="SurgeryGuid=[SurgeryGuid],Template=false"
-          source="Billed,ItemName,Quantity,ConsumedUOM,BasePrice,Subtotal"
-          sourcelabels="Facturado,Cargo,Cantidad,UDM,Precio,Total"
-          calculate="Amount=BasePrice*Quantity"
-          format="boolean||0||0,000.00|0,000.00"
-          total="|||||+"
-          align="|left|right|left|right|right"
+          source="ItemNumber,ItemName,Quantity,ConsumedUOM,BasePrice,DiscountAmount,NetAmount"
+          sourcelabels="Código,Descripción,Cantidad,UDM,Precio,Descuento,Neto"
+          format="||0||0,000|0,000|0,000"
+          total="|||||+|+"
+          align="|left|right|left|right|right1right"
           key="SurgeryChargeGuid"
           onselectset="SurgeryChargeGuid=[[SurgeryChargeGuid]]"
           onselect="SurgeryChargeGuid">
-        <control type="button" name="btnNewSurgeryCharge"
-          icon="plus" label="Añadir Nuevo"
+        <control type="button" name="btnNewSurgeryCharge" icon="plus" label="Añadir Nuevo"
           action="redirect" target="mdlNewSurgeryCharges"/>
         </control>
       </row>
@@ -57,7 +55,7 @@
           acctsvcreq="true"
           datarequest="GetItemByItemGuid"
           appendrequest="itemMasterGuid=[Scm_ItemMasterGuid2]"    
-          set="Scm_UOM=[[ConsumedUOM]],Scm_BasePrice=[[BasePrice]],Dsp_ItemMasterGuid=[[ItemMasterGuid]],Dsp_ItemName=[[ItemName]]"/>
+          set="Scm_SurgeryUOM=[[ConsumedUOM]],Scm_BasePrice=[[BasePrice]],Dsp_ItemMasterGuid=[[ItemMasterGuid]],Dsp_ItemName=[[ItemName]]"/>
       </row>
     </group>
     <group name="SurgeryChargeInfo">
@@ -75,19 +73,27 @@
         <control type="label" label="Cantidad" span="3"/>
         <control type="text" name="Scm_Quantity" span="2" edit="true" format="0" default="1" required="true"/>
         <control type="label" label="UDM" span="2"/>
-        <control type="text" name="Scm_ConsumedUOM" span="2"/>
+        <control type="text" name="Scm_SurgeryUOM" span="2"/>
+      </row>
+      <row>
+        <control type="label" label="Procedimiento" span="3"/>
+        <control type="select" name="Scm_SurgeryProcedureGuid" edit="true" required="true"
+          acctsvcreq="true"
+          datarequest="GetSurgeryProcedures"
+          appendrequest="[FileName]=SurgeryScheduling|SurgeryAdministration;SurgeryGuid=[SurgeryGuid]^SurgeryGuid=[SurgeryViewGuid]"
+          source="ProcedureDescription,SurgeryProcedureGuid"/>
       </row>
       <row>
         <control type="label" label="Precio" span="3"/>
-        <control type="text" name="Scm_BasePrice" span="3" edit="true" format="0,000.00" required="true"/>
+        <control type="text" name="Scm_BasePrice" span="3" edit="true" format="0,000" required="true"/>
         <control type="label" label="SubTotal" span="2"/>
-        <control type="calc" name="Scm_SubTotal" span="3" source="Scm_Quantity*Scm_BasePrice" format="0,000.00"/>
+        <control type="calc" name="Scm_SubTotal" span="3" source="Scm_Quantity*Scm_BasePrice" format="0,000"/>
       </row>
       <row>
         <control type="label" label="Descuento" span="3"/>
-        <control type="text" name="Scm_DiscountAmount" span="3" edit="true" format="0,000.00"/>
-        <control type="label" label="Total" span="2"/>
-        <control type="calc" name="Scm_NetAmount" span="3" source="Scm_Quantity*Scm_BasePrice-Scm_DiscountAmount" format="0,000.00"/>
+        <control type="text" name="Scm_DiscountAmount" span="3" edit="true" format="0,000"/>
+        <control type="label" label="Neto" span="2"/>
+        <control type="calc" name="Scm_NetAmount" span="3" source="Scm_Quantity*Scm_BasePrice-Scm_DiscountAmount" format="0,000"/>
       </row>
     </group>
     <group>
@@ -116,7 +122,7 @@
           affector="none"
           acctsvc="true"
           datainsert="UpdateSurgeryCharge"
-          appendinsert="surgeryChargeGuid=[SurgeryChargeGuid],active=false"
+          appendinsert="surgeryChargeGuid=[SurgeryChargeGuid],Active=false"
           provoke="dgrSurgeryCharges"/>
       </row>
     </group>

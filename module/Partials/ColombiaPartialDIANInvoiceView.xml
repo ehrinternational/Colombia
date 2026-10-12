@@ -18,35 +18,35 @@
         <column span="12">
           <row>
             <control type="label" label="Factura DIAN" span="2"/>
-            <control type="text" name="InvoiceNumber" span="3" readonly="true"/>
+            <control type="text" name="Div_InvoiceNumber" span="3" readonly="true"/>
             <control type="label" label="Fecha Emisión" span="2"/>
-            <control type="date" name="IssueDateTime" span="3" readonly="true"/>
+            <control type="date" name="Div_IssueDateTime" span="3" readonly="true"/>
           </row>
           <row>
             <control type="label" label="Tipo Comprobante" span="2"/>
-            <control type="text" name="InvoiceTypeDescription" span="3" readonly="true"/>
+            <control type="text" name="Div_InvoiceTypeDescription" span="3" readonly="true"/>
             <control type="label" label="Estatus DIAN" span="2"/>
-            <control type="text" name="DianStatus" span="3" readonly="true"/>
+            <control type="text" name="Div_DianStatus" span="3" readonly="true"/>
           </row>
           <row>
             <control type="label" label="NIT" span="2"/>
-            <control type="text" name="PayerId" span="3" readonly="true"/>
+            <control type="text" name="Div_PayerId" span="3" readonly="true"/>
           </row>
           <row>
             <control type="label" label="Aseguradora (EPS)" span="2"/>
-            <control type="text" name="PayerName" span="10" readonly="true"/>
+            <control type="text" name="Div_PayerName" span="10" readonly="true"/>
           </row>
           <row>
             <control type="label" label="Paciente" span="2"/>
-            <control type="text" name="PatientFullName" span="10" readonly="true"/>
+            <control type="text" name="Div_PatientFullName" span="10" readonly="true"/>
           </row>
           <row>
             <control type="label" label="CUFE" span="2"/>
-            <control type="text" name="CUFE" span="10" readonly="true"/>
+            <control type="text" name="Div_CUFE" span="10" readonly="true"/>
           </row>
           <row>
             <control type="label" label="Total Neto" span="2"/>
-            <control type="text" name="NetAmount" span="3" readonly="true" format="0,000"/>
+            <control type="text" name="Div_NetAmount" span="3" readonly="true" format="0,000"/>
           </row>
         </column>
       </columns>

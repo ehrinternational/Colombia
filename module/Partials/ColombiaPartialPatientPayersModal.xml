@@ -41,20 +41,20 @@
       </row>
       <row>
         <control type="label" label="Empresa" span="3"/>
-        <control type="select" name="PPL_PayerGuid" span="6" searchable="true" required="true" edit="[PatientPayerGuid]="
+        <control type="select" name="PPL_PayerGuid" span="6" searchable="true" required="true" edit="true"
           namefield="PPL_PayerName" explicit="true"
           acctsvc="true"
           datasource="GetPayers"
           append="Active=true"
           source="PayerName,PayerGuid"
-          provoke="PPL_PayerPlan"/>
+          provoke="PPL2_PayerPlan"/>
       </row>
       <row>
         <control type="label" span="3" label="Convenio"/>    
-        <control name="PPL_PayerPlan" type="select" explicit="true" span="6" edit="[PatientPayerGuid]=" searchable="true" required="true"
+        <control name="PPL2_PayerPlan" type="select" explicit="true" span="6" edit="true" searchable="true" required="true"
           sort="PlanName"  namefield="PPL_PlanName"
-          filter="Active=true,PayerGuid=[PPL_PayerGuid]"
           acctsvcreq="true"
+          filter="Active=true,PayerGuid=[PPL_PayerGuid]"
           datarequest="GetInsurancePlans" 
           appendrequest="Active=true,PayerGuid=[PPL_PayerGuid]"
           source="PlanName,PlanGuid"/>

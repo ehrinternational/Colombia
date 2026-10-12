@@ -14,7 +14,7 @@
       key="BedAssignmentGuid"
       onselectset="[[Selected]]=true;[[Selected]]=false^[[Selected]]=true"
       onselect="grdBedAssignments|static">
-    <control type="button" name="btnUpdateProcedureList"
+    <control type="button" name="btnUpdateBedAssignments"
       label="Asignar al Convenio o Desasignar" color="green"
       tooltip="Deje el convenio en blanco para desasignar." 
       action="batchupdate" 

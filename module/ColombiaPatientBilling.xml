@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- XML for Views version 1.0-->
-<module name="Facturación" type="onload" trigger="GetPOSSessionForUser,PatientList">
-  <facet name="InvoiceCalculated" default="False"/>
+<module name="Facturación" type="onload" trigger="PatientList">
   <facet name="FileName" value="PatientBilling"/>
   <!-- Display a list of patients -->
   <partial link="Partials/ColombiaPartialBillingPatientList.xml"/>
@@ -24,25 +23,15 @@
           appendrequest="UniqueId=[VisitSelect]"
           inject="PatientVisitInfo"
           set="[InvoiceProcess]=False"
-          provoke="[VisitSelect]!;GetChargesAndPayments,ButtonGroupSelect"/>
-        <!-- Get charges and payment totals for the visit -->
-        <control type="hidden" name="GetChargesAndPayments"
-          acctsvcreq="true"
-          datarequest="GetPatientChargeAndPaymentTotals"
-          appendrequest="PatientId=[PatientId],PatientVisit=[VisitSelect]"
-          inject="rowPatientCharges"
-          set="PatientAccountBalance=[[PatientAccountBalance]]"/>
-        <!-- Get the patient payer information -->
-        <control type="hidden" name="GetPatientPayer"
-          datarequest="GetPatientAllFields"
-          appendrequest="PatientId=[PatientId]"
-          set="HasPatientPayer=[[HasPatientPayer]]"/>
+          provoke="gridPatient_receipts|active,
+            grdPatientClaims|active,
+            Charges_grdNewPatientCharges|active"/>
         <control type="hidden" name="GetOpenChargesStatus"
           datarequest="GetPatientAllFields"
           appendrequest="PatientId=[PatientId]"
           set="HasOpenCharges=[[HasOpenCharges]],HasOpenPayments=[[HasOpenPayments]]"/>
+        <control type="hidden" name="InvoiceCalculated" default="False"/>
         <control type="button" name="ClosePatientTabModal" action="close|new"/>
-        <control type="hidden" name="GridDisplay" default="Billing"/>
       </row>
     </group>
     <!--Patient information-->
@@ -67,12 +56,12 @@
               source="AdmitDateTime|DischargeDateTime|VisitInvoiceBalance,PatientVisitUniqueId" 
               datarequest="GetPatientVisitsByFacilityAndPatient"
               appendrequest="LocationId=(facilityData.LocationId),PatientId=[PatientId]"
-              format="datetime^Ninguna|datetime^Visita Abierta|0,000.00"
+              format="datetime^Ninguna|datetime^Visita Abierta|0,000"
               set="InvoiceCalculated=False"
               provoke="GetPatientVisit,NewChargesInfo_ClaimGuid"/>
             <control type="label" label="Saldo del Paciente" span="3" />
-            <control type="text" name="PatientAccountBalance" span="2" default="0.00" 
-              readonly="true" format="0,000.00"/>  
+            <control type="text" name="PatientAccountBalance" span="2" default="0" 
+              readonly="true" format="0,000"/>  
           </row> 
         </column>
       </columns> 
@@ -96,7 +85,7 @@
               readonly="true"/>       
           </row>    
           <row>
-            <control type="label" label="Via Ingreso Usuario" span="2"/>
+            <control type="label" label="Vía Ingreso Usuario" span="2"/>
             <control type="select" name="mdlAdmit_ArrivedByCode" span="4" edit="true"
               source="01,02,03,04" default="03"
               sourcelabels="01 URGENCIAS,02 REMITIDO (REFERENCIA),03 CONSULTA EXTERNA, 04 NACIMIENTO"/>
@@ -172,7 +161,7 @@
                 44 Promoción de prácticas saludables de crianza y cuidado"/>
             </row>
             <row>
-              <control type="label" label="Autorizo el tratamiento de mis datos Personales(Envio Información)" span="10"/>
+              <control type="label" label="Autorizo el tratamiento de mis datos Personales (Envío Información)" span="10"/>
               <control type="buttongroup" name="mdlAdmit_ReadmissionIndicator" source="True,False" span="2" edit="true" sourcelabels="Sí,No"/>
             </row>
             <row>
@@ -203,7 +192,7 @@
         <column span="2">
           <row>
             <!-- Reopen a patient invoice with a closed status -->
-            <control type="button" span="12" name="btnOpenStatus" icon="cloud-upload" label="Abierta"
+            <control type="button" span="12" name="btnOpenStatus" icon="cloud-upload" label="Abrir"
               reveal="[InvoiceStatus]=Closed"
               action="save"
               acctsvc="true"
@@ -274,8 +263,7 @@
           </row>
           <!-- Recalculate a patient bill while the patient visit is still open -->
           <row>
-            <control type="button" span="12" name="btnRecalculatePatientInvoice"
-              icon="refresh" label="Recalcular"
+            <control type="button" span="12" name="btnRecalculatePatientInvoice" icon="refresh" label="Recalcular"
               reveal="{[InvoiceStatus]=Open|Closed+[VisitSelect]!}"
               action="save"
               acctsvc="true"
@@ -283,58 +271,31 @@
               capture="PatientVisitInfo|active"
               dataupdate="UpdatePatientVisitNoDepartmentTracking"
               appendupdate="patientVisitUniqueId=[VisitSelect]"
-              provoke="btnLiquidateInvoice"/>
+              provoke="btnLiquidatePatientInvoice"/>
            </row>
           <row showif="never">
-            <!-- Liquidate surgeries -->
-            <control type="button" name="btnLiquidateInvoice"
+            <!-- Liquidate charges for this patient visit -->
+            <control type="button" name="btnLiquidatePatientInvoice"
               action="save" 
               acctsvc="true"
-              datainsert="COLLiquidateSurgeries"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
-              provoke="btnLiquidateProcedures"/>
-            <!-- Liquidate procedures -->
-            <control type="button" name="btnLiquidateProcedures"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateProcedures"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
-              provoke="btnLiquidateDiagnostics"/>
-            <!-- Liquidate diagnostics -->
-            <control type="button" name="btnLiquidateDiagnosticse"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateDiagnostics"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
-              provoke="btnLiquidateRoomCharges"/>
-            <!-- Liquidate room charges -->
-            <control type="button" name="btnLiquidateRoomCharges"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateRoomCharges"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
-              provoke="btnLiquidateMedications"/>
-              <!-- Liquidate medications -->
-            <control type="button" name="btnLiquidateMedications"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateMedications"
+              datainsert="COLLiquidateClaim"
               appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
               provoke="btnScrubPatientInvoice"/>
-            <!-- Scrub patient invoice -->
+            <!-- Scrub this patient invoice -->
             <control type="hidden" name="btnScrubPatientInvoice" 
               acctsvcreq="true"
               datarequest="COLInvoiceScrubber"
               appendrequest="patientVisit=[VisitSelect],TargetClaimGuid=Patient"
               set="[btnScrubPatientInvoice]=;InvoiceCalculated=True"
-              provoke="Charges_grdNewPatientCharges|active,[btnScrubPatientInvoice]!;btnDisplayInvoiceErrors"/>
-            <control type="button" name="btnDisplayInvoiceErrors" action="redirect" target="mdlInvoiceErrors"
-              preset="[dsp_ClaimGuid]=Patient,[dsp_PatientVisit]=[VisitSelect]" trigger="grdDisplayErrors"/>
+              provoke="[btnScrubPatientInvoice]!;btnDisplayInvoiceErrors^Charges_grdNewPatientCharges"/>
+            <!-- button to display patient invoice errors when the scrubber returns values -->
+            <control type="button" name="btnDisplayInvoiceErrors" action="redirect" target="mdlDisplayInvoiceErrors"
+              preset="[hidTargetClaimGuid]=Patient" trigger="grdInvoiceErrors"/>
           </row>
           <row>
             <!-- button to insert a DIAN invoice -->
             <control type="button" span="12" name="btnInsertDIANPatientInvoice" action="trigger"
-              reveal="[InvoiceProcess]=False+[InvoiceCalculated]=True+[InvoiceStatus]=Closed+[VisitSelect]!+[PatientVisitCharges]»0"
+              reveal="[InvoiceProcess]=False+[InvoiceCalculated]=True+[InvoiceStatus]=Closed+[VisitSelect]!+[PatientVisitChargeTotal]»0"
               icon="cloud-upload" label="Procesar" color="green"
               preset="[InvoiceProcess]=True"
               provoke="btnCompleteDIANInvoice"/>
@@ -462,49 +423,35 @@
     </group>
     <!-- Display the total charges for the patient visit -->
     <group name="grpChargeTotals" bgcolor="white" reveal="[VisitSelect]!">
-      <row name="rowPatientCharges">
-        <control type="hidden" name="ChargeTotal"/>
-        <control type="hidden" name="PaymentTotal"/>
-        <control type="hidden" name="PatientVisitCharges"/>
-        <control type="hidden" name="PayerVisitCharges"/>
-        <control type="hidden" name="PatientVisitPayments"/>
-        <control type="hidden" name="PayerVisitPayments"/>
-        <control type="hidden" name="PayerVisitCoPays"/>
-        <control type="hidden" name="PayerVisitMedicalCoInsurance"/>
-        <control type="hidden" name="PatientVisitCoPays"/>
-        <control type="hidden" name="PatientVisitMedicalCoInsurance"/>
-      </row>
       <row>   
         <control type="label" span="1" label=""/>
         <control type="label" span="2" label="Cargos" align="left"/>
-        <control type="label" span="2" label="Cuotas" align="left"/>
-        <control type="label" span="2" label="Copagos" align="left"/>
+        <control type="label" span="2" label="Cuota" align="left"/>
+        <control type="label" span="2" label="Copago" align="left"/>
         <control type="label" span="2" label="Pagos" align="left"/>
         <control type="label" span="2" label="Saldo" align="left"/>
       </row>
       <row>
         <control type="label" span="1" label=""/>
-        <control type="calc" name="PatientVisitChargeTotal" span="2" format="0,00.00" 
-          default="0.00"  source="1*PatientVisitCharges"/>
-        <control type="calc" name="PatientVisitCoPaysTotal" span="2" format="0,00.00"  
-          default="0.00" source="1*PatientVisitCoPays"/>
-        <control type="calc" name="PatientVisitMedicalCoInsuranceTotal" span="2" format="0,00.00"  
-          default="0.00" source="1*PatientVisitMedicalCoInsurance"/>
-        <control type="calc" name="PatientVisitPaymentTotal" span="2" format="0,00.00"  
-          default="0.00" source="PatientVisitPayments*1"/>
-        <control type="calc" name="PatientVisitInvoiceBalance" span="2" format="0,00.00" 
-          default="0.00" source="PatientVisitChargeTotal-(PatientVisitPaymentTotal)" />              
+        <control type="calc" name="PatientVisitChargeTotal" span="2" format="0,000" 
+          default="0"  source="1*Charges_NetAmountTotal"/>
+        <control type="calc" name="PatientVisitCoPayTotal" span="2" format="0,000"  
+          default="0" source="1*CoPayTotal"/>
+        <control type="calc" name="PatientVisitMedicalCoInsuranceTotal" span="2" format="0,000"  
+          default="0" source="1*MedicalCoInsuranceTotal"/>
+        <control type="calc" name="PatientVisitPaymentTotal" span="2" format="0,000"  
+          default="0" source="1*gridPatient_AmountPaidTotal"/>
+        <control type="calc" name="PatientVisitInvoiceBalance" span="2" format="0,000" 
+          default="0" source="PatientVisitChargeTotal+PatientVisitCoPayTotal+PatientVisitMedicalCoInsuranceTotal-(PatientVisitPaymentTotal)" />              
       </row>
     </group>      
     <!-- Patient visit datagrids -->
-    <group name="PatientGridGroup" reveal="[PatientId]!+[VisitSelect]!+[GridDisplay]=Billing">
+    <group name="PatientGridGroup" reveal="[PatientId]!+[VisitSelect]!">
       <row>
-        <control type="button" name="btnSwitchToMedical" label="Médico" action="trigger" span="2"
-          set="[GridDisplay]=Medical" provoke="selPatientClaims"/>
-        <control type="buttongroup" name="ButtonGroupSelect" span="10"
+        <control type="buttongroup" name="ButtonGroupSelect" span="12"
           edit="true" mode="auto" default="Charges"
-          source="Charges,PatientPayers,PayerClaims,Addresses,Contacts,Documents,DIANInvoices,Appointments" 
-          sourcelabels="Cargos,Convenios,Convenios de Atención,Direcciones,Contactos,Documentos,Facturas,Citas" 
+          source="Charges,Payments,PatientPayers,PayerClaims,Addresses,Contacts,Documents,DIANInvoices,Appointments" 
+          sourcelabels="Cargos,Pagos,Convenios,Convenios de Atención,Direcciones,Contactos,Documentos,Facturas,Citas" 
           provoke="GridOptions|options"/>
       </row>
       <!--<partial link="Partials/ColombiaPartialPatientSATInvoiceList.xml"/>-->
@@ -523,36 +470,6 @@
         </control>
       </row>    
     </group> 
-    <!-- Patient medical datagrids -->
-    <group name="MedicalGridGroup" reveal="[PatientId]!+[VisitSelect]!+[GridDisplay]=Medical">
-      <row>
-        <control type="button" name="btnSwitchToBilling" label="Facturación" action="trigger" span="2"
-          set="[GridDisplay]=Billing"/>
-        <control type="buttongroup" name="MedicalGroupSelect" span="10"
-          edit="true" mode="auto" default="Laboratory"
-          source="Laboratory,Imaging,Medication,Procedures,Surgery,Rooms" 
-          sourcelabels="Laboratorio,Imagen,Medicamentos,Procedimientos,Cirugía,Camas" 
-          provoke="MedicalOptions|options"/>
-      </row>
-      <row>
-         <control type="label" span="2" label="Asignar al Convenio"/>
-         <control type="select" name="selPatientClaims" span="10"
-            acctsvcreq="true"
-            datarequest="GetPayerClaimsByPatientVisit"
-            appendrequest="patientVisit=[VisitSelect]"
-            source="ClaimNumber|PayerName,ClaimGuid"/>
-      </row>
-      <row>
-        <control type="options" name="MedicalOptions" affector="MedicalGroupSelect" span="12">
-          <partial link="Partials/ColombiaPartialLabOrdersForBilling.xml"/>
-          <partial link="Partials/ColombiaPartialImagingOrdersForBilling.xml"/>
-          <partial link="Partials/ColombiaPartialProcedureOrdersForBilling.xml"/>
-          <partial link="Partials/ColombiaPartialSurgeriesForBilling.xml"/>
-          <partial link="Partials/ColombiaPartialMedicationsForBilling.xml"/>
-          <partial link="Partials/ColombiaPartialRoomAssignmentsForBilling.xml"/>
-        </control>
-      </row>    
-    </group>
   </section>
   <!-- tabmodal to assign patient payments that were entered without a patient visit -->
   <section type="tabmodal" name="mdlOpenPayments" title="Pagos Sin Asignar" badge="none" provoke="GetOpenChargesStatus,gridPatient_receipts">
@@ -570,9 +487,9 @@
           sourcelabels="Fecha,Número,Tipo,Referencia,Notas,Importe,Ingresado por"
           align="|left|left|left|left|right|left"
           total="|||||+"
-          format="datetime|||||0,000.00"
+          format="datetime|||||0,000"
           key="ReceiptGuid">
-          <control type="button" name="btnAsignUnasignedPayment"
+          <control type="button" name="btnAssignUnassignedPayment"
             icon="remove" color="green" label="Asignar Pago"
             showif="feature"
             confirm="Confirme que desea asignar este pago a la visita seleccionada."
@@ -585,6 +502,29 @@
       </row>
     </group>
   </section>
+  <!--  tabmodal to display scrubber errors -->
+  <section type="tabmodal" name="mdlDisplayInvoiceErrors" title="Errores en la factura" badge="none" provoke="Charges_grdNewPatientCharges">
+    <group>
+      <row>
+        <control type="hidden" name="hidTargetClaimGuid"/>
+      </row>
+      <row>
+        <control type="datagrid" label="Errores en la factura" name="grdInvoiceErrors"
+          searchable="true"
+          span="12" rows="5"                   
+          acctsvcreq="true"
+          datarequest="COLInvoiceScrubber"
+          appendrequest="patientVisit=[VisitSelect],TargetClaimGuid=[hidTargetClaimGuid]"
+          source="DateTimeEntered,TransactionType,CupsCode,ItemDescription,LineQuantity,TotalVisitQuantity,ScrubberViolationMessage"
+          sourcelabels="Fecha,Tipo,Código,Descripción,Cantidad,Visita,Mensaje"
+          align="|left|left|left|right|right|left"
+          format="datetime"
+          key="key">
+        </control>
+      </row>
+    </group>
+  </section>
+      
   <!-- HarmoniColombia modals -->
   <partial link="Partials/ColombiaPartialGlosaModal.xml"/>
   <partial link="Partials/ColombiaPartialCreateGlosa.xml"/>
@@ -596,10 +536,10 @@
   <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>
   <partial link="Partials/ColombiaPartialPatientPayersModal.xml"/>
   <partial link="Partials/ColombiaPartialMoneyLaundering.xml"/>
-  <!-- Billing modals -->
   <partial link="Partials/ColombiaPartialPayerClaims.xml"/>
   <partial link="Partials/ColombiaPartialContractsModal.xml"/>
   <partial link="Partials/ColombiaPartialPayerContactsModal.xml"/>
+  <partial link="Partials/ColombiaPartialBillingNewPatientCharges.xml"/>
   <partial link="./Partial/Modals/PartialBillingNewPatientPayments.xml"/>
   <partial link="./Partial/Modals/PartialBillingNewPayerReceiptsWithRetention.xml"/>
   <partial link="./Partial/Modals/PartialEmailSATInvoice.xml"/>

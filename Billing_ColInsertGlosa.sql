@@ -18,8 +18,6 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    SET @InvoiceGuid = LTRIM(RTRIM(@InvoiceGuid));
-
     DECLARE @GlosaGuid NVARCHAR(50) = CAST(NEWID() AS NVARCHAR(50));
     DECLARE @ResponseDeadline DATE = @RadicationDate;
     DECLARE @BusinessDaysAdded INT = 0;

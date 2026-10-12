@@ -10,49 +10,49 @@
         <control type="hidden" name="GlosaGuid"
           datarequest="COLGetGlosas"
           appendrequest="GlosaGuid=[GlosaGuid]" 
-          inject="GlosaHeaderInfo"
+          inject="grpGlosaHinfo"
           provoke="grdGlosaLines"/>
       </row>
     </group>
-    <group name="GlosaHeaderInfo">
+    <group name="grpGlosaHinfo">
       <columns>
         <!-- Left Column: Primary Glosa Metadata -->
         <column span="10">
           <row>
             <control type="label" label="Origen" span="2"/>
-            <control type="select" name="GlosaInfo_CreationSource" span="3" readonly="true"
+            <control type="select" name="Gls_CreationSource" span="3" readonly="true"
               source="Electronic,Manual" sourcelabels="Electrónica,Manual"/>
           </row>
           <row>
             <control type="label" label="Factura DIAN" span="2"/>
-            <control type="text" name="GlosaInfo_InvoiceNumber" span="3" readonly="true"/>
+            <control type="text" name="Gls_InvoiceNumber" span="3" readonly="true"/>
             <control type="label" label="Referencia EPS" span="3"/>
-            <control type="text" name="GlosaInfo_PayerGlosaReference" span="4" 
-              required="true" edit="[GlosaInfo_Status]=Radicada|En_Auditoria"/>
+            <control type="text" name="Gls_PayerGlosaReference" span="4" 
+              required="true" edit="[Gls_Status]=Radicada|En_Auditoria"/>
           </row>
           <row>
             <control type="label" label="Fecha Radicación" span="2"/>
-            <control type="date" name="GlosaInfo_RadicationDate" span="3" 
+            <control type="date" name="Gls_RadicationDate" span="3" 
               required="true" edit="[GlosaGuid]="/>
             <control type="label" label="Límite Legal (SLA)" span="3"/>
-            <control type="date" name="GlosaInfo_ResponseDeadlineDate" span="4" readonly="true"/>
+            <control type="date" name="Gls_ResponseDeadlineDate" span="4" readonly="true"/>
           </row>
           <row>
             <control type="label" label="Estatus" span="2"/>
-            <control type="select" span="3" name="GlosaInfo_Status" default="Radicada" edit="[GlosaGuid]="
+            <control type="select" span="3" name="Gls_Status" default="Radicada" edit="[GlosaGuid]="
               source="Radicada,En_Auditoria,Respondida,Aceptada,Levantada,Conciliada" 
               sourcelabels="Radicada,En Auditoría,Respondida,Aceptada,Levantada,Conciliada"/>
             <control type="label" label="Días Restantes" span="3"/>
-            <control type="text" name="GlosaInfo_DaysRemaining" span="4" readonly="true"/>
+            <control type="text" name="Gls_DaysRemaining" span="4" readonly="true"/>
           </row>
           <!-- Financial Rollups -->
           <row>
             <control type="label" label="Total Disputado" span="2"/>
-            <control type="calc" name="GlosaInfo_TotalDisputedAmount" span="2" format="0,0" source="1*DisputedAmountTotal"/>
+            <control type="calc" name="Gls_TotalDisputedAmount" span="2" format="0,0" source="1*DisputedAmountTotal"/>
             <control type="label" label="Total Aceptado" span="2"/>
-            <control type="calc" name="GlosaInfo_TotalAcceptedAmount" span="2" format="0,0" source="1*AcceptedAmountTotal"/>
+            <control type="calc" name="Gls_TotalAcceptedAmount" span="2" format="0,0" source="1*AcceptedAmountTotal"/>
             <control type="label" label="Total Defendido" span="2"/>
-            <control type="calc" name="GlosaInfo_TotalDefendedAmount" span="2" format="0,0" source="1*DefendedAmountTotal"/>
+            <control type="calc" name="Gls_TotalDefendedAmount" span="2" format="0,0" source="1*DefendedAmountTotal"/>
           </row>
         </column>
 
@@ -61,20 +61,20 @@
           <row>
             <!-- Submit Defense and trigger Node.js transmission payload -->
             <control type="button" name="btnSubmitGlosaResponse"
-              reveal="[GlosaGuid]!+[GlosaInfo_Status]=Radicada|En_Auditoria+[GlosaInfo_CreationSource]=Electronic"
+              reveal="[GlosaGuid]!+[Gls_Status]=Radicada|En_Auditoria+[Gls_CreationSource]=Electronic"
               span="12" icon="check" color="blue" label="Enviar Respuesta"
               action="save|close|new"
-              capture="GlosaHeaderInfo"
+              capture="grpGlosaHinfo"
               confirm="¿Confirma que desea enviar la respuesta y la evidencia a la EPS?"
               dataupdate="COLUpdateGlosa"
               appendupdate="GlosaGuid=[GlosaGuid],ActionType=Respuesta_IPS,TargetStatus=Respondida"
               provoke="GlosaQueueList"/>
             <!-- Update Manual Glosa (Internal use only) -->
             <control type="button" name="btnUpdateGlosa"
-              reveal="[GlosaGuid]!+[GlosaInfo_Status]=Radicada|En_Auditoria+[GlosaInfo_CreationSource]=Manual"
+              reveal="[GlosaGuid]!+[Gls_Status]=Radicada|En_Auditoria+[Gls_CreationSource]=Manual"
               span="12" icon="check" color="blue" label="Actualizar"
               action="save|close|new"
-              capture="GlosaHeaderInfo"
+              capture="grpGlosaHinfo"
               confirm="¿Confirma que desea actualizar esta Glosa?"
               dataupdate="COLUpdateGlosa"
               appendupdate="GlosaGuid=[GlosaGuid]"
@@ -116,7 +116,7 @@
               dataupdate="InvoiceGlosaLines"
               skipbatchrow="[[Status]]=update"
               postwithout="Status"
-              provoke="grdGlosaLines,GlosaHeaderInfo"/>
+              provoke="grdGlosaLines,grpGlosaHinfo"/>
           </control>
           
           <!-- Scanned Documents Grid -->
@@ -182,23 +182,23 @@
       </row>
       <row>
         <control type="label" label="Observación EPS" span="2"/>
-        <control type="textarea" span="10" name="PayerObservation" edit="[GlosaInfo_CreationSource]=Manual+[GlosaInfo_Status]=Radicada|En_Auditoria" rows="2"/>
+        <control type="textarea" span="10" name="PayerObservation" edit="[Gls_CreationSource]=Manual+[Gls_Status]=Radicada|En_Auditoria" rows="2"/>
       </row>
       <!-- Auditor Inputs -->
       <row>        
         <control type="label" label="Valor Disputado" span="2"/>       
         <control type="text" name="DisputedAmount" span="2" format="0,000" 
-          edit="[GlosaInfo_CreationSource]=Manual+[GlosaInfo_Status]=Radicada|En_Auditoria"/>
+          edit="[Gls_CreationSource]=Manual+[Gls_Status]=Radicada|En_Auditoria"/>
       </row>
       <row>
         <control type="label" label="Aceptado (Concedido)" span="2"/>
         <control type="text" name="AcceptedAmount" span="2" default="0" format="0,000" 
           compare="[BalanceCheck]=0"
-          edit="[GlosaInfo_Status]=Radicada|En_Auditoria" required="true"/>
+          edit="[Gls_Status]=Radicada|En_Auditoria" required="true"/>
         <control type="label" label="Defendido (Justificado)" span="3"/>
         <control type="text" name="DefendedAmount" span="2" default="0" format="0,000" 
           compare="[BalanceCheck]=0"
-          edit="[GlosaInfo_Status]=Radicada|En_Auditoria" required="true"/>
+          edit="[Gls_Status]=Radicada|En_Auditoria" required="true"/>
       </row>
       <!-- Real-time calculation check to prevent over-allocation -->
       <row>
@@ -209,7 +209,7 @@
       <row>
         <control type="label" label="Defensa Médica IPS" span="2"/>
         <control type="textarea" name="IpsAuditResponse" span="10" rows="3"
-          edit="[GlosaInfo_Status]=Radicada|En_Auditoria" 
+          edit="[Gls_Status]=Radicada|En_Auditoria" 
           required="[DefendedAmount]>0"/>
       </row>
       <row>

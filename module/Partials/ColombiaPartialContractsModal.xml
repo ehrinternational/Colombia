@@ -56,7 +56,7 @@
       </row>
       <row>
         <control type="label" span="3" label="Número de Contrato"/>
-        <control type="text" name="Ctc_ContractNumber" span="2" edit="true" required="true"/>
+        <control type="text" name="Ctc_ContractNumber" span="2" edit="true" required="true" regex="^[A-Za-z0-9\-\/]{1,50}$"/>
         <control type="label" span="1" label="Nombre"/>
         <control type="text" name="Ctc_PlanName" span="6" edit="true" required="true"/>
       </row>
@@ -102,7 +102,7 @@
         <control type="label" span="3" label="Manual Tarifario"/>
         <control type="select" name="Ctc_EntityCode" 
           edit="[Ctc_CoverageType]!13|9|5|12|3|2+Length(dgrExceptions)=0+Length(dgrMedications)=0" span="3" required="true" explicit="true"
-          source="SOAT,ISS_2001,ISS_2004,PROPIA,PARTICULAR"
+          source="SOAT,ISS_2001,PROPIA,PARTICULAR"
           when="[Ctc_CoverageType]=2|13;SOAT,[Ctc_CoverageType]=5|12;PROPIA,[Ctc_CoverageType]=3|9;PARTICULAR"/>
         <control type="text" name="Ctc_AdjustmentPct" span="1" edit="true" format="0.00"
           reveal="[Ctc_EntityCode]=SOAT|ISS_2001|ISS_2004"
@@ -126,7 +126,7 @@
           affector="ContractGuid"
           setaffector="ContractGuid"
           datainsert="InsertInsuranceContracts"
-          provoke="dgrContracts"/>
+          provoke="dgrContracts,dgrPayerContracts"/>
         <control type="modalbutton" name="btnUpdateContract" icon="cloud-upload" label="Actualizar"
           reveal="[ContractGuid]!"
           capture="grpContractInfo"
@@ -137,7 +137,7 @@
           setaffector="ContractGuid"
           dataupdate="UpdateInsuranceContracts"
           appendupdate="ContractGuid=[ContractGuid]"
-          provoke="dgrContracts"/>
+          provoke="dgrContracts,dgrPayerContracts"/>
       </row>
     </group>
     <group name="grpContractRelatedTables" reveal="[ContractGuid]!">
@@ -160,6 +160,7 @@
             datainsert="InsertInsurancePlans" 
             appendinsert="ContractGuid=[ContractGuid],PayerGuid=[Ctc_PayerGuid]"
             dataupdate="UpdateInsurancePlans"
+            appendupdate="PayerGuid=[Ctc_PayerGuid]"
             source="Active,StartDate,EndDate,PlanCode,Category,PlanName"
             sourcelabels="Activo,Fecha Inicio,Fecha Fin,Código,Tipo,Nombre"
             align="|left|left|left|left|left"
@@ -171,13 +172,13 @@
             target="mdlContractExceptions"
             searchable="true"
             acctsvcreq="true"
-            filter="Active=true,Type=General"
+            filter="Active=true"
             datarequest="GetColombiaContractExceptions" 
             appendrequest="ContractGuid=[ContractGuid]"
             source="StartDate,EndDate,Ranking,ShiftType,ServiceGroup,ArticleName,SurgeryGroup,CUPSCode"
             sourcelabels="Fecha Inicio,Fecha Término,Tipo,Tiempo,Ambito,Articulo,Grupo,Código"
             align="||left|left|left|left|left|left"
-            format="date|date|template=tmpRanking|template=tmpShiftType|template=tmoServiceGroup"
+            format="date|date|template=tmpRanking|template=tmpShiftType|template=tmpServiceGroup"
             sort="StartDate=desc"
             key="ExceptionGuid"
             onselectset="ExceptionGuid=[[ExceptionGuid]]"
@@ -207,13 +208,13 @@
             usesource="login"
             append="fileGuid=[[PhotoGuid]],fileType=[[FileType]]">
           <!--Button to upload scanned documents-->
-          <control type="button" name="btnScanDocuments" label="Subir Documentos" icon="folder-open"
+          <control type="button" name="btnScanContractDocuments" label="Subir Documentos" icon="folder-open"
             append="patientId=[ContractGuid],patientVisit=[ContractGuid]"
             action="upload" 
             filter="pdf,jpg,jpeg,png"
             provoke="dgrScannedForms"/>
           <!-- Button to deactivate -->
-          <control type="button" name="btnDeactivateDocument" label="Inactivo" color="orange"
+          <control type="button" name="btnDeactivateContractDocument" label="Inactivo" color="orange"
             reveal="[[Status]]=Active"
             showif="feature"
             icon="remove"
@@ -225,7 +226,7 @@
             appendupdate="PhotoGuid=[[PhotoGuid]],status=Inactive"
             provoke="dgrScannedForms"/>
           <!-- Button to reactivate -->
-          <control type="button" name="btnReactivateDocument" label="Activo" color="yellowgreen"
+          <control type="button" name="btnReactivateContractDocument" label="Activo" color="yellowgreen"
             reveal="[[Status]]=Inactive"
             showif="feature"
             icon="edit"
@@ -242,7 +243,7 @@
     </group>
   </section> 
   <!-- modal for contract Exceptions ??provoke="dgrExceptions" --> 
-  <section type="tabmodal" name="mdlContractExceptions" title="Tarifas" badge="none" >
+  <section type="tabmodal" name="mdlContractExceptions" title="Tarifas" badge="none">
     <group showif="never">
       <row>
         <control type="hidden" name="ExceptionGuid"
@@ -281,14 +282,14 @@
         </row>
         <row>
           <control type="label" span="3" label="Tipo de Tarifa"/>  
-          <control type="select" name="Ctx_Ranking" span="3"
+          <control type="select" name="Ctx_Ranking" span="3" required="true"
           source="1,2,3,4,5,6,7,8" 
           sourcelabels="1 Articulo(%),2 Grupo Cirugía(%),3 CUPS Cirugía (COP),4 CUPS Cirugía (%),5 CUPS Procedimiento (COP),6 CUPS Procedimiento (%),7 Paquete (COP),8 Medicamento (COP)"/>
         </row>
         <row name="rowExceptionType1" reveal="[Ctx_Ranking]=1">
           <control type="label" span="3" label="Articulo"/>
           <control name="Ctx_ExceptionType" type="select" span="9" edit="true" required="true" explicit="true"
-          reveal="[Ctc_EntityCode]=SOAT" searchable="true"
+          reveal="[Ctc_EntityCode]=SOAT|PROPIA|PARTICULAR" searchable="true"
           nameField="Ctx_ArticleName"
           source="5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,48,49,55,56"
           sourcelabels="5 Neurocirugía 2101 - 2194
@@ -447,14 +448,16 @@
             acctsvc="true"
             action="save|close|new"
             datainsert="InsertColombiaContractExceptions" 
-            appendinsert="ContractGuid=[ContractGuid]"/>
+            appendinsert="ContractGuid=[ContractGuid]"
+            provoke="dgrExceptions"/>
           <control type="modalbutton" name="mbtUpdateContractException" label="Actualizar" icon="cloud-upload"
             reveal="[ExceptionGuid]!"
             capture="grpExceptionInfo"
             acctsvc="true"
             action="save|close|new"
-            dataupdate="UpdateComolbiaContractExceptions" 
-            appendupdate="ExceptionGuid=[ExceptionGuid]"/>
+            dataupdate="UpdateColombiaContractExceptions" 
+            appendupdate="ExceptionGuid=[ExceptionGuid]"
+            provoke="dgrExceptions"/>
         </row>
     </group>
   </section>

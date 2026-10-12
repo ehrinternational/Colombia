@@ -1,6 +1,6 @@
 <partial>
   <!-- New contacts modal-->
-  <section type="modal" title="Contacto del Empressa" name="mdlPayerContacts" badge="none" size="small" trigger="PyrCon_Country">
+  <section type="modal" title="Contacto de la Empresa" name="mdlPayerContacts" badge="none" size="small" trigger="PyrCon_Country">
     <group>
       <row>
        <control type="label" label="Activo" span="4"/>
@@ -23,7 +23,7 @@
           regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
       </row>
       <row>
-        <control type="label" label="Primir Apellido" span="4"/>
+        <control type="label" label="Primer Apellido" span="4"/>
         <control type="text" name="PyrCon_MiddleName" span="5" required="true" edit="true"
           regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"  />
       </row>

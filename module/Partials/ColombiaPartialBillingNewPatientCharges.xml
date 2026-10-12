@@ -1,0 +1,319 @@
+<partial>
+  <!-- New patient charges for billing module -->
+  <section type="tabmodal" title="Cargos del Visita" name="mdlNewPatientCharge" badge="none" size="small">
+    <group>
+      <row>
+        <control type="hidden" name="NewChargeGuid"
+          acctsvcreq="true"
+          datarequest="GetPatientTransactionTransactionGuid"
+          appendrequest="TransactionGuid=[NewChargeGuid]"
+          inject="NewChargesInfo"
+          set="Ncg_ItemMasterGuid=[[ItemMasterGuid]],Ncg_SourceLocationGuid=[[SourceLocation]],[Ncx_ClaimGuid]=[[ClaimGuid]]"
+          provoke="GetChargeItemInfo"/>
+        <control type="hidden" name="GetChargeItemInfo"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[Ncg_ItemMasterGuid]"
+          inject="subItemInfo"
+          provoke="[[Inventory]]=true;GetInventoryLocationName"/>
+        <control type="hidden" name="GetInventoryLocationName"
+          acctsvcreq="true"
+          datarequest="GetInventoryLocationByLocationGuid"
+          appendrequest="LocationGuid=[Ncg_SourceLocationGuid]"
+          set="Ncg_SourceLocationName=[[LocationName]]"/>
+        <control type="hidden" name="Ncx_ClaimGuid"/>
+      </row>
+    </group>
+    <!-- ?? filter="RelatedTable="-->
+    <group name="NewChargesSelect" reveal="[NewChargeGuid]=">      
+      <row>
+        <control type="label" label="Artículo" span="2"/>
+        <control type="typeahead" name="itemselectname,itemselect" span="10"
+          searchable="true"
+          acctsvc="true"
+          term="searchCriteria"
+          datasource="GetItemMasterItemsBySearchCriteria"
+          append="patientChargeable=true"
+          source="ItemName,ItemMasterGuid"
+          acctsvcreq="true"
+          datarequest="GetItemByItemGuid"
+          appendrequest="itemMasterGuid=[itemselect]"
+          inject="subItemInfo"
+          set="[Ncg_PerItemChargeAmount]=[[BasePrice]],
+            [Ncg_UnitOfMeasure]=[[ConsumedUOM]],
+            [[Inventory]]=true;[Ncg_TransactionType]=Inventory,
+            [[Inventory]]!true;[Ncg_TransactionType]=Service"/>      
+      </row>
+    </group>   
+    <group name="NewChargesInfo">  
+      <subset name="subItemInfo" bgcolor="white">
+      <row>
+        <control type="hidden" name="Ncg_ItemMasterGuid"/>
+        <control type="hidden" name="Ncg_Inventory"/>
+      </row>
+      <row>        
+        <control type="label" span="3" label="Número"/>
+        <control type="text" span="4" name="Ncg_ItemNumber" readonly="true" />
+      </row>
+      <row>    
+        <control type="label" label="Artículo" span="3"/>
+        <control type="textarea" span="9" name="Ncg_ItemName" readonly="true" rows="1"/>
+      </row>
+      <row>
+        <control type="label" span="3" label="Descripción"/>
+        <control type="textarea" span="9" name="Ncg_ItemDescription" readonly="true" rows="1"/>
+      </row>     
+    </subset>
+    <subset bgcolor="white">
+      <row>
+        <control type="hidden" name="Ncg_OrderGuid"/>
+        <control type="hidden" name="Ncg_SurgeryGuid"/>
+      </row>
+      <row>
+        <control type="label" label="Fecha" span="3"/>
+        <control type="datetime" span="4" name="Ncg_TransactionDateTime" readonly="true" default="now" />       
+        <control type="label" span="2" label="Tipo de Cargo"/>
+        <control type="select" span="3" name="Ncg_TransactionType" readonly="true" explicit="true" 
+          source="Inventory,Service,Procedure,Laboratory,Imaging,Medication,Stay,Surgery,RoomRights,Supplies,Honorary,BundleMaster"
+          sourcelabels="Inventario,Servicio,Procedimiento,Laboratorio,Imagen,Medicación,Estancia,Cirugía,Sala,Suministro,Honorario,Paquete"/>
+      </row>
+      <row>
+        <control type="label" label="Convenio" span="3"/>
+        <control type="select" span="9" explicit="true"  name="Ncg_SelectClaimGuid" injectname="ClaimGuid"
+            edit="[InvoiceStatus]=Open|Closed"
+            source="ClaimNumber|PayerName,ClaimGuid" 
+            acctsvcreq="true"
+            datarequest="GetPayerClaimsByPatientVisit" 
+            appendrequest="patientVisit=[VisitSelect]"  
+            filter="Status!Canceled"/>     
+      </row>
+      <row name="rowBillable" reveal="[InvoiceStatus]=Open|Closed+[Ncg_TransactionType]=Procedure|Laboratory|Imaging|Medication|Stay|Surgery|RoomRights|Supplies|Honorary|BundleMaster">
+        <control type="label" label="Facturable" span="3"/>
+        <control type="buttongroup" span="4" name="Ncg_Billable" default="True" required="true"
+            edit="true" source="True,False" sourcelabels="Sí,No"/>     
+      </row>
+      <!-- Show all inventory for the location -->
+      <row name="rowSourceLocation6" reveal="[NewChargeGuid]=+[Ncg_Inventory]=true">    
+        <control type="label" span="3" label="Ubicación"/>
+        <control type="select" span="4" name="Ncg_SourceLocation"
+          acctsvc="true" explicit="true" required="true"
+          source="LocationName,LocationGuid" 
+          filter="Active=true"
+          datasource="GetInventoryLocationsForThisFacility" 
+          append="LocationId=(facilityData.LocationId)" />     
+      </row> 
+       <!-- Show inventory location for an existing entry-->
+      <row name="rowSourceLocation7" reveal="[NewChargeGuid]!+[Ncg_Inventory]=true">    
+        <control type="label" span="3" label="Ubicación"/>
+        <control type="text" span="4" name="Ncg_SourceLocationName" readonly="true"/>     
+      </row> 
+      <!-- Choose to override the pricing manually  -->
+      <row>
+        <control type="label" label="Precio Manual" span="3"/>
+        <control type="buttongroup" name="Ncg_PriceOverride" span="4"  
+          source="True,False" sourcelabels="Sí,No" default="False" edit="[NewChargeGuid]="/>    
+        <control type="label" label="Precio" span="2"/>       
+        <control type="text" name="Ncg_PerItemChargeAmount" span="3" min="0"
+          default="0" format="0,000" 
+          edit="[Ncg_PriceOverride]=True+[NewChargeGuid]=" />
+      </row>
+      <row>
+        <control type="label" label="Cantidad" span="3"/>
+        <!-- Enter tranaction quantity for a new charge-->
+        <control type="text" span="2" name="Ncg_TransactionQuantity" 
+          default="1.00" format="0,000" edit="[NewChargeGuid]=" 
+          required="true" min="1" max="10000"/>
+        <control type="select" name="Ncg_UnitOfMeasure" 
+           span="2" default="Cada" required="true"
+           sort="asc" edit="[NewChargeGuid]="
+           acctsvc="true"
+           source="UnitOfMeasure,UOMGuid"
+           datasource="GetUnitsOfMeasure"/>
+        <control type="label" label="Gross" span="2"/>
+        <control type="calc" name="Ncg_TotalChargeAmount" span="3" format="0,000"  
+          source="Ncg_TransactionQuantity*Ncg_PerItemChargeAmount"/>
+      </row>
+      <row>
+       <control type="label" label="Tasa Impuesto" span="3"/>
+        <!-- Enter tranaction quantity for a new charge-->
+        <control type="text" span="2" name="Ncg_TaxRate" 
+          default="0.00" format="0.00" edit="[NewChargeGuid]=" required="true"/>
+        <control type="label" label="Descuento" span="4"/>
+        <!-- Enter tranaction quantity for a new charge-->
+        <control type="text" span="3" name="Ncg_DiscountAmount" 
+          default="0" format="0,000" edit="[NewChargeGuid]=" required="true"
+          compare="≤Ncg_TotalChargeAmount"/>
+           </row>
+       <row>
+        <control type="label" label="Impuesto" span="3"/>
+        <!-- Enter tranaction quantity for a new charge-->
+        <control type="calc" span="2" name="Ncg_TaxAmount" source="(Ncg_TaxRate*(Ncg_TotalChargeAmount-Ncg_DiscountAmount))/100" format="0,000"/>
+        <control type="label" label="Neto" span="4"/>
+        <!-- Enter tranaction quantity for a new charge-->
+        <control type="calc" span="3" name="Ncg_NetAmount" source="Ncg_TotalChargeAmount-Ncg_DiscountAmount+Ncg_TaxAmount" format="0,000"/>
+      </row>
+      <row>
+        <control type="label" label="Notas" span="3"/>
+        <control type="textarea" name="Ncg_TransactionNote" rows="2" span="9" edit="[InvoiceStatus]=Open|Closed" />
+      </row>
+      </subset>
+    </group>
+    <group>
+      <row>
+        <control type="modalbutton" name="btnInsertNewPatientCharge" icon="cloud-upload" color="green" label="Guardar"
+          reveal="[NewChargeGuid]="
+          action="save|close|new"
+          acctsvc="true"
+          affector="NewChargeGuid"
+          setaffector="TransactionGuid"
+          capture="NewChargesInfo"
+          compare="[Ncg_ItemMasterGuid]!|El artículo es obligatorio."
+          datainsert="InsertPatientCharge2"
+          appendinsert="patientVisit=[VisitSelect],
+            [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
+            patientId=[PatientId],
+            Inventory=[Ncg_Inventory],CategoryGuid=[Ncg_Category],
+            ExternalId1=[Ncg_ExternalId1],ItemType=[Ncg_TypeName]"
+          set="InvoiceCalculated=False"
+          provoke="Charges_grdNewPatientCharges"/>
+        <control type="modalbutton" name="btnUpdateNewPatientCharge" icon="cloud-upload" label="Actualizar"
+          reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Inventory|Service"
+          action="save|close|new"
+          capture="NewChargesInfo"
+          confirm="Recordatorio: si el campo Convenio se deja en blanco, el procedimiento se asignará a la cuenta del paciente. Asignarlo a un convenio diferente requerirá un recálculo para actualizar los precios."
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdatePatientCharge"
+          appendupdate="transactionGuid=[NewChargeGuid],
+          [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient"
+          provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+          
+        <!-- Update a PatientProcedure record with a new ClaimGuid -->
+        <control type="modalbutton" name="btnUpdateProcedureCharge" icon="cloud-upload" label="Asignar Convenio al Procedimiento"
+          reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Procedure+[Ncg_OrderGuid]!+[Ncx_ClaimGuid]![Ncg_SelectClaimGuid]"
+          action="save"
+          confirm="Recordatorio: si el campo Convenio se deja en blanco, el procedimiento se asignará a la cuenta del paciente. Asignarlo a un convenio diferente requerirá un recálculo para actualizar los precios."
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdatePatientCharge"
+          appendupdate="transactionGuid=[NewChargeGuid],
+            [Ncg_Billable]=False;Status=Canceled,
+            [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
+            TransactionNote=[Ncg_TransactionNote]"
+          provoke="btnUpdatePatientProcedureOrder"/>
+          
+         <!-- Update a Patient Lab order record with a new ClaimGuid -->
+        <control type="modalbutton" name="btnUpdateLabCharge" icon="cloud-upload" label="Asignar Convenio al Orden Laboratorio"
+          reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Laboratory+[Ncg_OrderGuid]!+[Ncx_ClaimGuid]![Ncg_SelectClaimGuid]"
+          action="save"
+          confirm="Recordatorio: si el campo Convenio se deja en blanco, el laboratorio se asignará a la cuenta del paciente. Asignarlo a un convenio diferente requerirá un recálculo para actualizar los precios."
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdatePatientCharge"
+          appendupdate="transactionGuid=[NewChargeGuid],
+          [Ncg_Billable]=False;Status=Canceled,
+          [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
+          TransactionNote=[Ncg_TransactionNote]"
+          provoke="btnUpdatePatientLabOrder"/>
+          
+         <!-- Update a Patient imaging order record with a new ClaimGuid -->
+        <control type="modalbutton" name="btnUpdateImagingCharge" icon="cloud-upload" label="Asignar Convenio al Orden Imagen"
+          reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Imaging+[Ncg_OrderGuid]!+[Ncx_ClaimGuid]![Ncg_SelectClaimGuid]"
+          action="save"
+          confirm="Recordatorio: si el campo Convenio se deja en blanco, el imagen se asignará a la cuenta del paciente. Asignarlo a un convenio diferente requerirá un recálculo para actualizar los precios."
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdatePatientCharge"
+          appendupdate="transactionGuid=[NewChargeGuid],
+          [Ncg_Billable]=False;Status=Canceled,
+          [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
+          TransactionNote=[Ncg_TransactionNote]"
+          provoke="btnUpdatePatientImagingOrder"/>
+          
+         <!-- Update a Patient surgery with new ClaimGuid -->
+        <control type="modalbutton" name="btnUpdateSurgeryCharge" icon="cloud-upload" label="Asignar Convenio al Cirugía"
+          reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Surgery|RoomRights|Supplies|Honorary|BundleMaster+[Ncg_SurgeryGuid]!+[Ncx_ClaimGuid]![Ncg_SelectClaimGuid]"
+          action="save"
+          confirm="Recordatorio: si el campo Convenio se deja en blanco, todo la cargos del cirugía se asignará a la cuenta del paciente. Asignarlo a un convenio diferente requerirá un recálculo para actualizar los precios."
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdatePatientCharge"
+          appendupdate="transactionGuid=[NewChargeGuid],
+          [Ncg_Billable]=False;Status=Canceled,
+          [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
+          TransactionNote=[Ncg_TransactionNote]"
+          provoke="btnUpdatePatientSurgery"/>
+          
+         <!-- Update a Patient bed assignment with new ClaimGuid -->
+        <control type="modalbutton" name="btnUpdateRoomCharge" icon="cloud-upload" label="Asignar Convenio al Estancia"
+          reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Stay+[Ncg_OrderGuid]!+[Ncx_ClaimGuid]![Ncg_SelectClaimGuid]"
+          action="save"
+          confirm="Recordatorio: si el campo Convenio se deja en blanco, el cargos de estancia se asignará a la cuenta del paciente. Asignarlo a un convenio diferente requerirá un recálculo para actualizar los precios."
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdatePatientCharge"
+          appendupdate="transactionGuid=[NewChargeGuid],
+          [Ncg_Billable]=False;Status=Canceled,
+          [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
+          TransactionNote=[Ncg_TransactionNote]"
+          provoke="btnUpdatePatientBedAssignment"/>
+          
+        <!-- Update a Patient medication with new ClaimGuid -->
+        <control type="modalbutton" name="btnUpdateMedicationCharge" icon="cloud-upload" label="Asignar Convenio al Medicamento"
+          reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Medication+[Ncg_OrderGuid]!+[Ncx_ClaimGuid]![Ncg_SelectClaimGuid]"
+          action="save"
+          confirm="Recordatorio: si el campo Convenio se deja en blanco, el cargos de medicamento se asignará a la cuenta del paciente. Asignarlo a un convenio diferente requerirá un recálculo para actualizar los precios."
+          acctsvc="true"
+          affector="none"
+          dataupdate="UpdatePatientCharge"
+          appendupdate="transactionGuid=[NewChargeGuid],
+          [Ncg_Billable]=False;Status=Canceled,
+          [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
+          TransactionNote=[Ncg_TransactionNote]"
+          provoke="btnUpdatePatientMedicationAdministration"/>
+          
+        <!-- Cancel a manual patient charge -->
+         <control type="modalbutton" name="btnCancelPatientCharge"             
+          reveal="{[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Inventory|Service"
+          action="save|close|new" 
+          label="Cancelar" icon="remove" color="red"
+          preset="InvoiceCalculated=false"            
+          confirm="¿Seguro que quieres cancelar este cargo?"
+          affector="none"  
+          acctsvc="true"        
+          datainsert="UpdatePatientCharge"
+          appendinsert="TransactionGuid=[NewChargeGuid],Status=Canceled"
+          set="InvoiceCalculated=False"
+          provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+      </row>
+      
+      <row showif="never">
+          <control type="button" name="btnUpdatePatientProcedureOrder" action="save|close|new"
+            dataupdate="UpdatePatientProcedureSetStatus"
+            appendupdate="ProcedureGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+          <control type="button" name="btnUpdatePatientLabOrder" action="save|close|new"
+            dataupdate="UpdateLabOrderStatusByOrderGuid"
+            appendupdate="OrderGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+          <control type="button" name="btnUpdatePatientImagingOrder" action="save|close|new"
+            dataupdate="UpdateImagingOrderStatus"
+            appendupdate="ImagingOrderGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+          <control type="button" name="btnUpdatePatientSurgery" action="save|close|new"
+            dataupdate="UpdateScheduledSurgeries"
+            appendupdate="SurgeryGuid=[Ncg_SurgeryGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+          <control type="button" name="btnUpdatePatientBedAssignment" action="save|close|new"
+            acctsvc="true"
+            dataupdate="UpdatePatientBedAssignment"
+            appendupdate="BedAssignmentGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+          <control type="button" name="btnUpdatePatientMedicationAdministration" action="save|close|new"
+            dataupdate="UpdateMedicationAdministrationRecord"
+            appendupdate="medSchedGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
+      </row>
+    </group>
+  </section>  
+</partial>

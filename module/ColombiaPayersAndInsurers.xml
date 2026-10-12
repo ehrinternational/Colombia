@@ -60,7 +60,7 @@
           <!-- Payer type -->
           <row>
             <control type="label" label="NIT Empresa" span="3"/>
-            <control type="text" name="Pyr_PayerId" span="3" edit="true" required="true"/>
+            <control type="text" name="Pyr_PayerId" span="3" edit="true" required="true" regex="^[0-9]{9,10}$"/>
             <control type="checkbox" name="Pyr_International" label="NIT Internacional"
               source="True,False" span="3" edit="true" default="True" />
             <control type="checkbox" name="Pyr_Active" label="Vigente" 
@@ -73,7 +73,7 @@
           <row>
             <control type="label" label="Dirección Página Web" span="3"/>
             <control type="text" name="Pyr_WebPage" span="9" edit="true" 
-            regex="^[A-Z0-9., \@-]{3,100}$"/>
+            regex="^[a-zA-Z0-9.-]{3,100}$"/>
           </row>
           <row>
             <control type="label" label="Razón Social DIAN" span="3"/>
@@ -81,20 +81,20 @@
             regex="^[A-Z0-9., \-]{0,100}$"/>
           </row>
           <row>
-            <control type="label" label="Código" span="3"/>
+            <control type="label" label="Código (RUT/CIIU)" span="3"/>
             <control type="text" name="Payer2_RFC" span="3" edit="true" 
               regex="^[A-Z0-9]{0,6}$"/>
           </row>
           <row>
-            <control type="label" span="3" label="Tipo de Empressa"/>
+            <control type="label" span="3" label="Tipo de Empresa"/>
             <control type="select" name="Pyr_PayerType" span="9" required="true"
             source="01,05,07,06,03,02,09,08,12,11,04,13" explicit="true"
-            sourcelabels="01 EMRESA PROMOTORA DE SALUD - EPS,
+            sourcelabels="01 EMPRESA PROMOTORA DE SALUD - EPS,
               05 EMPRESA PARTICULAR,
-              07 ADMINISTRADORA DE RIESGOS PROFESIONALES - ARP,
+              07 ADMINISTRADORA DE RIESGOS LABORALES - ARL,
               06 INSTITUCION PRESTADORA DE SALUD - IPS,
               03 EMPRESA DE SEGURIDAD SOCIAL DEL ESTADO - ESS,
-              02 ADMINSTRADORS DE REGIMEN SUBSIDIADO - ARS,
+              02 ADMINISTRADORAS DE REGIMEN SUBSIDIADO - ARS,
               09 COMPANIA NACIONAL DE SEGUROS,
               08 CAJA DE COMPENSACION FAMILIAR,
               12 EMPRESA MEDICINA PREPAGADA,
@@ -156,15 +156,15 @@
             <control type="text" name="Payer2_DocumentNumber" span="3" required="true"  tooltip="11 caracteres numéricos"
               reveal="[Pyr_DocumentType]=TI" edit="true"
               regex="^[0-9]{11}$"/>
-            <control type="text" name="Payer3_DocumentNumber" span="3" required="true"  tooltip="10 caracteres numéricos"
+            <control type="text" name="Payer3_DocumentNumber" span="3" required="true"  tooltip="6 a 10 caracteres numéricos"
               reveal="[Pyr_DocumentType]=CC"  edit="true"
-              regex="^[0-9]{10}$"/>
-            <control type="text" name="Payer4_DocumentNumber" span="3" required="true" tooltip="7 caracteres numéricos"
+              regex="^[0-9]{6,10}$"/>
+            <control type="text" name="Payer4_DocumentNumber" span="3" required="true" tooltip="6 a 9 caracteres numéricos"
               reveal="[Pyr_DocumentType]=CE"  edit="true"
-              regex="^[0-9]{7}$"/>
-            <control type="text" name="Payer5_DocumentNumber" span="3" required="true" tooltip="13 caracteres numéricos"
+              regex="^[0-9]{6,9}$"/>
+            <control type="text" name="Payer5_DocumentNumber" span="3" required="true" tooltip="10 caracteres numéricos"
               reveal="[Pyr_DocumentType]=NI"  edit="true"
-              regex="^[0-9]{13}$"/>
+              regex="^[0-9]{10}$"/>
             <control type="text" name="Payer6_DocumentNumber" span="3" required="true" tooltip="12 caracteres alfanuméricos"
               reveal="[Pyr_DocumentType]=MS"  edit="true"
               regex="^[a-zA-Z0-9]{12}$"/>
@@ -228,7 +228,7 @@
           <row>
             <control type="label" label="Municipio" span="3"/>
             <control type="select" name="Pyr_LegalMunicipalityCode" span="3"       
-              edit="true" sort="Name" explicit="true" namefield="Pyr_LegalMunicipaliiy"
+              edit="true" sort="Name" explicit="true" namefield="Pyr_LegalMunicipality"
               searchable="true"  
               idle="[Pyr_LegalStateCode]=" 
               source="Name,Code" 
@@ -287,11 +287,11 @@
             key="ContractGuid"
             action="redirect"
             target="mdlContracts"
-            onselectset="[ContractGuid]=[[ContractGuid]],[Ctc_PayerId]=[Pyr_PayerId],[Ctc_PayerName]=[Pyr_PayerName]"
+            onselectset="[ContractGuid]=[[ContractGuid]]"
             onselect="ContractGuid">
             <control type="button" name="btnNewContract" label="Añadir Nuevo" icon="plus" 
               action="redirect"
-              preset="[Ctc_PayerId]=[Pyr_PayerId],[Ctc_PayerName]=[Pyr_PayerName]"
+              preset="[Ctc_PayerGuid]=[PayerGuid]"
               target="mdlContracts"/>
           </control>
           <control type="datagrid" label="Documentos" name="dgrPayerScannedDocuments"

@@ -207,7 +207,7 @@
         <control type="text" span="2" name="itemInfo_ItemNumber" edit="[RelatedTable]!DrugFormularies" />
         <control type="label" span="1" label="Clave"/>
         <!-- Product Id  -->
-        <control type="text" span="3" name="itemInfo_ImportId" edit="true" />  
+        <control type="text" span="3" name="itemInfo_ImportId" edit="true" required="true"/>  
         <control type="label" label="Artículo Comprado" span="2"/>
         <control type="buttongroup" name="StockedItemIndicator"
           span="2"

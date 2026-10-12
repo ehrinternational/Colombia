@@ -1,6 +1,6 @@
 <partial>
   <!-- Billing payer claims modal -->
-  <section type="tabmodal" title="Convenios de la Atención" name="mdlNewClaims" badge="none" >
+  <section type="tabmodal" title="Convenios de la Atención" name="mdlNewClaims" badge="none" size="medium">
     <group showif="never">
       <row>
         <!-- get a payer claim and display -->
@@ -9,7 +9,7 @@
           datarequest="GetPayerClaimByClaimGuid"
           appendrequest="ClaimGuid=[ClaimGuid]"
           inject="NewClaimsInfo"
-          provoke="Clm_PayerGuid"/>
+          provoke="Clm_PayerGuid,ClaimButtonGroupSelect"/>
         <control type="button" name="btnEnableButtons" action="trigger" 
           enable="btnInsertPayerDIANInvoice"/>
         <!-- store recalculated -->
@@ -55,13 +55,22 @@
               <control name="Clm_ClaimAuthorization" type="text" span="3" edit="true" 
                 required="[Pld_RequiresAuthorization]=True"/>
               <control type="label" span="3" label="Fecha de Autorización"/>
-              <control name="Pl3_AthorizationDate" type="date" span="3" edit="true" 
+              <control name="Clm_AuthorizationDate" type="date" span="3" edit="true" 
                 required="[Pld_RequiresAuthorization]=True"/>
+            </row>
+            <row> 
+               <control type="label" label="Cuota" span="3"/>
+              <control type="text" name="Clm_CoPay" format="0,000" span="2" edit="[Clm_Status]=Pending"/>
+              <control type="label" label="Coaseguro" span="2" badge="%"/>
+              <control type="text" name="Clm_CoInsurance" format="0.00" default="0.00" edit="[Clm_Status]=Pending" span="2"/>
+              <control type="label" label="Copago" span="1"/>
+              <control type="text" name="Clm_MedicalCoInsurance" format="0,000" span="2" edit="[Clm_Status]=Pending"/>
             </row>
           </subset>
         </column>
         <column span="2">
           <subset>
+          <!--  Insert a new payer claim -->
           <row>
             <control type="button" name="btnInsertNewPayerClaim" span="12" label="Continuar" 
               icon="cloud-upload" action="save" color="green"
@@ -85,62 +94,35 @@
               appendupdate="ClaimGuid=[ClaimGuid]"/>
           </row>
           <row>
+            <!-- Recalculate a payer claim prior to creating a DIAN invoice -->
             <control type="button" span="12" name="btnRecalculatePayerClaim" icon="refresh" label="Recalcular"
               reveal="[ClaimGuid]!+[Clm_Status]=Pending"
               action="save"
               acctsvc="true"
-              capture="NewClaimsInfo"
+              capture="NewClaimsInfo|active"
               affector="ClaimGuid"
               setaffector="ClaimGuid"
               dataupdate="UpdatePayerClaim"
               appendupdate="ClaimGuid=[ClaimGuid]"
-              provoke="btnLiquidateClaim"/>
+              provoke="btnLiquidatePayerClaim"/>
            </row>
           <row showif="never">
-            <!-- Liquidate surgeries -->
-            <control type="button" name="btnLiquidateClaim"
-              action="save" 
+            <!-- Liquidate payer claim charges -->
+            <control type="button" name="btnLiquidatePayerClaim" action="save" 
               acctsvc="true"
-              datainsert="COLLiquidateSurgeries"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              provoke="btnLiquidateProceduresClaim"/>
-            <!-- Liquidate procedures -->
-            <control type="button" name="btnLiquidateProceduresClaim"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateProcedures"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              provoke="btnLiquidateDiagnosticsClaim"/>
-            <!-- Liquidate diagnostics -->
-            <control type="button" name="btnLiquidateDiagnosticseClaim"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateDiagnostics"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              provoke="btnLiquidateRoomChargesClaim"/>
-            <!-- Liquidate room charges -->
-            <control type="button" name="btnLiquidateRoomChargesClaim"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateRoomCharges"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              provoke="btnLiquidateMedicationsClaim"/>
-              <!-- Liquidate medications -->
-            <control type="button" name="btnLiquidateMedicationsClaim"
-              action="save" 
-              acctsvc="true"
-              datainsert="COLLiquidateMedications"
-              appendinsert="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              provoke="btnScrubPatientInvoiceClaim"/>
-            <!-- Scrub patient invoice -->
-            <control type="hidden" name="btnScrubPatientInvoiceClaim" 
+              dataupdate="COLLiquidateClaim"
+              appendupdate="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
+              provoke="btnScrubClaimInvoice"/>
+            <!-- Scrub this claim invoice -->
+            <control type="hidden" name="btnScrubClaimInvoice" 
               acctsvcreq="true"
               datarequest="COLInvoiceScrubber"
               appendrequest="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              set="[btnScrubPatientInvoice]=;ClaimCalculated=True"
-              provoke="Charges_grdNewPatientCharges|active,[btnScrubPatientInvoice]!;btnDisplayInvoiceErrors"/>
-            <control type="button" name="btnDisplayInvoiceErrors" action="redirect" target="mdlInvoiceErrors"
-              preset="[dsp_ClaimGuid]=Patient,[dsp_PatientVisit]=[VisitSelect]" trigger="grdDisplayErrors"/>
+              set="[btnScrubClaimInvoice]=;[Clm_Recalculated]=True"
+              provoke="[btnScrubClaimInvoice]!;btnDisplayClaimErrors^Clm_grdNewPatientCharges"/>
+            <!-- button to display patient invoice errors when the scrubber returns values -->
+            <control type="button" name="btnDisplayClaimErrors" action="redirect" target="mdlDisplayInvoiceErrors"
+              preset="[hidTargetClaimGuid]=[ClaimGuid]" trigger="grdInvoiceErrors"/>
           </row>
           <!-- Insert a DIAN invoice for Colombia facilities -->
           <row>
@@ -148,10 +130,10 @@
               icon="cloud-upload" label="Procesar" color="yellowgreen"
               reveal="{[Clm_Status]=Pending+[Clm_Recalculated]=true+[ClaimGuid]!+[Clm_PayerNetAmount]»0}"
               action="trigger"
-              provoke="btnCompleteDIANInvoice"/>
+              provoke="btnCompleteDIANClaimInvoice"/>
           </row>
           <row showif="never">
-            <control type="button" name="btnCompleteDIANInvoice"
+            <control type="button" name="btnCompleteDIANClaimInvoice"
               disable="btnInsertPayerDIANInvoice"
               action="save"
               affector="none"
@@ -176,7 +158,7 @@
           <row>
             <control type="button" name="btnCancelClaim" span="12"
               label="Cancelar" icon="remove" action="save|close|new" color="red"
-              reveal="[ClaimGuid]!+[Clm_Status]=Pending+[NetAmountTotal]=0"
+              reveal="[ClaimGuid]!+[Clm_Status]=Pending+[Clm_NetTotal]=0"
               acctsvc="true" 
               confirm="Confirme que desea cancelar este Convenio de la Atención."
               dataupdate="UpdatePayerClaim"
@@ -204,24 +186,22 @@
           <!-- Claim related tables -->
           <subset name="subClaimTotals" bgcolor="white" reveal="[FileName]=PatientBilling">
             <row>
-              <control type="label" label="Cargos" span="2"/>
-              <control type="calc" name="Clm_ChargeTotal" format="0,000" span="2" source="1*Clm_TotalChargeAmountTotal"/>
-              <control type="label" label="Impuesto" span="2"/>
-              <control type="calc" name="Clm_TaxTotal" format="0,000" span="2" source="1*Clm_TaxAmountTotal"/>
-              <control type="label" label="Neto" span="2"/>
-              <control type="calc" name="Clm_NetTotal" format="0,000" span="2" source="1*Clm_NetAmountTotal"/>
+              <control type="label" label="Cargos" span="2" offset="2" align="left"/>
+              <control type="label" label="Descuento" span="2" align="left"/>
+              <control type="label" label="Subtotal" span="2" align="left"/>
+              <control type="label" label="Impuesto" span="2" align="left"/>
+              <control type="label" label="Neto" span="2" align="left"/>
             </row>
-            <row> 
-               <control type="label" label="Cuota" span="2"/>
-              <control type="text" name="Clm_Copay" format="0,000" span="2"/>
-              <control type="label" label="Coaseguro" span="2" badge="%"/>
-              <control type="text" name="Clm_CoInsurance" format="0.00" default="0.00" edit="true" span="2"/>
-              <control type="label" label="Copago" span="2"/>
-              <control type="text" name="Clm_MedicalCoinsurance" format="0,000" span="2" readonly="true"/>
+            <row>
+              <control type="calc" name="Clm_ChargeTotal" format="0,000" span="2" source="1*Clm_TotalChargeAmountTotal" offset="2"/>
+              <control type="calc" name="Clm_DiscountTotal" format="0,000" span="2" source="1*Clm_DiscountAmountTotal"/>
+              <control type="calc" name="Clm_SubTotal" format="0,000" span="2" source="Clm_TotalChargeAmountTotal-Clm_DiscountAmountTotal"/>
+              <control type="calc" name="Clm_TaxTotal" format="0,000" span="2" source="1*Clm_TaxAmountTotal"/>
+              <control type="calc" name="Clm_NetTotal" format="0,000" span="2" source="1*Clm_NetAmountTotal"/>
             </row>
            <row>
             <control type="label" label="Reducciones" span="2"/>
-            <control type="calc" name="Clm_TotalReductions" span="2" format="0,000" source="Clm_Copay+Clm_MedicalCoinsurance" />
+            <control type="calc" name="Clm_TotalReductions" span="2" format="0,000" source="Clm_CoPay+Clm_MedicalCoInsurance" />
             <control type="label" label="Cobertura Pagador" span="2"/>
             <control type="text" name="Clm_PayerCoverageAmount" span="2" format="0,000" readonly="true"/>
             <control type="label" label="Total a Pagar" span="2"/>

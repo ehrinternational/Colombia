@@ -1,19 +1,24 @@
 <partial>
-    <control type="datagrid" label="Cargos del Paciente" name="Clm_grdNewPatientCharges" rows="10"     
-      searchable="true"                          
-      option="Charges"
+    <control type="datagrid" label="Cargos del Convenio" name="Clm_grdNewPatientCharges" rows="10"     
+      searchable="true" option="Charges" action="redirect" target="mdlNewPatientCharge"
       acctsvcreq="true" 
       idle="[VisitSelect]=|reset"
       filter="Status=Active"
       datarequest="GetChargesByPatientVisit"     
       appendrequest="patientVisit=[VisitSelect],ClaimGuid=[ClaimGuid]"     
-      source="TransactionDateTime,ChargeNumber,ItemName,TransactionQuantity,PerItemChargeAmount,DiscountAmount,TaxableAmount,TaxAmount,Retention,NetAmount"
-      sourcelabels="Fecha,Folio,Artículo,Cantidad,Precio,Descuento,Gravable,Impuesto,Retención,Total"
-      translate="Status"
+      source="TransactionDateTime,TransactionType,ChargeNumber,ItemName,TransactionQuantity,PerItemChargeAmount,TotalChargeAmount,DiscountAmount,TaxAmount,NetAmount"
+      sourcelabels="Fecha,Tipo,Folio,Artículo,Cantidad,Precio,Gross,Descuento,Impuesto,Neto"
+      translate="TransactionType"
       sort="TransactionDateTime=desc"
-      format="datetime|||0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00|0,000.00"
-      align="left|left|left|right|right|right|right|right|right|right"
-      total="|||||+|+|+|+|+|+"
-      key="TransactionGuid">
+      format="datetime||||0,000.00|0,000|0,000|0,000|0,000|0,000"
+      align="left|left|left|left|right|right|right|right|right|right"
+      total="||||||+|+|+|+"
+      key="TransactionGuid"
+      onselectset="NewChargeGuid=[[TransactionGuid]]"
+      onselect="NewChargeGuid,Ncg_SelectClaimGuid">
+    <control type="button" name="btnNewClaimCharge" icon="plus" label="Añadir Nuevo"
+      trigger="Ncg_SelectClaimGuid"
+      preset="Ncg_SelectClaimGuid=[ClaimGuid]"
+      action="redirect" target="mdlNewPatientCharge"/>
     </control>     
 </partial>

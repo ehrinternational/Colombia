@@ -27,9 +27,9 @@
         provoke="DianInvoiceList"/>
 
       <!-- Load the original DIAN Invoice Header -->
-      <control type="hidden" name="DianInvoiceGuid"
+      <control type="hidden" name="DianCreditGuid"
         datarequest="COLGetDIANInvoices"
-        appendrequest="InvoiceGuid=[DianInvoiceGuid]" 
+        appendrequest="InvoiceGuid=[DianCreditGuid]" 
         inject="grpCreditNoteHeaderInfo"
         provoke="grdCreditNoteLines"/>
     </group>
