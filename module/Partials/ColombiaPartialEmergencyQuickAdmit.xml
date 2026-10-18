@@ -52,7 +52,7 @@
           sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
       </row>
       <row>
-        <control type="label" label="Numero Documento" span="3"/>
+        <control type="label" label="Número Documento" span="3"/>
         <control type="text" name="Emr0_PtSSN" span="3" readonly="true"
           reveal="[Emr_PrimaryIdNumber]=SI|"/>
         <control type="text" name="Emr1_PtSSN" span="3"  tooltip="11 caracteres alfanuméricos"

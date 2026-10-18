@@ -3,7 +3,7 @@
       searchable="true" option="Charges" action="redirect" target="mdlNewPatientCharge"
       acctsvcreq="true" 
       idle="[VisitSelect]=|reset"
-      filter="Status=Active"
+      filter="Status=Active,TransactionGuid!"
       datarequest="GetChargesByPatientVisit"     
       appendrequest="patientVisit=[VisitSelect],ClaimGuid=[ClaimGuid]"     
       source="TransactionDateTime,TransactionType,ChargeNumber,ItemName,TransactionQuantity,PerItemChargeAmount,TotalChargeAmount,DiscountAmount,TaxAmount,NetAmount"

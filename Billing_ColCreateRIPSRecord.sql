@@ -105,14 +105,19 @@ BEGIN
                 ELSE 'I'
             END, 
             ISNULL(adx.MunicipalityCode, '11001'), 
-            ISNULL(adx.ResidencyZone, 'U') 
+            ISNULL(adx.ResidencyZone, '01') -- Default to Urbana
         FROM ClinicalGeniusEhr.dbo.PatientVisits pv WITH(NOLOCK)
         INNER JOIN ClinicalGeniusEhr.dbo.PatientTable pt WITH(NOLOCK)
             ON pt.RecordUniqueId = pv.PatientId
         OUTER APPLY
             (SELECT TOP 1 
                 ISNULL(adr.BarangayCode,'') AS MunicipalityCode,
-                ISNULL(adr.County,'U') AS ResidencyZone
+                -- Map the legacy/text county fields strictly to RIPS 01 (Urbana) or 02 (Rural)
+                CASE 
+                    WHEN adr.County IN ('Urbana', 'U', '1', '01') THEN '01'
+                    WHEN adr.County IN ('Rural', 'R', '2', '02') THEN '02'
+                    ELSE '01' 
+                END AS ResidencyZone
              FROM ClinicalGeniusEhr.dbo.PatientAddresses adr WITH(NOLOCK)
              WHERE adr.Patientid = pv.PatientId
                AND adr.Active = 1
@@ -136,14 +141,15 @@ BEGIN
         -- 3. Deconstruct and stage active items into the unified services array
         INSERT INTO ClinicalGeniusSupplyChain.dbo.RipsServicios (
             RipsGuid, TransactionGuid, SurgeryGuid, ServiceCategory, ModalidadPago, CodServicio, Cantidad, 
-            ValorUnitario, ValorTotal, ConceptoRecaudo, ValorCuota, FechaPrestacion, DiagnosticoPrincipal
+            ValorUnitario, ValorTotal, ConceptoRecaudo, ValorCuota, FechaPrestacion, DiagnosticoPrincipal,
+            ViaIngresoServicioSalud, CausaMotivoAtencion, ModalidadGrupoServicioTecSal, FinalidadTecnologiaSalud, CodPrestadorRemitente
         )
         SELECT 
             @RipsGuid,
             pt.TransactionGuid,
             pt.SurgeryGuid, 
             CASE 
-                WHEN pt.TransactionType IN ('Surgery', 'Procedure', 'BundleMaster', 'Honorary', 'RoomRights') THEN 'Procedimientos'
+                WHEN pt.TransactionType IN ('Surgery', 'Procedure', 'BundleMaster', 'Honorary', 'RoomRights' ,'Materials') THEN 'Procedimientos'
                 WHEN pt.TransactionType = 'Medication' THEN 'Medicamentos'
                 WHEN pt.TransactionType = 'Stay' THEN 'Stay' 
                 WHEN pt.TransactionType = 'Supplies' THEN 'Insumos'
@@ -163,26 +169,17 @@ BEGIN
             '05' AS ConceptoRecaudo, 
             0.00, 
             pt.ExternalProcessedDateTime,
-            @ResolvedPrincipalDiagnosis AS DiagnosticoPrincipal
+            @ResolvedPrincipalDiagnosis AS DiagnosticoPrincipal,
+            -- Map the newly added XML Visit Variables
+            ISNULL(pv.mdlAdmit_ArrivedByCode, '01') AS ViaIngresoServicioSalud,
+            ISNULL(pv.mdlAdmit_AdmissionType, '34') AS CausaMotivoAtencion,
+            ISNULL(pv.mdlAdmit_DRGCode, '01') AS ModalidadGrupoServicioTecSal,
+            ISNULL(pv.mdlAdmit_AmbulanceID, '10') AS FinalidadTecnologiaSalud,
+            th.REPSCode AS CodPrestadorRemitente
         FROM ClinicalGeniusSupplyChain.dbo.PatientTransactions pt WITH(NOLOCK)
-        WHERE pt.PatientVisit = @PatientVisit
-          AND pt.Status = 'Active'
-          AND pt.Facility = @FacilityId 
-          AND ((@ClaimGuid IS NULL AND pt.ClaimGuid IS NULL) OR (@ClaimGuid IS NOT NULL AND pt.ClaimGuid = @ClaimGuid));
-
-        COMMIT TRAN;
-
-        SELECT @RipsGuid AS HydratedRipsGuid, @InvoiceNumber AS TargetInvoiceNumber, @ResolvedPrincipalDiagnosis AS AppliedDiagnosticCode;
-
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
-        
-        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE(),
-                @ErrorSeverity INT = ERROR_SEVERITY(),
-                @ErrorState INT = ERROR_STATE();
-                
-        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
-    END CATCH
-END;
-GO
+        INNER JOIN ClinicalGeniusEhr.dbo.PatientVisits pv WITH(NOLOCK)
+            ON pv.PatientVisitUniqueId = pt.PatientVisit
+        -- Join the TransferHospitals table to translate the front-end GUID to the 12-digit REPS code
+        LEFT JOIN ClinicalGeniusEhr.dbo.TransferHospitals th WITH(NOLOCK)
+            ON th.TransferHospitalGuid = pv.mdlAdmit_FacilityTransferredFrom
+        WHERE pt.

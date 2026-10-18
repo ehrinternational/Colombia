@@ -1,13 +1,12 @@
 USE [ClinicalGeniusSupplyChain]
 GO
 
-/****** Object:  StoredProcedure [odata].[COLLiquidateClaim]    Script Date: 11/10/2026 7:36:49 PM ******/
+/****** Object:  StoredProcedure [odata].[COLLiquidateClaim]    Script Date: 14/10/2026 10:03:01 AM ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
-
 
 ALTER PROCEDURE [odata].[COLLiquidateClaim]
     @PatientVisit    NVARCHAR(50),
@@ -77,8 +76,7 @@ BEGIN
             @PriorVisitLiability     DECIMAL(18,2)  = 0.00,
             @CurrentClaimLiability   DECIMAL(18,2)  = 0.00,
             @AvailableCapSpace       DECIMAL(18,2)  = 0.00,
-            @CopayYearOfService      INT,
-            @CopayAuditStatus        NVARCHAR(200)  = NULL;
+            @CopayYearOfService      INT;
 
     -- (Scrubber) Context
     DECLARE @PatientSex VARCHAR(20),
@@ -191,7 +189,10 @@ BEGIN
         ExpandedStayDays AS (
             SELECT 
                 ba.BedAssignmentGuid AS StayGuid,
+                ba.EnteredBy,
+                ba.DateTimeEntered,
                 ba.PatientVisit,
+                r.RoomAndBedNumber,
                 r.OpenErpBedId AS BedCategoryCode,   
                 @FacilityId AS FacilityId,
                 @VisitDiagnosis AS DiagnosisCode,
@@ -216,8 +217,11 @@ BEGIN
         DeduplicatedStayDays AS (
             SELECT 
                 StayGuid,
+                EnteredBy,
+                DateTimeEntered,
                 PatientVisit,
                 BedCategoryCode,
+                RoomAndBedNumber,
                 FacilityId,
                 DiagnosisCode,
                 StayCalendarDate,
@@ -318,8 +322,8 @@ BEGIN
                 CAST(
                     CASE 
                         WHEN c.IsStayAbsorbedByBundle = 1 THEN 0.00
-                        WHEN @ResolvedManual LIKE 'ISS%' THEN (c.RoomCatalogUnits * c.BaseCalculatedValue)
-                        ELSE (c.RoomCatalogUnits * c.BaseCalculatedValue * c.UnitMonetaryValue)
+                        WHEN @ResolvedManual LIKE 'ISS%' THEN (ISNULL(c.RoomCatalogUnits, 0.00) * c.BaseCalculatedValue)
+                        ELSE (ISNULL(c.RoomCatalogUnits, 0.00) * c.BaseCalculatedValue * c.UnitMonetaryValue)
                     END AS DECIMAL(18,2)
                 ) AS DayLineNetAmount
             FROM CalculatedStayDays c
@@ -330,7 +334,8 @@ BEGIN
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status]
+            PerItemChargeAmount, [Status],TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId, 
@@ -374,7 +379,21 @@ BEGIN
                     WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.DayLineNetAmount * 0.19, -2) 
                     ELSE 0.00 
                 END, -2) AS PerItemChargeAmount, 
-            'Active' AS [Status]
+            'Active' AS [Status],
+            NEWID(),
+            'Día',
+            'Hospital Stay',
+            NULL,
+            'Hospital Stay',
+            f.BedCategoryCode,
+            NULL,
+            NULL,
+            f.EnteredBy,
+            f.DateTimeEntered,
+            CASE WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0, --Discount Rate
+            f.RoomAndBedNumber,
+            f.DayLineNetAmount
         FROM FinalStayLiquidationLines f;
 
 
@@ -407,7 +426,7 @@ BEGIN
             LastUpdatedBy = 'PricingEngine_Diagnostics'
         WHERE PatientVisit = @PatientVisit
           AND Facility = @FacilityId
-          AND TransactionType = 'Diagnostics'
+          AND TransactionType in ('Laboratory','Imaging')
           AND SurgeryGuid IS NULL
           AND Status = 'Active' 
           AND (
@@ -419,11 +438,13 @@ BEGIN
         ;WITH CompletedLabPanels AS (
             SELECT 
                 lto.OrderGuid,
-                lto.CPTCode AS PanelCupsCode,      
+                lap.CPTCode AS PanelCupsCode,      
                 lto.CPTDescription AS PanelDescription,
                 lto.PatientVisit,
                 lto.Facility AS FacilityId,
-                ISNULL(lto.DateTimeDrawn, lto.DateTimeORdered) AS CompletionDate, 
+                lto.EnteredBy,
+                lto.DateTimeOrdered,
+                ISNULL(lto.DateTimeDrawn, lto.DateTimeOrdered) AS CompletionDate, 
                 YEAR(ISNULL(lto.DateTimeDrawn, lto.DateTimeORdered)) AS YearOfService,
                 ISNULL(amx.Ambity, '02') AS Ambity, 
                 @ResolvedClaimGuid AS ResolvedClaimGuid,
@@ -456,6 +477,8 @@ BEGIN
                     END AS BIT
                 ) AS IsLabAbsorbedByBundle
             FROM ClinicalGeniusEhr.dbo.LabTestOrders lto WITH(NOLOCK)
+            INNER JOIN ClinicalGeniusEhr.dbo.LabPanels lap WITH(NOLOCK)
+                ON lap.LabPanelGuid = lto.CPTCode
             LEFT JOIN #ColombianHolidays h 
                 ON h.HolidayDate = CAST(ISNULL(lto.DateTimeUpdated, lto.DateTimeOrdered) AS DATE)
             OUTER APPLY (
@@ -478,9 +501,11 @@ BEGIN
         LabLinesWithTariffs AS (
             SELECT 
                 cl.*,
+                -- Add explicit SOAT routing and TRY_CAST for fractional precision
                 CASE 
+                    WHEN cl.ResolvedManual = 'SOAT' THEN TRY_CAST(mvx.SOATValue AS DECIMAL(18,4))
                     WHEN cl.ResolvedManual = 'ISS_2001' THEN ISNULL(mvx.ISS2001Value, CAST(mvx.ISS2001UVR AS DECIMAL(18,2)))
-                    ELSE mvx.SOATValue 
+                    ELSE 0.00 
                 END AS CatalogValue,
                 CASE 
                     WHEN cl.ResolvedManual = 'ISS_2001' THEN mvx.ISS2001Article
@@ -545,7 +570,7 @@ BEGIN
             ) up
             WHERE e.ExceptionPriorityRank = 1
         ),
-        FinalLabLiquidation AS (
+       FinalLabLiquidation AS (
             SELECT 
                 c.*,
                 CAST(
@@ -553,7 +578,8 @@ BEGIN
                         WHEN c.NoBill = 1 THEN 0.00
                         WHEN c.IsLabAbsorbedByBundle = 1 THEN 0.00
                         WHEN c.ExceptionRanking IN (3, 5, 7, 8) THEN c.ExceptionPriceValue * c.ShiftMultiplier
-                        ELSE (c.CatalogValue * c.ShiftMultiplier * c.BaseCalculatedValue * c.UnitMonetaryValue)
+                        -- Insert the ISNULL here to prevent NULL propagation
+                        ELSE (ISNULL(c.CatalogValue, 0.00) * c.ShiftMultiplier * c.BaseCalculatedValue * c.UnitMonetaryValue)
                     END AS DECIMAL(18,2)
                 ) AS PanelLineNetAmount
             FROM CalculatedLabLines c
@@ -564,7 +590,8 @@ BEGIN
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status]
+            PerItemChargeAmount, [Status],TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId, 
@@ -608,7 +635,21 @@ BEGIN
                     WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.PanelLineNetAmount * 0.19, -2) 
                     ELSE 0.00 
                 END, -2) AS PerItemChargeAmount,
-            CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status]
+            CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status],
+            NEWID(),
+            'Laboratorio',
+            NULL,
+            NULL, --ItemMasterGuid??,
+            f.PanelDescription,
+            f.PanelCupsCode,
+            NULL, --Type??
+            NULL, --Category??,
+            f.EnteredBy,
+            f.DateTimeOrdered,
+            CASE WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0,
+            f.PanelDescription,
+            f.PanelLineNetAmount
         FROM FinalLabLiquidation f;
 
         -- 2.5 SUB-PILLAR 2: Diagnostic Imaging Services
@@ -618,6 +659,8 @@ BEGIN
                 ioi.CPTCode AS ImagingCupsCode,       
                 img.ImagingOrderDescription AS ImagingDescription,
                 img.PatientVisit,
+                img.EnteredBy,
+                img.DateTimeEntered,
                 img.Facility AS FacilityId,
                 ISNULL(img.DateTimeUpdated, img.DateTimeEntered) AS CompletionDate, 
                 YEAR(ISNULL(img.DateTimeUpdated, img.DateTimeEntered)) AS YearOfService,
@@ -679,9 +722,11 @@ BEGIN
         ImagingLinesWithTariffs AS (
             SELECT 
                 io.*,
+                -- FIX: Explicit SOAT routing, decimal casting for fractional tariffs, and 0.00 fallback
                 CASE 
+                    WHEN io.ResolvedManual = 'SOAT'     THEN TRY_CAST(mvx.SOATValue AS DECIMAL(18,4))
                     WHEN io.ResolvedManual = 'ISS_2001' THEN ISNULL(mvx.ISS2001Value, CAST(mvx.ISS2001UVR AS DECIMAL(18,2)))
-                    ELSE mvx.SOATValue 
+                    ELSE 0.00 
                 END AS CatalogValue,
                 CASE 
                     WHEN io.ResolvedManual = 'ISS_2001' THEN mvx.ISS2001Article
@@ -758,7 +803,8 @@ BEGIN
                         WHEN c.NoBill = 1 THEN 0.00
                         WHEN c.IsImagingAbsorbedByBundle = 1 THEN 0.00
                         WHEN c.ExceptionRanking IN (3, 5, 7, 8) THEN c.ExceptionPriceValue * c.ShiftMultiplier
-                        ELSE (c.CatalogValue * c.ShiftMultiplier * c.BaseCalculatedValue * c.UnitMonetaryValue) * 
+                        -- FIX: ISNULL applied to CatalogValue to halt NULL propagation
+                        ELSE (ISNULL(c.CatalogValue, 0.00) * c.ShiftMultiplier * c.BaseCalculatedValue * c.UnitMonetaryValue) * 
                             CASE WHEN c.DailyImageRank > 1 THEN 0.75 ELSE 1.00 END -- Multiple Image Discount
                     END AS DECIMAL(18,2)
                 ) AS ImagingLineNetAmount
@@ -770,7 +816,8 @@ BEGIN
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status]
+            PerItemChargeAmount, [Status],TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId, 
@@ -814,7 +861,21 @@ BEGIN
                     WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.ImagingLineNetAmount * 0.19, -2) 
                     ELSE 0.00 
                 END, -2) AS PerItemChargeAmount,
-            CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status]
+            CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status],
+            NEWID(),
+            'Imagen',
+            NULL,
+            NULL, --ItemMasterGuid??,
+            f.ImagingDescription,
+            f.ImagingCupsCode,
+            NULL, --Type??
+            NULL, --Category??,
+            f.EnteredBy,
+            f.DateTimeEntered,
+            CASE WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0,
+            f.ImagingDescription,
+            f.ImagingLineNetAmount
         FROM FinalImagingLiquidation f;
 
 
@@ -852,7 +913,14 @@ BEGIN
                 mar.MedSchedGuid,
                 mar.PatientId, 
                 mar.PatientVisit, 
-                itm.ItemNumber, 
+                mar.AdministeredBy,
+                itm.ItemNumber AS MedicationCode,
+                itm.ItemMasterGuid,
+                itm.ItemName,
+                itm.Cost,
+                itm.Type,
+                itm.Category,
+                itm.ItemDescription,
                 mar.MedicationName, 
                 mar.ActualDoseGiven, 
                 mar.QuantityUnit, 
@@ -953,7 +1021,8 @@ BEGIN
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status]
+            PerItemChargeAmount, [Status],TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId, 
@@ -997,7 +1066,21 @@ BEGIN
                     WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.MedicationLineTotal * 0.19, -2) 
                     ELSE 0.00 
                 END, -2) AS PerItemChargeAmount, 
-            CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status]
+            CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status],
+            NEWID(),
+            f.QuantityUnit,
+            NULL,
+            f.ItemMasterGuid,
+            f.MedicationName,
+            f.MedicationCode,
+            f.Type,
+            f.Category,
+            f.AdministeredBy,
+            f.TargetDate,
+            CASE WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0, --Discount rate
+            f.MedicationName,
+            f.MedicationLineTotal
         FROM CalculatedMedicationLines f;
 
 
@@ -1030,16 +1113,25 @@ BEGIN
               (@TargetClaimGuid = 'Patient' AND ClaimGuid IS NULL) OR
               (@TargetClaimGuid <> 'Patient' AND ClaimGuid = @TargetClaimGuid)
           );
-
         -- 4.4 Execution Pipeline Matrix
         ;WITH ProcedureList AS (
             SELECT 
                 pp.ProcedureGuid, 
-                pp.PatientVisit,   -- [FIX] required by DailyProcedureRank PARTITION BY (was missing -> invalid column)
-                pp.ProcedureCode, 
+                pp.PatientVisit,
+                ppa.RVSCode as ProcedureCode, 
                 pp.ProcedureDescription, 
+                pp.ProcedureObjective,
                 pp.LaterialityCode, 
                 pp.ServiceGroup,
+                pp.EnteredBy,
+                pp.DateTimeEntered,
+                itm.ItemMasterGuid,
+                itm.ItemName,
+                itm.ItemNumber,
+                itm.Cost,
+                itm.Type,
+                itm.Category,
+                itm.ItemDescription,
                 @ResolvedClaimGuid AS ResolvedClaimGuid,
                 @ResolvedContractGuid AS ResolvedContractGuid,
                 @ResolvedManual AS ResolvedManual,
@@ -1095,8 +1187,12 @@ BEGIN
                     END AS BIT
                 ) AS IsProcedureAbsorbedByBundle
             FROM ClinicalGeniusEhr.dbo.PatientProcedures pp WITH(NOLOCK)
+            INNER JOIN ClinicalGeniusEHR.dbo.PatientProcedureAdministration ppa WITH(NOLOCK)
+                ON ppa.ProcedureGuid = pp.ProcedureCode
             INNER JOIN ClinicalGeniusEhr.dbo.PatientProblemList ppl WITH(NOLOCK)
                 ON ppl.ProblemGuid = pp.IndicationGuid
+            LEFT JOIN ClinicalGeniusSupplyChain.dbo.ItemMaster itm WITH(NOLOCK) 
+                ON itm.ItemMasterGuid = pp.ProcedureCode
             LEFT JOIN #ColombianHolidays h 
                 ON h.HolidayDate = CAST(ISNULL(pp.DateTimeOfProcedure, pp.DateTimeEntered) AS DATE)
             OUTER APPLY (
@@ -1114,7 +1210,7 @@ BEGIN
                     SOATValue, SOATArticle,
                     ISS2001Value, ISS2001UVR, ISS2001Article
                 FROM ClinicalGeniusSupplyChain.dbo.Staging_ManualValues mvl WITH(NOLOCK)
-                WHERE mvl.CUPSCode = pp.ProcedureCode 
+                WHERE mvl.CUPSCode = ppa.RVSCode 
                   AND mvl.YearOfService = YEAR(ISNULL(pp.DateTimeOfProcedure, pp.DateTimeEntered))
                 ORDER BY mvl.RecId DESC
             ) mvx
@@ -1152,14 +1248,10 @@ BEGIN
         ),
         AppliedExceptions AS ( 
             SELECT 
-                ProcedureGuid, PatientVisit, ProcedureCode, ProcedureDescription, LaterialityCode, ServiceGroup, 
-                TargetDate, YearOfService, RowShiftType, ExceptionGuid, CatalogValue, Ambity,
-                ResolvedClaimGuid, ResolvedContractGuid, ResolvedManual, ResolvedAdjustmentPct,
-                DiagnosisCode, IsProcedureAbsorbedByBundle,
-                IsUnbillable, ExceptionRanking,
+                apx.*,
                 ISNULL(ExceptionPriceModifier, 0.00) AS PriceModifier,
                 ISNULL(ExceptionPriceValue, 0.00) AS PriceValue
-            FROM AllMatchingProcedureExceptions
+            FROM AllMatchingProcedureExceptions apx
             WHERE ExceptionPriorityRank = 1 
         ),
         BaseUnits AS (
@@ -1217,7 +1309,8 @@ BEGIN
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status]
+            PerItemChargeAmount, [Status], TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId, 
@@ -1261,7 +1354,21 @@ BEGIN
                     WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN ROUND(f.LineTotal * 0.19, -2) 
                     ELSE 0.00 
                 END, -2) AS PerItemChargeAmount, 
-            CASE WHEN f.IsUnbillable = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status]
+            CASE WHEN f.IsUnbillable = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status],
+            NEWID(),
+            'Unidad',
+            f.ProcedureObjective,
+            f.ItemMasterGuid,
+            f.ProcedureDescription,
+            f.ProcedureCode,
+            f.Type,
+            f.Category,
+            f.EnteredBy,
+            f.DateTimeEntered,
+            CASE WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0,
+            f.ProcedureDescription,
+            f.LineTotal
         FROM CalculatedLines f;
 
 
@@ -1387,7 +1494,12 @@ BEGIN
                 sp.IsPrimary AS IsClinicalPrimary,
                 ISNULL(sp.NoBill, 0) AS NoBill, 
                 YEAR(scx.DateTimePerformed) AS YearOfService,
+                sp.EnteredBy,
                 sp.ProcedureGuid,
+                itm.ItemMasterGuid,
+                itm.Type,
+                itm.Category,
+                pa.ProcedureDescription,
                 actual_prim.PrimaryPerformedCupsCode AS BundleCupsCode,
                 CASE 
                     WHEN scx.ResolvedNightCharges = 0 OR scx.Priority <> 'Urgente' THEN 2
@@ -1400,6 +1512,10 @@ BEGIN
             FROM #SurgeryContext scx
             INNER JOIN ClinicalGeniusSupplyChain.dbo.SurgeryProcedures sp WITH(NOLOCK)
                 ON sp.SurgeryGuid = scx.SurgeryGuid AND sp.Active = 1
+            INNER JOIN ClinicalGeniusSupplyChain.dbo.ItemMaster itm WITH(NOLOCK)
+                ON itm.ItemMasterGuid = sp.ProcedureGuid
+            INNER JOIN ClinicalGeniusEHR.dbo.PatientProcedureAdministration pa WITH(NOLOCK)
+                ON pa.ProcedureGuid = sp.ProcedureGuid
             LEFT JOIN #ColombianHolidays h ON h.HolidayDate = CAST(scx.DateTimePerformed AS DATE)
             OUTER APPLY (
                 SELECT TOP 1 pai_prim.RVSCode AS PrimaryPerformedCupsCode
@@ -1411,14 +1527,14 @@ BEGIN
                 ORDER BY sp_prim.IsPrimary DESC, sp_prim.IncisionNumber ASC
             ) actual_prim
         ),
-        ProceduresWithCodes AS (
+       ProceduresWithCodes AS (
             SELECT 
                 rp.*, 
-                CASE WHEN rp.ResolvedManual = 'SOAT' THEN mvx.SOATValue 
-                     WHEN rp.ResolvedManual = 'ISS_2001' THEN mvx.ISS2001Value
+                CASE WHEN rp.ResolvedManual = 'SOAT' THEN TRY_CAST(mvx.SOATValue AS DECIMAL(18,4)) 
+                     WHEN rp.ResolvedManual = 'ISS_2001' THEN ISNULL(mvx.ISS2001Value, CAST(mvx.ISS2001UVR AS DECIMAL(18,2)))
                      ELSE 0.00 END AS ManualValue,
-                CASE WHEN rp.ResolvedManual = 'SOAT' THEN mvx.SOATValue 
-                     WHEN rp.ResolvedManual = 'ISS_2001' THEN mvx.SOATValue
+                CASE WHEN rp.ResolvedManual = 'SOAT' THEN TRY_CAST(mvx.SOATValue AS INT) 
+                     WHEN rp.ResolvedManual = 'ISS_2001' THEN TRY_CAST(mvx.SOATValue AS INT)
                      ELSE NULL END AS SurgeryGroup,
                 CASE WHEN rp.ResolvedManual = 'SOAT' THEN mvx.SOATArticle 
                      WHEN rp.ResolvedManual = 'ISS_2001' THEN mvx.ISS2001Article
@@ -1643,7 +1759,7 @@ BEGIN
                 f.*,
                 CASE 
                     WHEN f.SubtypeCode = 1 THEN 'Surgeon'
-                    WHEN f.SubtypeCode = 2 THEN 'Anesthesiologist'
+                    WHEN f.SubtypeCode = 2 THEN 'Anesthesia' 
                     WHEN f.SubtypeCode = 3 THEN 'Assistant1'
                     WHEN f.SubtypeCode = 6 THEN 'Assistant2'
                     ELSE NULL 
@@ -1671,12 +1787,13 @@ BEGIN
 
         -- Track A: Individual Surgical Sub-Lines
         INSERT INTO ClinicalGeniusSupplyChain.dbo.PatientTransactions (
-            Facility, PatientId, PatientVisit, TransactionType, ClaimGuid, SurgeryGuid, ContractGuid, 
+            Facility, PatientId, PatientVisit, TransactionType, OrderGuid, ClaimGuid, SurgeryGuid, ContractGuid, 
             ContractExceptionGuid, Ambito, BaseUnitValue, SurgicalComponent, SurgicalGroup, SurgicalApproach, 
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status], ChargeCode, ChargePhysician
+            PerItemChargeAmount, [Status], ChargeCode, ChargePhysician,TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId, 
@@ -1684,9 +1801,11 @@ BEGIN
             @PatientVisit, 
             CASE 
                 WHEN f.SubtypeCode IN (1, 2, 3, 6) THEN 'Honorary'
-                WHEN f.SubtypeCode IN (4, 5) THEN 'RoomRights'
+                WHEN f.SubtypeCode = 4 THEN 'RoomRights'
+                WHEN f.SubtypeCode = 5 THEN 'Materials' 
                 ELSE 'Surgery'
-            END AS TransactionType,       
+            END AS TransactionType,
+            f.SurgeryGuid, --OrderGuid      
             f.ResolvedClaimGuid,                         
             f.SurgeryGuid, 
             f.ResolvedContractGuid, 
@@ -1725,23 +1844,39 @@ BEGIN
                 END, -2) AS PerItemChargeAmount,       
             CASE WHEN f.NoBill = 1 THEN 'Unbillable' ELSE 'Active' END AS [Status],
             f.ResolvedProfessionalType,
-            f.ResolvedProfessionalId
+            f.ResolvedProfessionalId,
+            NEWID(),
+            'Unidad',
+            NULL, --f.ProcedureObjective,
+            f.ProcedureGuid,
+            f.ProcedureDescription,
+            f.CUPSCode,
+            f.Type,
+            f.Category,
+            f.EnteredBy,
+            f.DateTimePerformed,
+            CASE WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0, -- Discount rate
+            f.ProcedureDescription,
+            f.CalculatedLineTotal
         FROM #SurgeryLineItems f;
 
         -- Track B: Bundle Master Header Line
         INSERT INTO ClinicalGeniusSupplyChain.dbo.PatientTransactions (
-            Facility, PatientId, PatientVisit, TransactionType, ClaimGuid, SurgeryGuid, ContractGuid, 
+            Facility, PatientId, PatientVisit, TransactionType, OrderGuid, ClaimGuid, SurgeryGuid, ContractGuid, 
             ContractExceptionGuid, Ambito, BaseUnitValue, SurgicalComponent, SurgicalGroup, SurgicalApproach, 
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status], ChargeCode, ChargePhysician
+            PerItemChargeAmount, [Status], ChargeCode, ChargePhysician,TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId, 
             @PatientId, 
             @PatientVisit, 
             'BundleMaster' AS TransactionType, 
+            f.SurgeryGuid, --OrderGuid
             f.ResolvedClaimGuid, 
             f.SurgeryGuid, 
             f.ResolvedContractGuid, 
@@ -1780,25 +1915,41 @@ BEGIN
                 END, -2) AS PerItemChargeAmount, 
             'Active' AS [Status],
             NULL AS ProfessionalType,
-            NULL AS ProfessionalId
+            NULL AS ProfessionalId,
+            NEWID(),
+            'Unidad',
+            NULL, --f.ProcedureObjective,
+            MAX(f.ProcedureGuid),
+            MAX(f.ProcedureDescription),
+            f.BundleCupsCode,
+            NULL, --f.Type,
+            NULL, --f.Category,
+            MAX(f.EnteredBy),
+            f.DateTimePerformed,
+            CASE WHEN f.DiagnosisCode LIKE '%Z41.1%' OR f.DiagnosisCode LIKE '%Z41.8%' OR f.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0, -- Discount rate
+            MAX(f.ProcedureDescription),
+            f.BundlePrice
         FROM #SurgeryLineItems f
         WHERE f.IsBundle = 1                    
         GROUP BY f.SurgeryGuid, f.BundleCupsCode, f.BundleDescription, f.BundlePrice, f.DateTimePerformed, f.ResolvedClaimGuid, f.ResolvedContractGuid, f.ResolvedManual, f.DiagnosisCode;
 
         -- Track C: Surgery - Apply additional surgery charges
         INSERT INTO ClinicalGeniusSupplyChain.dbo.PatientTransactions (
-            Facility, PatientId, PatientVisit, TransactionType, ClaimGuid, SurgeryGuid, ContractGuid, 
+            Facility, PatientId, PatientVisit, TransactionType, OrderGuid, ClaimGuid, SurgeryGuid, ContractGuid, 
             ContractExceptionGuid, Ambito, BaseUnitValue, SurgicalComponent, SurgicalGroup, SurgicalApproach, 
             SurgicalSequence, ShiftTypeApplied, SurchargeAmount, CupsCode, CUMCode, ExternalProcessedDateTime, 
             DateTimeEntered, RevenueCode, TransactionQuantity, ItemCost, ItemSnomedCode, ItemAlternateCode, LocalAmount, 
             USDBasePrice, USDPerItemChargeAmount, PaymentType, NetAmount, TaxAmount, DiscountAmount, 
-            PerItemChargeAmount, [Status], ChargeCode, ChargePhysician
+            PerItemChargeAmount, [Status], ChargeCode, ChargePhysician,TransactionGuid, UnitOfMeasure, TransactionNote, ItemMasterGuid, ItemName, ItemNumber,
+            [ItemType], ItemCategory, EnteredBy, TransactionDateTime, TaxRate, DiscountRate, ItemDescription, TotalChargeAmount
         )
         SELECT 
             @FacilityId,
             @PatientId,
             @PatientVisit,
-            'Surgery Supplies',          
+            'Supplies',  
+            scx.SurgeryGuid, -- OrderGuid        
             scx.ResolvedClaimGuid,
             scx.SurgeryGuid,
             scx.ResolvedContractGuid,
@@ -1830,7 +1981,21 @@ BEGIN
             calc.NetAmount + calc.TaxAmount, -- Much cleaner calculation
             CASE WHEN ISNULL(sp.NoBill, 0) = 1 THEN 'Unbillable' ELSE 'Active' END,
             NULL, -- Mapped to ChargeCode (was aliased as ProfessionalType)
-            NULL  -- Mapped to ChargePhysician (was aliased as ProfessionalId)
+            NULL,  -- Mapped to ChargePhysician (was aliased as ProfessionalId)
+            NEWID(),
+            'Procedimiento',
+            NULL, --note
+            itm.ItemMasterGuid,
+            itm.ItemName,
+            itm.ItemNumber,
+            itm.Type,
+            itm.Category,
+            sc.EnteredBy,
+            sc.DateTimeEntered,
+            CASE WHEN scx.DiagnosisCode LIKE '%Z41.1%' OR scx.DiagnosisCode LIKE '%Z41.8%' OR scx.DiagnosisCode LIKE '%Z41.9%' THEN 0.19 ELSE 0.00 END, 
+            0,
+            itm.ItemName,
+            calc.NetAmount
         FROM ClinicalGeniusEhr.dbo.SurgeryCharges sc WITH(NOLOCK) 
         INNER JOIN ClinicalGeniusSupplyChain.dbo.SurgeryProcedures sp WITH(NOLOCK)
             ON sp.SurgeryProcedureGuid = sc.SurgeryProcedureGuid
@@ -1851,9 +2016,10 @@ BEGIN
         WHERE sc.Facility = @FacilityId             
         AND sc.Active = 1;
 
-        -- ##########################################################################################
+       -- ##########################################################################################
         -- ##  STAGE 2: CALCULATE COPAY (only applies to a payer claim; 'Patient' has no PayerClaims row)
         -- ##########################################################################################
+
         IF @TargetClaimGuid <> 'Patient'
         BEGIN
             -- Extract patient financial class and admission year based on the visit
@@ -1917,18 +2083,8 @@ BEGIN
                 FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc
                 WHERE pyc.ClaimGuid = @TargetClaimGuid
                   AND pyc.Facility = @FacilityId;
-
-                SET @CopayAuditStatus = 'CLAIM CAPPED: Event limit reached, excess shifted to PayerCoverageAmount';
             END
-            ELSE
-            BEGIN
-                SET @CopayAuditStatus = 'WITHIN LIMITS: Claim liability safely below event cap';
-            END;
         END
-        ELSE
-        BEGIN
-            SET @CopayAuditStatus = 'SKIPPED: Patient responsibility (no payer claim)';
-        END;
 
         -- Liquidation + Copay are committed atomically
         COMMIT TRANSACTION;
@@ -1960,7 +2116,8 @@ BEGIN
         ),
         ScrubberEvaluations AS (
             SELECT 
-                pt.TransactionType,       -- Surgery, Supplies, Diagnostics, etc.
+                pt.TransactionType,       
+                pt.OrderGuid,             -- ADDED: Extracted for UI
                 pt.CupsCode,
                 c.CUPSName AS ItemDescription,
                 pt.TransactionQuantity AS LineQuantity,
@@ -1969,22 +2126,22 @@ BEGIN
                 
                 -- Error 1: Gender Mismatch
                 CASE 
-                    WHEN c.Sexo = 'F' AND @PatientSex = 'Male' THEN 'Gender Mismatch: Female-only procedure billed for a Male patient.'
-                    WHEN c.Sexo = 'M' AND @PatientSex = 'Female' THEN 'Gender Mismatch: Male-only procedure billed for a Female patient.'
+                    WHEN c.Sexo = 'F' AND @PatientSex = 'Male' THEN 'Incoherencia de género: procedimiento exclusivo para mujeres facturado a un paciente varón.'
+                    WHEN c.Sexo = 'M' AND @PatientSex = 'Female' THEN 'Incongruencia de género: procedimiento exclusivo para hombres facturado a una paciente mujer.'
                     ELSE NULL 
                 END AS GenderError,
 
                 -- Error 2: Quantity Limit Exceeded
                 CASE 
-                    WHEN CAST(c.Cant_max AS INT) > 0 AND va.TotalVisitQuantity > CAST(c.Cant_max AS INT) 
-                    THEN CONCAT('Quantity Limit Exceeded: Billed ', va.TotalVisitQuantity, ', but maximum allowed per visit is ', c.Cant_max, '.')
+                    WHEN TRY_CAST(c.Cant_max AS INT) > 0 AND va.TotalVisitQuantity > TRY_CAST(c.Cant_max AS INT) 
+                    THEN CONCAT('Cantidad excedida: Facturado ', va.TotalVisitQuantity, '. El máximo permitido por visita es ', c.Cant_max, '.')
                     ELSE NULL 
                 END AS QuantityError,
-
+                
                 -- Error 3: Missing Required Diagnosis
                 CASE 
                     WHEN c.Dx_requerido = '1' AND pt.ItemSnomedCode IS NULL 
-                    THEN 'Diagnosis Required: This procedure cannot be billed without an associated ICD-10 code.'
+                    THEN 'Diagnóstico requerido: este procedimiento no se puede facturar sin un código ICD-10 asociado.'
                     ELSE NULL 
                 END AS DiagnosisError
 
@@ -2000,18 +2157,17 @@ BEGIN
                   (@TargetClaimGuid <> 'Patient' AND pt.ClaimGuid = @TargetClaimGuid)
               )
         )
-        -- ==========================================================================================
+       -- ==========================================================================================
         -- 4. Return the Defect Queue to the UI (Dan's format)
         -- ==========================================================================================
         SELECT 
+            OrderGuid,               -- ADDED: Returned to UI
             TransactionType,
             CupsCode,
             ItemDescription,
             LineQuantity,
             TotalVisitQuantity,
             DateTimeEntered,
-            -- Same result as CONCAT_WS(' | ', GenderError, QuantityError, DiagnosisError).
-            -- CONCAT_WS does not exist in SQL Server 2014 (it was added in 2017).
             ISNULL(STUFF(
                 ISNULL(' | ' + GenderError, '') +
                 ISNULL(' | ' + QuantityError, '') +
@@ -2022,7 +2178,6 @@ BEGIN
            OR QuantityError IS NOT NULL 
            OR DiagnosisError IS NOT NULL
         ORDER BY DateTimeEntered ASC;
-
 
     END TRY
     BEGIN CATCH

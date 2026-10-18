@@ -47,7 +47,7 @@
         <control type="select" name="Pym_DocumentId" span="3" required="true" edit="true"
           source="SI,CC,CE,PA"
           sourcelabels="SIN IDENTIFICACIÓN,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,PASAPORTE"/>
-         <control type="label" label="Numero Documento" span="3"/>
+         <control type="label" label="Número Documento" span="3"/>
         <control type="text" name="Pym0_IdNumber" span="3" readonly="true"
           reveal="[Pym_DocumentId]=SI|"/>
         <control type="text" name="Pym3_IdNumber" span="3" required="true"  tooltip="10 caracteres numéricos"
@@ -89,7 +89,7 @@
           source="PROFESIONNOMBRE,PROFESIONCODIGO"/>
       </row>
       <row>
-        <control type="label" label="Ocupacion" span="3"/>
+        <control type="label" label="Ocupación" span="3"/>
         <control type="select" name="Pym_UserOccupation" span="9" edit="true"  required="true"
           searchable="true"
           filter="Active=true"

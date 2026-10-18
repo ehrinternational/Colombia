@@ -71,7 +71,8 @@ BEGIN
         FROM ClinicalGeniusSupplyChain.dbo.PatientTransactions WITH(NOLOCK)
         WHERE ClaimGuid = @ClaimGuid
           AND Status = 'Active'
-          AND Facility = @FacilityId;
+          AND Facility = @FacilityId
+          AND PerItemChargeAmount > 0;
 
         -- ==========================================================================================
         -- 3. Extract Copay / Coinsurance to determine DIAN deductions
@@ -137,7 +138,8 @@ BEGIN
         FROM ClinicalGeniusSupplyChain.dbo.PatientTransactions pt WITH(NOLOCK)
         WHERE pt.ClaimGuid = @ClaimGuid 
           AND pt.Status = 'Active'
-          AND pt.Facility = @FacilityId;
+          AND pt.Facility = @FacilityId
+          AND pt.PerItemChargeAmount > 0;
 
         -- Commit early to release write-locks before downstream tasks
         COMMIT TRANSACTION;

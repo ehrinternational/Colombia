@@ -61,7 +61,7 @@
           target="PatientTabModal"
           searchable="true"
           span="12" rows="15"
-          rowcolor="TriageLevel|1=red;2=yellow;3=yellowgreen;4=green"
+          rowcolor="TriageLevel|1=red;2=orange;3=yellow;4=green;5=blue"
           idle="[NurseDepartmentGuidLookup]=|reset"
           acctsvcreq="true"
           datarequest="GetAdmittedPatientsByDepartment"

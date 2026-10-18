@@ -39,7 +39,6 @@
       source="A+,A-,B+,B-,O+,O-,AB+,AB-,Desconoce"
       edit="true"/>
   </row>
-
   <row>
     <control type="label" label="Fecha Nacimiento" span="2" />
     <control type="date" name="Consult_PatientDOB" span="2" required="true" edit="true" compare="≤now"/>
@@ -59,7 +58,7 @@
     <control type="select" name="Consult_PrimaryIdNumber" span="4" required="true" edit="true"
       source="SI,RC,TI,CC,CE,NI,MS,PA,AS,NU,CD,SC,PE,CN,DE,PT"
       sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
-    <control type="label" label="Numero Documento" span="3"/>
+    <control type="label" label="Número Documento" span="3"/>
     <control type="text" name="Consult0_PtSSN" span="3" readonly="true"
       reveal="[Consult_PrimaryIdNumber]=SI|"
       when="[Consult_PrimaryIdNumber]=SI|;"/>
@@ -219,7 +218,7 @@
       when="[Consult_AgeInYears]«16;"/>
   </row>
   <row name="rowOccupation" reveal="FileName%Admitting|Social">
-    <control type="label" label="Ocupacion" span="2"/>
+    <control type="label" label="Ocupación" span="2"/>
     <control type="select" name="Consult_OccupationCode" span="10" edit="[Consult_AgeInYears]»15" required="true"
       searchable="true"
       acctsvc="true"

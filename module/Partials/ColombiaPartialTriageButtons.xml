@@ -1,0 +1,33 @@
+<partial>
+     <row>
+      <control type="button" name="btnTriageCalculation" label="Nivel Triage" color="grey" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]="
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation1" label="Triage Rojo" icon="warning-sign" color="red" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=1"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        trigger="GetTriageFields"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation2" label="Triaje Naranja" icon="edit" color="orange" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=2"
+        trigger="GetTriageFields"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation3" label="Triaje Amarillo" icon="edit" color="yellow" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=3"
+        trigger="GetTriageFields"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation4" label="Triaje Verde" icon="edit" color="green" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=4"
+        trigger="GetTriageFields"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+      <control type="button" name="btnTriageCalculation5" label="Urgencia Sentida" icon="edit" color="blue" span="12" 
+        reveal="[PatientId]!+[PatientVisitGuid]!+[TriageLevel]=5"
+        trigger="GetTriageFields"
+        preset="Triage_PatientId=[PatientId],Triage_PatientVisitGuid=[PatientVisitGuid]"
+        action="redirect" target="mdlTriageCalculation"/>
+    </row>
+</partial>

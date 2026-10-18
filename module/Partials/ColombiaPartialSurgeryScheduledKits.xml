@@ -42,7 +42,7 @@
         <control type="text" name="Ssk_Description" span="5" edit="true" />
       </row>
       <row>
-        <control type="label" label="Numero de Kit" span="3"/>
+        <control type="label" label="Número de Kit" span="3"/>
         <control type="double" name="Ssk_KitNumber" span="2" edit="true" />
         <control type="label" label="Fecha de Esterilización" span="3"/>
         <control type="date" name="Ssk_DateSterilizer" span="2" edit="true" />

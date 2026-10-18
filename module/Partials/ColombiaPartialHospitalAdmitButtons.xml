@@ -31,7 +31,7 @@
       set="PatientId=[PatientSearchResults]"
       provoke="PatientId"/>
   </row>
-  <row name="rowSaveNewPatient" reveal="[PatientSearched]=true">
+  <row name="rowSaveNewPatient">
     <control type="button" name="SaveNewPatientButton" span="12" label="Paciente Nuevo" icon="cloud-upload"
       affector="PatientId"
       setaffector="RecordUniqueId"

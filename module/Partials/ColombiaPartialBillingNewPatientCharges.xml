@@ -87,11 +87,6 @@
             appendrequest="patientVisit=[VisitSelect]"  
             filter="Status!Canceled"/>     
       </row>
-      <row name="rowBillable" reveal="[InvoiceStatus]=Open|Closed+[Ncg_TransactionType]=Procedure|Laboratory|Imaging|Medication|Stay|Surgery|RoomRights|Supplies|Honorary|BundleMaster">
-        <control type="label" label="Facturable" span="3"/>
-        <control type="buttongroup" span="4" name="Ncg_Billable" default="True" required="true"
-            edit="true" source="True,False" sourcelabels="Sí,No"/>     
-      </row>
       <!-- Show all inventory for the location -->
       <row name="rowSourceLocation6" reveal="[NewChargeGuid]=+[Ncg_Inventory]=true">    
         <control type="label" span="3" label="Ubicación"/>
@@ -197,7 +192,6 @@
           affector="none"
           dataupdate="UpdatePatientCharge"
           appendupdate="transactionGuid=[NewChargeGuid],
-            [Ncg_Billable]=False;Status=Canceled,
             [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
             TransactionNote=[Ncg_TransactionNote]"
           provoke="btnUpdatePatientProcedureOrder"/>
@@ -211,7 +205,7 @@
           affector="none"
           dataupdate="UpdatePatientCharge"
           appendupdate="transactionGuid=[NewChargeGuid],
-          [Ncg_Billable]=False;Status=Canceled,
+          
           [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
           TransactionNote=[Ncg_TransactionNote]"
           provoke="btnUpdatePatientLabOrder"/>
@@ -225,7 +219,7 @@
           affector="none"
           dataupdate="UpdatePatientCharge"
           appendupdate="transactionGuid=[NewChargeGuid],
-          [Ncg_Billable]=False;Status=Canceled,
+          
           [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
           TransactionNote=[Ncg_TransactionNote]"
           provoke="btnUpdatePatientImagingOrder"/>
@@ -239,7 +233,7 @@
           affector="none"
           dataupdate="UpdatePatientCharge"
           appendupdate="transactionGuid=[NewChargeGuid],
-          [Ncg_Billable]=False;Status=Canceled,
+          
           [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
           TransactionNote=[Ncg_TransactionNote]"
           provoke="btnUpdatePatientSurgery"/>
@@ -253,7 +247,7 @@
           affector="none"
           dataupdate="UpdatePatientCharge"
           appendupdate="transactionGuid=[NewChargeGuid],
-          [Ncg_Billable]=False;Status=Canceled,
+          
           [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
           TransactionNote=[Ncg_TransactionNote]"
           provoke="btnUpdatePatientBedAssignment"/>
@@ -267,7 +261,7 @@
           affector="none"
           dataupdate="UpdatePatientCharge"
           appendupdate="transactionGuid=[NewChargeGuid],
-          [Ncg_Billable]=False;Status=Canceled,
+          
           [Ncg_SelectClaimGuid]!;ClaimGuid=[Ncg_SelectClaimGuid]^ClaimGuid=Patient,
           TransactionNote=[Ncg_TransactionNote]"
           provoke="btnUpdatePatientMedicationAdministration"/>
@@ -290,28 +284,28 @@
       <row showif="never">
           <control type="button" name="btnUpdatePatientProcedureOrder" action="save|close|new"
             dataupdate="UpdatePatientProcedureSetStatus"
-            appendupdate="ProcedureGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            appendupdate="ProcedureGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid]"
             provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
           <control type="button" name="btnUpdatePatientLabOrder" action="save|close|new"
             dataupdate="UpdateLabOrderStatusByOrderGuid"
-            appendupdate="OrderGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            appendupdate="OrderGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid]"
             provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
           <control type="button" name="btnUpdatePatientImagingOrder" action="save|close|new"
             dataupdate="UpdateImagingOrderStatus"
-            appendupdate="ImagingOrderGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            appendupdate="ImagingOrderGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid]"
             provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
           <control type="button" name="btnUpdatePatientSurgery" action="save|close|new"
             dataupdate="UpdateScheduledSurgeries"
-            appendupdate="SurgeryGuid=[Ncg_SurgeryGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            appendupdate="SurgeryGuid=[Ncg_SurgeryGuid],ClaimGuid=[Ncg_SelectClaimGuid]"
             provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
           <control type="button" name="btnUpdatePatientBedAssignment" action="save|close|new"
             acctsvc="true"
             dataupdate="UpdatePatientBedAssignment"
-            appendupdate="BedAssignmentGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            appendupdate="BedAssignmentGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid]"
             provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
           <control type="button" name="btnUpdatePatientMedicationAdministration" action="save|close|new"
             dataupdate="UpdateMedicationAdministrationRecord"
-            appendupdate="medSchedGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid],[Ncg_Billable]=False;NoBill=1^NoBill=0"
+            appendupdate="medSchedGuid=[Ncg_OrderGuid],ClaimGuid=[Ncg_SelectClaimGuid]"
             provoke="Charges_grdNewPatientCharges,VisitSelect|passive"/>
       </row>
     </group>

@@ -74,7 +74,7 @@
         sourcelabels="1 Diagnóstico, 2 Terapéutico, 3 Preventivo"/>
   </row>
   <row>
-    <control type="label" label="Numero Prescripcion MIPRES" span="3"/>
+    <control type="label" label="Número Prescripcion MIPRES" span="3"/>
     <control type="text" name="Surgery_MIPRESPrescription" span="3" edit="true"/>
   </row>
   <row>

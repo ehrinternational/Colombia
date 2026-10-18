@@ -1,5 +1,6 @@
 <partial>
   <row showif="never">
+    <control type="hidden" name="ArrivalTicketGuid"/>
     <control type="button" name="btnUpdatePatientVisit"
       action="save|close|new"
       affector="PatientVisitGuid"
@@ -9,6 +10,10 @@
       dataupdate="UpdatePatientVisitNoDepartmentTracking"
       appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
       provoke="PatientList"/>
+    <control type="button" name="btnUpdateArrivalTicket"
+      action="save" acctsvc="true"
+      dataupdate="UpdateArrivalTicketStatus"
+      appendupdate="TicketGuid=[ArrivalTicketGuid],QueueStatus=Admitted,UpdatedBy=(userName),PatientVisit=[PatientVisitGuid],PatientId=[PatientId]"/>
   </row>
   <row>
     <!-- Admit patient with no current visit -->
@@ -25,10 +30,9 @@
         patientId=[PatientId],
         visitType=[DefaultAdmitType],
         preAdmit=0,
-        admitDateTime=(dateTimeNow),
         locationId=(facilityData.LocationId)"
       set="HasOpenVisit=true,PatientVisit=[PatientVisitGuid]"
-      provoke="ButtonGroupSelect"/>
+      provoke="ButtonGroupSelect,[ArrivalTicketGuid]!;btnUpdateArrivalTicket"/>
   </row>
   <row>
     <!-- Assign a patient room -->

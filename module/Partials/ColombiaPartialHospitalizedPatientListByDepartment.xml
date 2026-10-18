@@ -1,4 +1,4 @@
-﻿<partial>  
+<partial>  
   <section type="tab" name="tabPatientListByDepartment" title="Pacientes Ingresados">
     <group showif="never">
       <row> 
@@ -52,6 +52,9 @@
             key="RecordUniqueId"
             onselectset="PatientId=[[RecordUniqueId]],PatientVisitGuid=[[PatientVisitId]]"
             onselect="PatientId,PatientVisitGuid,ButtonGroupSelect">
+          <control type="button" name="btnCallPatientFromTicket" color="green" icon="" label="Llamar Pacientes"
+            reveal="[FileName]%Admitting"
+            action="redirect" target="mdlTicketList"/>
            <control type="button" name="btnQuickAdmit" color="red" icon="ambulance" label="Ingresar Urgente"
             reveal="[FileName]%Admitting"
             action="redirect" target="mdlQuickAdmit"/>
@@ -62,6 +65,70 @@
           <control type="button" name="RefreshPatientList" label="Actualizar" icon="refresh" 
               action="trigger" trigger="PatientList"/>
           </control>
+        </row>
+      </group>
+    </section>
+    
+    <section type="tabmodal" name="mdlTicketList" title="Llamar Pacientes" badge="none">
+      <group>
+        <row>
+           <control type="datagrid" label="Llamar Pacientes" name="TicketList"
+            searchable="true"
+            rows="15"
+            acctsvcreq="true"
+            datarequest="GetPatientArrivalTickets"
+            appendrequest="DepartmentGuid=[DepartmentGuidLookup],QueueStatus=Waiting"
+            source="ArrivalDateTime,TicketNumber,DocumentType,DocumentNumber,FirstName,FirstLastName,SecondLastName,DateOfBirth,BiologicalSex"
+            sourcelabels="Llegó,Ticket,Tipo,Número,Nombre,Apellido Paterno, Apellido Materno,Nacimiento,Sexo"
+            align="left|left|left|left|left|left|left|left"
+            format="datetime|||||||date"
+            sort="ArrivalDateTime=asc"
+            key="TicketGuid"
+            onselectset="[[PatientId]]!;PatientId=[[PatientId]],
+              [[PatientId]]=;[Consult_PatientFirstName]=[[FirstName]],
+              [[PatientId]]=;[Consult_PatientMiddleName]=[[FirstLastName]],
+              [[PatientId]]=;[Consult_PatientLastName]=[[SecondLastName]],
+              [[PatientId]]=;[Consult_PatientDOB]=[[DateOfBirth]],
+              [[PatientId]]=+[[BiologicalSex]]=M;[Consult_PatientSex]=Male,
+              [[PatientId]]=+[[BiologicalSex]]=F;[Consult_PatientSex]=Female,
+              [[PatientId]]=+[[BiologicalSex]]=I;[Consult_PatientSex]=Indeterminate,
+              [[PatientId]]=;[Consult_PrimaryIdNumber]=[[DocumentType]],
+              [[PatientId]]=;[Consult0_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult1_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult2_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult3_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult4_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult5_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult6_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult7_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult8_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult9_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult10_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult11_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult12_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult13_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult14_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult15_PtSSN]=[[DocumentNumber]],
+              [[PatientId]]=;[Consult_BloodType]=[[BloodType]],
+              [mdlAdmit_FormId]=[[TicketNumber]],
+              [ArrivalTicketGuid]=[[TicketGuid]]"
+            onselect="[[PatientId]]!;btnOpenPatientTabModal,[[PatientId]]=;btnOpenNewPatientTabModal">
+            
+            <control type="button" name="btnCancelArrivalTicket" label="Cancelar" icon="remove" color="red"
+              reveal="[[QueueStatus]]=Waiting" showif="feature"
+              confirm="Por favor, confirme que desea cancelar este billete de llegada."
+              action="save"
+              provoke="TicketList"
+              acctsvc="true"
+              dataupdate="UpdateArrivalTicketStatus"
+              appendupdate="TicketGuid=[[TicketGuid]],QueueStatus=Canceled,UpdatedBy=(userName)"/>
+              
+            <control type="button" name="btnRefreshTicketList" icon="refresh" label="Actualizar" action="trigger" provoke="TicketList"/>
+            </control>
+        </row>
+        <row showif="never">
+          <control type="button" name="btnOpenPatientTabModal" label="Patient" action="redirect" target="PatientTabModal" trigger="PatientId"/>
+          <control type="button" name="btnOpenNewPatientTabModal" label="No Patient" action="redirect" preset="PatientSearched=true" target="PatientTabModal"/>
         </row>
       </group>
     </section>

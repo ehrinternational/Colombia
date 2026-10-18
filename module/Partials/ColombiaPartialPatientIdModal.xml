@@ -14,7 +14,7 @@
           sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
       </row>
       <row>
-        <control type="label" label="Numero Documento" span="4"/>
+        <control type="label" label="Número Documento" span="4"/>
         <control type="text" name="Id0_IdNumber" span="3" readonly="true"
           reveal="[Id_IdType]=SI|"/>
         <control type="text" name="Id1_IdNumber" span="3" required="true" tooltip="11 caracteres alfanuméricos"

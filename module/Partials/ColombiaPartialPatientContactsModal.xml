@@ -34,7 +34,7 @@
           sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
       </row>
       <row>
-        <control type="label" label="Numero Documento" span="4"/>
+        <control type="label" label="Número Documento" span="4"/>
         <control type="text" name="Contact0_NationalID" span="3" readonly="true"
           reveal="[Contact_ContactTypeCode]=SI|" when="[Contact_ContactTypeCode]=;"/>
         <control type="text" name="Contact1_NationalID" span="3" required="[Contact_PatientGuarantor]=True" tooltip="11 caracteres alfanuméricos"
@@ -89,7 +89,7 @@
           regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"/>
       </row>
       <row>
-        <control type="label" label="Primir Apellido" span="4"/>
+        <control type="label" label="Primer Apellido" span="4"/>
         <control type="text" name="Contact_MiddleName" span="5" required="true" edit="true"
           regex="^[A-Za-zñÑáéíóúÁÉÍÓÚüÜ ]{1,60}$"  />
       </row>

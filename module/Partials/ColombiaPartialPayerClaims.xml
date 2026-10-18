@@ -64,7 +64,7 @@
               <control type="label" label="Coaseguro" span="2" badge="%"/>
               <control type="text" name="Clm_CoInsurance" format="0.00" default="0.00" edit="[Clm_Status]=Pending" span="2"/>
               <control type="label" label="Copago" span="1"/>
-              <control type="text" name="Clm_MedicalCoInsurance" format="0,000" span="2" edit="[Clm_Status]=Pending"/>
+              <control type="text" name="Clm_MedicalCoInsurance" format="0,000" span="2" readonly="true"/>
             </row>
           </subset>
         </column>
@@ -107,40 +107,10 @@
               provoke="btnLiquidatePayerClaim"/>
            </row>
           <row showif="never">
-            <!-- Liquidate payer claim charges -->
-            <control type="button" name="btnLiquidatePayerClaim" action="save" 
-              acctsvc="true"
-              dataupdate="COLLiquidateClaim"
-              appendupdate="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              provoke="btnScrubClaimInvoice"/>
-            <!-- Scrub this claim invoice -->
-            <control type="hidden" name="btnScrubClaimInvoice" 
-              acctsvcreq="true"
-              datarequest="COLInvoiceScrubber"
-              appendrequest="patientVisit=[VisitSelect],TargetClaimGuid=[ClaimGuid]"
-              set="[btnScrubClaimInvoice]=;[Clm_Recalculated]=True"
-              provoke="[btnScrubClaimInvoice]!;btnDisplayClaimErrors^Clm_grdNewPatientCharges"/>
-            <!-- button to display patient invoice errors when the scrubber returns values -->
-            <control type="button" name="btnDisplayClaimErrors" action="redirect" target="mdlDisplayInvoiceErrors"
-              preset="[hidTargetClaimGuid]=[ClaimGuid]" trigger="grdInvoiceErrors"/>
-          </row>
-          <!-- Insert a DIAN invoice for Colombia facilities -->
-          <row>
-            <control type="button" span="12" name="btnInsertPayerDIANInvoice"
-              icon="cloud-upload" label="Procesar" color="yellowgreen"
-              reveal="{[Clm_Status]=Pending+[Clm_Recalculated]=true+[ClaimGuid]!+[Clm_PayerNetAmount]»0}"
-              action="trigger"
-              provoke="btnCompleteDIANClaimInvoice"/>
-          </row>
-          <row showif="never">
-            <control type="button" name="btnCompleteDIANClaimInvoice"
-              disable="btnInsertPayerDIANInvoice"
-              action="save"
-              affector="none"
-              acctsvc="true"
-              datainsert="COLInsertDIANInvoice"
-              appendinsert="PatientVisit=[VisitSelect],ClaimGuid=[ClaimGuid]"
-              set="Clm_Status=Submitted"/>
+            <!-- Liquidate charges for this patient visit -->
+            <control type="button" name="btnLiquidatePayerClaim" action="redirect" target="mdlDisplayInvoiceErrors"
+              preset="[hidTargetClaimGuid]=[ClaimGuid]"
+              trigger="grdInvoiceErrors"/>
           </row>
           <!-- Set the status on a claim to settled -->
           <row>

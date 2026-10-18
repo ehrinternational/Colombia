@@ -10,8 +10,14 @@
     align="left|left|left|left|left|left"
     translate="OrderPriority,OrderStatus"
     format="datetime"
-    sort="Status=asc"
+    sort="OrderStatus=asc"
     key="ImagingOrderGuid">
+  <control type="button" name="btnSetImagingOrderToCompleted" label="Completar" showif="feature"
+    reveal="[[OrderStatus]]=Active"
+    action="save"
+    dataupdate="UpdatePatientImagingOrderSetStatus"
+    appendupdate="ImageOrderGuid=[[ImagingOrderGuid]],OrderStatus=Completed"
+    provoke="ERRadiologyOrders"/>
   <control type="button" 
     name="PrintAllImagingOrders" 
     reveal="[PatientVisitGuid]!"

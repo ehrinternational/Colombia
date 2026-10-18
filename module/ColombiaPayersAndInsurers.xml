@@ -147,7 +147,7 @@
             <control type="select" name="Pyr_DocumentType" span="3" required="true" edit="true"
               source="SI,RC,TI,CC,CE,NI,MS,PA,AS,NU,CD,SC,PE,CN,DE,PT" searchable="true"
               sourcelabels="SIN IDENTIFICACIÓN,REGISTRO CIVIL DE NACIMIENTO,TARJETA DE IDENTIDAD,CEDULA DE CIUDADANIA,CEDULA DE EXTRANJERIA,NIT,MENOR SIN IDENTIFICAR,PASAPORTE,ADULTO SIN IDENTIFICAR,NUIP,CARNÉ DIPLOMÁTICO,SALVOCONDUCTO,PERMISO ESPECIAL PERMANENCIA,CERTIFICADO DE NACIDO VIVO,DOCUMENTO EXTRANJERO,PERMISO PROTECCIÓN TEMPORAL"/>
-            <control type="label" label="Numero Documento" span="3"/>
+            <control type="label" label="Número Documento" span="3"/>
             <control type="text" name="Payer0_DocumentNumber" span="3" readonly="true"
               reveal="[Pyr_DocumentType]=SI|"/>
             <control type="text" name="Payer1_DocumentNumber" span="3" required="true" tooltip="11 caracteres alfanuméricos"
