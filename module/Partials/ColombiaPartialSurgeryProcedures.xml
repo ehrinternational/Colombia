@@ -4,19 +4,21 @@
     <row>
       <control type="datagrid" label="Procedimientos Quirúrgicos" name="dgrSurgeryProcedures"
         span="12" rows="5"
+        edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"
         modalname="mdlSurgeryProcedure"
+        filter="Active=true"
         fitrows="true"
         acctsvcreq="true"
         acctsvc="true"
         datarequest="GetSurgeryProcedures"
+        appendrequest="[FileName]=SurgeryScheduling|SurgeryAdministration;SurgeryGuid=[SurgeryGuid]^SurgeryGuid=[SurgeryViewGuid]"
         datainsert="InsertSurgeryProcedure"
         appendinsert="[FileName]=SurgeryScheduling|SurgeryAdministration;SurgeryGuid=[SurgeryGuid]^SurgeryGuid=[SurgeryViewGuid]"
         dataupdate="UpdateSurgeryProcedure"
-        appendrequest="[FileName]=SurgeryScheduling|SurgeryAdministration;SurgeryGuid=[SurgeryGuid]^SurgeryGuid=[SurgeryViewGuid]"
-        source="Active,IncisionNumber,IsPrimary,ProcedureDescription,SurgeonName,AnesthesiologistName,AssistantName1,AssistantName2"
-        sourcelabels="Activo,Incisión,Principal,Procedimiento,Cirujano,Anestesiólogo,1er Ayudante,2do Ayudante"
-        align="|||left|left|left|left|left"
-        format="boolean||boolean"
+        source="IncisionNumber,IsPrimary,ProcedureDescription,SurgeonName,AnesthesiologistName,Assistant1Name,Assistant2Name"
+        sourcelabels="Incisión,Principal,Procedimiento,Cirujano,Anestesiólogo,1er Ayudante,2do Ayudante"
+        align="right||left|left|left|left|left"
+        format="|boolean"
         sort="ProcedureDescription=asc"
         key="SurgeryProcedureGuid">
       </control>
@@ -24,22 +26,25 @@
   </group>
 </section>
 <!-- Modal to exnter/edit surgery procedures -->
-<section type="modal" name="mdlSurgeryProcedure" title="Procedimientos de Cirugía">
+<section type="modal" name="mdlSurgeryProcedure" title="Procedimientos de Cirugía" provoke="dgrSurgeryProcedures">
     <group>
       <row>
         <control type="label" label="Activo" span="3"/>
         <control type="buttongroup" name="Prc_Active" span="2" default="True" 
-          edit="[Prc_CalcOrdinal]»1" source="True,False" sourcelabels="Sí,No"/>
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process" 
+          source="True,False" sourcelabels="Sí,No"/>
       </row>
       <row>
         <control type="label" label="Número de Incisión" span="3"/>
-        <control type="integer" name="Prc_IncisionNumber" span="2" min="1" max="[Prc_CalcOrdinal]" default="1" 
-          edit="[Prc_CalcOrdinal]»1" required="true"/>
+        <control type="integer" name="Prc_IncisionNumber" span="2" min="1" default="1" 
+          compare="≤[Prc_CalcOrdinal]"
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process" required="true"/>
       </row>
       <row>
         <control type="label" label="Primario" span="3"/>
-        <control type="buttongroup" name="Prc_IsPrimary" span="2" edit="[Prc_CalcOrdinal]»1"
-          source="True,False" sourcelabels="Sí,No" when="[Prc_CalcOrdinal]=1;True"/>
+        <control type="buttongroup" name="Prc_IsPrimary" span="2" 
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"
+          source="True,False" sourcelabels="Sí,No"/>
       </row>
       <row>
         <control type="label" label="Plano" span="3"/>
@@ -47,26 +52,31 @@
           source="1,2,3,4" 
           sourcelabels="1 Izquierdo,2 Derecho,3 Bilateral,4 No Aplica" 
           required="true"
-          edit="[FileName]=SurgeryScheduling|SurgeryDoctor|SurgeryAssistant+[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"/>
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"/>
       </row>
       <row>
         <control type="label" label="Forma Realizacion" span="3"/>
-        <control type="select" name="Prc_SurgeryApproach" span="3" edit="true"
+        <control type="select" name="Prc_SurgeryApproach" span="3" 
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"
           source="1,2,3" required="true"
           sourcelabels="1 Abierto, 2 Laparoscópico/Endoscópico, 3 Percutáneo"/>
       </row>
       <row>
         <control type="label" label="Procedimiento" span="3"/>
-        <control type="typeahead" name="Prc_ProcedureDescription,Prc_ProcedureGuid" span="9" 
-          edit="true"
-          source="ProcedureDescription,ProcedureGuid"
-          datasource="GetProceduresFromProcedureAdministration"
-          term="procedureDescription" required="true"/>
+        <control type="select" name="Prc_ProcedureGuid" span="9" 
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process" searchable="true"
+          namefield="ProcedureDescription"
+          sort="ProcedureDescription"
+          source="RVSCode|ProcedureDescription,ProcedureGuid"
+          acctsvc="true"
+          datasource="GetProcedureAdministrationItemsNamesOnly" 
+          required="true"/>
       </row>
       <row>
         <control type="label" label="Cirujano" span="3"/>
-        <control type="select" name="Prc_SurgeonId" persist="true"
-          searchable="true" required="[Surgery_Posting]=True"
+        <control type="select" name="Prc_SurgeonId" 
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"
+          searchable="true" required="true"
           acctsvc="true" datasource="GetUsersByAttributes" 
           append="LocationId=(facilityData.LocationId),role=Surgeon"
           source="UserFirstMiddleLast,UserId"
@@ -74,9 +84,10 @@
       </row>
       <row>
         <control type="label" label="Anestesiólogo" span="3"/>
-        <control type="select" name="Prc_Anesthesiologist" persist="true"
+        <control type="select" name="Prc_Anesthesiologist"
           namefield="AnesthesiologistName"
-          searchable="true" edit="true"
+          searchable="true" 
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"
           acctsvc="true" datasource="GetUsersByAttributes" 
           append="LocationId=(facilityData.LocationId),role=Anesthesiologist"
           source="UserFirstMiddleLast,UserId"
@@ -84,13 +95,14 @@
       </row>
       <row>
         <control type="label" label="Primer Ayudante" span="3"/>
-        <control type="select" name="Prc_Assistant1" persist="true"
+        <control type="select" name="Prc_Assistant1"
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"
           namefield="Assistant1Name"
           searchable="true"
           acctsvc="true" datasource="GetUsersByAttributes" 
           append="LocationId=(facilityData.LocationId),role=Surgeon"
           source="UserFirstMiddleLast,UserId"
-          span="5" explicit="true" edit="true"/>
+          span="5" explicit="true"/>
       </row>
       <row>
         <control type="label" label="Segundo Ayudante" span="3"/>
@@ -100,7 +112,7 @@
           acctsvc="true" datasource="GetUsersByAttributes" 
           append="LocationId=(facilityData.LocationId),role=Surgeon"
           source="UserFirstMiddleLast,UserId"
-          span="5" explicit="true" edit="true"/>
+          span="5" explicit="true" edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"/>
       </row>
       <row>
         <control type="label" label="Instrumentador" span="3"/>
@@ -110,7 +122,7 @@
           append="LocationId=(facilityData.LocationId),role=Instrumentalist"
           source="UserFirstMiddleLast,UserId"
           span="5" explicit="true" 
-          edit="true"/>
+          edit="[Surgery_Status]=Requested|Scheduled|Confirmed|In Process"/>
       </row>
     </group>
   </section>

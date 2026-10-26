@@ -59,6 +59,7 @@
   </row>
   <row name="rowSurgeryProcedures" reveal="[SurgeryGuid]!+[PrimaryProcedure]!">
     <control type="button" name="btnSurgeryProcedures" span="12" label="Procedimientos" icon="edit"
+      trigger="dgrSurgeryProcedures"
       preset="[Prc_CalcOrdinal]=1;[Prc_IsPrimary]=True^False"
       action="redirect" target="mdlSurgeryProcedures"/>
   </row>
@@ -103,7 +104,7 @@
   <!-- Set the surgery to completed status and update the patient information-->
   <row name="rowCompleteSurgery" reveal="[SurgeryGuid]!+[PatientId]!+[Surgery_CalendarGuid]!">
     <control type="button" name="btnCompleteSurgery" span="12" color="yellowgreen" label="Completar" icon="cloud-upload"
-      reveal="[Surgery_Status]=Scheduled|Confirmed|Requested|In Process"   
+      reveal="[Surgery_Status]=In Process"   
       affector="none"
       capture="SurgeryInfo" 
       action="save"

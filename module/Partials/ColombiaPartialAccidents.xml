@@ -1,0 +1,254 @@
+<partial>
+  <!-- ========================================================================================== -->
+  <!-- ADRES FUR - COLOMBIAN AUTO ACCIDENT REPORTING (CIRCULAR 003 DE 2026)                       -->
+  <!-- ========================================================================================== -->
+
+  <section type="tabmodal" name="mdlAccidents" title="Accidentes" badge="none">
+    <group>
+      <control type="hidden" name="AccidentGuid"
+        acctsvcreq="true"
+        datarequest="ColGetAccidents"
+        appendrequest="AccidentGuid=[AccidentGuid]"
+        inject="grpAccidentInfo"/>
+    </group>
+    <group name="grpAccidentInfo">
+      <subset bgcolor="white">
+        <row>
+          <control type="hidden" name="AccidentType"/>
+        </row>
+        <row>
+          <control type="label" label="Descripción" span="2"/>
+          <control type="text" name="Acc_Description" span="7" edit="true" required="true"/>
+          <control type="buttongroup" name="Acc_Arl" span="3" source="True,False" sourcelabels="Reportado ARL,No" 
+            reveal="[mdlAdmit_AdmissionType]=21|24"
+            edit="true" required="[mdlAdmit_AdmissionType]=21|24"/>
+        </row>
+        <!-- New row for FURAT Number, revealed conditionally at the row level -->
+        <row name="rowFuratNumber" reveal="[Acc_Arl]=True">
+          <control type="label" label="Número de Radicado FURAT" span="2"/>
+          <control type="text" name="Acc_FuratNumber" span="4" edit="true" 
+            required="True" 
+            regex="^[A-Za-z0-9]{1,20}$" 
+            tooltip="Ingrese el número del formulario FURAT entregado por el empleador o paciente"/>
+        </row>
+        <row>
+          <control type="label" label="Fecha de Causa" span="2"/>
+          <control type="datetime" name="Acc_DateTime" span="2" edit="true" required="true"
+            compare="≤[mdlAdmit_AdmitDateTime]"/>
+          <control type="label" label="Zona" span="3"/>
+          <control type="select" name="Acc_Zone" span="2" required="true" edit="true"
+            source="01,02" sourcelabels="01 Urbana,02 Rural"/>
+        </row>
+        <row>
+          <control type="label" label="Sitio del Accidente" span="2"/>
+          <control type="text" name="AccLocation" span="10" edit="true" required="true"/>
+        </row>  
+        <row>
+          <control type="label" label="Departamento" span="2"/>
+          <control type="select" name="Acc_StateCode" span="4" 
+            namefield="Acc_State"
+            explicit="true" required="true" edit="true" searchable="true"           
+            datasource="GetStatesProvincesByCountryCode"
+            append="CountryCode=COL"
+            source="Name,Code"
+            provoke="[Acc_StateCode]!;Acc_MunicipalCode"/>
+          <control type="label" label="Municipio" span="2"/>
+          <control type="select" name="Acc_MunicipalCode" span="4" 
+            namefield="Acc_Municipality"      
+            edit="true" required="true" sort="Name" explicit="true"
+            searchable="true"  
+            acctsvcreq="true"    
+            datarequest="GetColombiaMunicipalities"         
+            appendrequest="StateCode=[Acc_StateCode]"
+            source="Municipality,MunicipalCode"/>  
+        </row>  
+      </subset>
+
+      <subset name="subAccidentSubType" reveal="[AccidentType]=23|24|26|37|38|39" bgcolor="white">
+        <row>
+          <control type="label" label="Naturaleza Evento" span="2"/>
+          <control type="select" name="Acc_SubType" span="4" required="[AccidentType]=23|24|26|37|38|39" edit="[AccidentType]=26|37|38|39"
+            source="01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,17,25,26,27"
+            sourcelabels="01 Accidente de tránsito,02 Sismo,03 Maremoto,04 Erupción volcánica,05 Deslizamiento de tierra,06 Inundación,07 Avalancha,08 Incendio natural,09 Explosión terrorista,10 Incendio terrorista,11 Combate,12 Ataques a Municipios,13 Masacre,14 Desplazados,15 Mina antipersonal,16 Huracán,17 Otro,25 Rayo,26 Vendaval,27 Tornado"
+            when="[AccidentType]=23|24;01"/>
+          <control type="label" label="Condición Víctima" span="2"/>
+          <control type="select" name="Acc_Condition" span="4" required="[Acc_SubType]=01" 
+            edit="[Acc_SubType]=01"
+            source="01,02,03,04" sourcelabels="01 Conductor,02 Peatón,03 Ocupante,04 Ciclista"
+            when="[Acc_SubType]!01;"/>
+        </row>
+      </subset>
+
+      <subset name="subAutoAccident" reveal="[Acc_SubType]=01" bgcolor="white">
+        <!-- SECTION V: DATOS VEHÍCULO -->
+        <row>
+          <control type="label" label="DATOS DEL VEHÍCULO INVOLUCRADO" span="12" align="left" bold="true"/>
+        </row>
+        <row>
+          <control type="label" label="Aseguramiento" span="2"/>
+          <control type="select" name="Acc_Insurance" span="6" required="[Acc_SubType]=01" edit="true"
+            source="2,3,4,6,7,8" 
+            sourcelabels="2 No asegurado,3 Vehículo fantasma,4 Póliza falsa,6 Cobertura tarifa diferencial (Decreto 2497/2022),7 No Asegurado: Propietario indeterminado,8 Vehículo sin Placa"/>
+        </row>
+        <row>
+          <control type="label" label="Tipo de Vehículo" span="2"/>
+          <control type="select" name="Acc_VehicleType" span="4" edit="true" required="[Acc_Insurance]!3"
+            source="01,02,03,04,05,06,07,08,09,10,14,17,19,20,21,22,23"
+            sourcelabels="01 Automóvil,02 Bus,03 Buseta,04 Camión,05 Camioneta,06 Campero,07 Microbús,08 Tractocamión,09 Transporte escolar,10 Motocicleta,14 Motocarro,17 Mototriciclo,19 Cuatrimoto,20 Moto Extranjera,21 Vehículo Extranjero,22 Volqueta,23 Transporte masivo"/>
+          <control type="label" label="Placa del Vehículo" span="2"/>
+          <control type="text" name="Acc_LicensePlate" span="4" edit="true" 
+            required="[Acc_Insurance]=2|4|6|7" 
+            regex="^[A-Za-z0-9]{1,10}$" tooltip="Solo alfanuméricos, sin guiones ni espacios"/>
+        </row>
+      </subset>
+
+      <subset name="subInsuranceCode" reveal="[Acc_Insurance]=4|6" bgcolor="white">
+        <row>
+          <control type="label" label="Cód. Aseguradora" span="2"/>
+          <control type="text" name="Acc_InsuranceCode" span="2" edit="true" required="[Acc_Insurance]=4|6" regex="^[A-Za-z0-9]{1,6}$"/>
+          <control type="label" label="Póliza SOAT" span="2"/>
+          <control type="text" name="Acc_Policy" span="2" edit="true" required="[Acc_Insurance]=4|6" regex="^[A-Za-z0-9]{1,20}$"/>
+          <control type="label" label="Agotó Tope D2497" span="2"/>
+          <control type="select" name="Acc_Limit" span="2" edit="true" 
+            required="[Acc_Insurance]=6" source="0,1" sourcelabels="0 NO,1 SI"/>
+        </row>
+        <row>
+          <control type="label" label="Inicio Póliza" span="2"/>
+          <control type="date" name="Acc_PolicyStart" span="4" edit="true"  required="[Acc_Insurance]=4|6"/>
+          <control type="label" label="Fin Póliza" span="2"/>
+          <control type="date" name="Acc_PolicyEnd" span="4" edit="true"  required="[Acc_Insurance]=4|6"/>
+        </row>
+      </subset>
+
+      <subset name="subOwner" reveal="[Acc_Insurance]=2|4|6|8" bgcolor="white">
+        <!-- SECTION VI: DATOS PROPIETARIO (Applies to States 2, 4, 6, 8) -->
+        <row>
+          <control type="label" label="DATOS DEL PROPIETARIO" span="12" align="left" bold="true"/>
+        </row>
+        <row>
+          <control type="label" label="Tipo Doc. Propietario" span="2"/>
+          <control type="select" name="Acc_DocumentType" span="3" edit="true" required="[Acc_Insurance]=2|4|6|8"
+            source="CC,CE,CD,PA,PE,DE,PT,NI"
+            sourcelabels="Cédula de Ciudadanía,Cédula de Extranjería,Carné Diplomático,Pasaporte,Permiso Especial Permanencia,Documento Extranjero,Permiso Protección Temporal,NIT"/>
+          <control type="label" label="Número Documento" span="2"/>
+          <control type="text" name="Acc_DocumentNumber" span="5" edit="true" required="[Acc_Insurance]=2|4|6|8" regex="^[A-Za-z0-9]{1,20}$"/>
+        </row>
+        <row>
+          <control type="label" label="Nombre" span="2"/>
+          <control type="text" name="Acc_OwnerName" span="4" edit="true" required="[Acc_Insurance]=2|4|6|8" regex="^.{1,30}$"/>
+          <control type="label" label="Segundo Nombre" span="2"/>
+          <control type="text" name="Acc_OwnerSecondName" span="4" edit="true" regex="^.{0,30}$"/>
+        </row>
+        <row>
+          <control type="label" label="Primer Apellido" span="2"/>
+          <control type="text" name="Acc_OwnerMiddleName" span="4" edit="true" 
+            required="[Acc_Insurance]=2|4|6|8" regex="^.{1,30}$"/>
+          <control type="label" label="Segundo Apellido" span="2"/>
+          <control type="text" name="Acc_OwnerLastName" span="4" edit="true" regex="^.{0,30}$"/>
+        </row>
+        <row>
+          <control type="label" label="Dirección Residencia" span="2"/>
+          <control type="text" name="Acc_OwnerAddress" span="4" edit="true" 
+            required="[Acc_Insurance]=2|4|6|8" regex="^.{1,100}$"/>
+          <control type="label" label="Teléfono" span="2"/>
+          <control type="text" name="Acc_OwnerPhone" span="3" edit="true" 
+            required="[Acc_Insurance]=2|4|6|8" regex="^[0-9]{10}$"/>
+        </row>
+        <row>
+          <control type="label" label="Departamento" span="2"/>
+          <control type="select" name="Acc_OwnerStateCode" span="4" 
+            namefield="Acc_OwnerState"
+            explicit="true" required="[Acc_Insurance]=2|4|6|8" edit="true" searchable="true"           
+            datasource="GetStatesProvincesByCountryCode"
+            append="CountryCode=COL"
+            source="Name,Code"
+            provoke="[Acc_OwnerStateCode]!;Acc_OwnerMunicipalityCode"/>
+          <control type="label" label="Municipio" span="2"/>
+          <control type="select" name="Acc_OwnerMunicipalityCode" span="4"       
+            namefield="Acc_OwnerMunicipality"
+            edit="true" required="[Acc_Insurance]=2|4|6|8" sort="Name" explicit="true"
+            searchable="true"  
+            acctsvcreq="true"    
+            datarequest="GetColombiaMunicipalities"         
+            appendrequest="StateCode=[Acc_OwnerStateCode]"
+            source="Municipality,MunicipalCode"/>  
+        </row>  
+      </subset>
+
+      <subset name="subDriver" reveal="[Acc_Insurance]=2|4|6|7|8" bgcolor="white">
+        <!-- SECTION VII: DATOS CONDUCTOR (Applies to States 2, 4, 6, 7, 8) -->
+        <row>
+          <control type="label" label="DATOS DEL CONDUCTOR" span="12" align="left" bold="true"/>
+        </row>
+        <row>
+          <control type="label" label="Tipo Doc. Conductor" span="2"/>
+          <control type="select" name="Acc_DriverDocumentType" span="3" edit="true" 
+            required="[Acc_Insurance]=2|4|6|7|8"
+            source="TI,CC,CE,CD,PA,PE,DE,PT,SC,AS,MS"
+            sourcelabels="Tarjeta de Identidad,Cédula de Ciudadanía,Cédula de Extranjería,Carné Diplomático,Pasaporte,Permiso Especial Permanencia,Documento Extranjero,Permiso Protección Temporal,Salvoconducto,Adulto Sin Identificar,Menor Sin Identificar"/>
+          <control type="label" label="Número Documento" span="2"/>
+          <control type="text" name="Acc_DriverDocumentNumber" span="5" edit="true" 
+            required="[Acc_Insurance]=2|4|6|7|8" regex="^[A-Za-z0-9]{1,20}$"/>
+        </row>
+        <row>
+          <control type="label" label="Primer Nombre" span="2"/>
+          <control type="text" name="Acc_DriverName" span="4" edit="true" 
+            required="[Acc_Insurance]=2|4|6|7|8" regex="^.{1,30}$"/>
+          <control type="label" label="Segundo Nombre" span="2"/>
+          <control type="text" name="Acc_DriverSecondName" span="4" edit="true" regex="^.{0,30}$"/>
+        </row>
+        <row>
+          <control type="label" label="Primer Apellido" span="2"/>
+          <control type="text" name="Acc_DriverMiddleName" span="4" edit="true" 
+            required="[Acc_Insurance]=2|4|6|7|8" regex="^.{1,30}$"/>
+          <control type="label" label="Segundo Apellido" span="2"/>
+          <control type="text" name="Acc_DriverLastName" span="4" edit="true" regex="^.{0,30}$"/>
+        </row>
+        <row>
+          <control type="label" label="Dirección Residencia" span="2"/>
+          <control type="text" name="Acc_DriverAddress" span="4" edit="true" 
+            required="[Acc_Insurance]=2|4|6|7|8" regex="^.{1,100}$"/>
+          <control type="label" label="Teléfono" span="2"/>
+          <control type="text" name="Acc_DriverTelephone" span="3" edit="true" 
+            required="[Acc_Insurance]=2|4|6|7|8" regex="^[0-9]{10}$"/>
+        </row>
+        <row>
+          <control type="label" label="Departamento" span="2"/>
+          <control type="select" name="Acc_DriverStateCode" span="4" 
+            namefield="Acc_DriverState"
+            explicit="true" required="[Acc_Insurance]=2|4|6|7|8" edit="true" searchable="true"           
+            datasource="GetStatesProvincesByCountryCode"
+            append="CountryCode=COL"
+            source="Name,Code"
+            provoke="[Acc_DriverStateCode]!;Acc_DriverMunicipalCode"/>
+          <control type="label" label="Municipio" span="2"/>
+          <control type="select" name="Acc_DriverMunicipalCode" span="4"      
+            namefield="Acc_DriverMunicipality"
+            edit="true" required="[Acc_Insurance]=2|4|6|7|8" sort="Name" explicit="true"
+            searchable="true"  
+            acctsvcreq="true"    
+            datarequest="GetColombiaMunicipalities"         
+            appendrequest="StateCode=[Acc_DriverStateCode]"
+            source="Municipality,MunicipalCode"/>  
+        </row>  
+      </subset>
+
+      <row>
+        <control type="modalbutton" name="btnInsertAccidents" label="Guardar" color="green" icon="cloud-upload"
+          reveal="[AccidentGuid]="
+          action="save|close|new" 
+          capture="grpAccidentInfo"
+          acctsvc="true"
+          datainsert="COLInsertAccidents"
+          appendinsert="AccidentGuid=[PatientVisitGuid]"/>
+        <control type="modalbutton" name="btnUpdateAccidents" label="Actualizar" icon="cloud-upload"
+          reveal="[AccidentGuid]!"
+          action="save|close|new" 
+          acctsvc="true"
+          capture="grpAccidentInfo"
+          dataupdate="COLUpdateAccidents"
+          appendupdate="AccidentGuid=[AccidentGuid]"/>
+      </row>
+    </group>
+  </section>
+</partial>

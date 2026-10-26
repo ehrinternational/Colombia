@@ -28,6 +28,19 @@ BEGIN
             -- Local holders for the resolved multi-tenant diagnostic strings
             @ResolvedPrincipalDiagnosis VARCHAR(10) = NULL;
 
+    -- Table variable to hold the locked transactions for the "Stamp & Extract" pattern
+    DECLARE @LockedTransactions TABLE (
+        TransactionGuid NVARCHAR(50),
+        PatientVisit NVARCHAR(50),
+        SurgeryGuid NVARCHAR(50),
+        TransactionType NVARCHAR(50),
+        NetAmount DECIMAL(18,4),
+        TransactionQuantity DECIMAL(18,4),
+        ExternalProcessedDateTime DATETIME,
+        CUMCode NVARCHAR(50),
+        CupsCode NVARCHAR(50)
+    );
+
     SELECT TOP 1
         @InvoiceNumber = dii.InvoiceNumber,
         @PatientVisit = dii.PatientVisit,
@@ -138,7 +151,39 @@ BEGIN
              ORDER BY pyc.BatchNumber ASC) pyx
         WHERE pv.PatientVisitUniqueId = @PatientVisit;
 
-        -- 3. Deconstruct and stage active items into the unified services array
+        -- 3. Filter and Stamp Transactions (The lock prevents double processing)
+        UPDATE pt
+        SET 
+            pt.RIPSBatchId = @RipsGuid,
+            pt.CurrentWorkflowStatus = 
+                CASE 
+                    WHEN pt.TransactionType = 'Honorary' THEN 'Batched for RIPS' 
+                    ELSE ISNULL(pt.CurrentWorkflowStatus, 'Batched for RIPS') 
+                END
+        OUTPUT 
+            INSERTED.TransactionGuid,
+            INSERTED.PatientVisit,
+            INSERTED.SurgeryGuid,
+            INSERTED.TransactionType,
+            INSERTED.NetAmount,
+            INSERTED.TransactionQuantity,
+            INSERTED.ExternalProcessedDateTime,
+            INSERTED.CUMCode,
+            INSERTED.CupsCode
+        INTO @LockedTransactions
+        FROM ClinicalGeniusSupplyChain.dbo.PatientTransactions pt WITH(ROWLOCK, UPDLOCK, READPAST)
+        WHERE pt.ClaimGuid = @ClaimGuid
+          AND pt.Facility = @FacilityId
+          AND pt.Status = 'Active'
+          AND pt.RIPSBatchId IS NULL
+          -- Workflow Gate: Ensure Professional Fees (Honorary) have cleared DIAN before RIPS
+          AND (
+              pt.TransactionType <> 'Honorary' 
+              OR pt.CurrentWorkflowStatus = 'Batched for DIAN'
+              OR pt.CurrentWorkflowStatus IS NULL
+          );
+
+        -- 4. Extract locked active items into the unified services array
         INSERT INTO ClinicalGeniusSupplyChain.dbo.RipsServicios (
             RipsGuid, TransactionGuid, SurgeryGuid, ServiceCategory, ModalidadPago, CodServicio, Cantidad, 
             ValorUnitario, ValorTotal, ConceptoRecaudo, ValorCuota, FechaPrestacion, DiagnosticoPrincipal,
@@ -149,7 +194,7 @@ BEGIN
             pt.TransactionGuid,
             pt.SurgeryGuid, 
             CASE 
-                WHEN pt.TransactionType IN ('Surgery', 'Procedure', 'BundleMaster', 'Honorary', 'RoomRights' ,'Materials') THEN 'Procedimientos'
+                WHEN pt.TransactionType IN ('Surgery', 'Procedure', 'BundleMaster', 'Honorary', 'RoomRights', 'Materials', 'Laboratory', 'Imaging') THEN 'Procedimientos'
                 WHEN pt.TransactionType = 'Medication' THEN 'Medicamentos'
                 WHEN pt.TransactionType = 'Stay' THEN 'Stay' 
                 WHEN pt.TransactionType = 'Supplies' THEN 'Insumos'
@@ -164,22 +209,28 @@ BEGIN
             END AS ModalidadPago,
             CASE WHEN pt.TransactionType = 'Medication' THEN pt.CUMCode ELSE pt.CupsCode END AS CodServicio,
             pt.TransactionQuantity,
-            pt.BaseUnitValue,
+            CASE WHEN pt.TransactionQuantity > 0 THEN (pt.NetAmount / pt.TransactionQuantity) ELSE pt.NetAmount END AS ValorUnitario,
             pt.NetAmount AS ValorTotal, 
             '05' AS ConceptoRecaudo, 
             0.00, 
             pt.ExternalProcessedDateTime,
             @ResolvedPrincipalDiagnosis AS DiagnosticoPrincipal,
-            -- Map the newly added XML Visit Variables
             ISNULL(pv.mdlAdmit_ArrivedByCode, '01') AS ViaIngresoServicioSalud,
             ISNULL(pv.mdlAdmit_AdmissionType, '34') AS CausaMotivoAtencion,
             ISNULL(pv.mdlAdmit_DRGCode, '01') AS ModalidadGrupoServicioTecSal,
             ISNULL(pv.mdlAdmit_AmbulanceID, '10') AS FinalidadTecnologiaSalud,
             th.REPSCode AS CodPrestadorRemitente
-        FROM ClinicalGeniusSupplyChain.dbo.PatientTransactions pt WITH(NOLOCK)
+        FROM @LockedTransactions pt
         INNER JOIN ClinicalGeniusEhr.dbo.PatientVisits pv WITH(NOLOCK)
             ON pv.PatientVisitUniqueId = pt.PatientVisit
-        -- Join the TransferHospitals table to translate the front-end GUID to the 12-digit REPS code
         LEFT JOIN ClinicalGeniusEhr.dbo.TransferHospitals th WITH(NOLOCK)
-            ON th.TransferHospitalGuid = pv.mdlAdmit_FacilityTransferredFrom
-        WHERE pt.
+            ON th.TransferHospitalGuid = pv.mdlAdmit_FacilityTransferredFrom;
+
+        COMMIT TRAN;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        THROW;
+    END CATCH;
+END;
+GO

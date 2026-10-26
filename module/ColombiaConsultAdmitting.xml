@@ -35,8 +35,15 @@
           name="PatientVisitGuid"
           datarequest="GetPatientVisitByUniqueId"
           appendrequest="UniqueId=[PatientVisitGuid]"
-          inject="VisitInfo"
-          provoke="[AttendingDoctor]!;GetMedicalSpecialty"/>
+          inject="VisitInfo"/>
+         <!--  ?? get accident for this visit  add provoke="GetVisitAccident to PatientVisitGuid-->
+        <control type="hidden" name="GetVisitAccident"
+          acctsvcreq="true"
+          datarequest="GetAccidents"
+          appendrequest="PatientVisit=[PatientVisitGuid]"
+          set="[VisitAccidentGuid]=[[AccidentGuid]],[VisitAccidentType]=[[AccidentType]]"/>
+        <control type="hidden" name="VisitAccidentGuid"/>
+        <control type="hidden" name="VisitAccidentType"/>
         <!-- Close the patient tabmodal -->
         <control type="button" name="ClosePatientTabModal" action="close|new"/>
       </row>
@@ -88,6 +95,7 @@
     </group>
   </section>
     <!-- HarmoniColombia partials -->
+    <partial link="Partials/ColombiaPartialAccidents.xml"/>
     <partial link="Partials/ColombiaPartialPatientIdModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientContactsModal.xml"/>
     <partial link="Partials/ColombiaPartialPatientAddresses.xml"/>

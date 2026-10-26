@@ -88,39 +88,43 @@ BEGIN
 
         DECLARE @InsertedNote TABLE (NoteGuid NVARCHAR(50));
 
-        -- 3. Header insertion
+       -- 3. Header insertion
         INSERT INTO ClinicalGeniusSupplyChain.dbo.DianInvoices (
-            InvoiceNumber, ResolutionNumber, FacilityId, PatientVisit, ClaimGuid, PatientId, PayerId, 
-            IssueDateTime, DueDate, GrossAmount, DiscountAmount, TaxableAmount, TaxAmount, 
-            CopayOrCuotaAmount, NetAmount, InvoiceType, OperationType, DianStatus, LastUpdatedBy,
-            DianResponseDescription, ReferencedInvoiceNumber, AdjustmentReasonCode      
+            FacilityId, SourceInvoiceGuid, ReasonCode, ReasonDescription,
+            InvoiceNumber, ResolutionNumber, PatientVisit, ClaimGuid, PatientId, PayerId, 
+            IssueDateTime, DueDate, OperationType, InvoiceType,
+            GrossAmount, DiscountAmount, TaxableAmount, TaxAmount, 
+            CopayOrCuotaAmount, NetAmount, DianStatus, LastUpdatedBy,
+            ReferencedInvoiceNumber, ReferencedCUFE
         )
         OUTPUT inserted.InvoiceGuid INTO @InsertedNote
         VALUES (
-            @NextNoteNumber, @OrigResolution, @FacilityId, @OrigPatientVisit, @OrigClaimGuid,
-            @OrigPatientId, @OrigPayerId, GETDATE(), GETDATE(), @AdjustmentGrossAmount, 0.00,
-            @AdjustmentGrossAmount, @AdjustmentTaxAmount, 0.00, (@AdjustmentGrossAmount + @AdjustmentTaxAmount),
-            @NoteType, '20', 'Draft', @AdjustedBy,
-            CONCAT('Reason Code: ', @ReasonCode, ' | ', @ReasonDescription),
-            @OrigInvoiceNumber, @ReasonCode               
+            @FacilityId, @SourceInvoiceGuid, CAST(@ReasonCode AS INT), @ReasonDescription,
+            @NextNoteNumber, @OrigResolution, @OrigPatientVisit, @OrigClaimGuid, @OrigPatientId, @OrigPayerId, 
+            GETDATE(), GETDATE(), '20', @NoteType, 
+            @AdjustmentGrossAmount, 0.00, @AdjustmentGrossAmount, @AdjustmentTaxAmount, 
+            0.00, (@AdjustmentGrossAmount + @AdjustmentTaxAmount), 'Draft', @AdjustedBy,
+            @OrigInvoiceNumber, @OrigCufe
         );
 
         DECLARE @NewNoteGuid NVARCHAR(50);
         SELECT TOP 1 @NewNoteGuid = NoteGuid FROM @InsertedNote;
 
-        -- 4. Itemized line serialization
+       -- 4. Itemized line serialization
         INSERT INTO ClinicalGeniusSupplyChain.dbo.DianInvoiceLines (
-            InvoiceGuid, LineNumber, TransactionGuid, LineType, ItemCode, 
+            FacilityId, InvoiceGuid, LineNumber, TransactionGuid, LineType, ItemCode, 
             ItemDescription, Quantity, UnitOfMeasure, UnitPrice, LineGrossAmount, 
             LineDiscountAmount, LineTaxableAmount, LineTaxPercentage, LineTaxAmount, LineNetAmount
         )
         VALUES (
-            @NewNoteGuid, 1, NULL,
+            @FacilityId, @NewNoteGuid, 1, NULL,
             CASE WHEN @NoteType = '91' THEN 'CreditNote' ELSE 'DebitNote' END,
             'AjusteFinanciero',
             CONCAT('Ajuste segun Motivo DIAN Tipo ', @ReasonCode, ': ', @ReasonDescription, ' | Ref: ', @OrigInvoiceNumber),
             1.0000, '94', @AdjustmentGrossAmount, @AdjustmentGrossAmount, 0.00,
-            @AdjustmentGrossAmount, 0.00, @AdjustmentTaxAmount, (@AdjustmentGrossAmount + @AdjustmentTaxAmount)
+            @AdjustmentGrossAmount, 
+            CASE WHEN @AdjustmentTaxAmount > 0 THEN 19.00 ELSE 0.00 END, 
+            @AdjustmentTaxAmount, (@AdjustmentGrossAmount + @AdjustmentTaxAmount)
         );
 
         COMMIT TRAN;

@@ -143,13 +143,6 @@
               action="print" mode="report" 
               append="id=be61e526b62,HospitalGuid=(facilityData.HospitalGuid),FacilityId=(facility),ClaimGuid=[ClaimGuid],UserName=(userName),CurrentDateTime=(dateTimeNow)"/>            
           </row>
-          <row>
-            <control type="button" name="mbtDisplayPlanDetails2" label="Detalles del Plan" icon="search" span="12"
-              action="redirect"
-              target="mdlDisplayPlan"
-              preset="PlanGuid=[Clm_PlanGuid]"
-              trigger="PlanGuid"/>
-          </row> 
             </subset>
            </column>
           <column span="12">

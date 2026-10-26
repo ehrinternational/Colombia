@@ -78,8 +78,9 @@
           sourcelabels="Inventario,Servicio,Procedimiento,Laboratorio,Imagen,Medicación,Estancia,Cirugía,Sala,Suministro,Honorario,Paquete"/>
       </row>
       <row>
-        <control type="label" label="Convenio" span="3"/>
+        <control type="label" label="Convenio/Paciente" span="3"/>
         <control type="select" span="9" explicit="true"  name="Ncg_SelectClaimGuid" injectname="ClaimGuid"
+            tooltip="Deja este campo vacío para asignar el cargo al paciente."
             edit="[InvoiceStatus]=Open|Closed"
             source="ClaimNumber|PayerName,ClaimGuid" 
             acctsvcreq="true"
@@ -147,10 +148,6 @@
         <!-- Enter tranaction quantity for a new charge-->
         <control type="calc" span="3" name="Ncg_NetAmount" source="Ncg_TotalChargeAmount-Ncg_DiscountAmount+Ncg_TaxAmount" format="0,000"/>
       </row>
-      <row>
-        <control type="label" label="Notas" span="3"/>
-        <control type="textarea" name="Ncg_TransactionNote" rows="2" span="9" edit="[InvoiceStatus]=Open|Closed" />
-      </row>
       </subset>
     </group>
     <group>
@@ -171,6 +168,7 @@
             ExternalId1=[Ncg_ExternalId1],ItemType=[Ncg_TypeName]"
           set="InvoiceCalculated=False"
           provoke="Charges_grdNewPatientCharges"/>
+          
         <control type="modalbutton" name="btnUpdateNewPatientCharge" icon="cloud-upload" label="Actualizar"
           reveal="[InvoiceStatus]=Open|Closed+[NewChargeGuid]!+[Ncg_TransactionType]=Inventory|Service"
           action="save|close|new"

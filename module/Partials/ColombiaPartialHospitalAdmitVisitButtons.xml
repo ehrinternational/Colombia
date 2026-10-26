@@ -35,6 +35,23 @@
       provoke="ButtonGroupSelect,[ArrivalTicketGuid]!;btnUpdateArrivalTicket"/>
   </row>
   <row>
+    <!-- insert accident reporting -->
+    <control type="button" name="btnAccidentReporting" span="12" icon="cloud-upload" label="Accidente"  color="grey pulse"
+      reveal="[HasOpenVisit]=true+[mdlAdmit_AdmissionType]=21|22|23|24|25|26|37|38|39+[VisitAccidentGuid]="
+      preset="[AccidentType]=[mdlAdmit_AdmissionType]"
+      action="redirect"
+      target="mdlAccidents"/>
+  </row>
+  <row>
+    <!-- update accident reporting -->
+    <control type="button" name="btnAccidentReporting2" span="12" icon="cloud-upload" label="Accidente" color="green"
+      reveal="[HasOpenVisit]=true+[mdlAdmit_AdmissionType]=21|22|23|24|25|26|37|38|39+[VisitAccidentGuid]!,
+      [HasOpenVisit]=true+[mdlAdmit_AdmissionType]=21|22|23|24|25|26|37|38|39+[VisitAccidentType]!+[VisitAccidentType]![mdlAdmit_AdmissionType]"
+      preset="[AccidentType]=[mdlAdmit_AdmissionType],[AccidentGuid]=[VisitAccidentGuid]"
+      action="redirect"
+      target="mdlAccidents"/>
+  </row>
+  <row>
     <!-- Assign a patient room -->
     <control type="button" name="btnAssignPatientBed" span="12" icon="cloud-upload" color="orange" label="Asignar Cama"
       reveal="[HasOpenVisit]=true"

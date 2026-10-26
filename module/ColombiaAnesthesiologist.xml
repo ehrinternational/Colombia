@@ -27,6 +27,10 @@
     preset="DefaultPatientId="
     trigger="SurgeryTimes|resource"
     action="redirect" target="mdlSurgeryViewAppointments"/>
+  <headerbutton name="btnMyProfessionalFees"
+    icon="calendar" label="Mis Honorarios"
+    trigger="grdPendingFees"
+    action="redirect" target="mdlMyProfessionalFees"/>
   <!-- Partial surgery patient list -->
   <partial link="./Partial/Lists/PartialSurgeryPatientList.xml"/>
   <!-- Bed Map for surgery -->
@@ -171,6 +175,7 @@
      </group>
    </section>
   <!-- Colombia Partials -->
+  <partial target="mdlMyProfessionalFees" link="Partials/ColombiaPartialMyProfessionalFees.xml"/>
   <partial target="mdlSurgeryOrderModal" link="Partials/ColombiaPartialSurgeryOrderModal.xml"/>
   <partial target="mdlSurgeryECDs" link="Partials/ColombiaPartialSurgeryECDs.xml"/>
   <partial target="mdlSurgeryViewModal" link="Partials/ColombiaPartialSurgeryTabModal.xml"/>

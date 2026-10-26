@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<module name="" type="onload" trigger="dgrProfessionalFees">  
+  <section type="tab" name="frmTransactionReview" title="Revisión de Transacciones" badge="none">
+    <group>
+      <row>
+        <control type="buttongroup" name="FilterWorkflowStatus" span="4" edit="true"
+          source="Pending Review,Approved,Pending Re-Approval,Rejected"
+          sourcelabels="Pendiente de Revisión,Aprobado,Pendiente Aprobado,Rechazado"
+          default="Pending"
+          provoke="dgrProfessionalFees"/>
+      </row>
+      <row>
+        <control type="datagrid" name="dgrProfessionalFees" span="12" rows="15" fitrows="true"
+          searchable="true"
+          action="redirect" target="mdlFeeValidation"
+          acctsvcreq="true"
+          datarequest="GetPatientTransactions"
+          appendrequest="CurrentWorkflowStatus=[FilterWorkflowStatus]"
+          source="TransactionDate,PatientName,CUPSCode,Description,TransactionQuantity,PerItemChargeAmount,NetAmount,CurrentWorkflowStatus"
+          sourcelabels="Fecha,Paciente,CUPS,Descripción,Cantidad,Monto,Neto,Estatus"
+          translate="CurrentWorkFlowStatus"
+          align="left|left|left|left|right|right|right|left"
+          format="date|||||0,000|0,000|||"
+          key="TransactionGuid"
+          onselectset="[GetTransactionGuid]=[[TransactionGuid]]"
+          onselect="GetTransactionGuid">
+        </control>
+      </row>
+    </group>
+  </section>
+  <section type="tabmodal" name="mdlFeeValidation" title="Validar / Modificar Transacción" badge="none">
+    
+    <!-- Hidden data fetching and state initialization -->
+    <group showif="never">
+      <row>
+        <control type="hidden" name="GetTransactionGuid"
+          acctsvcreq="true"
+          datarequest="GetPatientTransactionTransactionGuid"
+          appendrequest="TransactionGuid=[GetTransactionGuid]"
+          inject="grpTransactionAuditInfo"
+          provoke="dgrFeeAudits"/>
+      </row>
+    </group>
+    <!-- Modification Form -->
+    <group name="grpTransactionAuditInfo">
+      <row>
+        <!-- Preservation of Old State for the Audit Ledger -->
+        <control type="hidden" name="OldWorkflowStatus" injectname="CurrentWorkflowStatus"/>
+        <control type="hidden" name="OldAmount" injectname="PerItemChargeAmount"/>
+      </row>
+      <row>
+        <control type="label" label="Tipo de Acción" span="3"/>
+        <control type="select" name="ActionType" span="4" edit="true" required="true" explicit="true"
+          source="Status Change,Price Override,Pre-Glosa Hold"
+          sourcelabels="Cambio de Estatus,Modificación de Precio,Retención Pre-Glosa"/>
+          
+        <control type="label" label="Nuevo Estatus" span="3"/>
+        <control type="select" name="NewWorkflowStatus" span="4" edit="true" required="true" explicit="true"
+          source="Approved,Pending Review,Pending Re-Approval,Rejected"
+          sourcelabels="Aprobado,Pendiente de Revisión,Pendient Aprobado,Rechazado"
+          default="[OldWorkflowStatus]"/>
+      </row>
+      <row>
+        <control type="label" label="Nuevo Monto ($)" span="3"/>
+        <control type="text" name="NewAmount" span="4" edit="true" required="true" injectname="PerItemChargeAmount" 
+          format="0,000" 
+          regex="^\d+(\.\d{1,4})?$"/>
+          
+        <control type="label" label="Código de Justificación" span="3"/>
+        <control type="text" name="ReasonCode" span="4" edit="true" 
+          tooltip="Ej: Código de Glosa, rechazo DIAN, o modificador de tarifa" 
+          regex="^[A-Za-z0-9\-\/]{1,100}$"/>
+      </row>
+      <row>
+        <control type="label" label="Notas Internas / Justificación" span="3"/>
+        <control type="textarea" name="InternalNotes" span="9" rows="3" edit="true"/>
+      </row>
+      <row>
+        <control type="modalbutton" name="btnSaveAudit" label="Guardar" icon="cloud-upload" color="green"
+          capture="grpTransactionAuditInfo"
+          action="save|close|new"
+          acctsvc="true"
+          confirm="Por favor, confirme que desea aplicar y auditar esta modificación."
+          datainsert="InsertFeeManagementAudit"
+          appendinsert="TransactionGuid=[TransactionGuid]"
+          provoke="dgrProfessionalFees"/>
+      </row>
+    </group>
+
+    <!-- Historical Audit Ledger DataGrid -->
+    <group>
+      <row>
+        <control type="label" label="HISTORIAL DE AUDITORÍA DE TRANSACCIÓN" span="12" align="left" bold="true"/>
+      </row>
+      <row>
+        <control type="datagrid" name="dgrFeeAudits" span="12" rows="8" fitrows="true"
+          searchable="true"
+          acctsvcreq="true"
+          datarequest="GetFeeManagementAudits"
+          appendrequest="TransactionGuid=[TransactionGuid]"
+          source="ActionTimestamp,ActionByUser,ActionType,OldWorkflowStatus,NewWorkflowStatus,OldAmount,NewAmount,ReasonCode,InternalNotes"
+          sourcelabels="Fecha y Hora,Usuario,Acción,Estatus Anterior,Nuevo Estatus,Monto Anterior,Nuevo Monto,Código,Notas"
+          align="left|left|left|left|left|right|right|left|left"
+          format="datetime|||||0,000|0,000||"
+          sort="ActionTimestamp=desc"
+          key="AuditId"/>
+      </row>
+    </group>
+  </section>
+</module>

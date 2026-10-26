@@ -1,0 +1,60 @@
+<partial>
+  <!-- ========================================================================================== -->
+  <!-- PROFESSIONAL FEE LEDGER: PENDING APPROVALS                                                 -->
+  <!-- ========================================================================================== -->
+
+  <!-- Main Screen: Displays the grid of pending fees -->
+  <section type="tabmodal" name="mdlMyProfessionalFees" title="Mis Honorarios Pendientes" badge="none" size="medium">
+    <group name="grpFeeLedger">
+      <row>
+        <!-- Corrected spelling and mapped False to Pendiente, True to Aprobado -->
+        <control type="buttongroup" name="btgApprovedStatus" span="3" 
+          source="False,True" sourcelabels="Pendiente,Aprobado" default="False"
+          provoke="[btgApprovedStatus]=False;grdPendingFees,[btgApprovedStatus]=True+[HonStartDate]!+[HonEndDate]!;grdPendingFees"/>
+        
+        <!-- Corrected trigger logic and reveal dependency -->
+        <control type="date" name="HonStartDate" span="3" default="(now-30)" 
+          trigger="[HonStartDate]!+[HonEndDate]!;grdPendingFees"
+          reveal="[btgApprovedStatus]=True"/>
+        <control type="date" name="HonEndDate" span="3" default="(now)" 
+          trigger="[HonStartDate]!+[HonEndDate]!;grdPendingFees"
+          reveal="[btgApprovedStatus]=True"/>
+      </row>
+      <!--  ?? This should use GetPatientTransactions -->
+      <row>
+        <control type="datagrid" name="grdPendingFees" label="Honorarios de Aprobación"
+          span="12" rows="10" searchable="true"
+          filter="TransactionType=Honorary,ApprovedForBilling=[btgApprovedStatus]"
+          acctsvcreq="true"
+          datarequest="GetPatientCharges"
+          appendrequest="LocationId=(facilityData.LocationId),
+          Status=Active,
+          TransactionType=Honorary,
+          ChargePhysician=(userName),
+          ApprovedForBilling=[btgApprovedStatus],
+          [btgApprovedStatus]=True;StartDate=[HonStartDate],[btgApprovedStatus]=True;EndDate=[HonEndDate]"
+          source="ExternalProcessedDateTime,SurgicalComponent,ItemDescription,ItemAlternateCode,USDBasePrice,USDPerItemChargeAmount,NetAmount,TaxAmount,PerItemChargeAmount"
+          sourcelabels="Fecha,Rol,Procedimiento,Unidades,Degradación,Bono Turno,Neto,Impuestos,Total"
+          align="left|left|left|right|right|right|right|right|right"
+          format="datetime|||0,000|0,000|0,000|0,000|0,000|0,000"
+          key="TransactionGuid">
+        <control type="button" name="btnApproveFee" label="Aprobar Honorario" color="green"
+          reveal="[[ApprovedForBilling]]=false"
+          showif="feature" action="save" 
+          acctsvc="true"
+          dataupdate="UpdatePatientTransaction"
+          appendupdate="TransactionGuid=[[TransactionGuid]],ApprovedForBilling=true"
+          provoke="grdPendingFees"/>
+        <!-- Changed color to red for the disapproval action -->
+        <control type="button" name="btnDisapproveFee" label="Desaprobar Honorario" color="red"
+          reveal="[[ApprovedForBilling]]=true"
+          showif="feature" action="save" 
+          acctsvc="true"
+          dataupdate="UpdatePatientTransaction"
+          appendupdate="TransactionGuid=[[TransactionGuid]],ApprovedForBilling=false"
+          provoke="grdPendingFees"/>
+        </control>
+      </row>
+    </group>
+  </section>
+</partial>

@@ -20,6 +20,9 @@ BEGIN
 
     SELECT 
         inv.InvoiceGuid,
+        -- Expose the InvoiceGuid as the DIANInvoiceBatchId to match the PatientTransactions schema
+        -- This allows the UI administrative grids to easily link to the generated payload
+        inv.InvoiceGuid AS DIANInvoiceBatchId,
         inv.FacilityId,
         inv.IssueDateTime,
         inv.DueDate,
@@ -39,6 +42,9 @@ BEGIN
         pat.PatientFullName,
         inv.CUFE,
         inv.ResolutionNumber,
+        -- Adjustment Note References
+        inv.ReferencedInvoiceNumber,
+        inv.ReferencedCUFE,
         -- Full UBL 2.1 Financial Pillars
         inv.GrossAmount,
         inv.DiscountAmount,
@@ -48,9 +54,9 @@ BEGIN
         inv.NetAmount,
         inv.DianResponseDescription
     FROM ClinicalGeniusSupplyChain.dbo.DianInvoices inv WITH(NOLOCK)
-    -- WARNING: Ensure the Payers table lives here. In the creation script, we sourced NIT from ClinicalGeniusEhr.
-    LEFT JOIN ClinicalGeniusSupplyChain.dbo.Payers pyr WITH(NOLOCK)
-        ON pyr.NationalId = inv.PayerId
+    -- Point directly to the EHR database where the NITs were originally sourced
+    LEFT JOIN ClinicalGeniusEhr.dbo.Payers pyr WITH(NOLOCK)
+        ON ISNULL(pyr.NIT, pyr.PayerId) = inv.PayerId
     OUTER APPLY (
         -- Cleaned up potential double-spacing if middle name is null
         SELECT LTRIM(RTRIM(
@@ -72,6 +78,6 @@ BEGIN
       AND (@InvoiceNumber IS NULL OR inv.InvoiceNumber = @InvoiceNumber)
       AND (@PayerId IS NULL OR inv.PayerId = @PayerId)
       AND (@PatientId IS NULL OR inv.PatientId = @PatientId)
-    ORDER BY inv.IssueDateTime DESC;
+    OPTION (RECOMPILE);
 END;
 GO
