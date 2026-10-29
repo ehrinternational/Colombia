@@ -1,12 +1,12 @@
 -- ==========================================================================================
--- RIPS RESOLUCIÓN 2275 COMPLIANCE LEDGER SCHEMA
+-- RIPS RESOLUCIÓN 2275 & 948 (2026) COMPLIANCE LEDGER SCHEMA
 -- TARGET ARCHITECTURE: SQL Server Enterprise 2014
 -- ==========================================================================================
 
 -- 1. HEADER LEDGER: RipsTransactions
 CREATE TABLE ClinicalGeniusSupplyChain.RipsTransactions (
     RipsGuid NVARCHAR(50) NOT NULL DEFAULT NEWID(),
-    InvoiceGuid NVARCHAR(50) NOT NULL,          -- Direct link to your local DIAN Invoice ledger
+    InvoiceGuid NVARCHAR(50) NOT NULL,              -- Direct link to your local DIAN Invoice ledger
     FacilityId NVARCHAR(50) NOT NULL,               -- Multi-tenant separation boundary
     NumFactura NVARCHAR(20) NOT NULL,               -- Mapped to DIAN InvoiceNumber
     TipoDocumentoPrestador VARCHAR(5) NOT NULL DEFAULT 'NI', -- NIT of your clinic
@@ -31,36 +31,50 @@ CREATE TABLE ClinicalGeniusSupplyChain.RipsUsuarios (
     FechaNacimiento DATE NOT NULL,
     CodSexo VARCHAR(2) NOT NULL,                   -- M, F
     CodPaisResidencia VARCHAR(5) NOT NULL DEFAULT '170', -- '170' for Colombia
+    CodPaisOrigen VARCHAR(3) NULL,                 -- NEW: Country of origin code (3 characters)
     CodMunicipioResidencia VARCHAR(10) NOT NULL,    -- 5-digit DANE code (e.g., '11001' for Bogotá)
     ZonaTerritorioResidencia VARCHAR(2) NOT NULL,   -- 'U' Urbana, 'R' Rural
+    RegistroSIRAS NVARCHAR(60) NULL                -- NEW: Required when TipoUsuario = 10 (SOAT)
 );
 
--- 3. MEDICAL SERVICES INDEPENDENT LEDGER: RipsServicios (Consolidates old AC, AP, AM files into unified fields)
+-- 3. MEDICAL SERVICES INDEPENDENT LEDGER: RipsServicios (Consolidates old AC, AP, AM files)
 CREATE TABLE ClinicalGeniusSupplyChain.RipsServicios (
     RipsServiceGuid NVARCHAR(50) NOT NULL DEFAULT NEWID(),
     RipsGuid NVARCHAR(50) NOT NULL,
     TransactionGuid NVARCHAR(50) NOT NULL,      -- Direct trace link back to PatientTransactions row
-    ServiceCategory VARCHAR(15) NOT NULL,          -- 'Consultas', 'Procedimientos', 'Medicamentos'
+    ServiceCategory VARCHAR(15) NOT NULL,          -- 'Consultas', 'Procedimientos', 'Medicamentos', 'OtrosServicios'
     
-    -- Unified RIPS Regulatory Columns (Resolución 2275 Fields)
+    -- Unified RIPS Regulatory Columns
     CodServicio NVARCHAR(20) NOT NULL,              -- CUPS code or CUM identifier string
     Cantidad DECIMAL(18,2) NOT NULL DEFAULT 1.00,
     ValorUnitario DECIMAL(18,2) NOT NULL DEFAULT 0.00,
     ValorTotal DECIMAL(18,2) NOT NULL DEFAULT 0.00,
+    ValorDispensacion DECIMAL(18,2) NOT NULL DEFAULT 0.00, -- NEW: Required for medications and other services
     
     -- Specialized Medical Audit Context
     ConceptoRecaudo VARCHAR(5) NOT NULL DEFAULT '05',-- '05' for Net EPS payable, '01' Copago, '02' Cuota Mod
     ValorCuota DECIMAL(18,2) NOT NULL DEFAULT 0.00,  -- Copay or Coinsurance applied directly to this line
     FechaPrestacion DATETIME NOT NULL,
     
-    -- Clinical Diagnostic Metadata
-    DiagnosticoPrincipal VARCHAR(10) NULL,          -- ICD-10 Code (CIE-10 standard e.g., 'I10X')
-    DiagnosticoRelacionado VARCHAR(10) NULL,
+    -- Clinical Diagnostic Metadata (ICD-10 & ICD-11 Parallel Structure)
+    DiagnosticoPrincipal VARCHAR(10) NULL,          -- ICD-10 Code
+    DiagnosticoPrincipalCIE11 VARCHAR(256) NULL,    -- NEW: ICD-11 Principal Code
+    NomDiagnosticoPrincipalCIE11 NVARCHAR(1000) NULL, -- NEW: ICD-11 Principal Name
+    
+    DiagnosticoRelacionado VARCHAR(10) NULL,        -- ICD-10 Related Code
+    DiagnosticoRelacionado1CIE11 VARCHAR(256) NULL, -- NEW: ICD-11 Related Code 1
+    NomDiagnosticoRelacionado1CIE11 NVARCHAR(1000) NULL, -- NEW: ICD-11 Related Name 1
+    
+    Complicacion VARCHAR(10) NULL,                  -- ICD-10 Complication Code
+    ComplicacionCIE11 VARCHAR(256) NULL,            -- NEW: ICD-11 Complication Code
+    NomComplicacionCIE11 NVARCHAR(1000) NULL,       -- NEW: ICD-11 Complication Name
+
     FinalidadTecnologia VARCHAR(5) NOT NULL DEFAULT '44', -- '44' for Therapeutic, '01' for Diagnostic
     TipoDiagnostico VARCHAR(5) NULL,                -- '1' Impresión diag, '2' Confirmado nuevo, '3' Confirmado repetido
     
-    -- Authorization Tracking
-    NumAutorizacion NVARCHAR(30) NULL
+    -- Authorization & System Tracking
+    NumAutorizacion NVARCHAR(30) NULL,              -- Legacy auth (ignored for medications)
+    CodigoVIDA NVARCHAR(256) NULL                   -- NEW: IHCE health care project generated code
 );
 
 -- Optimization Indexing

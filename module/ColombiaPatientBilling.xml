@@ -199,7 +199,7 @@
           <row>
             <!-- Reopen a patient invoice with a closed status -->
             <control type="button" span="12" name="btnOpenStatus" icon="cloud-upload" label="Abrir"
-              reveal="[InvoiceStatus]=Closed"
+              reveal="[InvoiceStatus]=Closed|Submitted"
               action="save"
               acctsvc="true"
               affector="none"

@@ -283,8 +283,8 @@
         <row>
           <control type="label" span="3" label="Tipo de Tarifa"/>  
           <control type="select" name="Ctx_Ranking" span="3" required="true"
-          source="1,2,3,4,5,6,7,8" 
-          sourcelabels="1 Articulo(%),2 Grupo Cirugía(%),3 CUPS Cirugía (COP),4 CUPS Cirugía (%),5 CUPS Procedimiento (COP),6 CUPS Procedimiento (%),7 Paquete (COP),8 Medicamento (COP)"/>
+          source="1,2,3,4,5,6,7,8,9" 
+          sourcelabels="1 Articulo(%),2 Grupo Cirugía(%),3 CUPS Cirugía (COP),4 CUPS Cirugía (%),5 CUPS Procedimiento (COP),6 CUPS Procedimiento (%),7 Paquete (COP),8 Medicamento (COP),9 Medicamento Dispensar (COP)"/>
         </row>
         <row name="rowExceptionType1" reveal="[Ctx_Ranking]=1">
           <control type="label" span="3" label="Articulo"/>
@@ -419,6 +419,13 @@
             source="DrugTradeName,FormularyItemGuid"
             required="true"/>
         </row>
+        <row name="rowMedicationDispenseException" reveal="[Ctx_Ranking]=9">
+          <control type="label" span="3" label="Tipo Dispensar"/>
+          <control type="select" name="Ctm_ExceptionType" span="9" searchable="true"
+            source="1,2,3,4,5,6,7,8"
+            sourcelabels="1 PBS (Plan de Beneficios en Salud),2 No PBS / Alto Costo,3 Control Especial,4 Cadena de Frío,5 Oncológicos,6 Preparaciones Magistrales y Mezclas,7 Productos Nutricionales,8 Dispositivos e Insumos Médicos"
+            required="true"/>
+        </row>
         <row name="rowSurgeryCategory1" reveal="[Ctx_Ranking]=3">
             <control type="label" span="2" label="Cirujano" align="left" offset="2" badge="COP"/>
             <control type="label" span="2" label="Anestesia" align="left" badge="COP"/>
@@ -437,7 +444,7 @@
           <control type="label" span="3" label="Modificador" badge="%"/>       
           <control name="Ctx_PriceModifier" type="text" span="3" edit="true" required="true" format="0.00"/>
         </row>
-        <row name="rowFlatPrice" reveal="[Ctx_Ranking]=5|7|8">
+        <row name="rowFlatPrice" reveal="[Ctx_Ranking]=5|7|8|9">
           <control type="label" span="3" label="Precio Fijo" badge="COP"/>       
           <control name="Ctx_PriceValue" type="text" span="3" edit="true" required="true" format="0,0"/>
         </row>

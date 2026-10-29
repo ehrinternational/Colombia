@@ -1,10 +1,8 @@
 USE [ClinicalGeniusSupplyChain]
 GO
 
-/****** Object:  COLCreateDIANInvoice ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
@@ -19,11 +17,13 @@ BEGIN
     SET XACT_ABORT ON;
 
     DECLARE @InvoiceGuid NVARCHAR(50) = CAST(NEWID() AS NVARCHAR(50));
+    DECLARE @InvoicePrefix NVARCHAR(5);
     DECLARE @InvoiceNumber NVARCHAR(20);
-    DECLARE @ResolutionNumber NVARCHAR(50) = 'RES-DIAN-987654321'; -- To be replaced with dynamic DIAN config mapping
+    DECLARE @ResolutionNumber NVARCHAR(50) = 'RES-DIAN-987654321'; 
     DECLARE @PatientId NVARCHAR(50);
     DECLARE @PayerId NVARCHAR(50);
-    DECLARE @IssueDateTime DATETIME = GETDATE();
+    
+    DECLARE @IssueDateTime DATETIMEOFFSET = SYSDATETIMEOFFSET(); 
     DECLARE @DueDate DATETIME = DATEADD(DAY, 30, GETDATE());
     
     DECLARE @GrossAmount DECIMAL(18,2) = 0.00;
@@ -32,8 +32,9 @@ BEGIN
     DECLARE @TaxAmount DECIMAL(18,2) = 0.00;
     DECLARE @CopayOrCuotaAmount DECIMAL(18,2) = 0.00;
     DECLARE @NetAmount DECIMAL(18,2) = 0.00;
+    DECLARE @CUDE VARCHAR(100) = NULL;
 
-    -- Temporary table to hold the exact rows we lock and stamp for this invoice batch
+    -- Temporary table holding the exact locked rows for this invoice batch
     DECLARE @LockedTransactions TABLE (
         Facility NVARCHAR(50),
         TransactionGuid NVARCHAR(50),
@@ -44,6 +45,7 @@ BEGIN
         NetAmount DECIMAL(18,4),
         DiscountAmount DECIMAL(18,4),
         TaxAmount DECIMAL(18,4),
+        DispensingValue DECIMAL(18,2),
         DateTimeEntered DATETIME
     );
 
@@ -51,7 +53,7 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- ==========================================================================================
-        -- 1. Extract Demographics & Payer Context (Bridged to Master Payers Table for NIT)
+        -- 1. Extract Demographics & Payer Context
         -- ==========================================================================================
         SELECT TOP 1 
             @PatientId = pvt.PatientId,
@@ -68,18 +70,13 @@ BEGIN
         WHERE pyc.ClaimGuid = @ClaimGuid 
           AND pyc.FacilityId = @FacilityId;
 
-        -- Fallback if not found in joins
         IF @PatientId IS NULL 
             SELECT TOP 1 @PatientId = PatientId FROM ClinicalGeniusEhr.dbo.PatientVisits WHERE PatientVisitUniqueId = @PatientVisit;
         IF @PayerId IS NULL 
             SET @PayerId = '999999999';
 
         -- ==========================================================================================
-        -- 2. STAMP & EXTRACT: Filter valid transactions and lock them with the Batch ID
-        -- ==========================================================================================
-        UPDATE ClinicalGeniusSupplyChain.dbo.PatientTransactions
-       -- ==========================================================================================
-        -- 2. STAMP & EXTRACT: Filter valid transactions and lock them with the Batch ID
+        -- 2. STAMP & EXTRACT: Filter valid transactions and lock them
         -- ==========================================================================================
         UPDATE ClinicalGeniusSupplyChain.dbo.PatientTransactions
         SET 
@@ -95,6 +92,7 @@ BEGIN
             INSERTED.NetAmount,
             INSERTED.DiscountAmount,
             INSERTED.TaxAmount,
+            INSERTED.DispensingValue,
             INSERTED.DateTimeEntered
         INTO @LockedTransactions
         WHERE ClaimGuid = @ClaimGuid
@@ -102,14 +100,13 @@ BEGIN
           AND Facility = @FacilityId
           AND NetAmount > 0
           AND DIANInvoiceBatchId IS NULL
-          -- Workflow Gate: Standard charges pass through; Professional Fees must be explicitly approved
           AND (
               TransactionType <> 'Honorary' 
               OR (TransactionType = 'Honorary' AND CurrentWorkflowStatus = 'Approved')
           );
 
         -- ==========================================================================================
-        -- 3. Aggregate Active Transactions (Strict DIAN Math via Locked Temp Table)
+        -- 3. Aggregate Active Transactions (Inclusive of Dispensing Fees)
         -- ==========================================================================================
         SELECT 
             @GrossAmount = ISNULL(SUM(NetAmount), 0.00),
@@ -119,7 +116,7 @@ BEGIN
         FROM @LockedTransactions;
 
         -- ==========================================================================================
-        -- 4. Extract Copay / Coinsurance to determine DIAN deductions
+        -- 4. Extract Copay / Coinsurance
         -- ==========================================================================================
         SELECT TOP 1 
             @CopayOrCuotaAmount = ISNULL(Copay, 0.00) + ISNULL(MedicalCoinsurance, 0.00)
@@ -127,34 +124,31 @@ BEGIN
         WHERE ClaimGuid = @ClaimGuid 
           AND FacilityId = @FacilityId;
 
-        -- ==========================================================================================
-        -- 5. Calculate Net Amount (Strictly tying to DIAN validation math)
-        -- ==========================================================================================
         SET @NetAmount = (@GrossAmount - @DiscountAmount + @TaxAmount) - @CopayOrCuotaAmount;
 
-        -- Allocate Invoice Number (Placeholder pattern - requires mapping to your DIAN sequencer table)
-        SET @InvoiceNumber = 'FE-' + LEFT(REPLACE(CAST(NEWID() AS VARCHAR(36)), '-', ''), 8);
+        SET @InvoicePrefix = 'FE';
+        SET @InvoiceNumber = LEFT(REPLACE(CAST(NEWID() AS VARCHAR(36)), '-', ''), 8);
 
         -- ==========================================================================================
-        -- 6. Insert DIAN Invoice Header
+        -- 5. Insert DIAN Invoice Header
         -- ==========================================================================================
         INSERT INTO ClinicalGeniusSupplyChain.dbo.DianInvoices (
-            FacilityId, InvoiceGuid, InvoiceNumber, ResolutionNumber, PatientVisit, 
+            FacilityId, InvoiceGuid, InvoicePrefix, InvoiceNumber, ResolutionNumber, PatientVisit, 
             ClaimGuid, PatientId, PayerId, IssueDateTime, DueDate, 
             OperationType, InvoiceType, GrossAmount, DiscountAmount, TaxableAmount, 
-            TaxAmount, CopayOrCuotaAmount, NetAmount, DianStatus, 
+            TaxAmount, CopayOrCuotaAmount, NetAmount, CUDE, DianStatus, 
             DateTimeEntered, LastUpdatedBy
         )
         VALUES (
-            @FacilityId, @InvoiceGuid, @InvoiceNumber, @ResolutionNumber, @PatientVisit,
+            @FacilityId, @InvoiceGuid, @InvoicePrefix, @InvoiceNumber, @ResolutionNumber, @PatientVisit,
             @ClaimGuid, @PatientId, @PayerId, @IssueDateTime, @DueDate,
             '10', '01', @GrossAmount, @DiscountAmount, @TaxableAmount,
-            @TaxAmount, @CopayOrCuotaAmount, @NetAmount, 'Draft',
+            @TaxAmount, @CopayOrCuotaAmount, @NetAmount, @CUDE, 'Draft',
             GETDATE(), @UserId
         );
 
         -- ==========================================================================================
-        -- 7. Insert DIAN Invoice Lines (Realigned with standard DIAN UBL 2.1 Math via Locked Table)
+        -- 6. Insert DIAN Invoice Lines
         -- ==========================================================================================
         INSERT INTO ClinicalGeniusSupplyChain.dbo.DianInvoiceLines (
             FacilityId, InvoiceGuid, LineNumber, TransactionGuid, LineType, 
@@ -172,27 +166,23 @@ BEGIN
             pt.SurgicalComponent, 
             pt.TransactionQuantity, 
             '94' AS UnitOfMeasure, 
-            -- Derive true DIAN Unit Price (Pre-tax) by removing the quantity multiplier
             CASE WHEN pt.TransactionQuantity > 0 THEN (pt.NetAmount / pt.TransactionQuantity) ELSE pt.NetAmount END AS UnitPrice, 
             pt.NetAmount AS LineGrossAmount, 
-            ISNULL(pt.DiscountAmount, 0.00) AS LineDiscountAmount, 
+            ISNULL(pt.DiscountItemAmount, 0.00) AS LineDiscountAmount, 
             (pt.NetAmount - ISNULL(pt.DiscountAmount, 0.00)) AS LineTaxableAmount, 
             CASE WHEN pt.TaxAmount > 0 THEN 19.00 ELSE 0.00 END AS LineTaxPercentage, 
             ISNULL(pt.TaxAmount, 0.00) AS LineTaxAmount, 
             ((pt.NetAmount - ISNULL(pt.DiscountAmount, 0.00)) + ISNULL(pt.TaxAmount, 0.00)) AS LineNetAmount
         FROM @LockedTransactions pt;
           
-        -- Commit early to release write-locks before downstream tasks
         COMMIT TRANSACTION;
 
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK TRANSACTION;
-
         DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE(),
                 @ErrorSeverity INT = ERROR_SEVERITY(),
                 @ErrorState INT = ERROR_STATE();
-                
         RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
     END CATCH;
 END;

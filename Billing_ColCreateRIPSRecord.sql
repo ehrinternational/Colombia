@@ -1,10 +1,8 @@
 USE [ClinicalGeniusSupplyChain]
 GO
 
-/****** Object:  COLCreateRipsRecord ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
@@ -16,7 +14,6 @@ BEGIN
     SET NOCOUNT ON;
     SET XACT_ABORT ON;
 
-    -- Extract master configuration parameters from the source invoice header block
     DECLARE @InvoiceNumber NVARCHAR(20),
             @PatientVisit NVARCHAR(50),
             @PatientId NVARCHAR(50),
@@ -25,16 +22,23 @@ BEGIN
             @VisitLocationId NVARCHAR(50),
             @CodPrestador  NVARCHAR(20),
             @NumDocumentoPrestador  NVARCHAR(20),
-            -- Local holders for the resolved multi-tenant diagnostic strings
-            @ResolvedPrincipalDiagnosis VARCHAR(10) = NULL;
+            @ResolvedPrincipalDiagnosis VARCHAR(10) = NULL,
+            @ResolvedPrincipalDiagnosisCIE11 VARCHAR(256) = NULL,
+            @ResolvedNomPrincipalCIE11 NVARCHAR(1000) = NULL,
+            @ResolvedRelatedDiagnosis1CIE11 VARCHAR(256) = NULL,
+            @ResolvedNomRelated1CIE11 NVARCHAR(1000) = NULL,
+            @ResolvedComplicationCIE11 VARCHAR(256) = NULL,
+            @ResolvedNomComplicationCIE11 NVARCHAR(1000) = NULL,
+            @IsSOATPolicyholder BIT = 0,
+            @CodigoVIDA NVARCHAR(256) = NULL;
 
-    -- Table variable to hold the locked transactions for the "Stamp & Extract" pattern
     DECLARE @LockedTransactions TABLE (
         TransactionGuid NVARCHAR(50),
         PatientVisit NVARCHAR(50),
         SurgeryGuid NVARCHAR(50),
         TransactionType NVARCHAR(50),
         NetAmount DECIMAL(18,4),
+        DispensingValue DECIMAL(18,2),
         TransactionQuantity DECIMAL(18,4),
         ExternalProcessedDateTime DATETIME,
         CUMCode NVARCHAR(50),
@@ -53,7 +57,6 @@ BEGIN
     WHERE dii.InvoiceGuid = @InvoiceGuid
       AND dii.FacilityId = @FacilityId;
 
-    -- Get the facility codes from the hospital record with safe fallbacks
     SELECT TOP 1
         @CodPrestador = hsp.NPI,
         @NumDocumentoPrestador = hsp.TaxID
@@ -64,10 +67,14 @@ BEGIN
     SET @CodPrestador = ISNULL(@CodPrestador, '110010999901');
     SET @NumDocumentoPrestador = ISNULL(@NumDocumentoPrestador, '900123456');
 
-    -- ==========================================================================================
-    -- DIAGNOSTIC MATRIX EXTRACTION RULE: Resolve the compliance diagnostic code per patient visit
-    -- ==========================================================================================
-    SELECT TOP 1 @ResolvedPrincipalDiagnosis = prob.ProblemCode
+    SELECT TOP 1 
+        @ResolvedPrincipalDiagnosis = prob.ProblemCode,
+        @ResolvedPrincipalDiagnosisCIE11 = prob.ICD11Code,
+        @ResolvedNomPrincipalCIE11 = prob.ICD11Description,
+        @ResolvedRelatedDiagnosis1CIE11 = prob.ICD11RelatedCode,
+        @ResolvedNomRelated1CIE11 = prob.ICD11RelatedDescription,
+        @ResolvedComplicationCIE11 = prob.ICD11ComplicationCode,
+        @ResolvedNomComplicationCIE11 = prob.ICD11ComplicationDescription
     FROM ClinicalGeniusEhr.dbo.PatientProblems prob WITH(NOLOCK)
     WHERE prob.PatientVisit = @PatientVisit
       AND prob.Status = 'Active'
@@ -85,7 +92,23 @@ BEGIN
 
     SET @ResolvedPrincipalDiagnosis = ISNULL(@ResolvedPrincipalDiagnosis, 'R69X');
 
-    -- Open atomic transaction block to safely seed the RIPS ledgers
+    IF EXISTS (
+        SELECT 1 
+        FROM ClinicalGeniusSupplyChain.dbo.PayerClaims pyc WITH(NOLOCK)
+        INNER JOIN ClinicalGeniusEhr.dbo.PatientPayers ppy WITH(NOLOCK) ON ppy.PatientPayerGuid = pyc.PayerGuid
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.InsurancePlans isp WITH(NOLOCK) ON isp.PlanGuid = ppy.PayerPlan
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.InsuranceContracts isc WITH(NOLOCK) ON isc.ContractGuid = isp.ContractGuid
+        INNER JOIN ClinicalGeniusSupplyChain.dbo.Payers pyr WITH(NOLOCK) ON pyr.PayerGuid = isc.PayerGuid
+        WHERE pyc.ClaimGuid = @ClaimGuid AND pyr.PayerType = '10'
+    )
+    BEGIN
+        SET @IsSOATPolicyholder = 1;
+    END
+
+    SELECT TOP 1 @CodigoVIDA = pv.IHCE_VIDACode 
+    FROM ClinicalGeniusEhr.dbo.PatientVisits pv WITH(NOLOCK) 
+    WHERE pv.PatientVisitUniqueId = @PatientVisit;
+
     BEGIN TRAN;
     BEGIN TRY
         
@@ -104,7 +127,8 @@ BEGIN
 
         -- 2. Insert RIPS User profile extraction mapping rules
         INSERT INTO ClinicalGeniusSupplyChain.dbo.RipsUsuarios (
-            RipsGuid, TipoIdentificacion, NumIdentificacion, TipoUsuario, FechaNacimiento, CodSexo, CodMunicipioResidencia, ZonaTerritorioResidencia
+            RipsGuid, TipoIdentificacion, NumIdentificacion, TipoUsuario, FechaNacimiento, CodSexo, 
+            CodMunicipioResidencia, ZonaTerritorioResidencia, CodPaisOrigen, RegistroSIRAS
         )
         SELECT TOP 1
             @RipsGuid,
@@ -118,14 +142,16 @@ BEGIN
                 ELSE 'I'
             END, 
             ISNULL(adx.MunicipalityCode, '11001'), 
-            ISNULL(adx.ResidencyZone, '01') -- Default to Urbana
+            ISNULL(adx.ResidencyZone, '01'), 
+            ISNULL(adx.CountryOfOrigin, '170'),
+            CASE WHEN @IsSOATPolicyholder = 1 THEN ISNULL(pv.SOATRegistryId, 'PENDING-SIRAS') ELSE NULL END
         FROM ClinicalGeniusEhr.dbo.PatientVisits pv WITH(NOLOCK)
         INNER JOIN ClinicalGeniusEhr.dbo.PatientTable pt WITH(NOLOCK)
             ON pt.RecordUniqueId = pv.PatientId
         OUTER APPLY
             (SELECT TOP 1 
                 ISNULL(adr.BarangayCode,'') AS MunicipalityCode,
-                -- Map the legacy/text county fields strictly to RIPS 01 (Urbana) or 02 (Rural)
+                ISNULL(adr.CountryCode,'170') AS CountryOfOrigin,
                 CASE 
                     WHEN adr.County IN ('Urbana', 'U', '1', '01') THEN '01'
                     WHEN adr.County IN ('Rural', 'R', '2', '02') THEN '02'
@@ -151,7 +177,7 @@ BEGIN
              ORDER BY pyc.BatchNumber ASC) pyx
         WHERE pv.PatientVisitUniqueId = @PatientVisit;
 
-        -- 3. Filter and Stamp Transactions (The lock prevents double processing)
+        -- 3. Filter and Stamp Transactions
         UPDATE pt
         SET 
             pt.RIPSBatchId = @RipsGuid,
@@ -166,6 +192,7 @@ BEGIN
             INSERTED.SurgeryGuid,
             INSERTED.TransactionType,
             INSERTED.NetAmount,
+            INSERTED.DispensingValue,
             INSERTED.TransactionQuantity,
             INSERTED.ExternalProcessedDateTime,
             INSERTED.CUMCode,
@@ -176,55 +203,52 @@ BEGIN
           AND pt.Facility = @FacilityId
           AND pt.Status = 'Active'
           AND pt.RIPSBatchId IS NULL
-          -- Workflow Gate: Ensure Professional Fees (Honorary) have cleared DIAN before RIPS
           AND (
               pt.TransactionType <> 'Honorary' 
               OR pt.CurrentWorkflowStatus = 'Batched for DIAN'
               OR pt.CurrentWorkflowStatus IS NULL
           );
 
-        -- 4. Extract locked active items into the unified services array
+        -- 4. Extract locked active items into RipsServicios (Isolating Base Cost vs. Dispensing Fee)
         INSERT INTO ClinicalGeniusSupplyChain.dbo.RipsServicios (
-            RipsGuid, TransactionGuid, SurgeryGuid, ServiceCategory, ModalidadPago, CodServicio, Cantidad, 
-            ValorUnitario, ValorTotal, ConceptoRecaudo, ValorCuota, FechaPrestacion, DiagnosticoPrincipal,
-            ViaIngresoServicioSalud, CausaMotivoAtencion, ModalidadGrupoServicioTecSal, FinalidadTecnologiaSalud, CodPrestadorRemitente
+            RipsGuid, TransactionGuid, ServiceCategory, CodServicio, Cantidad, 
+            ValorUnitario, ValorTotal, ValorDispensacion, ConceptoRecaudo, ValorCuota, FechaPrestacion, 
+            DiagnosticoPrincipal, DiagnosticoPrincipalCIE11, NomDiagnosticoPrincipalCIE11,
+            DiagnosticoRelacionado1CIE11, NomDiagnosticoRelacionado1CIE11,
+            ComplicacionCIE11, NomComplicacionCIE11,
+            FinalidadTecnologia, CodigoVIDA
         )
         SELECT 
             @RipsGuid,
             pt.TransactionGuid,
-            pt.SurgeryGuid, 
             CASE 
-                WHEN pt.TransactionType IN ('Surgery', 'Procedure', 'BundleMaster', 'Honorary', 'RoomRights', 'Materials', 'Laboratory', 'Imaging') THEN 'Procedimientos'
+                WHEN pt.TransactionType IN ('Surgery', 'Procedure', 'BundleMaster', 'Honorary', 'RoomRights', 'Laboratory', 'Imaging') THEN 'Procedimientos'
                 WHEN pt.TransactionType = 'Medication' THEN 'Medicamentos'
-                WHEN pt.TransactionType = 'Stay' THEN 'Stay' 
-                WHEN pt.TransactionType = 'Supplies' THEN 'Insumos'
                 ELSE 'OtrosServicios'
             END AS ServiceCategory,
-            CASE 
-                WHEN pt.TransactionType = 'Supplies' AND pt.SurgeryGuid IS NOT NULL AND pt.NetAmount > 0 THEN '02'
-                WHEN pt.TransactionType = 'BundleMaster' THEN '01'
-                WHEN pt.SurgeryGuid IS NOT NULL AND pt.NetAmount = 0 THEN '01'
-                WHEN pt.TransactionType = 'Stay' AND pt.NetAmount > 0 THEN '02'
-                ELSE '02' 
-            END AS ModalidadPago,
             CASE WHEN pt.TransactionType = 'Medication' THEN pt.CUMCode ELSE pt.CupsCode END AS CodServicio,
             pt.TransactionQuantity,
-            CASE WHEN pt.TransactionQuantity > 0 THEN (pt.NetAmount / pt.TransactionQuantity) ELSE pt.NetAmount END AS ValorUnitario,
-            pt.NetAmount AS ValorTotal, 
+            -- Unit value derived from base cost excluding dispensing fee
+            CASE WHEN pt.TransactionQuantity > 0 THEN ((pt.NetAmount - ISNULL(pt.DispensingValue, 0.00)) / pt.TransactionQuantity) ELSE (pt.NetAmount - ISNULL(pt.DispensingValue, 0.00)) END AS ValorUnitario,
+            -- ValorTotal strictly excludes the dispensing fee per Resolution 948
+            (pt.NetAmount - ISNULL(pt.DispensingValue, 0.00)) AS ValorTotal, 
+            -- ValorDispensacion isolates the explicit fee
+            ISNULL(pt.DispensingValue, 0.00) AS ValorDispensacion,
             '05' AS ConceptoRecaudo, 
-            0.00, 
+            0.00 AS ValorCuota, 
             pt.ExternalProcessedDateTime,
             @ResolvedPrincipalDiagnosis AS DiagnosticoPrincipal,
-            ISNULL(pv.mdlAdmit_ArrivedByCode, '01') AS ViaIngresoServicioSalud,
-            ISNULL(pv.mdlAdmit_AdmissionType, '34') AS CausaMotivoAtencion,
-            ISNULL(pv.mdlAdmit_DRGCode, '01') AS ModalidadGrupoServicioTecSal,
-            ISNULL(pv.mdlAdmit_AmbulanceID, '10') AS FinalidadTecnologiaSalud,
-            th.REPSCode AS CodPrestadorRemitente
+            @ResolvedPrincipalDiagnosisCIE11 AS DiagnosticoPrincipalCIE11,
+            @ResolvedNomPrincipalCIE11 AS NomDiagnosticoPrincipalCIE11,
+            @ResolvedRelatedDiagnosis1CIE11 AS DiagnosticoRelacionado1CIE11,
+            @ResolvedNomRelated1CIE11 AS NomDiagnosticoRelated1CIE11,
+            @ResolvedComplicationCIE11 AS ComplicacionCIE11,
+            @ResolvedNomComplicationCIE11 AS NomComplicacionCIE11,
+            ISNULL(pv.mdlAdmit_AmbulanceID, '44') AS FinalidadTecnologia,
+            @CodigoVIDA AS CodigoVIDA
         FROM @LockedTransactions pt
         INNER JOIN ClinicalGeniusEhr.dbo.PatientVisits pv WITH(NOLOCK)
-            ON pv.PatientVisitUniqueId = pt.PatientVisit
-        LEFT JOIN ClinicalGeniusEhr.dbo.TransferHospitals th WITH(NOLOCK)
-            ON th.TransferHospitalGuid = pv.mdlAdmit_FacilityTransferredFrom;
+            ON pv.PatientVisitUniqueId = pt.PatientVisit;
 
         COMMIT TRAN;
     END TRY
