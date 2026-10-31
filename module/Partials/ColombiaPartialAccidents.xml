@@ -23,7 +23,7 @@
             reveal="[mdlAdmit_AdmissionType]=21|24"
             edit="true" required="[mdlAdmit_AdmissionType]=21|24"/>
         </row>
-        <!-- New row for FURAT Number, revealed conditionally at the row level -->
+        <!-- Row for FURAT Number, revealed conditionally at the row level -->
         <row name="rowFuratNumber" reveal="[Acc_Arl]=True">
           <control type="label" label="Número de Radicado FURAT" span="2"/>
           <control type="text" name="Acc_FuratNumber" span="4" edit="true" 
@@ -121,7 +121,7 @@
       </subset>
 
       <subset name="subOwner" reveal="[Acc_Insurance]=2|4|6|8" bgcolor="white">
-        <!-- SECTION VI: DATOS PROPIETARIO (Applies to States 2, 4, 6, 8) -->
+        <!-- SECTION VI: DATOS PROPIETARIO -->
         <row>
           <control type="label" label="DATOS DEL PROPIETARIO" span="12" align="left" bold="true"/>
         </row>
@@ -176,7 +176,7 @@
       </subset>
 
       <subset name="subDriver" reveal="[Acc_Insurance]=2|4|6|7|8" bgcolor="white">
-        <!-- SECTION VII: DATOS CONDUCTOR (Applies to States 2, 4, 6, 7, 8) -->
+        <!-- SECTION VII: DATOS CONDUCTOR -->
         <row>
           <control type="label" label="DATOS DEL CONDUCTOR" span="12" align="left" bold="true"/>
         </row>

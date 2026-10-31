@@ -16,15 +16,15 @@
           source="CUPSCode,CUPSDescription,SOATCode,SOATDescription,ISS2001Code,ISS2001Description"
           sourcelabels="Código CUPS,Descripción CUPS,Código SOAT,Descripción SOAT,Código ISS 2001,Descripción ISS 2001"
           align="left|left|left|left|left|left|left"
-          key="CUPSCode">
+          key="ManualValuesGuid">
         <control type="button" name="btnUpdateCUPS" label="Actualizar CUPS al SOAT y ISS 2001" color="green" icon="cloud-upload"
           action="batchupdate"
           capture="dgrCUPSList"
-          key="RecId"
+          key="ManualValuesGuid"
           acctsvc="true"
           dataupdate="Staging_ManualValues"
           skipbatchrow="[[Status]]=update"
-          postwithout="Status,YearOfService"
+          postwithout="RecId,CUPSCode,CUPSDescription,Status,YearOfService"
           provoke="dgrCUPSList"/>
         </control>
       </row>

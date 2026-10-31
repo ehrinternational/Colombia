@@ -1,17 +1,27 @@
--- UpdateAccidents.sql
+-- ==========================================================================================
+-- UPDATE ACCIDENT RECORD (SOAT / ARL REGULATORY CAPTURE)
+-- TARGET ARCHITECTURE: SQL Server 2014+ / Azure SQL Database
+-- ==========================================================================================
+
+IF OBJECT_ID('dbo.COLUpdateAccidents', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.COLUpdateAccidents;
+GO
+
 CREATE PROCEDURE dbo.COLUpdateAccidents
     @AccidentGuid NVARCHAR(50),
+    @PatientVisit NVARCHAR(50) = NULL,
     @AccidentType INT = NULL,
-    @Description VARCHAR(500) = NULL,
+    @Description NVARCHAR(500) = NULL,
     @Arl BIT = NULL,
+    @ArlNumber VARCHAR(20) = NULL,
     @FuratNumber VARCHAR(20) = NULL,
     @DateTime DATETIME = NULL,
     @Zone VARCHAR(2) = NULL,
-    @AccLocation VARCHAR(255) = NULL,
+    @AccLocation NVARCHAR(255) = NULL,
     @StateCode VARCHAR(10) = NULL,
-    @State VARCHAR(100) = NULL,
+    @State NVARCHAR(100) = NULL,
     @MunicipalCode VARCHAR(10) = NULL,
-    @Municipality VARCHAR(100) = NULL,
+    @Municipality NVARCHAR(100) = NULL,
     @SubType VARCHAR(2) = NULL,
     @Condition VARCHAR(2) = NULL,
     @Insurance VARCHAR(2) = NULL,
@@ -22,40 +32,43 @@ CREATE PROCEDURE dbo.COLUpdateAccidents
     @Limit BIT = NULL,
     @PolicyStart DATE = NULL,
     @PolicyEnd DATE = NULL,
-    @DocumentType VARCHAR(2) = NULL,
+    @RegistroSIRAS NVARCHAR(60) = NULL,
+    @DocumentType VARCHAR(5) = NULL,
     @DocumentNumber VARCHAR(20) = NULL,
-    @OwnerName VARCHAR(30) = NULL,
-    @OwnerSecondName VARCHAR(30) = NULL,
-    @OwnerMiddleName VARCHAR(30) = NULL,
-    @OwnerLastName VARCHAR(30) = NULL,
-    @OwnerAddress VARCHAR(100) = NULL,
-    @OwnerPhone VARCHAR(10) = NULL,
+    @OwnerName NVARCHAR(30) = NULL,
+    @OwnerSecondName NVARCHAR(30) = NULL,
+    @OwnerMiddleName NVARCHAR(30) = NULL,
+    @OwnerLastName NVARCHAR(30) = NULL,
+    @OwnerAddress NVARCHAR(100) = NULL,
+    @OwnerPhone VARCHAR(20) = NULL,
     @OwnerStateCode VARCHAR(10) = NULL,
-    @OwnerState VARCHAR(100) = NULL,
+    @OwnerState NVARCHAR(100) = NULL,
     @OwnerMunicipalityCode VARCHAR(10) = NULL,
-    @OwnerMunicipality VARCHAR(100) = NULL,
-    @DriverDocumentType VARCHAR(2) = NULL,
+    @OwnerMunicipality NVARCHAR(100) = NULL,
+    @DriverDocumentType VARCHAR(5) = NULL,
     @DriverDocumentNumber VARCHAR(20) = NULL,
-    @DriverName VARCHAR(30) = NULL,
-    @DriverSecondName VARCHAR(30) = NULL,
-    @DriverMiddleName VARCHAR(30) = NULL,
-    @DriverLastName VARCHAR(30) = NULL,
-    @DriverAddress VARCHAR(100) = NULL,
-    @DriverTelephone VARCHAR(10) = NULL,
+    @DriverName NVARCHAR(30) = NULL,
+    @DriverSecondName NVARCHAR(30) = NULL,
+    @DriverMiddleName NVARCHAR(30) = NULL,
+    @DriverLastName NVARCHAR(30) = NULL,
+    @DriverAddress NVARCHAR(100) = NULL,
+    @DriverTelephone VARCHAR(20) = NULL,
     @DriverStateCode VARCHAR(10) = NULL,
-    @DriverState VARCHAR(100) = NULL,
+    @DriverState NVARCHAR(100) = NULL,
     @DriverMunicipalCode VARCHAR(10) = NULL,
-    @DriverMunicipality VARCHAR(100) = NULL,
-    @ModifiedBy VARCHAR(100) = NULL
+    @DriverMunicipality NVARCHAR(100) = NULL,
+    @ModifiedBy NVARCHAR(100) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
     UPDATE dbo.Accident
-    SET 
+    SET
+        PatientVisit = COALESCE(NULLIF(@PatientVisit, N''), PatientVisit),
         AccidentType = @AccidentType,
         Description = @Description,
         Arl = @Arl,
+        ArlNumber = CASE WHEN @Arl = 1 THEN @ArlNumber ELSE NULL END,
         FuratNumber = CASE WHEN @Arl = 1 THEN @FuratNumber ELSE NULL END,
         DateTime = @DateTime,
         Zone = @Zone,
@@ -74,6 +87,7 @@ BEGIN
         Limit = @Limit,
         PolicyStart = @PolicyStart,
         PolicyEnd = @PolicyEnd,
+        RegistroSIRAS = @RegistroSIRAS,
         DocumentType = @DocumentType,
         DocumentNumber = @DocumentNumber,
         OwnerName = @OwnerName,

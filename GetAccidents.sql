@@ -1,16 +1,26 @@
--- GetAccidents.sql
+-- ==========================================================================================
+-- GET ACCIDENT RECORDS (TABMODAL RETRIEVAL)
+-- TARGET ARCHITECTURE: SQL Server 2014+ / Azure SQL Database
+-- ==========================================================================================
+
+IF OBJECT_ID('dbo.ColGetAccidents', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.ColGetAccidents;
+GO
+
 CREATE PROCEDURE dbo.ColGetAccidents
-    @AccidentGuid NVARCHAR(50),
-    @PatientVisit NVARCHAR(50)
+    @AccidentGuid NVARCHAR(50) = NULL,
+    @PatientVisit NVARCHAR(50) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT 
+
+    SELECT
         AccidentGuid,
-        PatientVisitGuid,
+        PatientVisit,
         AccidentType,
         Description,
         Arl,
+        ArlNumber,
         FuratNumber,
         DateTime,
         Zone,
@@ -29,6 +39,7 @@ BEGIN
         Limit,
         PolicyStart,
         PolicyEnd,
+        RegistroSIRAS,
         DocumentType,
         DocumentNumber,
         OwnerName,
@@ -52,9 +63,14 @@ BEGIN
         DriverStateCode,
         DriverState,
         DriverMunicipalCode,
-        DriverMunicipality
+        DriverMunicipality,
+        CreatedDate,
+        CreatedBy,
+        ModifiedDate,
+        ModifiedBy
     FROM dbo.Accident
-    WHERE (@AccidentGuid IS NULL Or AccidentGuid = @AccidentGuid)
-    AND   (@PatientVisit IS NULL Or PatientVisit = @PatientVisit);
+    WHERE (@AccidentGuid IS NOT NULL OR @PatientVisit IS NOT NULL)
+      AND (@AccidentGuid IS NULL OR AccidentGuid = @AccidentGuid)
+      AND (@PatientVisit IS NULL OR PatientVisit = @PatientVisit);
 END;
 GO
