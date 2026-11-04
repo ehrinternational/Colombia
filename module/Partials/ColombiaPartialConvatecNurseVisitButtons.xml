@@ -1,0 +1,37 @@
+<partial>
+    <row>
+    <!-- Admit patient with no current visit -->
+    <control type="button" name="btnAdmitButton" span="12" color="green" label="Ingresar" icon="cloud-upload"
+      reveal="[HasOpenVisit]=false"
+      tooltip="Haga clic para ingresar a este paciente" 
+      action="save" 
+      confirm="Por favor confirme que quiere ingresar a este paciente."
+      affector="PatientVisitGuid"
+      setaffector="PatientVisitUniqueId"
+      capture="VisitInfo"
+      datainsert="InsertPatientVisitAllFields"
+      appendinsert="
+        patientId=[PatientId],
+        visitType=[DefaultAdmitType],
+        preAdmit=0,
+        locationId=(facilityData.LocationId)"
+      set="HasOpenVisit=true,PatientVisit=[PatientVisitGuid]"
+      provoke="ButtonGroupSelect,[ArrivalTicketGuid]!;btnUpdateArrivalTicket"/>
+    </row>
+    <row name="rowReadyForDischargeButtons" reveal="HasOpenVisit=true">
+      <control type="button" name="btnAltaMedica"
+        reveal="ReadyForDischarge=true"
+        span="12" icon="home" label="Alta Médica"
+        color="green" action="redirect"
+        trigger="GetReadyForDischarge"
+        preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+        target="mdlReadyForDischarge"/>
+      <control type="button" name="btnNoAltaMedica"
+        reveal="ReadyForDischarge=false"
+        span="12" icon="home" label="Alta Médica"
+        color="grey" action="redirect"
+        trigger="GetReadyForDischarge"
+        preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+        target="mdlReadyForDischarge"/>
+    </row>
+</partial>

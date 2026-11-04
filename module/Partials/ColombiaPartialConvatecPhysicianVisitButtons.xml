@@ -1,0 +1,56 @@
+<partial>
+    <row>
+      <control type="hidden" name="CalendarVisitType"/>
+      <!-- Admit patient with no open visit -->
+      <control type="button" name="btnAdmitButton" label="Ingresar Paciente" span="12"
+        reveal="[PatientId]!+[HasOpenVisit]=false+[Patient_Active]=true+[CalendarVisitType]=Telemedicine"
+        color="orange" icon="cloud-upload" action="save" 
+        confirm="Por favor confirme que quiere ingresar a este paciente."
+        affector="PatientVisitGuid"
+        setaffector="PatientVisitUniqueId"
+        capture="VisitInfo"
+        datainsert="InsertPatientVisitAllFields"
+        appendinsert="
+          copyApprovals=true,
+          patientId=[PatientId],
+          visitType=[DefaultAdmitType],
+          hospitalService=Esperando,
+          preAdmit=0,
+          admitDateTime=(now),
+          locationId=(facilityData.LocationId),
+          readyForDischarge=false"
+        set="HasOpenVisit=true,
+          PatientVisit=[PatientVisitGuid],
+          ReadyForDischarge=false,
+          AllowDischarge=true"
+        provoke="PatientVisitGuid,ButtonGroupSelect"/>
+    </row>
+    <row>
+      <control type="button" name="btnTimeline"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+    </row>
+    <!-- AI buttons -->
+  <partial link="Partials/ColombiaPartialCLARAPhysicianButtons.xml"/>
+  <row name="rowReadyForDischargeButtons" reveal="HasOpenVisit=true+[PatientVisitGuid]!">
+    <control type="button" name="btnAltaMedica"
+      reveal="ReadyForDischarge=true"
+      span="12" icon="home" label="Alta Médica"
+      color="green" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+    <control type="button" name="btnNoAltaMedica"
+      reveal="ReadyForDischarge=false"
+      span="12" icon="home" label="Alta Médica"
+      color="grey" action="redirect"
+      trigger="GetReadyForDischarge"
+      preset="Ready_PatientId=[PatientId],Ready_PatientVisitGuid=[PatientVisitGuid]"
+      target="mdlReadyForDischarge"/>
+  </row>
+</partial>

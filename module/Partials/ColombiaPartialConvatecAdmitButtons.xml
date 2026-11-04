@@ -1,0 +1,69 @@
+<partial>
+  <row name="rowPatientPhoto" reveal="[PatientId]!">
+    <!-- Patient photo -->
+    <control type="image" name="Admit_ProfilePhoto" span="12" format="jpg=circle" default="null"/>
+  </row>
+  <row showif="never">
+    <control type="hidden" name="btnUpdatePatientPhoto"
+      datarequest="GetPatientPhotoBySize"
+      appendrequest="patientId=[PatientId]"
+      set="Admit_ProfilePhoto=[[BinaryPhoto]]"/>
+  </row>
+  <row>
+    <control type="button" name="btnTakeProfilePhoto" span="12" label="Foto" icon="camera"
+      reveal="[PatientId]!"
+      action="patientphoto" 
+      append="patientId=[PatientId]" 
+      provoke="btnUpdatePatientPhoto" /> 
+  </row>
+  <!-- Partial hospital admit buttons -->
+  <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+    <control type="label" label=" " span="12"/>
+    <control type="button" name="btnAdmitSearchPatients" span="12"
+      label="Buscar Pacientes" icon="search"
+      preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+      trigger="Search_FindPatient"
+      action="redirect" target="mdlFindPatients"/>
+  </row>
+  <row showif="never">
+    <control type="button" name="AdmitSearchReturn"
+      action="trigger"
+      set="PatientId=[PatientSearchResults]"
+      provoke="PatientId"/>
+  </row>
+  <row name="rowSaveNewPatient">
+    <control type="button" name="SaveNewPatientButton" span="12" label="Paciente Nuevo" icon="cloud-upload"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      action="save"
+      confirm="Por favor confirme que quiere generar a este paciente nuevo."
+      datainsert="InsertPatient"/>
+  </row>
+  <row name="rowAdmitPatientUpdate" reveal="[PatientId]!">
+    <!--Save patient information-->
+    <control type="button" name="btnPatientUpdate" span="12" label="Actualizar" icon="refresh"
+      affector="PatientId"
+      setaffector="RecordUniqueId"
+      capture="PatientInfo" 
+      action="save"
+      confirm="Por favor confirme que quiere actualizar a este paciente."
+      dataupdate="UpdatePatient"
+      appendupdate="PatientId=[PatientId]"
+      provoke="[HasOpenVisit]=true;btnUpdatePatientVisit"/>
+  </row>
+  <!-- Partial Hospital Visit Buttons -->
+  <row name="rowSendText" reveal="[PatientCellPhone]!">
+    <control type="button" name="btnSendTextMessage2"  
+      span="12" icon="envelope" label="Texto"
+      preset="Send_PhoneNumber=[PatientCellPhone],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages2"
+      action="redirect" target="mdlSendTextMessage"/>
+  </row>
+  <row name="rowSendEmail" reveal="[Consult_PatientEmail]!">
+    <control type="button" name="btnSendEmailMessage2" span="12" icon="envelope" label="Email"
+      preset="Send_EmailAddress=[Consult_PatientEmail],Send_PatientId=[PatientId]"
+      trigger="grdPhysicianMessages1"
+      action="redirect" target="mdlSendEmailMessage"/>
+  </row>
+</partial>

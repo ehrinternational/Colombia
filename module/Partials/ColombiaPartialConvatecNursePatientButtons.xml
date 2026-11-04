@@ -1,0 +1,132 @@
+<partial>
+     <row name="rowPatientPhoto" reveal="[PatientId]!">
+      <!-- Patient photo -->
+      <control type="image" name="Admit_ProfilePhoto" span="12" format="jpg=circle" default="null"/>
+    </row>
+    <row showif="never">
+      <control type="hidden" name="btnUpdatePatientPhoto"
+        datarequest="GetPatientPhotoBySize"
+        appendrequest="patientId=[PatientId]"
+        set="Admit_ProfilePhoto=[[BinaryPhoto]]"/>
+    </row>
+    <row>
+      <control type="button" name="btnTakeProfilePhoto" span="12" label="Foto" icon="camera"
+        reveal="[PatientId]!"
+        action="patientphoto" 
+        append="patientId=[PatientId]" 
+        provoke="btnUpdatePatientPhoto" /> 
+    </row>
+    <!-- Partial Outpatient Nursing Patient Buttons -->
+    <row name="rowAdmitSearchButton" reveal="[PatientId]=">
+      <control type="label" label=" " span="12"/>
+      <control type="button" name="btnAdmitSearchPatients" span="12"
+        label="Buscar Pacientes" icon="search"
+        preset="PatientSearched=true,PatientSearchSource=7,Search_PatientFirstName=[Consult_PatientFirstName],Search_PatientMiddleName=[Consult_PatientMiddleName],Search_PatientLastName=[Consult_PatientLastName]"
+        trigger="Search_FindPatient"
+        action="redirect" target="mdlFindPatients"/>
+    </row>
+    <row showif="never">
+      <control type="button" name="AdmitSearchReturn"
+        action="trigger"
+        set="PatientId=[PatientSearchResults]"
+        provoke="PatientId"/>
+    </row>
+    <row>
+      <control type="button" name="SaveNewPatientButton" span="12" label="Paciente Nuevo" icon="cloud-upload"
+        reveal="[PatientId]="
+        affector="PatientId"
+        setaffector="RecordUniqueId"
+        capture="PatientInfo" 
+        action="save"
+        confirm="Por favor confirme que quiere generar a este paciente nuevo."
+        datainsert="InsertPatient"/>
+    </row>
+    <row>
+      <control type="button" name="Consult_PatientUpdate"
+        reveal="PatientId!" 
+        span="12" 
+        label="Actualizar"
+        affector="PatientId"
+        setaffector="RecordUniqueId"
+        capture="PatientInfo" 
+        icon="cloud-upload"
+        action="save"
+        confirm="Por favor confirme que quiere actualizar a este paciente."
+        dataupdate="UpdatePatient"
+        appendupdate="PatientId=[PatientId]"
+        provoke="[PatientVisitGuid]!;btnUpdatePatientVisit"/>
+    </row>
+    <row showif="never">
+      <control type="button" name="btnUpdatePatientVisit"
+        action="save|close|new"
+        affector="PatientVisitGuid"
+        setaffector="PatientVisitUniqueId"
+        capture="VisitInfo"
+        acctsvc="true"
+        dataupdate="UpdatePatientVisitNoDepartmentTracking"
+        appendupdate="patientVisitUniqueId=[PatientVisitGuid]"
+        provoke="PatientList"/>
+    </row>
+    <row>
+      <control type="button" name="addNursingNotes" span="12" color="yellowgreen" label="Notas" icon="user-md"
+        reveal="[PatientVisitGuid!"
+        action="redirect|view"
+        target="patient-notes"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],notetype=Nurse"/>
+    </row>
+    <row>
+      <control type="button" name="btnAcknowledgeRed"
+        reveal="[UnAcknowledgedOrders]!0+[PatientVisitGuid]!"
+        span="12"
+        color="red" icon="warning-sign" 
+        label="Reconocer"
+        action="redirect|view"
+        target="acknowledge"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+        provoke="GetUnAcknowledgedOrders"/>
+      <control type="button" name="btnAcknowledgeGreen"
+        reveal="[UnAcknowledgedOrders]=0+[PatientVisitGuid]!"
+        span="12"
+        color="green" icon="thumbs-up" 
+        label="Reconocer"
+        action="redirect|view"
+        target="acknowledge"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"
+        provoke="GetUnAcknowledgedOrders"/>
+    </row>
+    <row>
+      <control type="button"  name="btnLoadAdverseReactionECD" label="Reacción Adversa"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        color="red" span="12"
+        onclose="Advertencia: No ha guardado este documento. ¿Todavía quiere salir?"
+        action="redirect|url" 
+        target="ecd/index.html" 
+        usesource="login"
+        mode="ecd"
+        append="ecdGuid=03098ec0-ad84-43bb-b607-af6662654988,patientid=[PatientId],patientvisit=[PatientVisitGuid],Department=[DepartmentGuidLookup]"
+        provoke="EREcdForms"/>
+    </row>
+    <row>
+      <control type="button" name="btnTimeline"
+        reveal="[PatientId]!+[PatientVisitGuid]!"
+        span="12"
+        color="yellow" icon="time" 
+        label="Cronograma"
+        action="redirect|view"
+        target="timeline"
+        append="patientid=[PatientId],patientvisit=[PatientVisitGuid],distinct=true"/>
+    </row>
+    <row>
+    <control type="button" name="btnEmailPatient" reveal="[PatientId]!"
+      span="12" icon="envelope" label="Email"
+      preset="bmd_PatientId=[PatientId],
+      bmd_PatientFirstName=[Consult_PatientFirstName],
+      bmd_PatientMiddleName=[Consult_PatientMiddleName],
+      bmd_PatientLastName=[Consult_PatientLastName],
+      bmd_EmailAddress=[Consult_PatientEmail]"
+      trigger="grdEmailAndText,bmd_PatientAttachmentGuids"   
+      action="redirect" target="mdlSendWYSIWYGEmail"/>
+    </row>
+    <!-- AI buttons -->
+    <partial link="Partials/ColombiaPartialCLARAButtons.xml"/>
+</partial>
